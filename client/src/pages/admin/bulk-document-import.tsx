@@ -1683,6 +1683,23 @@ export default function BulkDocumentImportPage() {
   // Local tag selection state lives inside that component (with debounce).
   const [tagSaveStatus, setTagSaveStatus] = useState<Map<string, 'idle' | 'saving' | 'saved' | 'error'>>(new Map());
   const [autoSaveStatus, setAutoSaveStatus] = useState<Map<string, 'idle' | 'saving' | 'saved' | 'error'>>(new Map());
+  // Auto-apply tracking refs (Task #1149). Each map records the suggestion
+  // signature (date string / sorted tag UUID list) that was last auto-applied
+  // for each item so that:
+  //   • The same suggestion never fires twice (de-duplication across re-renders).
+  //   • A fresh AI suggestion that differs from the previously applied one
+  //     does fire once more (handles per-item retries that return new outputs).
+  // prevEffectiveDateRef detects the identificationEffectiveDate non-null → null
+  // transition that indicates a date reset, so the fresh date hint re-applies.
+  // prevIdentificationTagsNonNullRef detects the identificationTags non-null → null
+  // transition (step reset sets identification=null → identificationTags=null)
+  // so the fresh AI suggestion can re-apply even if the signature is unchanged.
+  // This is safe because admin-explicit tag clears set identificationTags=[]
+  // (empty array, not null), which does NOT trigger the transition guard.
+  const autoAppliedDateRef = useRef<Map<string, string>>(new Map());
+  const autoAppliedTagsRef = useRef<Map<string, string>>(new Map());
+  const prevEffectiveDateRef = useRef<Map<string, string | null>>(new Map());
+  const prevIdentificationTagsNonNullRef = useRef<Map<string, boolean>>(new Map());
   // Per-item sorting-decision error map (Task #1036). Keyed by item id.
   // Populated when set-sorting-decision returns a 400 with a recognised
   // PDF-corruption code so the affected card can show an inline alert
@@ -1789,6 +1806,19 @@ export default function BulkDocumentImportPage() {
       return anyRunning ? 2000 : 5000;
     },
   });
+
+  // Fetch document tags for the auto-apply legacy name-match path (Task #1149).
+  // Uses the same queryKey as IdentificationTagRow so the data is served from
+  // the TanStack Query cache — no extra network request.
+  const { data: allTagsData } = useQuery<{ tags: Array<{ id: string; name: string; scope: string; importance: string; isSystem: boolean }> }>({
+    queryKey: ['/api/document-tags'],
+  });
+  // Memoize so the reference is stable across re-renders (avoids spurious
+  // effect runs since allTagsForAutoApply is a dep of the auto-apply effect).
+  const allTagsForAutoApply = useMemo(
+    () => allTagsData?.tags ?? [],
+    [allTagsData],
+  );
 
   const session = payload?.session;
   const items = payload?.items ?? [];
@@ -2649,6 +2679,119 @@ export default function BulkDocumentImportPage() {
       });
     },
   });
+
+  /**
+   * Auto-apply AI suggestions for effective date and tags (Task #1149).
+   *
+   * Runs whenever `items` or `currentStep` changes. For each item visible in
+   * the Identification step the effect fires the existing mutations on the
+   * admin's behalf — once per suggestion source per item per browser session.
+   *
+   * Guard rails:
+   * - `autoAppliedDateRef` / `autoAppliedTagsRef` ensure each auto-apply
+   *   fires at most once per item, preventing duplicate mutations across
+   *   re-renders or polling refreshes.
+   * - `prevEffectiveDateRef` detects a non-null → null transition (i.e. the
+   *   admin used "Reprendre l'étape à zéro"), which removes the item from the
+   *   date ref so the fresh AI suggestion is re-applied automatically.
+   * - `prevStoredTagsKeyRef` does the same for tags: when the stored tag list
+   *   transitions from non-empty to empty the item is removed from the tags
+   *   ref so a fresh suggestion is re-applied.
+   * - Manual overrides (`identificationEffectiveDateManualOverride`) are
+   *   respected: the date auto-apply never fires when the admin has typed a
+   *   custom date.
+   */
+  useEffect(() => {
+    if (currentStep !== 'identification') return;
+
+    for (const item of items) {
+      // ── Effective-date auto-apply ────────────────────────────────────────
+      // Detect "Reprendre à zéro" (non-null → null transition on
+      // identificationEffectiveDate) and clear the date tracking entry so the
+      // fresh suggestion can re-apply even when the hint value is unchanged.
+      const prevDate = prevEffectiveDateRef.current.get(item.id) ?? null;
+      if (prevDate !== null && item.identificationEffectiveDate === null) {
+        autoAppliedDateRef.current.delete(item.id);
+      }
+      prevEffectiveDateRef.current.set(item.id, item.identificationEffectiveDate);
+
+      if (
+        item.screeningParsedPeriodHintDate !== null &&
+        item.identificationEffectiveDate === null &&
+        !item.identificationEffectiveDateManualOverride &&
+        autoAppliedDateRef.current.get(item.id) !== item.screeningParsedPeriodHintDate
+      ) {
+        autoAppliedDateRef.current.set(item.id, item.screeningParsedPeriodHintDate);
+        setEffectiveDate.mutate({
+          itemId: item.id,
+          effectiveDate: item.screeningParsedPeriodHintDate,
+        });
+      }
+
+      // ── Tags auto-apply ──────────────────────────────────────────────────
+      // Detect step reset: "Reprendre à zéro" sets identification=null on the
+      // DB row, so identificationTags becomes null. Admin-explicit tag clears
+      // call set-tags with tagIds=[], which stores identification.tags=[] —
+      // an empty array, NOT null — so the null-transition guard is not
+      // triggered for admin-originated clears.
+      const tagsCurrentlyNonNull = item.identificationTags !== null;
+      const tagsPrevWasNonNull = prevIdentificationTagsNonNullRef.current.get(item.id) ?? false;
+      if (tagsPrevWasNonNull && !tagsCurrentlyNonNull) {
+        // identificationTags transitioned from non-null → null: step was reset.
+        // Clear the tag tracking entry so the fresh AI suggestion can re-apply
+        // even when the signature is identical to the previously applied one.
+        autoAppliedTagsRef.current.delete(item.id);
+      }
+      prevIdentificationTagsNonNullRef.current.set(item.id, tagsCurrentlyNonNull);
+
+      const rawTags = item.identificationTags ?? [];
+      const storedTagIds = rawTags.filter((t) => TAG_UUID_RE.test(t));
+
+      // Compute suggested tag IDs — mirrors IdentificationTagRow logic.
+      // Initialize to [] so the variable is always defined even when the
+      // item field is undefined (e.g., in test fixtures or legacy sessions).
+      let suggestedIds: string[] = [];
+      if (Array.isArray(item.identificationAiSuggestedTagIds)) {
+        suggestedIds = item.identificationAiSuggestedTagIds;
+      } else if (item.identificationAiSuggestedTagIds == null) {
+        // Legacy path: name-match free-form strings still stored in tags.
+        const aiNames = rawTags.filter((t) => !TAG_UUID_RE.test(t));
+        if (aiNames.length > 0 && allTagsForAutoApply.length > 0) {
+          const nameMap = new Map(
+            allTagsForAutoApply.map((t) => [t.name.toLowerCase(), t.id]),
+          );
+          suggestedIds = aiNames.flatMap((name) => {
+            const id = nameMap.get(name.toLowerCase());
+            return id ? [id] : [];
+          });
+        }
+      }
+
+      if (suggestedIds.length > 0) {
+        // Track by suggestion signature so a fresh AI output (different tag
+        // set after a per-item retry) triggers a new auto-apply while the
+        // same suggestion never fires more than once per signature.
+        const suggestedSig = suggestedIds.slice().sort().join(',');
+        if (autoAppliedTagsRef.current.get(item.id) !== suggestedSig) {
+          const alreadyApplied = suggestedIds.every((id) => storedTagIds.includes(id));
+          if (!alreadyApplied) {
+            // Merge with any already-stored UUID tags to avoid clobbering
+            // manually-applied tags that differ from the AI suggestion.
+            const merged = Array.from(new Set([...storedTagIds, ...suggestedIds]));
+            autoAppliedTagsRef.current.set(item.id, suggestedSig);
+            setItemTags.mutate({ itemId: item.id, tagIds: merged });
+          } else {
+            // Suggestions already present — mark this signature done.
+            autoAppliedTagsRef.current.set(item.id, suggestedSig);
+          }
+        }
+      }
+    }
+    // Intentionally omitting `setEffectiveDate` and `setItemTags` from deps:
+    // mutation objects are stable across renders and including them would
+    // cause an infinite loop since they are recreated on each render cycle.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, currentStep, allTagsForAutoApply]);
 
   /**
    * Auto-save (draft) mutation — fires every 500 ms via debounce whenever an
@@ -5757,15 +5900,14 @@ export default function BulkDocumentImportPage() {
                                     // the Save button's enabled/disabled state.
                                     const serverValue = item.identificationEffectiveDate ?? '';
                                     const dirty = trimmed !== serverValue;
-                                    // The "from screening" chip only makes sense when
-                                    // the periodHint is actually the source of truth:
-                                    // identification has no AI/admin date, the parsed
-                                    // hint exists, the admin hasn't overridden, and
-                                    // the input still mirrors the hint (i.e. the
-                                    // admin hasn't started typing something else).
+                                    // The "from screening" chip shows whenever the
+                                    // current input value comes from the screening
+                                    // AI periodHint — whether or not the date has
+                                    // already been persisted (e.g. by auto-apply).
+                                    // It hides once the admin types a different value
+                                    // (trimmed ≠ hint) or sets a manual override.
                                     const showFromScreening =
-                                      !item.identificationEffectiveDate
-                                      && !item.identificationEffectiveDateManualOverride
+                                      !item.identificationEffectiveDateManualOverride
                                       && !!item.screeningParsedPeriodHintDate
                                       && trimmed === (item.screeningParsedPeriodHintDate ?? '');
                                     return (
