@@ -28,7 +28,7 @@
  *   - An excluded row (`status: 'rejected'`) now DOES render the
  *     inline Retry button on every AI auto-step (Task #1225 reversed
  *     the Task #804 visibility filter for AI steps) and the button
- *     carries the "this row will remain excluded" warning aria-label.
+ *     carries the "this row will stay excluded" warning aria-label.
  *   - A row with a manual-override flag DOES render the inline Retry
  *     button (Task #1225 flip), and the button carries a warning
  *     title / aria-label.
@@ -446,7 +446,7 @@ describe('BulkDocumentImportPage — inline Retry on succeeded rows (Task #1199 
   });
 
   describe('excluded row DOES render the inline Retry button (Task #1225 reversed Task #804 for AI steps)', () => {
-    it('linking flat-list: excluded row (status="rejected") shows Retry with "will remain excluded" warning', async () => {
+    it('linking flat-list: excluded row (status="rejected") shows Retry with "will stay excluded" warning', async () => {
       scenarioStep = 'linking';
       scenarioVariant = 'excluded';
 
@@ -454,7 +454,7 @@ describe('BulkDocumentImportPage — inline Retry on succeeded rows (Task #1199 
       // The sibling success row anchors the page render. Task #1225
       // reversed the Task #804 `visibleItems` filter for AI auto-steps,
       // so the excluded row IS now rendered and its Retry button carries
-      // the "this row will remain excluded" warning aria-label.
+      // the "this row will stay excluded" warning aria-label.
       await waitForRow(SUCCESS_ID);
 
       const excludedRetry = await screen.findByTestId(
@@ -463,14 +463,14 @@ describe('BulkDocumentImportPage — inline Retry on succeeded rows (Task #1199 
       expect(excludedRetry).toBeInTheDocument();
       expect(excludedRetry).toBeEnabled();
       expect(excludedRetry.getAttribute('aria-label')).toBe(
-        'Re-run AI — this row will remain excluded',
+        'Re-run AI — this row will stay excluded',
       );
       expect(excludedRetry.getAttribute('title')).toBe(
-        'Re-run AI — this row will remain excluded',
+        'Re-run AI — this row will stay excluded',
       );
     });
 
-    it('branching grouped section: excluded row (status="rejected") shows Retry with "will remain excluded" warning', async () => {
+    it('branching grouped section: excluded row (status="rejected") shows Retry with "will stay excluded" warning', async () => {
       scenarioStep = 'branching';
       scenarioVariant = 'excluded';
 
@@ -486,10 +486,10 @@ describe('BulkDocumentImportPage — inline Retry on succeeded rows (Task #1199 
       expect(excludedRetry).not.toBeNull();
       expect(excludedRetry!).toBeEnabled();
       expect(excludedRetry!.getAttribute('aria-label')).toBe(
-        'Re-run AI — this row will remain excluded',
+        'Re-run AI — this row will stay excluded',
       );
       expect(excludedRetry!.getAttribute('title')).toBe(
-        'Re-run AI — this row will remain excluded',
+        'Re-run AI — this row will stay excluded',
       );
     });
   });

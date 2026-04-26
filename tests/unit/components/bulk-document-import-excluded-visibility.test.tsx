@@ -10,7 +10,7 @@
  *   - Screening step (step 2): excluded rows still appear (unchanged).
  *   - AI auto-steps (Branching, Sorting, Identification, Linking): excluded
  *     rows are NOW VISIBLE with strikethrough styling and a Retry button that
- *     carries the "this row will remain excluded" warning aria-label.
+ *     carries the "this row will stay excluded" warning aria-label.
  *   - Complete step (step 7): excluded rows still hidden (non-auto-step).
  *
  * Without this suite the visibility behaviour could silently regress.

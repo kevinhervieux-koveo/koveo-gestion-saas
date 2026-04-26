@@ -5058,16 +5058,16 @@ export default function BulkDocumentImportPage() {
                                               data-testid={`button-retry-${currentStep}-${item.id}`}
                                               title={
                                                 isExcluded
-                                                  ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will remain excluded')
+                                                  ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will stay excluded')
                                                   : item.branchManualOverride
-                                                  ? (isFr ? 'Relancer l\'IA — votre choix manuel sera peut-être écrasé' : 'Re-run AI — this may overwrite your manual choice')
+                                                  ? (isFr ? 'Relancer l\'IA — votre choix manuel pourrait être écrasé' : 'Re-run AI — this may overwrite your manual choice')
                                                   : undefined
                                               }
                                               aria-label={
                                                 isExcluded
-                                                  ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will remain excluded')
+                                                  ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will stay excluded')
                                                   : item.branchManualOverride
-                                                  ? (isFr ? 'Relancer l\'IA — votre choix manuel sera peut-être écrasé' : 'Re-run AI — this may overwrite your manual choice')
+                                                  ? (isFr ? 'Relancer l\'IA — votre choix manuel pourrait être écrasé' : 'Re-run AI — this may overwrite your manual choice')
                                                   : (isFr ? 'Réessayer' : 'Retry')
                                               }
                                             >
@@ -5514,7 +5514,7 @@ export default function BulkDocumentImportPage() {
                           excluded ones — must be reachable so admins can click
                           Retry without first un-excluding the row. The Retry
                           button for excluded rows carries a warning aria-label
-                          ("this row will remain excluded"). For non-auto steps
+                          ("this row will stay excluded"). For non-auto steps
                           (Upload, Complete) the old hide behaviour is kept. */}
                       {(() => {
                         const visibleItems = isAutoStep(currentStep)
@@ -7127,16 +7127,16 @@ export default function BulkDocumentImportPage() {
                                     data-testid={`button-retry-${currentStep}-${item.id}`}
                                     title={
                                       isExcluded
-                                        ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will remain excluded')
+                                        ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will stay excluded')
                                         : (currentStep === 'identification' && item.identificationEffectiveDateManualOverride)
-                                        ? (isFr ? 'Relancer l\'IA — votre choix manuel sera peut-être écrasé' : 'Re-run AI — this may overwrite your manual choice')
+                                        ? (isFr ? 'Relancer l\'IA — votre choix manuel pourrait être écrasé' : 'Re-run AI — this may overwrite your manual choice')
                                         : undefined
                                     }
                                     aria-label={
                                       isExcluded
-                                        ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will remain excluded')
+                                        ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will stay excluded')
                                         : (currentStep === 'identification' && item.identificationEffectiveDateManualOverride)
-                                        ? (isFr ? 'Relancer l\'IA — votre choix manuel sera peut-être écrasé' : 'Re-run AI — this may overwrite your manual choice')
+                                        ? (isFr ? 'Relancer l\'IA — votre choix manuel pourrait être écrasé' : 'Re-run AI — this may overwrite your manual choice')
                                         : (isFr ? 'Réessayer' : 'Retry')
                                     }
                                   >
@@ -7606,16 +7606,16 @@ export default function BulkDocumentImportPage() {
                                   data-testid={`button-retry-${currentStep}-${item.id}`}
                                   title={
                                     isExcluded
-                                      ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will remain excluded')
+                                      ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will stay excluded')
                                       : item.sortingManualOverride
-                                      ? (isFr ? 'Relancer l\'IA — votre choix manuel sera peut-être écrasé' : 'Re-run AI — this may overwrite your manual choice')
+                                      ? (isFr ? 'Relancer l\'IA — votre choix manuel pourrait être écrasé' : 'Re-run AI — this may overwrite your manual choice')
                                       : undefined
                                   }
                                   aria-label={
                                     isExcluded
-                                      ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will remain excluded')
+                                      ? (isFr ? 'Relancer l\'IA — cette ligne restera exclue' : 'Re-run AI — this row will stay excluded')
                                       : item.sortingManualOverride
-                                      ? (isFr ? 'Relancer l\'IA — votre choix manuel sera peut-être écrasé' : 'Re-run AI — this may overwrite your manual choice')
+                                      ? (isFr ? 'Relancer l\'IA — votre choix manuel pourrait être écrasé' : 'Re-run AI — this may overwrite your manual choice')
                                       : (isFr ? 'Réessayer' : 'Retry')
                                   }
                                 >
