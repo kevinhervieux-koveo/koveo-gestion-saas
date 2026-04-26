@@ -1333,8 +1333,31 @@ function HistoryCard({
  *   identification — status past branched
  *   linking      — status past identified
  *   complete     — status is committed
+ *
+ * Task #1069: For every step that has an associated AI decision
+ * (`screening`, `branching`, `identification`, `linking`), an item with a
+ * non-null fallback recorded for that step's decision is treated as NOT
+ * ready, regardless of the status checks above. The backend still promotes
+ * AI-failed files to the next status with a default value (e.g. branch =
+ * `building_documents` / `other_documents`) and a `*Fallback` reason set,
+ * so the row UI keeps telling the admin to "Vérifiez ce fichier ou
+ * excluez-le". Treating any recorded fallback on the current step as
+ * "needs review" keeps those rows on screen when the hide-ready toggle is
+ * ON and gates the Next Step button until they are resolved (retry,
+ * accept, or exclude). Sorting already keys off `sortingDecisionState`,
+ * which is forced to `pending` on AI failure, so no extra check is needed
+ * there. Complete has no AI step.
  */
 function isItemReadyForNextStep(item: BulkImportItemLite, step: BulkImportStep): boolean {
+  if (
+    step === 'screening' ||
+    step === 'branching' ||
+    step === 'identification' ||
+    step === 'linking'
+  ) {
+    const decision = getItemStepDecision(item, step);
+    if (decision?.fallbackReason) return false;
+  }
   switch (step) {
     case 'screening':
       return (
@@ -6390,6 +6413,27 @@ export default function BulkDocumentImportPage() {
                                 i.status !== 'rejected' &&
                                 (i.sortingDecisionState === 'pending' ||
                                   i.sortingDecisionState === 'rejected'),
+                            ).length
+                          : 0
+                      }
+                      fallbackPendingCount={
+                        // Task #1069: AI-failed files on the current step
+                        // (screening / branching / identification / linking)
+                        // were auto-promoted with a default value but no
+                        // real human assignation. Block Next Step until the
+                        // admin retries, accepts, or excludes each one.
+                        // Sorting already gates on sortingDecisionState
+                        // (forced to 'pending' on AI failure) via
+                        // sortingPendingCount above. Complete has no AI
+                        // step, so the count is 0 there.
+                        currentStep === 'screening' ||
+                        currentStep === 'branching' ||
+                        currentStep === 'identification' ||
+                        currentStep === 'linking'
+                          ? items.filter(
+                              (i) =>
+                                i.status !== 'rejected' &&
+                                getItemStepDecision(i, currentStep)?.fallbackReason != null,
                             ).length
                           : 0
                       }

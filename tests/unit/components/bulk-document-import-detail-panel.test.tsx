@@ -146,6 +146,10 @@ interface ItemFixture {
   branch?: string | null;
   /** Optional — used by Task #1045 toggle tests (branching step). */
   residenceId?: string | null;
+  /** Optional AI fallback reasons per step — used by Task #1069 tests. */
+  branchingFallback?: string | null;
+  identificationFallback?: string | null;
+  linkingFallback?: string | null;
 }
 
 let items: ItemFixture[] = [];
@@ -205,13 +209,13 @@ function buildSessionPayload() {
       sortingDecisionDraft: it.sortingDecisionDraft ?? false,
       sortingDecisionSplitIntoItemIds: it.sortingDecisionSplitIntoItemIds ?? null,
       branchingConfidence: null,
-      branchingFallback: null,
+      branchingFallback: it.branchingFallback ?? null,
       branch: it.branch ?? null,
       residenceId: it.residenceId ?? null,
       identificationConfidence: null,
-      identificationFallback: null,
+      identificationFallback: it.identificationFallback ?? null,
       linkingConfidence: null,
-      linkingFallback: null,
+      linkingFallback: it.linkingFallback ?? null,
     })),
   };
 }
@@ -1204,5 +1208,236 @@ describe('BulkDocumentImportPage — hide-ready toggle (Task #1045)', () => {
     expect(emptyMsg).toHaveTextContent('All files are ready for the next step.');
     expect(screen.queryByTestId('item-preview-trigger-gr-a')).not.toBeInTheDocument();
     expect(screen.queryByTestId('item-preview-trigger-gr-b')).not.toBeInTheDocument();
+  }, 10_000);
+});
+
+// =============================================================================
+// Task #1069 — Hide-ready filter must keep AI-failed files visible.
+//
+// The backend auto-promotes AI-failed files (oversize, api_error, etc.) to
+// the next status with a default value (e.g. branch = building_documents) and
+// records the reason in the matching `*Fallback` column. The row UI tells the
+// admin to "Vérifiez ce fichier ou excluez-le", but the
+// `Masquer les fichiers prêts pour l'étape suivante` toggle was hiding them.
+//
+// `isItemReadyForNextStep` now treats any item with a non-null fallback on
+// the current step's AI decision (screening / branching / identification /
+// linking) as NOT ready, so:
+//   1. The toggle keeps fallback-flagged rows on screen.
+//   2. The "all caught up" empty state only appears when no fallback rows
+//      remain on the current step.
+//   3. Items with no fallback and a fully-resolved status are still hidden
+//      (the existing toggle behavior is unchanged).
+//   4. The Next Step button is blocked while fallback-flagged items remain
+//      on the current step (these files have no real human assignation
+//      yet — the user must retry, accept, or exclude each one).
+// =============================================================================
+
+describe('BulkDocumentImportPage — hide-ready toggle keeps fallback files visible (Task #1069)', () => {
+  it('branching: keeps a branchingFallback row visible when toggle is ON', async () => {
+    currentStep = 'branching';
+    items = [
+      // Fallback-flagged file — backend promoted it to `branched` with a
+      // default branch and recorded `branchingFallback`. Must STAY visible.
+      makeItem(TOGGLE_NOT_READY_ID, 'branched', {
+        branch: 'building_documents',
+        branchingFallback: 'api_error',
+      }),
+      // Fully-resolved file with no fallback — must still be hidden.
+      makeItem(TOGGLE_READY_ID, 'branched', {
+        branch: 'building_documents',
+      }),
+    ];
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${TOGGLE_NOT_READY_ID}`, undefined, { timeout: 4000 });
+    await screen.findByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`, undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_NOT_READY_ID}`)).toBeInTheDocument();
+    }, { timeout: 4000 });
+
+    // The "all caught up" empty-state must NOT appear because the
+    // fallback-flagged row still needs review.
+    expect(screen.queryByTestId('empty-state-branching')).not.toBeInTheDocument();
+  }, 10_000);
+
+  it('screening: keeps a screeningFallback row visible when toggle is ON', async () => {
+    currentStep = 'screening';
+    items = [
+      // Backend promotes failed-screening files to `screened` with a
+      // recorded `screeningFallback`. Must STAY visible.
+      // NOTE: unique IDs (sc-fb-toggle / sc-ok-toggle) — reusing the
+      // generic TOGGLE_*_ID constants here triggers React Query cache
+      // pollution from the preceding `branching` test (same key, same
+      // ids) that intermittently keeps the page stuck on the loading
+      // spinner. Unique ids per test side-step that.
+      makeItem('sc-fb-toggle', 'screened', { screeningFallback: 'oversize' }),
+      // Fully-resolved file with no fallback — must still be hidden.
+      makeItem('sc-ok-toggle', 'screened'),
+    ];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-sc-fb-toggle', undefined, { timeout: 8000 });
+    await screen.findByTestId('item-preview-trigger-sc-ok-toggle', undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId('item-preview-trigger-sc-ok-toggle')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('item-preview-trigger-sc-fb-toggle')).toBeInTheDocument();
+    }, { timeout: 4000 });
+  }, 15_000);
+
+  it('identification: keeps an identificationFallback row visible when toggle is ON', async () => {
+    currentStep = 'identification';
+    items = [
+      makeItem(TOGGLE_NOT_READY_ID, 'identified', { identificationFallback: 'api_error' }),
+      makeItem(TOGGLE_READY_ID, 'identified'),
+    ];
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${TOGGLE_NOT_READY_ID}`, undefined, { timeout: 8000 });
+    await screen.findByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`, undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_NOT_READY_ID}`)).toBeInTheDocument();
+    }, { timeout: 4000 });
+  }, 15_000);
+
+  it('linking: keeps a linkingFallback row visible when toggle is ON', async () => {
+    currentStep = 'linking';
+    items = [
+      makeItem(TOGGLE_NOT_READY_ID, 'linked', { linkingFallback: 'unreadable_response' }),
+      makeItem(TOGGLE_READY_ID, 'linked'),
+    ];
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${TOGGLE_NOT_READY_ID}`, undefined, { timeout: 4000 });
+    await screen.findByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`, undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    await waitFor(() => {
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_READY_ID}`)).not.toBeInTheDocument();
+      expect(screen.queryByTestId(`item-preview-trigger-${TOGGLE_NOT_READY_ID}`)).toBeInTheDocument();
+    }, { timeout: 4000 });
+  }, 10_000);
+
+  it('branching: "all caught up" empty state only appears when no fallback rows remain', async () => {
+    currentStep = 'branching';
+    items = [
+      // Two fully-resolved rows in the same group that would normally be
+      // hidden, plus one fallback-flagged row that must keep the group
+      // visible and prevent the empty state.
+      makeItem('br-ready-1', 'branched', { branch: 'building_documents' }),
+      makeItem('br-ready-2', 'branched', { branch: 'building_documents' }),
+      makeItem('br-fallback', 'branched', {
+        branch: 'building_documents',
+        branchingFallback: 'api_error',
+      }),
+    ];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-br-fallback', undefined, { timeout: 4000 });
+
+    await clickToggle();
+
+    // The fallback row keeps the group on screen, so the global
+    // "all caught up" empty state must NOT be rendered.
+    await waitFor(() => {
+      expect(screen.queryByTestId('item-preview-trigger-br-fallback')).toBeInTheDocument();
+      expect(screen.queryByTestId('item-preview-trigger-br-ready-1')).not.toBeInTheDocument();
+      expect(screen.queryByTestId('item-preview-trigger-br-ready-2')).not.toBeInTheDocument();
+    }, { timeout: 4000 });
+    expect(screen.queryByTestId('empty-state-branching')).not.toBeInTheDocument();
+  }, 10_000);
+});
+
+// =============================================================================
+// Task #1069 — Next Step button must block while fallback-flagged files
+// remain on the current step.
+//
+// AI-failed files were auto-assigned a default branch / type by the backend
+// to keep the wizard moving, but they have no real human assignation yet.
+// The Next Step button is blocked until the admin retries, accepts, or
+// excludes each one. A red `fallback-pending-warning` paragraph explains
+// the count to the admin.
+// =============================================================================
+
+describe('BulkDocumentImportPage — Next Step blocked by fallback-flagged files (Task #1069)', () => {
+  it('branching: Next Step is disabled and warning is shown when a fallback row exists', async () => {
+    currentStep = 'branching';
+    items = [
+      makeItem('br-fb', 'branched', {
+        branch: 'building_documents',
+        branchingFallback: 'api_error',
+      }),
+      makeItem('br-ok', 'branched', { branch: 'building_documents' }),
+    ];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-br-fb', undefined, { timeout: 4000 });
+
+    const nextStepBtn = screen.getByTestId('button-next-step');
+    expect(nextStepBtn).toBeDisabled();
+    expect(screen.getByTestId('fallback-pending-warning')).toBeInTheDocument();
+  }, 10_000);
+
+  it('branching: Next Step re-enables once the only fallback row is excluded', async () => {
+    currentStep = 'branching';
+    items = [
+      // Excluded fallback row → must NOT count toward the gate.
+      makeItem('br-excl', 'rejected', {
+        preExcludeStatus: 'branched',
+        branch: 'building_documents',
+        branchingFallback: 'api_error',
+      }),
+      makeItem('br-ok', 'branched', { branch: 'building_documents' }),
+    ];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-br-ok', undefined, { timeout: 4000 });
+
+    expect(screen.getByTestId('button-next-step')).not.toBeDisabled();
+    expect(screen.queryByTestId('fallback-pending-warning')).not.toBeInTheDocument();
+  }, 10_000);
+
+  it('screening: Next Step is disabled when a screeningFallback row exists', async () => {
+    currentStep = 'screening';
+    items = [
+      makeItem('sc-fb', 'screened', { screeningFallback: 'oversize' }),
+      makeItem('sc-ok', 'screened'),
+    ];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-sc-fb', undefined, { timeout: 4000 });
+
+    expect(screen.getByTestId('button-next-step')).toBeDisabled();
+    expect(screen.getByTestId('fallback-pending-warning')).toBeInTheDocument();
+  }, 10_000);
+
+  it('identification: Next Step is disabled when an identificationFallback row exists', async () => {
+    currentStep = 'identification';
+    items = [
+      makeItem('id-fb', 'identified', { identificationFallback: 'api_error' }),
+      makeItem('id-ok', 'identified'),
+    ];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-id-fb', undefined, { timeout: 8000 });
+
+    expect(screen.getByTestId('button-next-step')).toBeDisabled();
+    expect(screen.getByTestId('fallback-pending-warning')).toBeInTheDocument();
+  }, 15_000);
+
+  it('linking: Next Step is disabled when a linkingFallback row exists', async () => {
+    currentStep = 'linking';
+    items = [
+      makeItem('lk-fb', 'linked', { linkingFallback: 'unreadable_response' }),
+      makeItem('lk-ok', 'linked'),
+    ];
+    renderPage();
+    await screen.findByTestId('item-preview-trigger-lk-fb', undefined, { timeout: 4000 });
+
+    expect(screen.getByTestId('button-next-step')).toBeDisabled();
+    expect(screen.getByTestId('fallback-pending-warning')).toBeInTheDocument();
   }, 10_000);
 });
