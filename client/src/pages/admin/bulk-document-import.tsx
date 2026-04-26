@@ -1539,20 +1539,23 @@ export function isItemReadyForNextStep(item: BulkImportItemLite, step: BulkImpor
     step === 'identification' ||
     step === 'linking'
   ) {
-    // Task #1082: if the admin has manually overridden the AI decision for
-    // this step, skip the fallback gate entirely and fall through to the
-    // regular per-step status / residence checks.  For `screening` and
-    // `linking` there is no manual-override flag so the fallback gate always
-    // applies.  For `sorting`, readiness already keys off
-    // `sortingDecisionState === 'accepted'`, which a manual override sets, so
-    // no change is needed there.
-    const manuallyOverridden =
-      (step === 'branching' && item.branchManualOverride) ||
-      (step === 'identification' && item.identificationEffectiveDateManualOverride);
-
-    if (!manuallyOverridden) {
-      const decision = getItemStepDecision(item, step);
-      if (decision?.fallbackReason) return false;
+    // Task #1244: delegate the fallback / manual-override decision to
+    // `isFallbackPending` so this per-row readiness check and the
+    // aggregate `fallbackPendingCount` gate (which already calls
+    // `isFallbackPending`) cannot drift apart by construction. The
+    // manual-override rules (Task #1082) — branching honours
+    // `branchManualOverride`, identification honours
+    // `identificationEffectiveDateManualOverride`, screening / linking
+    // have no override — now live in exactly one place.
+    const decision = getItemStepDecision(item, step);
+    if (
+      isFallbackPending(step, decision?.fallbackReason, {
+        branchManualOverride: item.branchManualOverride,
+        identificationEffectiveDateManualOverride:
+          item.identificationEffectiveDateManualOverride,
+      })
+    ) {
+      return false;
     }
   }
   switch (step) {
