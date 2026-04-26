@@ -1952,6 +1952,104 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
   });
   
   /**
+   * GET /api/maintenance/history/:id/audit - Get audit log for a history entry
+   * Returns all recorded edits for the given element-history event, newest first.
+   * Admin and managers with building access only.
+   */
+  app.get('/api/maintenance/history/:id/audit', requireAuth, async (req: any, res) => {
+    try {
+      const user = req.user;
+      if (!user) {
+        return res.status(401).json({ error: 'Authentication required' });
+      }
+
+      if (!['admin', 'manager'].includes(user.role)) {
+        return res.status(403).json({
+          error: 'Insufficient permissions to view element history audit log'
+        });
+      }
+
+      const { id } = req.params;
+
+      // Resolve the history entry → element → building for access check
+      const historyResult = await db
+        .select({
+          buildingId: buildingElements.buildingId,
+        })
+        .from(elementHistory)
+        .innerJoin(buildingElements, eq(elementHistory.elementId, buildingElements.id))
+        .where(eq(elementHistory.id, id))
+        .limit(1);
+
+      if (historyResult.length === 0) {
+        return res.status(404).json({ error: 'History entry not found' });
+      }
+
+      const hasAccess = await checkBuildingAccess(user.id, historyResult[0].buildingId, user.role);
+      if (!hasAccess) {
+        return res.status(403).json({ error: 'No access to this history entry' });
+      }
+
+      // Alias the users table to avoid collision with other joins
+      const editorUsers = users;
+
+      const auditRows = await db
+        .select({
+          id: elementHistoryAuditLog.id,
+          historyId: elementHistoryAuditLog.historyId,
+          performedBy: elementHistoryAuditLog.performedBy,
+          changes: elementHistoryAuditLog.changes,
+          createdAt: elementHistoryAuditLog.createdAt,
+          editorFirstName: editorUsers.firstName,
+          editorLastName: editorUsers.lastName,
+          editorEmail: editorUsers.email,
+        })
+        .from(elementHistoryAuditLog)
+        .leftJoin(editorUsers, eq(elementHistoryAuditLog.performedBy, editorUsers.id))
+        .where(eq(elementHistoryAuditLog.historyId, id))
+        .orderBy(desc(elementHistoryAuditLog.createdAt));
+
+      const entries = auditRows.map((row) => {
+        const changes = row.changes as Record<string, unknown>;
+        const isMcpApiKey =
+          !row.performedBy &&
+          typeof changes === 'object' &&
+          changes !== null &&
+          typeof (changes as any).meta === 'object' &&
+          (changes as any).meta?.source === 'mcp_api_key';
+
+        let editorName: string;
+        if (isMcpApiKey) {
+          editorName = 'System';
+        } else if (row.editorFirstName && row.editorLastName) {
+          editorName = `${row.editorFirstName} ${row.editorLastName}`;
+        } else if (row.editorEmail) {
+          editorName = row.editorEmail;
+        } else {
+          editorName = 'System';
+        }
+
+        return {
+          id: row.id,
+          historyId: row.historyId,
+          performedBy: row.performedBy,
+          editorName,
+          changes: row.changes,
+          createdAt: row.createdAt,
+        };
+      });
+
+      return res.json({ success: true, entries });
+    } catch (error: any) {
+      console.error('Error fetching element history audit log:', error);
+      return res.status(500).json({
+        error: 'Internal server error',
+        message: 'Failed to fetch element history audit log',
+      });
+    }
+  });
+
+  /**
    * DELETE /api/maintenance/history/:id - Delete history entry
    */
   app.delete('/api/maintenance/history/:id', requireAuth, async (req: any, res) => {

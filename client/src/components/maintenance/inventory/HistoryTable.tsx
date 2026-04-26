@@ -1,5 +1,5 @@
 // @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
-import { useMemo, useCallback } from 'react';
+import { useMemo, useCallback, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { ColumnDef, Row } from '@tanstack/react-table';
 import { format, parseISO } from 'date-fns';
@@ -54,6 +54,7 @@ import {
   User,
   Pencil,
 } from 'lucide-react';
+import { HistoryEditDiffDialog } from './HistoryEditDiffDialog';
 
 interface ElementHistoryEntry {
   id: string;
@@ -107,6 +108,8 @@ export function HistoryTable({
   // Simplified placeholder - no context for now
   const hasPermission = () => true;
   const { toast } = useToast();
+
+  const [auditEntry, setAuditEntry] = useState<{ id: string; eventType: string; eventDate: string } | null>(null);
 
   // Fetch element history
   const {
@@ -218,22 +221,31 @@ export function HistoryTable({
             <div className="font-medium">{format(date, datePattern, { locale: dateFnsLocale })}</div>
             <div className="text-xs text-muted-foreground">{format(date, 'EEEE', { locale: dateFnsLocale })}</div>
             {editedLabel && (
+              <span data-testid={`history-edited-${row.original.id}`}>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>
-                    <div
-                      className="flex items-center gap-1 text-xs text-muted-foreground cursor-default"
-                      data-testid={`history-edited-${row.original.id}`}
+                    <button
+                      type="button"
+                      className="flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground hover:underline cursor-pointer focus:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
+                      data-testid={`history-audit-trigger-${row.original.id}`}
+                      aria-label={t('htAuditViewChanges')}
+                      onClick={() => setAuditEntry({
+                        id: row.original.id,
+                        eventType: row.original.eventType,
+                        eventDate: row.original.eventDate,
+                      })}
                     >
                       <Pencil className="h-2.5 w-2.5" />
-                      <span>edited</span>
-                    </div>
+                      <span>{t('htAuditEditedIndicator')}</span>
+                    </button>
                   </TooltipTrigger>
                   <TooltipContent side="bottom">
                     <p>{editedLabel}</p>
                   </TooltipContent>
                 </Tooltip>
               </TooltipProvider>
+              </span>
             )}
           </div>
         );
@@ -431,6 +443,11 @@ export function HistoryTable({
 
   return (
     <div className={cn('space-y-4', className)} data-testid="history-table">
+    <HistoryEditDiffDialog
+      entry={auditEntry}
+      isOpen={auditEntry !== null}
+      onClose={() => setAuditEntry(null)}
+    />
       {/* Summary metrics */}
       {showSummary && !compact && (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

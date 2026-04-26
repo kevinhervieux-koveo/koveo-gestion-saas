@@ -3938,6 +3938,27 @@ export interface Translations {
   htMinorRehabEventLabel: string;
   htMajorRehabEventLabel: string;
   htReplacementEventLabel: string;
+  htAuditDialogTitle: string;
+  htAuditEditorLabel: string;
+  htAuditTimestampLabel: string;
+  htAuditSystemEditor: string;
+  htAuditEmptyState: string;
+  htAuditEmptyStateDetail: string;
+  htAuditLoadError: string;
+  htAuditRetry: string;
+  htAuditFieldEventType: string;
+  htAuditFieldEventDate: string;
+  htAuditFieldWorkDescription: string;
+  htAuditFieldCost: string;
+  htAuditFieldVendor: string;
+  htAuditFieldLifespanImpact: string;
+  htAuditFieldWarranty: string;
+  htAuditValueNotSet: string;
+  htAuditBeforeLabel: string;
+  htAuditAfterLabel: string;
+  htAuditEditedIndicator: string;
+  htAuditViewChanges: string;
+  htAuditFieldColumnHeader: string;
 
   edpEditAction: string;
   edpUploadFilesAction: string;
@@ -8106,6 +8127,27 @@ export const translations: Record<Language, Translations> = {
     htMinorRehabEventLabel: 'Minor Rehab',
     htMajorRehabEventLabel: 'Major Rehab',
     htReplacementEventLabel: 'Replacement',
+    htAuditDialogTitle: 'Edit History',
+    htAuditEditorLabel: 'Editor',
+    htAuditTimestampLabel: 'Timestamp',
+    htAuditSystemEditor: 'System',
+    htAuditEmptyState: 'No recorded changes',
+    htAuditEmptyStateDetail: 'This entry was edited before change tracking existed, or was modified directly in the database.',
+    htAuditLoadError: 'Failed to load edit history',
+    htAuditRetry: 'Retry',
+    htAuditFieldEventType: 'Event Type',
+    htAuditFieldEventDate: 'Event Date',
+    htAuditFieldWorkDescription: 'Work Description',
+    htAuditFieldCost: 'Cost',
+    htAuditFieldVendor: 'Vendor',
+    htAuditFieldLifespanImpact: 'Lifespan Impact',
+    htAuditFieldWarranty: 'Warranty',
+    htAuditValueNotSet: '—',
+    htAuditBeforeLabel: 'Before',
+    htAuditAfterLabel: 'After',
+    htAuditEditedIndicator: 'edited',
+    htAuditViewChanges: 'View changes',
+    htAuditFieldColumnHeader: 'Field',
 
     edpEditAction: 'Edit',
     edpUploadFilesAction: 'Upload Files',
@@ -12277,6 +12319,27 @@ export const translations: Record<Language, Translations> = {
     htMinorRehabEventLabel: 'Réhab. mineure',
     htMajorRehabEventLabel: 'Réhab. majeure',
     htReplacementEventLabel: 'Remplacement',
+    htAuditDialogTitle: 'Historique des modifications',
+    htAuditEditorLabel: 'Éditeur',
+    htAuditTimestampLabel: 'Horodatage',
+    htAuditSystemEditor: 'Système',
+    htAuditEmptyState: 'Aucune modification enregistrée',
+    htAuditEmptyStateDetail: 'Cette entrée a été modifiée avant la mise en place du suivi des modifications, ou a été modifiée directement dans la base de données.',
+    htAuditLoadError: 'Échec du chargement de l\'historique des modifications',
+    htAuditRetry: 'Réessayer',
+    htAuditFieldEventType: 'Type d\'événement',
+    htAuditFieldEventDate: 'Date de l\'événement',
+    htAuditFieldWorkDescription: 'Description des travaux',
+    htAuditFieldCost: 'Coût',
+    htAuditFieldVendor: 'Fournisseur',
+    htAuditFieldLifespanImpact: 'Impact sur la durée de vie',
+    htAuditFieldWarranty: 'Garantie',
+    htAuditValueNotSet: '—',
+    htAuditBeforeLabel: 'Avant',
+    htAuditAfterLabel: 'Après',
+    htAuditEditedIndicator: 'modifié',
+    htAuditViewChanges: 'Voir les modifications',
+    htAuditFieldColumnHeader: 'Champ',
 
     edpEditAction: 'Modifier',
     edpUploadFilesAction: 'Téléverser des fichiers',
