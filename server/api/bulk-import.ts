@@ -2662,6 +2662,13 @@ export function registerBulkImportRoutes(app: Express): void {
               sortingConfidence: so.confidence,
               sortingFallback: so.fallbackReason,
               sortingRetryCount: so.retryCount,
+              // Task #1220: surface the same `pdf_text_only` degraded marker
+              // on every later step so admins reviewing Sorting / Branching /
+              // Identification / Linking can also see when the AI worked from
+              // text-only extraction. The flag is replayed from the same step
+              // JSONB by `extractStep`, so old sessions with no marker still
+              // return null (matches the "not degraded" default).
+              sortingDegraded: so.degraded,
               sortingDecision: so.decision,
               sortingReason: so.reason,
               sortingMergeWithItemId: so.mergeWithItemId,
@@ -2675,6 +2682,8 @@ export function registerBulkImportRoutes(app: Express): void {
               branchingConfidence: br.confidence,
               branchingFallback: br.fallbackReason,
               branchingRetryCount: br.retryCount,
+              // Task #1220: see comment on `sortingDegraded` above.
+              branchingDegraded: br.degraded,
               branch: br.branch,
               subCategory: br.subCategory,
               branchReason: br.branchReason,
@@ -2690,6 +2699,8 @@ export function registerBulkImportRoutes(app: Express): void {
               identificationConfidence: id.confidence,
               identificationFallback: id.fallbackReason,
               identificationRetryCount: id.retryCount,
+              // Task #1220: see comment on `sortingDegraded` above.
+              identificationDegraded: id.degraded,
               identificationName: id.name,
               identificationDescription: id.description,
               identificationTags: id.tags,
@@ -2699,6 +2710,8 @@ export function registerBulkImportRoutes(app: Express): void {
               linkingConfidence: lk.confidence,
               linkingFallback: lk.fallbackReason,
               linkingRetryCount: lk.retryCount,
+              // Task #1220: see comment on `sortingDegraded` above.
+              linkingDegraded: lk.degraded,
               linkingReason: lk.linkingReason,
               linkingBeforeItemId: lk.beforeItemId,
               linkingAfterItemId: lk.afterItemId,

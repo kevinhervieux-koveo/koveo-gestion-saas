@@ -289,6 +289,16 @@ interface BulkImportItemLite {
   sortingFallback: BulkImportFallbackReason | null;
   /** Task #1157: Anthropic attempts for the Sorting step. See screeningRetryCount. */
   sortingRetryCount: number | null;
+  /**
+   * Task #1220: same `pdf_text_only` marker exposed for the Screening step
+   * (see screeningDegraded), but for the Sorting step. Because the PDF
+   * text-only degradation happens at the file-loading layer, every step
+   * after Screening also reads from extracted text — surfacing this here
+   * lets the UI render the "Analyzed from text only" badge in Sorting too.
+   * Null on legacy sessions persisted before the marker existed (matches
+   * the "not degraded" default).
+   */
+  sortingDegraded: 'pdf_text_only' | null;
   sortingDecision: 'keep' | 'merge' | 'split' | null;
   sortingReason: string | null;
   /** id of the sibling item this one should merge with (Task #767). */
@@ -317,6 +327,8 @@ interface BulkImportItemLite {
   branchingFallback: BulkImportFallbackReason | null;
   /** Task #1157: Anthropic attempts for the Branching step. See screeningRetryCount. */
   branchingRetryCount: number | null;
+  /** Task #1220: text-only degradation marker for the Branching step. See sortingDegraded. */
+  branchingDegraded: 'pdf_text_only' | null;
   branch: BranchDestination | null;
   subCategory: string | null;
   branchReason: string | null;
@@ -346,6 +358,8 @@ interface BulkImportItemLite {
   identificationFallback: BulkImportFallbackReason | null;
   /** Task #1157: Anthropic attempts for the Identification step. See screeningRetryCount. */
   identificationRetryCount: number | null;
+  /** Task #1220: text-only degradation marker for the Identification step. See sortingDegraded. */
+  identificationDegraded: 'pdf_text_only' | null;
   identificationName: string | null;
   identificationDescription: string | null;
   identificationTags: string[] | null;
@@ -372,6 +386,8 @@ interface BulkImportItemLite {
   linkingFallback: BulkImportFallbackReason | null;
   /** Task #1157: Anthropic attempts for the Linking step. See screeningRetryCount. */
   linkingRetryCount: number | null;
+  /** Task #1220: text-only degradation marker for the Linking step. See sortingDegraded. */
+  linkingDegraded: 'pdf_text_only' | null;
   linkingReason: string | null;
   linkingBeforeItemId: string | null;
   linkingAfterItemId: string | null;
@@ -4632,6 +4648,27 @@ export default function BulkDocumentImportPage() {
                                           {!isExcluded && !item.branchManualOverride && (
                                             <>
                                               <FallbackReasonBadge reason={decision?.fallbackReason} isFr={isFr} retryCount={decision?.retryCount} />
+                                              {/*
+                                                Task #1220: surface the
+                                                "Analyzed from text only"
+                                                badge in the Branching step
+                                                too. The branching layout has
+                                                its own card above and never
+                                                hits the shared block, so the
+                                                badge is added inline here.
+                                                Suppressed when the step
+                                                recorded an error fallback so
+                                                the error badge keeps
+                                                precedence, mirroring the
+                                                Screening behaviour from
+                                                Task #1217.
+                                              */}
+                                              {!item.branchingFallback && (
+                                                <TextOnlyDegradedBadge
+                                                  degraded={item.branchingDegraded}
+                                                  isFr={isFr}
+                                                />
+                                              )}
                                               <ConfidenceBadge value={decision?.confidence} fallbackReason={decision?.fallbackReason} isFr={isFr} />
                                               {decision?.fallbackReason && (
                                                 <span
@@ -6329,6 +6366,24 @@ export default function BulkDocumentImportPage() {
                                       {isFr ? 'Rejeté – choix requis' : 'Rejected – choose manually'}
                                     </Badge>
                                   )}
+                                  {/*
+                                    Task #1220: render the "Analyzed from text
+                                    only" badge in the Sorting step too. The
+                                    sorting layout bypasses the shared
+                                    FallbackReasonBadge / TextOnlyDegradedBadge
+                                    block below (it lives behind
+                                    `currentStep !== 'sorting'`), so the badge
+                                    is added inline here. Suppressed when an
+                                    error fallback was recorded so the error
+                                    badge keeps precedence, mirroring the
+                                    Screening behaviour from Task #1217.
+                                  */}
+                                  {currentStep === 'sorting' && !item.sortingFallback && (
+                                    <TextOnlyDegradedBadge
+                                      degraded={item.sortingDegraded}
+                                      isFr={isFr}
+                                    />
+                                  )}
                                   {currentStep === 'screening' && item.screeningTypeGuess && item.screeningTypeGuess !== 'unknown' && (
                                     <Badge
                                       variant="outline"
@@ -6390,9 +6445,37 @@ export default function BulkDocumentImportPage() {
                                         isFr={isFr}
                                         retryCount={decision?.retryCount}
                                       />
+                                      {/*
+                                        Task #1217 / #1220: render the
+                                        "Analyzed from text only" badge
+                                        whenever the underlying step worked
+                                        from extracted PDF text. The flag is
+                                        replayed per step from the Lite
+                                        endpoint (`*Degraded`) so admins see
+                                        the badge in Screening, Identification
+                                        and Linking too — not only in Screening.
+                                        The branching step has its own custom
+                                        layout (handled separately, see
+                                        `branchingDegraded` below). The badge
+                                        is suppressed when the step recorded
+                                        an error fallback so the error badge
+                                        keeps precedence.
+                                      */}
                                       {currentStep === 'screening' && !item.screeningFallback && (
                                         <TextOnlyDegradedBadge
                                           degraded={item.screeningDegraded}
+                                          isFr={isFr}
+                                        />
+                                      )}
+                                      {currentStep === 'identification' && !item.identificationFallback && (
+                                        <TextOnlyDegradedBadge
+                                          degraded={item.identificationDegraded}
+                                          isFr={isFr}
+                                        />
+                                      )}
+                                      {currentStep === 'linking' && !item.linkingFallback && (
+                                        <TextOnlyDegradedBadge
+                                          degraded={item.linkingDegraded}
                                           isFr={isFr}
                                         />
                                       )}
