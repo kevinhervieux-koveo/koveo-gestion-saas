@@ -655,3 +655,175 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
     });
   });
 });
+
+// -----------------------------------------------------------------------------
+// Task #1207 — Inline Retry must surface on every auto step, not just sorting.
+//
+// The previous tests cover the sorting step (where the active row is always
+// expanded so the alert is visible by default). For identification and linking
+// the per-item detail panel renders the same alert and now also exposes the
+// inline Retry button — gated by the same per-step manual-override guards
+// used by each step's row-toolbar Retry button. (The branching step has its
+// own IIFE renderer and the residence sub-step lives inside it; both are
+// covered by the branching IIFE's gate on `branchManualOverride`.)
+//
+// We exercise the IDENTIFICATION step here as a representative non-sorting
+// auto step that goes through the shared code path — linking shares it and
+// has no manual-override field, so the identification cases are the strictest
+// gate to verify.
+// -----------------------------------------------------------------------------
+
+const ID_RETRY_ID = 'item-id-retry-api-error';
+const ID_OVERRIDE_ID = 'item-id-manual-override-api-error';
+const ID_PERMANENT_ID = 'item-id-permanent-oversize';
+
+function buildIdentificationSessionPayload() {
+  // Identification rows mirror the sorting fixture: the detail-panel
+  // toggle (`button-toggle-detail-${id}`) only shows when the row has
+  // a quick-analysis signal (`screeningTypeGuess` / `screeningBucketGuess`),
+  // and the alert/button live inside the panel that opens via that toggle.
+  // Status `'identified'` keeps the row visible on the identification step.
+  const idDefaults = {
+    status: 'identified' as const,
+    screeningTypeGuess: 'invoice',
+    screeningBucketGuess: null as null,
+    screeningConfidence: 0.7,
+  };
+  const retryRow = {
+    ...baseItemDefaults,
+    ...idDefaults,
+    id: ID_RETRY_ID,
+    originalName: 'doc-id-retry.pdf',
+    identificationFallback: 'api_error' as const,
+    identificationConfidence: 0.05,
+  };
+  const overrideRow = {
+    ...baseItemDefaults,
+    ...idDefaults,
+    id: ID_OVERRIDE_ID,
+    originalName: 'doc-id-manual.pdf',
+    identificationFallback: 'api_error' as const,
+    identificationConfidence: 0.05,
+    // The admin already filled in the effective date by hand, so the
+    // per-step manual-override gate must hide Retry even though the
+    // fallback reason is otherwise retryable.
+    identificationEffectiveDateManualOverride: true,
+  };
+  const permanentRow = {
+    ...baseItemDefaults,
+    ...idDefaults,
+    id: ID_PERMANENT_ID,
+    originalName: 'doc-id-permanent.pdf',
+    identificationFallback: 'oversize' as const,
+    identificationConfidence: 0.0,
+  };
+
+  return {
+    session: {
+      id: SESSION_ID,
+      buildingId: 'building-1',
+      organizationId: 'org-1',
+      adminUserId: 'admin-1',
+      currentStep: 'identification' as const,
+      status: 'active' as const,
+      progress: {
+        runAll: {
+          identification: {
+            total: 3,
+            processed: 3,
+            failed: 2,
+            startedAt: '2024-01-01T00:00:00.000Z',
+            finishedAt: '2024-01-01T00:01:00.000Z',
+            inFlight: [],
+          },
+        },
+      },
+      createdAt: '2024-01-01T00:00:00.000Z',
+      updatedAt: '2024-01-01T00:00:00.000Z',
+    },
+    items: [retryRow, overrideRow, permanentRow],
+  };
+}
+
+function installIdentificationFetchMock() {
+  fetchMock.mockImplementation(async (input, init) => {
+    const url =
+      typeof input === 'string'
+        ? input
+        : input instanceof URL
+          ? input.toString()
+          : (input as Request).url;
+    const method = (init?.method || 'GET').toUpperCase();
+    const [pathname] = url.split('?');
+    if (method === 'GET') {
+      if (pathname === '/api/admin/bulk-import/buildings-lite')
+        return jsonResponse([]);
+      if (pathname === '/api/admin/bulk-import/ai-status')
+        return jsonResponse({ available: true });
+      if (pathname === '/api/organizations') return jsonResponse([]);
+      if (pathname === `/api/admin/bulk-import/sessions/${SESSION_ID}/lite`) {
+        return jsonResponse(buildIdentificationSessionPayload());
+      }
+      if (pathname === '/api/admin/bulk-import/sessions') {
+        return jsonResponse({
+          sessions: [],
+          limit: 20,
+          offset: 0,
+          hasMore: false,
+        });
+      }
+    }
+    if (method === 'POST') return jsonResponse({ ok: true });
+    return jsonResponse({ unmocked: true, url, method }, 404);
+  });
+}
+
+describe('BulkDocumentImportPage — Task #1207 inline Retry on non-sorting auto steps', () => {
+  it('renders inline Retry inside the AI-service-error alert on the identification step', async () => {
+    installIdentificationFetchMock();
+    renderPage();
+    await waitForRow(ID_RETRY_ID);
+    await expandPanel(ID_RETRY_ID);
+
+    expect(
+      screen.getByTestId(`detail-fallback-explanation-${ID_RETRY_ID}`),
+    ).toBeInTheDocument();
+    const inlineRetry = screen.getByTestId(
+      `button-fallback-retry-${ID_RETRY_ID}`,
+    );
+    expect(inlineRetry).toBeInTheDocument();
+    expect(inlineRetry).toBeEnabled();
+  });
+
+  it('hides inline Retry when the admin has already manually overridden the identification effective date', async () => {
+    installIdentificationFetchMock();
+    renderPage();
+    await waitForRow(ID_OVERRIDE_ID);
+    await expandPanel(ID_OVERRIDE_ID);
+
+    // The alert still renders to explain why the AI failed, but the
+    // Retry button must stay hidden because the row is already
+    // human-corrected and re-running the AI would risk overwriting
+    // the admin's edit.
+    expect(
+      screen.getByTestId(`detail-fallback-explanation-${ID_OVERRIDE_ID}`),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`button-fallback-retry-${ID_OVERRIDE_ID}`),
+    ).not.toBeInTheDocument();
+  });
+
+  it('hides inline Retry on rows whose identificationFallback is permanent (oversize)', async () => {
+    installIdentificationFetchMock();
+    renderPage();
+    await waitForRow(ID_PERMANENT_ID);
+    await expandPanel(ID_PERMANENT_ID);
+
+    expect(
+      screen.getByTestId(`detail-fallback-explanation-${ID_PERMANENT_ID}`),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`button-fallback-retry-${ID_PERMANENT_ID}`),
+    ).not.toBeInTheDocument();
+  });
+});

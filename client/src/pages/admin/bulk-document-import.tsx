@@ -4560,6 +4560,54 @@ export default function BulkDocumentImportPage() {
                                           )}
                                         </div>
                                       </div>
+                                      {/* Task #1207: surface the full "AI service error"
+                                          alert (with inline Retry) on branching rows so
+                                          recovery is one click away — matches what the
+                                          sorting and screening step rows already offer.
+                                          Hidden when the admin manually re-routed the
+                                          file (`branchManualOverride`) so the override
+                                          is preserved, and skipped on excluded rows. */}
+                                      {!isExcluded
+                                        && !item.branchManualOverride
+                                        && decision?.fallbackReason && (
+                                        <div
+                                          className="border-t bg-amber-50 px-3 py-2 text-sm text-amber-800 dark:bg-amber-950/40 dark:text-amber-300"
+                                          data-testid={`detail-fallback-explanation-${item.id}`}
+                                        >
+                                          <p className="font-medium">
+                                            {(isFr ? FALLBACK_REASON_LABELS.fr : FALLBACK_REASON_LABELS.en)[decision.fallbackReason]}
+                                          </p>
+                                          <p className="mt-0.5 text-amber-700 dark:text-amber-400">
+                                            {(isFr ? FALLBACK_REASON_EXPLANATIONS.fr : FALLBACK_REASON_EXPLANATIONS.en)[decision.fallbackReason]}
+                                          </p>
+                                          {(() => {
+                                            const retryLine = formatRetryAttempts(decision.retryCount, isFr);
+                                            return retryLine ? (
+                                              <p
+                                                className="mt-0.5 text-amber-700 dark:text-amber-400"
+                                                data-testid={`detail-fallback-retry-${item.id}`}
+                                              >
+                                                {retryLine}
+                                              </p>
+                                            ) : null;
+                                          })()}
+                                          <InlineFallbackRetryButton
+                                            itemId={item.id}
+                                            fallbackReason={decision.fallbackReason}
+                                            retryAction={retryAction}
+                                            retryPending={retryPending}
+                                            hideRetry={!showRetry || item.branchManualOverride}
+                                            isFr={isFr}
+                                            onRetry={() =>
+                                              retryAction &&
+                                              runStep.mutate({
+                                                itemId: item.id,
+                                                action: retryAction,
+                                              })
+                                            }
+                                          />
+                                        </div>
+                                      )}
                                       {isPickerOpen && (
                                         <div
                                           className="border-t bg-muted/30 px-3 py-3 flex flex-wrap items-end gap-3"
@@ -7484,7 +7532,24 @@ export default function BulkDocumentImportPage() {
                                           fallbackReason={decision.fallbackReason}
                                           retryAction={retryAction}
                                           retryPending={retryPending}
-                                          hideRetry={!showRetry}
+                                          // Task #1207: honour each step's
+                                          // per-item manual-override gate so a
+                                          // row the admin already corrected by
+                                          // hand doesn't re-offer Retry. Mirrors
+                                          // the same gates used by the row's
+                                          // toolbar Retry button on each step.
+                                          // - identification → identificationEffectiveDateManualOverride
+                                          // - linking        → no manual-override field exists
+                                          // The branching step (which also owns
+                                          // the residence sub-step and its
+                                          // residenceManualOverride gate) is
+                                          // handled in its own IIFE above and
+                                          // never reaches this branch, so no
+                                          // extra clause is needed here.
+                                          hideRetry={
+                                            !showRetry
+                                            || (currentStep === 'identification' && item.identificationEffectiveDateManualOverride)
+                                          }
                                           isFr={isFr}
                                           onRetry={() =>
                                             retryAction &&
