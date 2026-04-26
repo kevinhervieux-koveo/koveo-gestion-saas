@@ -241,8 +241,7 @@ const settingsUpdateSchema = z.object({
   revenueInflationRate: z.number().optional(),
   financialYearStart: z
     .string()
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD")
-    .optional(),
+    .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD"),
   unplannedBillsAmount: z.number().min(0).optional(),
   unplannedBillsStartDate: z
     .string()
@@ -343,7 +342,7 @@ export function registerBudgetTools(server: McpServer, deps: BudgetToolDeps): vo
 
   server.tool(
     "update_budget_settings",
-    "Update one or more budget settings for a building (admin/manager only). Accepts a partial payload of bank-account, inflation, and extended-config fields. Custom revenue lines, punctual growth, and capital investments have their own dedicated tools.",
+    "Update one or more budget settings for a building (admin/manager only). The `financialYearStart` field (YYYY-MM-DD) is REQUIRED on every call — omitting it or passing null will be rejected. All other bank-account, inflation, and extended-config fields are optional. Custom revenue lines, punctual growth, and capital investments have their own dedicated tools.",
     {
       role: roleParam,
       buildingId: z.string().describe("Building ID"),

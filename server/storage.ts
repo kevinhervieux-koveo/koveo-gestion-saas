@@ -504,7 +504,7 @@ export class MemStorage implements IStorage {
       inflationSettings: null,
       unplannedBillsAmount: building.unplannedBillsAmount?.toString() || '0',
       unplannedBillsStartDate: null,
-      financialYearStart: null,
+      financialYearStart: '2026-01-01',
       generalInflationRate: '2.0',
       revenueInflationRate: '2.0',
       parkingSpaces: building.parkingSpaces || 0,
