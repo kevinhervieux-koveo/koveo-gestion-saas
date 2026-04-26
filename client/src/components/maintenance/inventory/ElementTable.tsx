@@ -653,16 +653,25 @@ function ElementTableImpl({
     <div className={cn('space-y-4', className)} data-testid="element-table">
       {enableBulkActions && selectedElementsCount > 0 && bulkActions}
       
-      <DataTable 
+      <DataTable
         data={elements}
         columns={columns}
         rowSelection={rowSelection}
         onRowSelectionChange={handleRowSelection}
         enableRowSelection={true}
         getRowId={(row) => row.id}
-        enablePagination={true}
+        enablePagination={false}
         enableSorting={true}
         enableFiltering={false}
+        // Virtualize the row list so the DOM only contains the visible rows
+        // (plus a small overscan). Without this, large inventories rendered
+        // every filtered row on every filter / sort change, making the
+        // commit phase O(n) in the row count and noticeably costly past a
+        // few thousand rows.
+        enableVirtualization={true}
+        estimatedRowHeight={84}
+        virtualOverscan={8}
+        virtualScrollHeight="640px"
       />
 
       {/* Bulk Edit Dialogs */}

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useRef } from 'react';
 import {
   useReactTable,
   getCoreRowModel,
@@ -13,6 +13,7 @@ import {
   type RowSelectionState,
   type Row,
 } from '@tanstack/react-table';
+import { useVirtualizer } from '@tanstack/react-virtual';
 import {
   Table,
   TableBody,
@@ -72,6 +73,10 @@ interface DataTableProps<TData, TValue> {
   rowSelection?: RowSelectionState;
   onRowSelectionChange?: (selection: RowSelectionState) => void;
   getRowId?: (row: TData) => string;
+  enableVirtualization?: boolean;
+  estimatedRowHeight?: number;
+  virtualOverscan?: number;
+  virtualScrollHeight?: string;
 }
 
 /**
@@ -100,18 +105,27 @@ export function DataTable<TData, TValue>({
   rowSelection,
   onRowSelectionChange,
   getRowId,
+  enableVirtualization = false,
+  estimatedRowHeight = 60,
+  virtualOverscan = 10,
+  virtualScrollHeight = '600px',
 }: DataTableProps<TData, TValue>) {
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
   const [globalFilter, setGlobalFilter] = useState("");
 
+  // When virtualization is enabled, we render every filtered row inside a
+  // single scrollable viewport, so paginating is both unnecessary and
+  // actively harmful (it would hide rows the virtualizer needs to position).
+  const paginationActive = enablePagination && !enableVirtualization;
+
   const table = useReactTable({
     data,
     columns,
     getCoreRowModel: getCoreRowModel(),
     getFilteredRowModel: enableFiltering ? getFilteredRowModel() : undefined,
-    getPaginationRowModel: enablePagination ? getPaginationRowModel() : undefined,
+    getPaginationRowModel: paginationActive ? getPaginationRowModel() : undefined,
     getSortedRowModel: enableSorting ? getSortedRowModel() : undefined,
     onSortingChange: setSorting,
     onColumnFiltersChange: setColumnFilters,
@@ -201,6 +215,116 @@ export function DataTable<TData, TValue>({
   };
 
   const hasActiveFilters = globalFilter !== "" || columnFilters.length > 0;
+
+  // Virtualization wiring. The scroll container ref + virtualizer are always
+  // declared so hook order stays stable, but the virtualizer is only consumed
+  // by the virtualized render branch below.
+  const tableContainerRef = useRef<HTMLDivElement>(null);
+  const rows = table.getRowModel().rows;
+  const rowVirtualizer = useVirtualizer({
+    count: rows.length,
+    getScrollElement: () => tableContainerRef.current,
+    estimateSize: () => estimatedRowHeight,
+    overscan: virtualOverscan,
+    // Allow per-row dynamic measurement so cells with badges / progress bars /
+    // wrapped text don't overlap when their actual height differs from the
+    // estimate.
+    measureElement:
+      typeof window !== 'undefined' &&
+      navigator.userAgent.indexOf('Firefox') === -1
+        ? (el) => el?.getBoundingClientRect().height
+        : undefined,
+  });
+  const virtualRows = rowVirtualizer.getVirtualItems();
+  const totalSize = rowVirtualizer.getTotalSize();
+  const paddingTop = virtualRows.length > 0 ? virtualRows[0].start : 0;
+  const paddingBottom =
+    virtualRows.length > 0 ? totalSize - virtualRows[virtualRows.length - 1].end : 0;
+  const totalColumnCount =
+    table.getVisibleLeafColumns().length + (renderRowActions ? 1 : 0);
+
+  // Inner header rows (without the surrounding <thead>) — shared between
+  // the standard and virtualized rendering branches. The branches each wrap
+  // these in their own <thead> / <TableHeader> so the virtualized branch can
+  // add `sticky top-0` styling without affecting the non-virtualized layout.
+  const headerRows = table.getHeaderGroups().map((headerGroup) => (
+    <TableRow key={headerGroup.id}>
+      {headerGroup.headers.map((header) => {
+        const canSort = header.column.getCanSort();
+        const isSorted = header.column.getIsSorted();
+
+        return (
+          <TableHead
+            key={header.id}
+            className="font-medium"
+            data-testid={`column-header-${header.id}`}
+          >
+            {header.isPlaceholder ? null : (
+              <div className={canSort ? "flex items-center space-x-2" : ""}>
+                {canSort ? (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="-ml-3 h-8 data-[state=open]:bg-accent"
+                    onClick={() => header.column.toggleSorting()}
+                    data-testid={`sort-button-${header.id}`}
+                  >
+                    <span>
+                      {flexRender(
+                        header.column.columnDef.header,
+                        header.getContext()
+                      )}
+                    </span>
+                    {getSortIcon(isSorted)}
+                  </Button>
+                ) : (
+                  flexRender(
+                    header.column.columnDef.header,
+                    header.getContext()
+                  )
+                )}
+              </div>
+            )}
+          </TableHead>
+        );
+      })}
+      {renderRowActions && (
+        <TableHead className="text-right w-20">Actions</TableHead>
+      )}
+    </TableRow>
+  ));
+
+  const renderDataRow = (
+    row: Row<TData>,
+    options?: {
+      virtualIndex?: number;
+      measureRef?: (el: HTMLTableRowElement | null) => void;
+    }
+  ) => (
+    <TableRow
+      key={row.id}
+      ref={options?.measureRef}
+      data-index={options?.virtualIndex}
+      data-state={row.getIsSelected() && "selected"}
+      className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
+      onClick={onRowClick ? () => onRowClick(row) : undefined}
+      data-testid={`table-row-${row.id}`}
+    >
+      {row.getVisibleCells().map((cell) => (
+        <TableCell
+          key={cell.id}
+          data-testid={`table-cell-${cell.column.id}-${row.id}`}
+        >
+          {flexRender(cell.column.columnDef.cell, cell.getContext())}
+        </TableCell>
+      ))}
+      {renderRowActions && (
+        <TableCell className="text-right">
+          {renderRowActions(row)}
+        </TableCell>
+      )}
+    </TableRow>
+  );
 
   return (
     <Card className={className} data-testid="data-table">
@@ -301,93 +425,83 @@ export function DataTable<TData, TValue>({
         )}
 
         {/* Table */}
-        <div className="rounded-md border">
-          <Table>
-            <TableHeader>
-              {table.getHeaderGroups().map((headerGroup) => (
-                <TableRow key={headerGroup.id}>
-                  {headerGroup.headers.map((header) => {
-                    const canSort = header.column.getCanSort();
-                    const isSorted = header.column.getIsSorted();
-                    
-                    return (
-                      <TableHead 
-                        key={header.id}
-                        className="font-medium"
-                        data-testid={`column-header-${header.id}`}
-                      >
-                        {header.isPlaceholder ? null : (
-                          <div className={canSort ? "flex items-center space-x-2" : ""}>
-                            {canSort ? (
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                className="-ml-3 h-8 data-[state=open]:bg-accent"
-                                onClick={() => header.column.toggleSorting()}
-                                data-testid={`sort-button-${header.id}`}
-                              >
-                                <span>
-                                  {flexRender(
-                                    header.column.columnDef.header,
-                                    header.getContext()
-                                  )}
-                                </span>
-                                {getSortIcon(isSorted)}
-                              </Button>
-                            ) : (
-                              flexRender(
-                                header.column.columnDef.header,
-                                header.getContext()
-                              )
-                            )}
-                          </div>
-                        )}
-                      </TableHead>
-                    );
-                  })}
-                  {renderRowActions && (
-                    <TableHead className="text-right w-20">Actions</TableHead>
-                  )}
-                </TableRow>
-              ))}
-            </TableHeader>
+        {enableVirtualization ? (
+          <div
+            ref={tableContainerRef}
+            className="rounded-md border overflow-auto relative"
+            style={{ height: virtualScrollHeight }}
+            data-testid="virtualized-scroll-container"
+          >
+            <table className="w-full caption-bottom text-sm">
+              <TableHeader className="sticky top-0 z-10 bg-background">
+                {headerRows}
+              </TableHeader>
 
-            {isLoading ? (
-              <LoadingSkeleton />
-            ) : table.getRowModel().rows?.length ? (
-              <TableBody>
-                {table.getRowModel().rows.map((row) => (
-                  <TableRow
-                    key={row.id}
-                    data-state={row.getIsSelected() && "selected"}
-                    className={onRowClick ? "cursor-pointer hover:bg-muted/50" : ""}
-                    onClick={onRowClick ? () => onRowClick(row) : undefined}
-                    data-testid={`table-row-${row.id}`}
-                  >
-                    {row.getVisibleCells().map((cell) => (
-                      <TableCell 
-                        key={cell.id}
-                        data-testid={`table-cell-${cell.column.id}-${row.id}`}
-                      >
-                        {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                      </TableCell>
-                    ))}
-                    {renderRowActions && (
-                      <TableCell className="text-right">
-                        {renderRowActions(row)}
-                      </TableCell>
-                    )}
-                  </TableRow>
-                ))}
-              </TableBody>
-            ) : (
-              <EmptyState />
-            )}
-          </Table>
-        </div>
+              {isLoading ? (
+                <LoadingSkeleton />
+              ) : rows.length ? (
+                <TableBody>
+                  {paddingTop > 0 && (
+                    <tr aria-hidden="true">
+                      <td
+                        colSpan={totalColumnCount}
+                        style={{ height: `${paddingTop}px`, padding: 0, border: 0 }}
+                      />
+                    </tr>
+                  )}
+                  {virtualRows.map((virtualRow) => {
+                    const row = rows[virtualRow.index];
+                    return renderDataRow(row, {
+                      virtualIndex: virtualRow.index,
+                      measureRef: rowVirtualizer.measureElement,
+                    });
+                  })}
+                  {paddingBottom > 0 && (
+                    <tr aria-hidden="true">
+                      <td
+                        colSpan={totalColumnCount}
+                        style={{ height: `${paddingBottom}px`, padding: 0, border: 0 }}
+                      />
+                    </tr>
+                  )}
+                </TableBody>
+              ) : (
+                <EmptyState />
+              )}
+            </table>
+          </div>
+        ) : (
+          <div className="rounded-md border">
+            <Table>
+              <TableHeader>{headerRows}</TableHeader>
+
+              {isLoading ? (
+                <LoadingSkeleton />
+              ) : rows.length ? (
+                <TableBody>
+                  {rows.map((row) => renderDataRow(row))}
+                </TableBody>
+              ) : (
+                <EmptyState />
+              )}
+            </Table>
+          </div>
+        )}
+
+        {/* Virtualized result count (replaces the pagination footer when
+            virtualization is enabled, so the user still has feedback on how
+            many rows are present after filtering). */}
+        {enableVirtualization && !isLoading && rows.length > 0 && (
+          <div
+            className="text-sm text-muted-foreground"
+            data-testid="virtualized-result-count"
+          >
+            Showing {rows.length} of {table.getCoreRowModel().rows.length} result(s)
+          </div>
+        )}
 
         {/* Pagination */}
-        {enablePagination && !isLoading && table.getRowModel().rows?.length > 0 && (
+        {paginationActive && !isLoading && table.getRowModel().rows?.length > 0 && (
           <div className="flex items-center justify-between space-x-2 py-4">
             <div className="flex-1 text-sm text-muted-foreground" data-testid="pagination-info">
               Showing {table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1} to{" "}
