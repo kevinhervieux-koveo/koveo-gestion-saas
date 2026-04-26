@@ -1728,15 +1728,29 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
       contentHash: string;
     }> {
       const sid = await createSession();
+      // The earlier `commit — effectiveDate priority` describe block
+      // commits multiple uploads of the bare `PDF_BODY` constant
+      // against `ids.org`, which leaves matching rows in
+      // `clientDocumentFingerprints` for that exact hash. The upload
+      // endpoint dedups against those fingerprints and would mark a
+      // fresh `PDF_BODY` upload as `status: 'duplicate'`, which the
+      // replace-file route then rejects with "Cannot replace a
+      // duplicate item" — masking both the happy-path test and the
+      // "no file attached" 400 path. Stir a per-call unique tail into
+      // the bytes so each seeded item has its own hash and starts in
+      // a non-duplicate `pending` state.
+      const uniqueTag = crypto.randomUUID();
+      const seedBody = Buffer.concat([PDF_BODY, Buffer.from(uniqueTag)]);
       const upload = await request(app)
         .post(`/api/admin/bulk-import/sessions/${sid}/items`)
         .set('x-test-user-id', ids.admin)
-        .attach('files', PDF_BODY, {
-          filename: `corrupt-${crypto.randomUUID()}.pdf`,
+        .attach('files', seedBody, {
+          filename: `corrupt-${uniqueTag}.pdf`,
           contentType: 'application/pdf',
         });
       expect(upload.status).toBe(201);
       const item = upload.body[0];
+      expect(item.status).not.toBe('duplicate');
       trackedItems.add(item.id);
       return {
         sid,
