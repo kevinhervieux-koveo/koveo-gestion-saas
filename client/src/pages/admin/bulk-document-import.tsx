@@ -1422,6 +1422,12 @@ export default function BulkDocumentImportPage() {
   const [buildingTypeFilter, setBuildingTypeFilter] = useState<string>('all');
   const fileInputRef = useRef<HTMLInputElement>(null);
   const folderInputRef = useRef<HTMLInputElement>(null);
+  // Per-item hidden file inputs that back the "Replace file" button on
+  // the inline PDF-corruption banner (Task #1051). Keyed by item id; a
+  // ref callback registers each input when its banner mounts so the
+  // button can trigger the native picker without spreading file inputs
+  // throughout the page.
+  const replaceFileInputRefs = useRef<Map<string, HTMLInputElement | null>>(new Map());
 
   // Return to the first page (building picker + history) without
   // touching the session itself, so the user can resume it later from
@@ -1695,6 +1701,59 @@ export default function BulkDocumentImportPage() {
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       });
       toast({ title: isFr ? 'Téléversement réussi' : 'Files uploaded' });
+    },
+  });
+
+  /**
+   * Per-item "Replace file" action surfaced inside the inline
+   * PDF-corruption banner (Task #1051). Lets an admin who hits a
+   * MERGE_*_PDF_* / PDF_PAGE_TREE_UNRECOVERABLE error during sorting
+   * swap the corrupt staged file for a re-saved copy without leaving
+   * the wizard. On success we drop the row's banner entry and
+   * invalidate the lite payload so the new originalName / fileSize
+   * land in the UI; the admin can then re-click Accept / Confirm and
+   * the sorting decision retries against the fresh bytes.
+   */
+  const replaceFile = useMutation({
+    mutationFn: async ({ itemId, file }: { itemId: string; file: File }) => {
+      const fd = new FormData();
+      fd.append('files', file);
+      const res = await fetch(
+        `/api/admin/bulk-import/items/${itemId}/replace-file`,
+        { method: 'POST', body: fd, credentials: 'include' },
+      );
+      if (!res.ok) {
+        let serverMessage: string | undefined;
+        try {
+          const body = (await res.json()) as { error?: unknown };
+          if (typeof body.error === 'string') serverMessage = body.error;
+        } catch {
+          /* ignore — fall through to generic message */
+        }
+        throw new Error(serverMessage ?? 'Replace failed');
+      }
+      return res.json();
+    },
+    onSuccess: (_data, variables) => {
+      setSortingDecisionErrors((prev) => {
+        if (!prev.has(variables.itemId)) return prev;
+        const next = new Map(prev);
+        next.delete(variables.itemId);
+        return next;
+      });
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+      toast({ title: isFr ? 'Fichier remplacé' : 'File replaced' });
+    },
+    onError: (error) => {
+      toast({
+        variant: 'destructive',
+        title: isFr ? 'Échec du remplacement' : 'Failed to replace file',
+        ...(error instanceof Error && error.message
+          ? { description: error.message }
+          : {}),
+      });
     },
   });
 
@@ -5361,6 +5420,9 @@ export default function BulkDocumentImportPage() {
                             {(() => {
                               const itemError = sortingDecisionErrors.get(item.id);
                               if (!itemError) return null;
+                              const isReplacingThisItem =
+                                replaceFile.isPending &&
+                                replaceFile.variables?.itemId === item.id;
                               return (
                                 <div
                                   className="mx-3 mb-3 flex items-start gap-2 rounded-md border border-red-300 bg-red-50 p-3 text-sm text-red-800 dark:border-red-700 dark:bg-red-950 dark:text-red-200"
@@ -5376,6 +5438,48 @@ export default function BulkDocumentImportPage() {
                                     <p className="mt-1 leading-snug">
                                       {itemError.description}
                                     </p>
+                                    {/* Task #1051 — One-click recovery: open the
+                                        existing replace-file flow scoped to this
+                                        item so the admin doesn't have to leave
+                                        the wizard, find the source upload, and
+                                        delete/re-add it manually. */}
+                                    <div className="mt-2">
+                                      <input
+                                        ref={(el) => {
+                                          replaceFileInputRefs.current.set(item.id, el);
+                                        }}
+                                        type="file"
+                                        className="hidden"
+                                        data-testid={`sorting-decision-error-replace-input-${item.id}`}
+                                        onChange={(e) => {
+                                          const file = e.target.files?.[0];
+                                          // Reset the input synchronously so picking the
+                                          // same filename again still fires onChange.
+                                          e.target.value = '';
+                                          if (file) {
+                                            replaceFile.mutate({ itemId: item.id, file });
+                                          }
+                                        }}
+                                      />
+                                      <Button
+                                        type="button"
+                                        size="sm"
+                                        variant="outline"
+                                        className="border-red-300 bg-white text-red-800 hover:bg-red-100 hover:text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-200 dark:hover:bg-red-900"
+                                        disabled={isReplacingThisItem}
+                                        onClick={() =>
+                                          replaceFileInputRefs.current.get(item.id)?.click()
+                                        }
+                                        data-testid={`sorting-decision-error-replace-${item.id}`}
+                                      >
+                                        {isReplacingThisItem ? (
+                                          <Loader2 className="mr-1.5 h-3.5 w-3.5 animate-spin" />
+                                        ) : (
+                                          <Upload className="mr-1.5 h-3.5 w-3.5" />
+                                        )}
+                                        {isFr ? 'Téléverser à nouveau' : 'Replace file'}
+                                      </Button>
+                                    </div>
                                   </div>
                                   <button
                                     type="button"

@@ -2010,6 +2010,153 @@ export function registerBulkImportRoutes(app: Express): void {
   );
 
   /**
+   * Replace a staged item's bytes with a freshly re-saved version of
+   * the same source file (Task #1051). Powers the "Replace file" /
+   * "Téléverser à nouveau" button on the inline PDF-corruption banner
+   * surfaced by Task #1036, so an admin who hits a corrupt-PDF merge
+   * failure can swap in a re-exported copy (e.g. re-saved through
+   * Preview / Adobe Acrobat) without leaving the sorting step.
+   *
+   * Accepts exactly one file via `files` (multer field, same name as
+   * the upload endpoint above). The new bytes are written to the same
+   * staging directory under a fresh `<hash>_<filename>` path; the prior
+   * staged file is best-effort removed once the row is updated so the
+   * staging dir does not balloon. Item state (status, screening
+   * decisions, sorting decision, etc.) is intentionally preserved so
+   * the admin can immediately retry the failed sorting decision —
+   * replacing a corrupt PDF with a re-encoded copy of the same scan
+   * should not reset any of the AI work already performed on it.
+   *
+   * Terminal states (`committed`, `duplicate`) are refused since their
+   * bytes are no longer relevant to the wizard. Same admin-org access
+   * guard as the exclude endpoint above.
+   */
+  app.post(
+    '/api/admin/bulk-import/items/:id/replace-file',
+    requireAuth,
+    requireRole(['admin']),
+    upload.array('files', 1),
+    async (req: AuthenticatedRequest, res: Response) => {
+      try {
+        const [item] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, req.params.id));
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+
+        const session = await loadSession(item.sessionId);
+        if (!session) return res.status(404).json({ error: 'Session not found' });
+
+        const allowed = await canUserAccessOrganization(
+          req.user!.id,
+          session.organizationId,
+        );
+        if (!allowed) {
+          return res
+            .status(403)
+            .json({ error: 'You do not have access to this session' });
+        }
+
+        // Refuse states whose downstream side-effects can't be undone
+        // by a file swap alone:
+        //   - `committed`: the bytes have already been persisted to a
+        //     real `documents` row + storage. Replacing them here would
+        //     desync the wizard from the published document.
+        //   - `linked`: the merge step has bound this item to an
+        //     existing document; swapping the staged file would leave
+        //     the link pointing at unverified bytes.
+        //   - `duplicate`: the item is a known dup of bytes already in
+        //     the system, so a swap has no meaningful target.
+        // Every other state (pending/screening/screened/sorted/
+        // branched/identified/rejected) is the intended replace-file
+        // surface for the corruption-recovery flow (Task #1051).
+        if (
+          item.status === 'committed' ||
+          item.status === 'linked' ||
+          item.status === 'duplicate'
+        ) {
+          return res.status(400).json({
+            error: `Cannot replace a ${item.status} item`,
+          });
+        }
+
+        const files = (req.files as Express.Multer.File[] | undefined) ?? [];
+        if (files.length === 0) {
+          return res.status(400).json({ error: 'No file uploaded' });
+        }
+        if (files.length > 1) {
+          return res.status(400).json({ error: 'Replace accepts a single file' });
+        }
+        const file = files[0];
+
+        const dir = stagingDirFor(session.id);
+        const correctedName = fixLatin1MisdecodeFilename(file.originalname);
+        const hash = sha256(file.buffer);
+        const newStagedPath = path.join(dir, `${hash}_${correctedName}`);
+
+        // Sanity check: the resolved path must stay inside the session's
+        // staging directory. `correctedName` came from a multer-parsed
+        // header so a malicious filename like `../../etc/passwd` should
+        // be neutralised by the path.join above, but we re-verify before
+        // writing to disk.
+        const resolvedNew = path.resolve(newStagedPath);
+        const resolvedDir = path.resolve(dir);
+        if (!resolvedNew.startsWith(resolvedDir + path.sep)) {
+          return res.status(400).json({ error: 'Invalid filename' });
+        }
+
+        fs.writeFileSync(resolvedNew, file.buffer);
+
+        const [updated] = await db
+          .update(schema.bulkImportItems)
+          .set({
+            originalPath: correctedName,
+            originalName: correctedName,
+            stagedPath: resolvedNew,
+            contentHash: hash,
+            mimeType: file.mimetype,
+            fileSize: file.size,
+            updatedAt: new Date(),
+          })
+          .where(eq(schema.bulkImportItems.id, item.id))
+          .returning();
+
+        // Best-effort cleanup of the old staged bytes. We only delete
+        // when the prior path is different from the new one (uploading
+        // the exact same file would collide on hash+name) AND lived
+        // under THIS session's staging directory. Constraining to the
+        // session dir (not just `STAGING_ROOT`) means a poisoned
+        // `stagedPath` row from a different session — or one that
+        // somehow points elsewhere on disk — can never coax us into
+        // removing files outside the affected session's sandbox.
+        if (item.stagedPath && item.stagedPath !== resolvedNew) {
+          const resolvedOld = path.resolve(item.stagedPath);
+          if (resolvedOld.startsWith(resolvedDir + path.sep)) {
+            try {
+              fs.rmSync(resolvedOld, { force: true });
+            } catch (cleanupErr) {
+              logWarn('[bulk-import] failed to remove replaced staged file', {
+                metadata: {
+                  itemId: item.id,
+                  oldPath: resolvedOld,
+                  error: (cleanupErr as Error).message,
+                },
+              });
+            }
+          }
+        }
+
+        return res.json(updated);
+      } catch (err) {
+        logError('[bulk-import] replace-file failed', err as Error, {
+          metadata: { itemId: req.params.id },
+        });
+        return res.status(500).json({ error: 'Failed to replace file' });
+      }
+    },
+  );
+
+  /**
    * Stream a staged item's raw bytes so the wizard can render real
    * thumbnails / inline previews (Task #457). Admin-only, scoped to the
    * item's own staging directory; we never let callers escape via

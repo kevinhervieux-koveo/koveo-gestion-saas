@@ -1266,6 +1266,318 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
   });
 
   // ---------------------------------------------------------------------------
+  // Task #1051 — One-click "Replace file" action on the corruption banner.
+  //
+  // The Task #1036 banner explains that the staged PDF is corrupt, but
+  // recovery still required the admin to leave the wizard, find the
+  // upload step, and replace the file by hand. Task #1051 wires a
+  // "Replace file" / "Téléverser à nouveau" button directly on the
+  // banner so a re-saved copy can be uploaded in place. After a
+  // successful replace the banner clears and the lite payload is
+  // refreshed so the sorting decision can be re-attempted without a
+  // page reload.
+  // ---------------------------------------------------------------------------
+
+  /**
+   * Trigger the corruption banner on `ITEM_PENDING` and wait for it to
+   * mount before returning. Reused across every Task #1051 test so the
+   * tests don't drift on how the banner is set up.
+   */
+  async function triggerCorruptionBannerOnPending(code = 'MERGE_PDF_COPY_FAILED'): Promise<() => void> {
+    const restore = installSortingDecision400(code, 'PDF merge failed');
+    renderPage();
+    await waitForRows();
+    await act(async () => {
+      fireEvent.click(screen.getByTestId(`button-sorting-accept-${ITEM_PENDING}`));
+    });
+    await screen.findByTestId(
+      `sorting-decision-error-${ITEM_PENDING}`,
+      undefined,
+      { timeout: 4000 },
+    );
+    return restore;
+  }
+
+  it('renders the "Replace file" button inside the corruption banner (Task #1051)', async () => {
+    const restore = await triggerCorruptionBannerOnPending();
+
+    const replaceBtn = screen.getByTestId(
+      `sorting-decision-error-replace-${ITEM_PENDING}`,
+    );
+    expect(replaceBtn).toBeInTheDocument();
+    expect(replaceBtn).toHaveTextContent(/Replace file/i);
+
+    // The button must live inside the banner so it visually belongs
+    // to the corruption alert, not at some unrelated page slot.
+    const banner = screen.getByTestId(`sorting-decision-error-${ITEM_PENDING}`);
+    expect(banner.contains(replaceBtn)).toBe(true);
+
+    // The hidden file input that backs the button must be in the DOM
+    // so the click handler has something to trigger.
+    expect(
+      screen.getByTestId(`sorting-decision-error-replace-input-${ITEM_PENDING}`),
+    ).toBeInTheDocument();
+
+    restore();
+  });
+
+  it('renders the French label when the language is fr (Task #1051)', async () => {
+    languageRef.current = 'fr';
+    const restore = await triggerCorruptionBannerOnPending('MERGE_LEAD_PDF_CORRUPT');
+
+    expect(
+      screen.getByTestId(`sorting-decision-error-replace-${ITEM_PENDING}`),
+    ).toHaveTextContent(/Téléverser à nouveau/);
+
+    restore();
+  });
+
+  it('selecting a file POSTs to /replace-file scoped to the affected item (Task #1051)', async () => {
+    const restore = await triggerCorruptionBannerOnPending();
+
+    // Replace fetch with a spy that captures the multipart upload, while
+    // letting every other request fall back to the shared fetchMock.
+    const savedFetch = global.fetch;
+    let capturedUrl: string | undefined;
+    let capturedMethod: string | undefined;
+    let capturedBody: FormData | undefined;
+    global.fetch = jest.fn(async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      const url =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : (input as Request).url;
+      const method = (init?.method || 'GET').toUpperCase();
+      const [pathname] = url.split('?');
+      if (
+        method === 'POST' &&
+        pathname === `/api/admin/bulk-import/items/${ITEM_PENDING}/replace-file`
+      ) {
+        capturedUrl = pathname;
+        capturedMethod = method;
+        capturedBody = init?.body as FormData;
+        return jsonResponse({ id: ITEM_PENDING, originalName: 'fixed.pdf' });
+      }
+      return (fetchMock as unknown as (i: RequestInfo | URL, init?: RequestInit) => Promise<Response>)(input, init);
+    }) as unknown as typeof fetch;
+
+    const fileInput = screen.getByTestId(
+      `sorting-decision-error-replace-input-${ITEM_PENDING}`,
+    ) as HTMLInputElement;
+
+    // jsdom's file dialog is non-interactive; simulate the post-pick
+    // change event the same way the real browser would.
+    const file = new File(['%PDF-1.4 fresh bytes'], 'fixed.pdf', {
+      type: 'application/pdf',
+    });
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [file] } });
+    });
+
+    await waitFor(
+      () => {
+        expect(capturedMethod).toBe('POST');
+      },
+      { timeout: 4000 },
+    );
+    expect(capturedUrl).toBe(`/api/admin/bulk-import/items/${ITEM_PENDING}/replace-file`);
+    expect(capturedBody).toBeInstanceOf(FormData);
+    const sent = capturedBody as FormData;
+    const sentFile = sent.get('files');
+    expect(sentFile).toBeInstanceOf(File);
+    expect((sentFile as File).name).toBe('fixed.pdf');
+
+    global.fetch = savedFetch;
+    restore();
+  });
+
+  it('clears the corruption banner after a successful replace and shows a success toast (Task #1051)', async () => {
+    const restore = await triggerCorruptionBannerOnPending();
+
+    const savedFetch = global.fetch;
+    global.fetch = jest.fn(async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      const url =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : (input as Request).url;
+      const method = (init?.method || 'GET').toUpperCase();
+      const [pathname] = url.split('?');
+      if (
+        method === 'POST' &&
+        pathname === `/api/admin/bulk-import/items/${ITEM_PENDING}/replace-file`
+      ) {
+        return jsonResponse({ id: ITEM_PENDING, originalName: 'fixed.pdf' });
+      }
+      return (fetchMock as unknown as (i: RequestInfo | URL, init?: RequestInit) => Promise<Response>)(input, init);
+    }) as unknown as typeof fetch;
+
+    const fileInput = screen.getByTestId(
+      `sorting-decision-error-replace-input-${ITEM_PENDING}`,
+    ) as HTMLInputElement;
+    const file = new File(['%PDF-1.4 fresh bytes'], 'fixed.pdf', {
+      type: 'application/pdf',
+    });
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [file] } });
+    });
+
+    // Banner must clear once the mutation resolves so the admin can
+    // immediately retry the sorting decision.
+    await waitFor(
+      () => {
+        expect(
+          screen.queryByTestId(`sorting-decision-error-${ITEM_PENDING}`),
+        ).not.toBeInTheDocument();
+      },
+      { timeout: 4000 },
+    );
+
+    // A success toast confirms the replacement landed.
+    expect(mockToast).toHaveBeenCalledWith(
+      expect.objectContaining({ title: expect.stringMatching(/File replaced/i) }),
+    );
+
+    global.fetch = savedFetch;
+    restore();
+  });
+
+  it('lets the admin retry the sorting decision after a successful replace, with no page reload (Task #1051)', async () => {
+    // First Accept click → 400 corruption banner. Once the replace
+    // succeeds and the banner clears, a second Accept click must
+    // actually fire a new POST against the same item — proving the
+    // wizard is fully re-armed without a reload.
+    const restore = await triggerCorruptionBannerOnPending();
+
+    const savedFetch = global.fetch;
+    let sortingDecisionCallsAfterReplace = 0;
+    let replaceDone = false;
+    global.fetch = jest.fn(async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      const url =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : (input as Request).url;
+      const method = (init?.method || 'GET').toUpperCase();
+      const [pathname] = url.split('?');
+      if (
+        method === 'POST' &&
+        pathname === `/api/admin/bulk-import/items/${ITEM_PENDING}/replace-file`
+      ) {
+        replaceDone = true;
+        return jsonResponse({ id: ITEM_PENDING, originalName: 'fixed.pdf' });
+      }
+      if (
+        method === 'POST' &&
+        pathname === `/api/admin/bulk-import/items/${ITEM_PENDING}/set-sorting-decision`
+      ) {
+        if (replaceDone) {
+          sortingDecisionCallsAfterReplace += 1;
+          return jsonResponse({ id: ITEM_PENDING, sortingDecisionState: 'accepted' });
+        }
+        return jsonResponse({ error: 'PDF merge failed', code: 'MERGE_PDF_COPY_FAILED' }, 400);
+      }
+      return (fetchMock as unknown as (i: RequestInfo | URL, init?: RequestInit) => Promise<Response>)(input, init);
+    }) as unknown as typeof fetch;
+
+    // Replace step.
+    const fileInput = screen.getByTestId(
+      `sorting-decision-error-replace-input-${ITEM_PENDING}`,
+    ) as HTMLInputElement;
+    const file = new File(['%PDF-1.4 fresh bytes'], 'fixed.pdf', {
+      type: 'application/pdf',
+    });
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [file] } });
+    });
+
+    await waitFor(
+      () => {
+        expect(
+          screen.queryByTestId(`sorting-decision-error-${ITEM_PENDING}`),
+        ).not.toBeInTheDocument();
+      },
+      { timeout: 4000 },
+    );
+
+    // Now retry the sorting decision — the Accept button must still
+    // be in the DOM (no reload happened) and the click must actually
+    // fire a new request.
+    const acceptBtn = screen.getByTestId(`button-sorting-accept-${ITEM_PENDING}`);
+    expect(acceptBtn).toBeInTheDocument();
+    await act(async () => {
+      fireEvent.click(acceptBtn);
+    });
+
+    await waitFor(
+      () => {
+        expect(sortingDecisionCallsAfterReplace).toBeGreaterThanOrEqual(1);
+      },
+      { timeout: 4000 },
+    );
+
+    global.fetch = savedFetch;
+    restore();
+  });
+
+  it('keeps the banner visible and surfaces the server error on a failed replace (Task #1051)', async () => {
+    const restore = await triggerCorruptionBannerOnPending();
+
+    const savedFetch = global.fetch;
+    global.fetch = jest.fn(async (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+      const url =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : (input as Request).url;
+      const method = (init?.method || 'GET').toUpperCase();
+      const [pathname] = url.split('?');
+      if (
+        method === 'POST' &&
+        pathname === `/api/admin/bulk-import/items/${ITEM_PENDING}/replace-file`
+      ) {
+        return jsonResponse({ error: 'Cannot replace a committed item' }, 400);
+      }
+      return (fetchMock as unknown as (i: RequestInfo | URL, init?: RequestInit) => Promise<Response>)(input, init);
+    }) as unknown as typeof fetch;
+
+    const fileInput = screen.getByTestId(
+      `sorting-decision-error-replace-input-${ITEM_PENDING}`,
+    ) as HTMLInputElement;
+    const file = new File(['%PDF-1.4 fresh bytes'], 'broken.pdf', {
+      type: 'application/pdf',
+    });
+    await act(async () => {
+      fireEvent.change(fileInput, { target: { files: [file] } });
+    });
+
+    await waitFor(
+      () => {
+        expect(mockToast).toHaveBeenCalledWith(
+          expect.objectContaining({
+            variant: 'destructive',
+            title: expect.stringMatching(/Failed to replace/i),
+            description: expect.stringContaining('Cannot replace a committed item'),
+          }),
+        );
+      },
+      { timeout: 4000 },
+    );
+
+    // The banner stays so the admin can try again with another file.
+    expect(
+      screen.getByTestId(`sorting-decision-error-${ITEM_PENDING}`),
+    ).toBeInTheDocument();
+
+    global.fetch = savedFetch;
+    restore();
+  });
+
+  // ---------------------------------------------------------------------------
   // Task #956 — "In this merge" hidden when picker decision is Keep or Split
   // ---------------------------------------------------------------------------
 

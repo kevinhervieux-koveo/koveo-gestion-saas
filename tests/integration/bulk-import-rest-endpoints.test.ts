@@ -1431,4 +1431,201 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
       expect(res.body.document.effectiveDate).toBeNull();
     });
   });
+
+  /**
+   * Task #1051 — POST /items/:id/replace-file lets an admin swap a
+   * corrupt staged PDF for a re-saved copy without leaving the wizard.
+   * The endpoint must:
+   *   - require admin role
+   *   - enforce org-scope via canUserAccessOrganization
+   *   - refuse `committed` / `duplicate` items
+   *   - update contentHash, originalName, mimeType, fileSize, stagedPath
+   *     and write the new bytes onto disk
+   *   - delete the previous staged bytes (best-effort) when the path
+   *     changed and lived inside STAGING_ROOT
+   *   - preserve all AI analysis state (screening, identification,
+   *     sortingDecision, branchDecision)
+   */
+  describe('POST /items/:id/replace-file (Task #1051)', () => {
+    const REPLACEMENT_PDF = Buffer.from('%PDF-1.5\nfresh-bytes\n%%EOF', 'utf8');
+
+    async function seedItemForReplace(): Promise<{
+      sid: string;
+      itemId: string;
+      stagedPath: string;
+      contentHash: string;
+    }> {
+      const sid = await createSession();
+      const upload = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', PDF_BODY, {
+          filename: `corrupt-${crypto.randomUUID()}.pdf`,
+          contentType: 'application/pdf',
+        });
+      expect(upload.status).toBe(201);
+      const item = upload.body[0];
+      trackedItems.add(item.id);
+      return {
+        sid,
+        itemId: item.id,
+        stagedPath: item.stagedPath,
+        contentHash: item.contentHash,
+      };
+    }
+
+    it('replaces the staged file, updates row metadata, and removes the old bytes', async () => {
+      const { itemId, stagedPath: oldPath, contentHash: oldHash } =
+        await seedItemForReplace();
+
+      // Decorate the item with AI analysis so we can confirm those
+      // columns are NOT wiped by the replace.
+      await db
+        .update(schema.bulkImportItems)
+        .set({
+          screening: { docType: 'minutes', confidence: 0.9 },
+          identification: { name: 'AGM 2024' },
+          branchDecision: { branch: 'building_documents' },
+          sortingDecision: 'accepted',
+        })
+        .where(eq(schema.bulkImportItems.id, itemId));
+
+      expect(fs.existsSync(oldPath)).toBe(true);
+
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/items/${itemId}/replace-file`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', REPLACEMENT_PDF, {
+          filename: 'fixed.pdf',
+          contentType: 'application/pdf',
+        });
+
+      expect(res.status).toBe(200);
+      const expectedHash = crypto
+        .createHash('sha256')
+        .update(REPLACEMENT_PDF)
+        .digest('hex');
+      expect(res.body.contentHash).toBe(expectedHash);
+      expect(res.body.contentHash).not.toBe(oldHash);
+      expect(res.body.originalName).toBe('fixed.pdf');
+      expect(res.body.mimeType).toBe('application/pdf');
+      expect(res.body.fileSize).toBe(REPLACEMENT_PDF.length);
+      expect(res.body.stagedPath).not.toBe(oldPath);
+
+      // New bytes are on disk.
+      expect(fs.existsSync(res.body.stagedPath)).toBe(true);
+      expect(fs.readFileSync(res.body.stagedPath)).toEqual(REPLACEMENT_PDF);
+
+      // Old bytes were swept up by the best-effort cleanup.
+      expect(fs.existsSync(oldPath)).toBe(false);
+
+      // AI analysis state is preserved untouched.
+      const [row] = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.id, itemId));
+      expect(row.screening).toEqual({ docType: 'minutes', confidence: 0.9 });
+      expect(row.identification).toEqual({ name: 'AGM 2024' });
+      expect(row.branchDecision).toEqual({ branch: 'building_documents' });
+      expect(row.sortingDecision).toBe('accepted');
+    });
+
+    it('rejects non-admins with 401/403', async () => {
+      const { itemId } = await seedItemForReplace();
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/items/${itemId}/replace-file`)
+        .set('x-test-user-id', ids.nonAdmin)
+        .attach('files', REPLACEMENT_PDF, {
+          filename: 'fixed.pdf',
+          contentType: 'application/pdf',
+        });
+      expect([401, 403]).toContain(res.status);
+    });
+
+    it('rejects an admin from a foreign organization with 403', async () => {
+      const { itemId } = await seedItemForReplace();
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/items/${itemId}/replace-file`)
+        .set('x-test-user-id', ids.foreignAdmin)
+        .attach('files', REPLACEMENT_PDF, {
+          filename: 'fixed.pdf',
+          contentType: 'application/pdf',
+        });
+      expect(res.status).toBe(403);
+    });
+
+    it('refuses to replace a committed item', async () => {
+      const { itemId } = await seedItemForReplace();
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status: 'committed' })
+        .where(eq(schema.bulkImportItems.id, itemId));
+
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/items/${itemId}/replace-file`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', REPLACEMENT_PDF, {
+          filename: 'fixed.pdf',
+          contentType: 'application/pdf',
+        });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/committed/i);
+    });
+
+    it('refuses to replace a linked item (already merged into a document)', async () => {
+      const { itemId } = await seedItemForReplace();
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status: 'linked' })
+        .where(eq(schema.bulkImportItems.id, itemId));
+
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/items/${itemId}/replace-file`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', REPLACEMENT_PDF, {
+          filename: 'fixed.pdf',
+          contentType: 'application/pdf',
+        });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/linked/i);
+    });
+
+    it('refuses to replace a duplicate item', async () => {
+      const { itemId } = await seedItemForReplace();
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status: 'duplicate' })
+        .where(eq(schema.bulkImportItems.id, itemId));
+
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/items/${itemId}/replace-file`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', REPLACEMENT_PDF, {
+          filename: 'fixed.pdf',
+          contentType: 'application/pdf',
+        });
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/duplicate/i);
+    });
+
+    it('400s when no file is attached', async () => {
+      const { itemId } = await seedItemForReplace();
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/items/${itemId}/replace-file`)
+        .set('x-test-user-id', ids.admin);
+      expect(res.status).toBe(400);
+      expect(res.body.error).toMatch(/No file uploaded/i);
+    });
+
+    it('404s when the item does not exist', async () => {
+      const res = await request(app)
+        .post(`/api/admin/bulk-import/items/${crypto.randomUUID()}/replace-file`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', REPLACEMENT_PDF, {
+          filename: 'fixed.pdf',
+          contentType: 'application/pdf',
+        });
+      expect(res.status).toBe(404);
+    });
+  });
 });
