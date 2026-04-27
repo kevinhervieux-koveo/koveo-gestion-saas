@@ -51,6 +51,7 @@ import {
   type InsertElementProjectUpdate,
 } from '@shared/schemas/maintenance';
 import { buildings, organizations, userOrganizations, userBuildings, residences, users } from '@shared/schema';
+import { isFinancialYearCoveredForBuilding, buildFyValidationError } from './project-fy-validator';
 import { documents } from '@shared/schemas/documents';
 import { workflowService } from '../services/workflow-service';
 import { buildContentDisposition } from '../utils/content-disposition';
@@ -3308,7 +3309,21 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         }
       }
       
-      // Note (task #1275): `financialYear` flows through `...validation.data`
+      // Task #1311: validate that the submitted financialYear maps to a year
+      // covered by the building's monthly budget records (auto-populated from
+      // construction date to 25 years in future).
+      if (validation.data.financialYear !== undefined) {
+        const covered = await isFinancialYearCoveredForBuilding(
+          db,
+          projectResult[0].buildingId,
+          validation.data.financialYear,
+        );
+        if (!covered) {
+          return res.status(400).json(buildFyValidationError(validation.data.financialYear));
+        }
+      }
+
+      // Note (task #1275/#1311): `financialYear` flows through `...validation.data`
       // and is persisted as-is. Budget forecasts, dashboards, and reports
       // group project costs by `maintenance_projects.financialYear` (and
       // `plannedStartDate`) on demand — no stored allocation/spread rows
@@ -3411,6 +3426,20 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(403).json({
           error: 'No access to this project'
         });
+      }
+
+      // Task #1311: validate that the submitted financialYear maps to a year
+      // covered by the building's monthly budget records (auto-populated from
+      // construction date to 25 years in future).
+      if (patchValidation.data.financialYear !== undefined) {
+        const covered = await isFinancialYearCoveredForBuilding(
+          db,
+          projectResult[0].buildingId,
+          patchValidation.data.financialYear,
+        );
+        if (!covered) {
+          return res.status(400).json(buildFyValidationError(patchValidation.data.financialYear));
+        }
       }
       
       // Build update object with only provided fields

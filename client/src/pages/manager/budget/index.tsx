@@ -35,6 +35,7 @@ import { getFinancialYearRange } from '@/utils/financial-year';
 import { preserveManagerContext } from '@/utils/manager-navigation';
 import { BudgetChart } from './BudgetChart';
 import { BudgetProjectDialogs, type QuickProjectData, type EditingProjectData } from './BudgetProjectDialogs';
+import { YearEndProjectionTooltipContent } from './YearEndProjectionTooltipContent';
 import { useBudgetUICollapse } from './hooks/useBudgetUICollapse';
 import { useBudgetProjects } from './hooks/useBudgetProjects';
 import { BudgetProjectCard } from './components/BudgetProjectCard';
@@ -3047,6 +3048,16 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
             <ArrowLeft className="w-4 h-4" />
             {buildingName || t('budgetBackToBuilding')}
           </Button>
+          {currentFinancialYear && (
+            <Badge
+              variant="outline"
+              className="flex items-center gap-1.5 text-sm font-medium"
+              data-testid="badge-active-fiscal-year"
+            >
+              <Calendar className="h-3.5 w-3.5" />
+              {t('budgetActiveFiscalYear')}: {currentFinancialYear.label}
+            </Badge>
+          )}
         </div>
       )}
 
@@ -3606,24 +3617,16 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                                     className='max-w-xs text-xs'
                                     data-testid='tooltip-year-end-projection-help'
                                   >
-                                    <div className='space-y-1'>
-                                      <div data-testid='tooltip-year-end-projection-fy-end'>
-                                        <span className='font-medium'>
-                                          {t('budgetYearEndProjectionFiscalYearEndLabel')}:
-                                        </span>{' '}
-                                        {fyEndLabel}
-                                      </div>
-                                      <div data-testid='tooltip-year-end-projection-months-remaining'>
-                                        <span className='font-medium'>
-                                          {t('budgetYearEndProjectionMonthsRemainingLabel')}:
-                                        </span>{' '}
-                                        {monthsRemaining}{' '}
-                                        {t('budgetYearEndProjectionMonthsRemainingUnit')}
-                                      </div>
-                                      <div data-testid='tooltip-year-end-projection-explanation'>
-                                        {t('budgetYearEndProjectionTooltip')}
-                                      </div>
-                                    </div>
+                                    <YearEndProjectionTooltipContent
+                                      activeFiscalYearLabel={currentFinancialYear?.label}
+                                      fyEndLabel={fyEndLabel}
+                                      monthsRemaining={monthsRemaining}
+                                      activeFiscalYearTitle={t('budgetYearEndProjectionActiveFiscalYearLabel')}
+                                      fiscalYearEndTitle={t('budgetYearEndProjectionFiscalYearEndLabel')}
+                                      monthsRemainingTitle={t('budgetYearEndProjectionMonthsRemainingLabel')}
+                                      monthsRemainingUnit={t('budgetYearEndProjectionMonthsRemainingUnit')}
+                                      explanationText={t('budgetYearEndProjectionTooltip')}
+                                    />
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>

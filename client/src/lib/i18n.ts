@@ -2371,6 +2371,8 @@ export interface Translations {
   budgetYearEndProjectionFiscalYearEndLabel: string;
   budgetYearEndProjectionMonthsRemainingLabel: string;
   budgetYearEndProjectionMonthsRemainingUnit: string;
+  budgetYearEndProjectionActiveFiscalYearLabel: string;
+  budgetActiveFiscalYear: string;
   budgetLengthTooltip: string;
   budgetTotalInvestment: string;
   budgetNoDataForPeriod: string;
@@ -6059,6 +6061,8 @@ export const translations: Record<Language, Translations> = {
     budgetYearEndProjectionFiscalYearEndLabel: 'Fiscal year-end',
     budgetYearEndProjectionMonthsRemainingLabel: 'Months remaining',
     budgetYearEndProjectionMonthsRemainingUnit: 'months',
+    budgetYearEndProjectionActiveFiscalYearLabel: 'Active fiscal year',
+    budgetActiveFiscalYear: 'Active fiscal year',
     budgetLengthTooltip:
       'Controls the chart display horizon only. Does not affect the year-end projection.',
     budgetTotalInvestment: 'Total Investment',
@@ -10271,6 +10275,8 @@ export const translations: Record<Language, Translations> = {
     budgetYearEndProjectionFiscalYearEndLabel: 'Fin de l\'exercice',
     budgetYearEndProjectionMonthsRemainingLabel: 'Mois restants',
     budgetYearEndProjectionMonthsRemainingUnit: 'mois',
+    budgetYearEndProjectionActiveFiscalYearLabel: 'Exercice actif',
+    budgetActiveFiscalYear: 'Exercice en cours',
     budgetLengthTooltip:
       'Contrôle uniquement la fenêtre d\'affichage du graphique. N\'affecte pas la projection de fin d\'exercice.',
     budgetTotalInvestment: 'Investissement total',

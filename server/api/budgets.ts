@@ -15,6 +15,7 @@ import {
 import { ScenarioEngine, ScenarioInput } from '../utils/scenarios.js';
 import { forecastInputSchema } from './forecast-input-schema';
 import { applyProjectYearOverrides } from './apply-project-year-overrides';
+import { getProjectCostForMonth } from './project-cost-placement';
 
 const router = express.Router();
 
@@ -1743,22 +1744,12 @@ export const forecastHandler: express.RequestHandler = async (req, res) => {
         }
       });
 
-      // Add maintenance project costs scheduled for this month
+      // Add maintenance project costs scheduled for this month.
+      // Placement rules (see server/api/project-cost-placement.ts):
+      //   1. If project has plannedStartDate → lands in that month.
+      //   2. If project only has financialYear → lands in January of that year.
       includedProjects.forEach(project => {
-        // Use plannedStartDate if available, otherwise fall back to financialYear
-        if (project.plannedStartDate) {
-          const projectStartDate = new Date(project.plannedStartDate);
-          if (projectStartDate.getFullYear() === currentYear && projectStartDate.getMonth() === currentMonth - 1) {
-            const projectCost = project.totalBudget || project.estimatedCost || 0;
-            projectCostsAmount += parseFloat(String(projectCost));
-          }
-        } else if (project.financialYear) {
-          // If project has financial year but no specific start date, apply in January of that year
-          if (currentYear === project.financialYear && currentMonth === 1) {
-            const projectCost = project.totalBudget || project.estimatedCost || 0;
-            projectCostsAmount += parseFloat(String(projectCost));
-          }
-        }
+        projectCostsAmount += getProjectCostForMonth(project, currentYear, currentMonth);
       });
 
       const plannedInvestments = userCapitalInvestmentAmount + projectCostsAmount;

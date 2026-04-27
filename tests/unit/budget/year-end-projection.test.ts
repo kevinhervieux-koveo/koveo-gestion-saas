@@ -11,6 +11,11 @@
  *
  * It also includes a snapshot of the bilingual tooltip i18n strings so
  * any future copy change is an explicit, reviewed action.
+ *
+ * Task #1311: Extended to include `budgetYearEndProjectionActiveFiscalYearLabel`
+ * (the "Active fiscal year" row added to the projection-card tooltip) and a
+ * context-object test that verifies the tooltip correctly surfaces the fiscal
+ * year label derived from `getFinancialYearRange` when the project's FY changes.
  */
 
 import { describe, it, expect } from '@jest/globals';
@@ -19,6 +24,7 @@ import {
   getMonthsRemainingToFiscalYearEnd,
 } from '../../../client/src/lib/budget/year-end-projection';
 import { translations } from '../../../client/src/lib/i18n';
+import { getFinancialYearRange } from '../../../client/src/utils/financial-year';
 
 describe('getFiscalYearEnd', () => {
   it('FY starting January 1 → FY-end is December of the same calendar year', () => {
@@ -160,6 +166,78 @@ describe('budget tooltip i18n strings (snapshot)', () => {
   "monthsRemainingLabel": "Mois restants",
   "monthsRemainingUnit": "mois",
   "tooltip": "Solde projeté à la fin de l'exercice financier. Cette valeur est indépendante de la durée affichée dans le graphique.",
+}
+`);
+  });
+
+  it('includes the active fiscal year label key in both languages (Task #1311)', () => {
+    expect({
+      en: translations.en.budgetYearEndProjectionActiveFiscalYearLabel,
+      fr: translations.fr.budgetYearEndProjectionActiveFiscalYearLabel,
+      enHeader: translations.en.budgetActiveFiscalYear,
+      frHeader: translations.fr.budgetActiveFiscalYear,
+    }).toMatchInlineSnapshot(`
+{
+  "en": "Active fiscal year",
+  "enHeader": "Active fiscal year",
+  "fr": "Exercice actif",
+  "frHeader": "Exercice en cours",
+}
+`);
+  });
+});
+
+describe('projection card tooltip context — FY label after a project year change (Task #1311)', () => {
+  it('surfaces the correct label for a calendar-year FY (Jan 1 start)', () => {
+    const financialYearStart = '2026-01-01';
+    const today = new Date(2026, 4, 15); // May 15 2026
+
+    const { label } = getFinancialYearRange(financialYearStart, today);
+    const { fyEndMonth, fyEndYear } = getFiscalYearEnd(today, financialYearStart);
+    const monthsRemaining = getMonthsRemainingToFiscalYearEnd(today, financialYearStart);
+
+    expect({ label, fyEndMonth, fyEndYear, monthsRemaining }).toMatchInlineSnapshot(`
+{
+  "fyEndMonth": 12,
+  "fyEndYear": 2026,
+  "label": "2026-2027",
+  "monthsRemaining": 7,
+}
+`);
+  });
+
+  it('surfaces the correct label for a non-Jan FY (July 1 start) — project FY changed mid-year', () => {
+    const financialYearStart = '2025-07-01';
+    const today = new Date(2026, 2, 15); // March 15 2026 — inside FY 2025-2026
+
+    const { label } = getFinancialYearRange(financialYearStart, today);
+    const { fyEndMonth, fyEndYear } = getFiscalYearEnd(today, financialYearStart);
+    const monthsRemaining = getMonthsRemainingToFiscalYearEnd(today, financialYearStart);
+
+    expect({ label, fyEndMonth, fyEndYear, monthsRemaining }).toMatchInlineSnapshot(`
+{
+  "fyEndMonth": 6,
+  "fyEndYear": 2026,
+  "label": "2025-2026",
+  "monthsRemaining": 3,
+}
+`);
+  });
+
+  it('surfaces the correct label after advancing to the next FY (July 1 start)', () => {
+    const financialYearStart = '2025-07-01';
+    const today = new Date(2026, 8, 15); // September 15 2026 — inside FY 2026-2027
+
+    const { label } = getFinancialYearRange(financialYearStart, today);
+    const { fyEndMonth, fyEndYear } = getFiscalYearEnd(today, financialYearStart);
+    const monthsRemaining = getMonthsRemainingToFiscalYearEnd(today, financialYearStart);
+
+    expect({ label, fyEndMonth, fyEndYear, monthsRemaining }).toMatchInlineSnapshot(`
+{
+  "fyEndMonth": 6,
+  "fyEndYear": 2027,
+  "label": "2026-2027",
+  "monthsRemaining": 9,
 }
 `);
   });
