@@ -193,7 +193,7 @@ describe('POST /api/ai/suggest-document-tags - real DOCX/XLSX end-to-end', () =>
       .map((p) => p.text)
       .join('\n');
 
-    // Real exceljs parsing must surface the sheet name header and row data.
+    // Real SheetJS parsing must surface the sheet name header and row data.
     expect(joined).toContain('# Budget');
     expect(joined).toContain('Elevator Maintenance,1500');
     expect(joined).toContain('Annual Insurance Premium,4800');

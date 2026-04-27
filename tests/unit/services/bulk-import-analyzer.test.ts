@@ -1513,17 +1513,17 @@ describe('Task #842 — xlsx screening succeeds (no api_error)', () => {
   }
 
   it('screens an xlsx buffer without degrading to api_error', async () => {
-    // Build a real minimal xlsx buffer using the exceljs package so we
-    // exercise the full extraction path in loadFileForClaude.
-    const ExcelJS = await import('exceljs');
-    const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet('Carnet entretien');
-    ws.addRows([
+    // Build a real minimal xlsx buffer using SheetJS so we exercise the
+    // full extraction path in loadFileForClaude.
+    const XLSX = await import('xlsx');
+    const ws = XLSX.utils.aoa_to_sheet([
       ['Date', 'Description', 'Amount'],
       ['2024-01-15', 'Maintenance chauffage', '1250.00'],
       ['2024-02-03', 'Nettoyage couloirs', '450.00'],
     ]);
-    const buffer = Buffer.from(await wb.xlsx.writeBuffer());
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Carnet entretien');
+    const buffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
 
     const create = makeFakeClient({
       isComplete: true,
@@ -1564,15 +1564,15 @@ describe('Task #842 — xlsx screening succeeds (no api_error)', () => {
   });
 
   it('screens an .xls (legacy) buffer without degrading to api_error', async () => {
-    const ExcelJS = await import('exceljs');
-    const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet('Inventory');
-    ws.addRows([
+    const XLSX = await import('xlsx');
+    const ws = XLSX.utils.aoa_to_sheet([
       ['Item', 'Qty', 'Unit Price'],
       ['Paint', '10', '32.50'],
       ['Brush', '5', '8.00'],
     ]);
-    const buffer = Buffer.from(await wb.xlsx.writeBuffer());
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Inventory');
+    const buffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
 
     const create = makeFakeClient({
       isComplete: true,
@@ -1602,11 +1602,11 @@ describe('Task #842 — xlsx screening succeeds (no api_error)', () => {
   });
 
   it('emits fallbackReason null for xlsx so it does not show the api_error badge', async () => {
-    const ExcelJS = await import('exceljs');
-    const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet('Sheet1');
-    ws.addRows([['A', 'B'], ['1', '2']]);
-    const buffer = Buffer.from(await wb.xlsx.writeBuffer());
+    const XLSX = await import('xlsx');
+    const ws = XLSX.utils.aoa_to_sheet([['A', 'B'], ['1', '2']]);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
+    const buffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
 
     makeFakeClient({
       isComplete: true,
@@ -1629,17 +1629,17 @@ describe('Task #842 — xlsx screening succeeds (no api_error)', () => {
   });
 
   it('strips control characters from xlsx sheet content before sending to AI prompt', async () => {
-    const ExcelJS = await import('exceljs');
-    const wb = new ExcelJS.Workbook();
-    const ws = wb.addWorksheet('Controls');
+    const XLSX = await import('xlsx');
     // Place control characters that would trigger Anthropic api_error if not stripped.
     // \x01 (SOH), \x03 (ETX), \x08 (BS) are all in the blocked range.
-    ws.addRows([
+    const ws = XLSX.utils.aoa_to_sheet([
       ['Date', 'Notes'],
       ['2024-01', `Repair\x01work\x03done\x08here`],
       ['2024-02', `Cost\x00 = 450`],
     ]);
-    const buffer = Buffer.from(await wb.xlsx.writeBuffer());
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Controls');
+    const buffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
 
     const create = makeFakeClient({
       isComplete: true,

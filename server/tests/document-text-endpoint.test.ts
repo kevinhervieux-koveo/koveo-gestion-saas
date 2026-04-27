@@ -31,7 +31,7 @@
  *     - `../services/document-service` so ACL behaviour for `/objects/...`
  *       paths can be flipped per test.
  *   The real `document-text-extractor` is exercised against real Office
- *   fixtures, which is the whole point: regressions in mammoth/exceljs
+ *   fixtures, which is the whole point: regressions in mammoth/SheetJS
  *   wiring or in the route's response shape must surface here.
  */
 
@@ -195,7 +195,7 @@ describe('GET /api/documents/:id/text - text extraction endpoint (Task #598)', (
       expect(res.body.text).toContain('insurance renewal');
     });
 
-    it('extracts CSV-style text from a real .xlsx via the real exceljs pipeline', async () => {
+    it('extracts CSV-style text from a real .xlsx via the real SheetJS pipeline', async () => {
       const buffer = fs.readFileSync(XLSX_FIXTURE);
       storageAny.getDocumentWithScope.mockResolvedValue({
         id: 'doc-xlsx',
@@ -383,7 +383,7 @@ describe('GET /api/documents/:id/text - text extraction endpoint (Task #598)', (
     });
 
     it('returns an empty string (no reason) when the underlying file is corrupt', async () => {
-      // The extractor swallows mammoth/exceljs parse errors and returns
+      // The extractor swallows mammoth/SheetJS parse errors and returns
       // ''. The route still considers that a successful extraction with
       // no text content — so the response is the regular shape with
       // `hasText: false` and NO `reason` field, mirroring the

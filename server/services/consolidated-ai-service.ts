@@ -1350,19 +1350,18 @@ IMPORTANT: Retournez UNIQUEMENT l'objet JSON, sans formatage markdown ni explica
         return (result.value || '').slice(0, 20000);
       }
       if (ConsolidatedAIService.XLSX_MIME_TYPES.has(mimeType)) {
-        const ExcelJS = await import('exceljs');
-        const workbook = new ExcelJS.Workbook();
-        await workbook.xlsx.load(fileBuffer);
+        const XLSX = await import('xlsx');
+        const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
         const lines: string[] = [];
-        for (const worksheet of workbook.worksheets) {
-          const rows: string[] = [];
-          worksheet.eachRow({ includeEmpty: false }, (row) => {
-            const values = (row.values as (string | number | boolean | null | undefined)[]).slice(1);
-            rows.push(values.map((v) => (v == null ? '' : String(v))).join(','));
-          });
-          const csv = rows.join('\n');
+        for (const sheetName of workbook.SheetNames) {
+          const worksheet = workbook.Sheets[sheetName];
+          const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }) as unknown[][];
+          const csvRows = rows
+            .filter((row) => row.some((v) => v !== ''))
+            .map((row) => row.map((v) => (v == null ? '' : String(v))).join(','));
+          const csv = csvRows.join('\n');
           if (csv.trim()) {
-            lines.push(`# ${worksheet.name}\n${csv}`);
+            lines.push(`# ${sheetName}\n${csv}`);
           }
           if (lines.join('\n').length > 20000) break;
         }

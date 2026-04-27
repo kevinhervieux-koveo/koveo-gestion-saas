@@ -41,8 +41,8 @@ export function registerDemoManagementRoutes(app: import('../utils/lazy-mount').
   /**
    * GET /api/demo/document-integrity
    *
-   * Samples seeded /objects/... file paths across documents, bills, bugs and
-   * feature requests and reports how many of them are missing their backing
+   * Samples seeded /objects/... file paths across documents and bills and
+   * reports how many of them are missing their backing
    * bytes in object storage. When this comes back unhealthy the demo
    * environment was likely cloned without re-running the seed script, and the
    * `remediation` field tells the admin how to fix it.

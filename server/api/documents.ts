@@ -4451,7 +4451,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
   // alone don't capture what the document is actually about.
   //
   // Only handles cheap, server-side extractable types: text/plain, text/csv,
-  // .docx (mammoth), .xlsx (exceljs). PDFs and images intentionally return
+  // .docx (mammoth), .xlsx (SheetJS). PDFs and images intentionally return
   // an empty string — getting their text would require OCR / Gemini, which
   // is too expensive to run on every edit-dialog open.
   app.get('/api/documents/:id/text', requireAuth, async (req: any, res) => {

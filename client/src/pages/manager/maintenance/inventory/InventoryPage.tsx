@@ -285,7 +285,7 @@ function InventoryPageContent(props: InventoryPageContentProps) {
     // 
     // Implementation requires:
     // - PDF generation library (e.g., jsPDF, react-pdf)
-    // - Excel generation library (e.g., xlsx, exceljs)
+    // - Excel generation library (e.g., xlsx / SheetJS)
     // - Report template designs and formatting logic
     // - Backend API to gather all report data efficiently
     toast({

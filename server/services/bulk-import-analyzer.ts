@@ -716,23 +716,21 @@ async function loadFileForClaude(
   }
   if (XLSX_MIMES.has(mimeType)) {
     try {
-      const ExcelJS = await import('exceljs');
-      const workbook = new ExcelJS.Workbook();
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await workbook.xlsx.load(buffer as any);
+      const XLSX = await import('xlsx');
+      const workbook = XLSX.read(buffer, { type: 'buffer' });
       const lines: string[] = [];
-      for (const worksheet of workbook.worksheets) {
-        const rows: string[] = [];
-        worksheet.eachRow({ includeEmpty: false }, (row) => {
-          const values = (row.values as (string | number | boolean | null | undefined)[]).slice(1);
-          rows.push(values.map((v) => (v == null ? '' : String(v))).join(','));
-        });
-        const csv = rows.join('\n');
+      for (const sheetName of workbook.SheetNames) {
+        const worksheet = workbook.Sheets[sheetName];
+        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }) as unknown[][];
+        const csvRows = rows
+          .filter((row) => row.some((v) => v !== ''))
+          .map((row) => row.map((v) => (v == null ? '' : String(v))).join(','));
+        const csv = csvRows.join('\n');
         // Strip control characters (null bytes, etc.) that can corrupt
         // the JSON payload sent to Anthropic and trigger api_error.
         // Keep printable ASCII + common whitespace (tab, LF, CR).
         const cleanCsv = csv.replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\uFFFF]/g, '').trim();
-        if (cleanCsv) lines.push(`# ${worksheet.name}\n${cleanCsv}`);
+        if (cleanCsv) lines.push(`# ${sheetName}\n${cleanCsv}`);
         if (lines.join('\n').length > MAX_EXTRACTED_TEXT) break;
       }
       const text = lines.join('\n').slice(0, MAX_EXTRACTED_TEXT);

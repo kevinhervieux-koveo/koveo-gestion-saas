@@ -7,9 +7,6 @@ export const autoProjectStatus = pgEnum("auto_project_status", ['pending', 'acce
 export const billCategory = pgEnum("bill_category", ['insurance', 'maintenance', 'salary', 'utilities', 'cleaning', 'security', 'landscaping', 'professional_services', 'administration', 'repairs', 'supplies', 'taxes', 'technology', 'reserves', 'other'])
 export const billStatus = pgEnum("bill_status", ['draft', 'sent', 'overdue', 'paid', 'cancelled'])
 export const bookingStatus = pgEnum("booking_status", ['confirmed', 'cancelled'])
-export const bugCategory = pgEnum("bug_category", ['ui_ux', 'functionality', 'performance', 'data', 'security', 'integration', 'other'])
-export const bugPriority = pgEnum("bug_priority", ['low', 'medium', 'high', 'critical'])
-export const bugStatus = pgEnum("bug_status", ['new', 'acknowledged', 'in_progress', 'resolved', 'closed'])
 export const buildingType = pgEnum("building_type", ['apartment', 'appartement', 'condo', 'rental'])
 export const contactCategory = pgEnum("contact_category", ['resident', 'manager', 'tenant', 'maintenance', 'emergency', 'other'])
 export const contactEntity = pgEnum("contact_entity", ['organization', 'building', 'residence'])
@@ -24,8 +21,6 @@ export const evaluationStatus = pgEnum("evaluation_status", ['pending', 'schedul
 export const eventType = pgEnum("event_type", ['construction', 'repair', 'minor_rehab', 'major_rehab', 'replacement'])
 export const featureCategory = pgEnum("feature_category", ['Dashboard & Home', 'Property Management', 'Resident Management', 'Financial Management', 'Maintenance & Requests', 'Document Management', 'Communication', 'AI & Automation', 'Compliance & Security', 'Analytics & Reporting', 'Integration & API', 'Infrastructure & Performance', 'Website'])
 export const featurePriority = pgEnum("feature_priority", ['low', 'medium', 'high', 'critical'])
-export const featureRequestCategory = pgEnum("feature_request_category", ['dashboard', 'property_management', 'resident_management', 'financial_management', 'maintenance', 'document_management', 'communication', 'reports', 'mobile_app', 'integrations', 'security', 'performance', 'other'])
-export const featureRequestStatus = pgEnum("feature_request_status", ['submitted', 'under_review', 'planned', 'in_progress', 'completed', 'rejected'])
 export const featureStatus = pgEnum("feature_status", ['submitted', 'planned', 'in-progress', 'ai-analyzed', 'completed', 'cancelled'])
 export const frequency = pgEnum("frequency", ['immediate', 'weekly', 'bi_weekly', 'monthly', 'quarterly', 'bi-annually', 'annually'])
 export const investmentOwnership = pgEnum("investment_ownership", ['residences', 'owner'])
@@ -1051,43 +1046,6 @@ export const improvementSuggestions = pgTable("improvement_suggestions", {
                 }),
 ]);
 
-export const bugs = pgTable("bugs", {
-        id: text().default(gen_random_uuid()).primaryKey().notNull(),
-        createdBy: varchar("created_by").notNull(),
-        title: text().notNull(),
-        description: text().notNull(),
-        category: bugCategory().notNull(),
-        page: text().notNull(),
-        priority: bugPriority().default('medium').notNull(),
-        status: bugStatus().default('new').notNull(),
-        assignedTo: varchar("assigned_to"),
-        resolvedAt: timestamp("resolved_at", { mode: 'string' }),
-        resolvedBy: varchar("resolved_by"),
-        notes: text(),
-        reproductionSteps: text("reproduction_steps"),
-        environment: text(),
-        createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-        updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
-        filePath: text("file_path"),
-        fileName: text("file_name"),
-        fileSize: integer("file_size"),
-}, (table) => [
-        foreignKey({
-                        columns: [table.createdBy],
-                        foreignColumns: [users.id],
-                        name: "bugs_created_by_users_id_fk"
-                }),
-        foreignKey({
-                        columns: [table.assignedTo],
-                        foreignColumns: [users.id],
-                        name: "bugs_assigned_to_users_id_fk"
-                }),
-        foreignKey({
-                        columns: [table.resolvedBy],
-                        foreignColumns: [users.id],
-                        name: "bugs_resolved_by_users_id_fk"
-                }),
-]);
 
 export const bills = pgTable("bills", {
         id: text().default(gen_random_uuid()).primaryKey().notNull(),
@@ -1422,61 +1380,6 @@ export const maintenanceRequests = pgTable("maintenance_requests", {
                 }),
 ]);
 
-export const featureRequestUpvotes = pgTable("feature_request_upvotes", {
-        id: text().default(gen_random_uuid()).primaryKey().notNull(),
-        featureRequestId: varchar("feature_request_id").notNull(),
-        userId: varchar("user_id").notNull(),
-        createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-}, (table) => [
-        foreignKey({
-                        columns: [table.userId],
-                        foreignColumns: [users.id],
-                        name: "feature_request_upvotes_user_id_users_id_fk"
-                }),
-        foreignKey({
-                        columns: [table.featureRequestId],
-                        foreignColumns: [featureRequests.id],
-                        name: "feature_request_upvotes_feature_request_id_feature_requests_id_"
-                }),
-]);
-
-export const featureRequests = pgTable("feature_requests", {
-        id: text().default(gen_random_uuid()).primaryKey().notNull(),
-        createdBy: varchar("created_by").notNull(),
-        title: text().notNull(),
-        description: text().notNull(),
-        need: text().notNull(),
-        category: featureRequestCategory().notNull(),
-        page: text().notNull(),
-        status: featureRequestStatus().default('submitted').notNull(),
-        upvoteCount: integer("upvote_count").default(0).notNull(),
-        assignedTo: varchar("assigned_to"),
-        reviewedBy: varchar("reviewed_by"),
-        reviewedAt: timestamp("reviewed_at", { mode: 'string' }),
-        adminNotes: text("admin_notes"),
-        mergedIntoId: varchar("merged_into_id"),
-        createdAt: timestamp("created_at", { mode: 'string' }).defaultNow(),
-        updatedAt: timestamp("updated_at", { mode: 'string' }).defaultNow(),
-        filePath: text("file_path"),
-        fileName: text("file_name"),
-        fileSize: integer("file_size"),
-}, (table) => [
-        foreignKey({
-                        columns: [table.createdBy],
-                        foreignColumns: [users.id],
-                        name: "feature_requests_created_by_users_id_fk"
-                }),
-        foreignKey({
-                        columns: [table.assignedTo],
-                        foreignColumns: [users.id],
-                        name: "feature_requests_assigned_to_users_id_fk"
-                }),
-        foreignKey({
-                        columns: [table.reviewedBy],
-                        foreignColumns: [users.id],
-                        name: "feature_requests_reviewed_by_users_id_fk"
-                }),
-]);
 
 export const metricCalibrationData = pgTable("metric_calibration_data", {
         id: uuid().defaultRandom().primaryKey().notNull(),
