@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { startTransition, useEffect, useMemo, useState, useDeferredValue } from 'react';
 import { ChevronLeft, ChevronRight, Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
@@ -35,16 +35,17 @@ export function SearchableSelectionGrid({
 }: SearchableSelectionGridProps) {
   const { t } = useLanguage();
   const [query, setQuery] = useState('');
+  const deferredQuery = useDeferredValue(query);
   const [page, setPage] = useState(1);
 
   const threshold = paginationThreshold ?? pageSize;
 
   const filteredItems = useMemo(() => {
-    const q = query.trim().toLowerCase();
+    const q = deferredQuery.trim().toLowerCase();
     if (!q) return items;
     const extract = getSearchText ?? ((item: SelectionGridItem) => `${item.name} ${item.details}`);
     return items.filter((item) => extract(item).toLowerCase().includes(q));
-  }, [items, query, getSearchText]);
+  }, [items, deferredQuery, getSearchText]);
 
   const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
   const shouldPaginate = items.length > threshold;
@@ -84,7 +85,9 @@ export function SearchableSelectionGrid({
             value={query}
             onChange={(e) => {
               setQuery(e.target.value);
-              setPage(1);
+              startTransition(() => {
+                setPage(1);
+              });
             }}
             placeholder={placeholder}
             className='pl-9'

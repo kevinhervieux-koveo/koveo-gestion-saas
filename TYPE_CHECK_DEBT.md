@@ -176,6 +176,7 @@ this task. The four workflow tab components were cleaned up in task #1316.
 - `server/services/optimized-query-service.ts`
 - `server/tests/ai-bill-analyze-route.test.ts`
 - `server/tests/ai-document-analyze.test.ts`
+- `server/tests/document-residence-mismatch.test.ts`
 - `server/tests/ai-document-extra-methods.test.ts`
 - `server/tests/ai-document-tag-suggestion.test.ts`
 - `server/tests/ai-invoice-extract-route.test.ts`
