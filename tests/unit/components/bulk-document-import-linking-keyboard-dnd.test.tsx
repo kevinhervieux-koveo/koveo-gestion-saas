@@ -1078,3 +1078,200 @@ describe("BulkDocumentImportPage — Linking keyboard ArrowRight 'join next grou
     expect(getRenderedChainOrder(chainB)).toEqual([ITEM_B1, ITEM_B2]);
   });
 });
+
+// =============================================================================
+// 5. ArrowRight live-region announcement, EN + FR (Task #1263)
+// =============================================================================
+//
+// Task #1256 (above) covers the visible reorder and helper-call delegation
+// for ArrowRight, but does not assert the localized polite-live-region
+// announcement ("Moved to next group, position N" /
+// "Déplacé dans le groupe suivant, position N") emitted by
+// `handleLinkingKeyDown` for the same key. These tests add that coverage
+// in both English and French. Identifiers are prefixed with `T1263_` to
+// avoid colliding with the §4 fixture constants declared above.
+
+const T1263_A1 = 'item-t1263-a1';
+const T1263_A2 = 'item-t1263-a2';
+const T1263_B1 = 'item-t1263-b1';
+const T1263_B2 = 'item-t1263-b2';
+const T1263_B3 = 'item-t1263-b3';
+
+/**
+ * Two-group fixture sized so that group B has 3 items, making the
+ * post-move position of the joining row exactly 4 — which lets the
+ * announcement assertion hard-code the slot number.
+ */
+function t1263TwoGroupFixture(): ItemFixture[] {
+  return [
+    {
+      id: T1263_A1,
+      originalName: 'doc-a1.pdf',
+      linkingBeforeItemId: null,
+      linkingAfterItemId: T1263_A2,
+      linkingManualOverride: false,
+    },
+    {
+      id: T1263_A2,
+      originalName: 'doc-a2.pdf',
+      linkingBeforeItemId: T1263_A1,
+      linkingAfterItemId: null,
+      linkingManualOverride: false,
+    },
+    {
+      id: T1263_B1,
+      originalName: 'doc-b1.pdf',
+      linkingBeforeItemId: null,
+      linkingAfterItemId: T1263_B2,
+      linkingManualOverride: false,
+    },
+    {
+      id: T1263_B2,
+      originalName: 'doc-b2.pdf',
+      linkingBeforeItemId: T1263_B1,
+      linkingAfterItemId: T1263_B3,
+      linkingManualOverride: false,
+    },
+    {
+      id: T1263_B3,
+      originalName: 'doc-b3.pdf',
+      linkingBeforeItemId: T1263_B2,
+      linkingAfterItemId: null,
+      linkingManualOverride: false,
+    },
+  ];
+}
+
+describe('BulkDocumentImportPage — Linking ArrowRight live-region announcement (Task #1263)', () => {
+  beforeEach(() => {
+    // Swap the default 3-item / single-group fixture for a 5-item /
+    // two-group one so there is a "next group" for ArrowRight to land
+    // in. The parent `beforeEach` has already reset `items` to the
+    // default; this nested hook overrides it before the page mounts.
+    items = t1263TwoGroupFixture();
+  });
+
+  describe('English (currentLanguage="en")', () => {
+    beforeEach(() => {
+      currentLanguage = 'en';
+    });
+
+    it('ArrowRight on a row in the first group moves it into the next group and announces "Moved to next group, position 4"', async () => {
+      renderPage();
+      const groupA = await screen.findByTestId(
+        `linking-group-${T1263_A1}`,
+        undefined,
+        { timeout: 4000 },
+      );
+      await flushAsyncEffects();
+
+      // Sanity: starting layout is two distinct groups.
+      expect(getRenderedChainOrder(groupA)).toEqual([T1263_A1, T1263_A2]);
+      const groupB = screen.getByTestId(`linking-group-${T1263_B1}`);
+      expect(getRenderedChainOrder(groupB)).toEqual([
+        T1263_B1,
+        T1263_B2,
+        T1263_B3,
+      ]);
+
+      // Live region exists and starts empty.
+      const liveRegion = getLinkingLiveRegion();
+      expect(liveRegion.textContent ?? '').toBe('');
+
+      const a1Handle = screen.getByTestId(`linking-drag-handle-${T1263_A1}`);
+      await act(async () => {
+        a1Handle.focus();
+        fireEvent.keyDown(a1Handle, { key: 'ArrowRight' });
+      });
+      await flushAsyncEffects();
+
+      // A1 has been appended to the tail of group B; A2 is now alone
+      // and therefore no longer rendered inside any group card (a
+      // chain of length 1 is standalone, not a group).
+      const updatedGroupB = screen.getByTestId(`linking-group-${T1263_B1}`);
+      expect(getRenderedChainOrder(updatedGroupB)).toEqual([
+        T1263_B1,
+        T1263_B2,
+        T1263_B3,
+        T1263_A1,
+      ]);
+
+      // Position indicators reflect the new 4-item chain.
+      expect(
+        screen.getByTestId(`linking-row-position-${T1263_B1}`),
+      ).toHaveTextContent('1/4');
+      expect(
+        screen.getByTestId(`linking-row-position-${T1263_B2}`),
+      ).toHaveTextContent('2/4');
+      expect(
+        screen.getByTestId(`linking-row-position-${T1263_B3}`),
+      ).toHaveTextContent('3/4');
+      expect(
+        screen.getByTestId(`linking-row-position-${T1263_A1}`),
+      ).toHaveTextContent('4/4');
+
+      // Group A is dissolved (only A2 remains and it's standalone).
+      expect(screen.queryByTestId(`linking-group-${T1263_A1}`)).toBeNull();
+      expect(screen.queryByTestId(`linking-group-${T1263_A2}`)).toBeNull();
+      const a2Row = screen.getByTestId(`linking-row-${T1263_A2}`);
+      expect(updatedGroupB.contains(a2Row)).toBe(false);
+
+      // Localized announcement: "Moved to next group, position N",
+      // where N is the post-move slot of the joining row inside the
+      // target group (3 existing members + 1 = position 4).
+      expect(getLinkingLiveRegion()).toHaveTextContent(
+        'Moved to next group, position 4',
+      );
+    });
+  });
+
+  describe('French (currentLanguage="fr")', () => {
+    beforeEach(() => {
+      currentLanguage = 'fr';
+    });
+
+    it('ArrowRight on a row in the first group moves it into the next group and announces "Déplacé dans le groupe suivant, position 4"', async () => {
+      renderPage();
+      const groupA = await screen.findByTestId(
+        `linking-group-${T1263_A1}`,
+        undefined,
+        { timeout: 4000 },
+      );
+      await flushAsyncEffects();
+
+      expect(getRenderedChainOrder(groupA)).toEqual([T1263_A1, T1263_A2]);
+      const groupB = screen.getByTestId(`linking-group-${T1263_B1}`);
+      expect(getRenderedChainOrder(groupB)).toEqual([
+        T1263_B1,
+        T1263_B2,
+        T1263_B3,
+      ]);
+
+      const a1Handle = screen.getByTestId(`linking-drag-handle-${T1263_A1}`);
+      await act(async () => {
+        a1Handle.focus();
+        fireEvent.keyDown(a1Handle, { key: 'ArrowRight' });
+      });
+      await flushAsyncEffects();
+
+      const updatedGroupB = screen.getByTestId(`linking-group-${T1263_B1}`);
+      expect(getRenderedChainOrder(updatedGroupB)).toEqual([
+        T1263_B1,
+        T1263_B2,
+        T1263_B3,
+        T1263_A1,
+      ]);
+
+      expect(
+        screen.getByTestId(`linking-row-position-${T1263_A1}`),
+      ).toHaveTextContent('4/4');
+
+      // French live-region copy must match the bilingual UI.
+      expect(getLinkingLiveRegion()).toHaveTextContent(
+        'Déplacé dans le groupe suivant, position 4',
+      );
+    });
+  });
+});
+  });
+});
