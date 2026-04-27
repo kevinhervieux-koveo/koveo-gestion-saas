@@ -14,6 +14,7 @@ import {
 } from '@shared/schema';
 import { eq, and, or, inArray, sql, isNull, count } from 'drizzle-orm';
 import { requireAuth } from '../auth';
+import { requireMinRole } from '../lib/auth/roleRank';
 import {
   getAllBuildings,
   getBuildingsByOrganizationIds,
@@ -54,7 +55,11 @@ export function registerBuildingRoutes(app: Express): void {
    * - Manager: Can see only buildings in their organizations
    * - Others: No access to buildings list.
    */
-  app.get('/api/buildings', requireAuth, async (req: any, res) => {
+  // requireMinRole('manager') allows manager, admin, and super_admin (and their
+  // demo equivalents). Roles below manager (tenant, resident) receive 403.
+  // Note: super_admin was previously excluded by the inline allow-list —
+  // this is the bug fixed by W45.
+  app.get('/api/buildings', requireAuth, requireMinRole('manager'), async (req: any, res) => {
     try {
       const user = req.user;
 
@@ -65,50 +70,19 @@ export function registerBuildingRoutes(app: Express): void {
         });
       }
 
-      // Role-based access control for buildings
-      if (
-        ![
-          'admin',
-          'manager',
-          'demo_manager',
-          'demo_tenant',
-          'demo_resident',
-          'tenant',
-          'resident',
-        ].includes(user.role)
-      ) {
-        return res.status(403).json({
-          message: 'Access denied. Insufficient permissions.',
-          code: 'INSUFFICIENT_PERMISSIONS',
-        });
-      }
-
-      // Validate and resolve the organization scope. Admins are no longer
-      // exempt from scoping — when no organizationId is supplied, results are
-      // restricted to the caller's accessible org set.
+      // Validate and resolve the organization scope.
+      // For super_admin: getUserAccessibleOrganizations returns all orgs,
+      //   so the query is unrestricted unless ?organizationId is supplied.
+      // For admin / manager: filtered to the caller's accessible org set,
+      //   intersected with ?organizationId when provided.
       const scope = await resolveOrgScope(req, res);
       if (!scope) return;
-
-      // All branches restrict results to buildings whose org is in the
-      // resolved scope. For tenant/resident roles we additionally narrow that
-      // org-scoped set to buildings the caller can actually reach via their
-      // residence assignments — never widening past the resolved org scope,
-      // which keeps default behavior consistent with /api/bills, /api/demands,
-      // /api/users, and /api/common-spaces.
-      let result: any[];
 
       if (scope.orgIds.length === 0) {
         return res.json([]);
       }
 
-      const orgScoped = await getBuildingsByOrganizationIds(scope.orgIds);
-
-      if (['tenant', 'resident', 'demo_tenant', 'demo_resident'].includes(user.role)) {
-        const residenceBuildingIds = new Set(await getBuildingIdsForResident(user.id));
-        result = orgScoped.filter((b) => residenceBuildingIds.has(b.id));
-      } else {
-        result = orgScoped;
-      }
+      const result = await getBuildingsByOrganizationIds(scope.orgIds);
 
       res.json(result);
     } catch (error: any) {

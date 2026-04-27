@@ -3,6 +3,7 @@ import { storage } from '../storage';
 import { insertUserSchema, type User, type InsertUser } from '@shared/schema';
 import { z } from 'zod';
 import { requireAuth } from '../auth';
+import { roleRank } from '../lib/auth/roleRank';
 import { createHash, randomBytes } from 'crypto';
 import * as bcrypt from 'bcryptjs';
 // Database-based permissions - no config imports needed
@@ -952,7 +953,7 @@ export function registerUserRoutes(app: Express): void {
     }
 
     // Only admin, manager, and demo_manager can delete users
-    if (!['manager', 'demo_manager'].includes(currentUser.role)) {
+    if (roleRank(currentUser.role) < roleRank('manager')) {
       logDebug('[PERMISSION CHECK] Role has no delete permissions', { requestId: operationId, metadata: { role: currentUser.role } });
       return { allowed: false, reason: 'Your role does not have permission to delete users' };
     }
@@ -1248,7 +1249,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Only admins and managers can access user assignments
-      if (!['admin', 'manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Insufficient permissions to view user assignments',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -1327,7 +1328,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Only admins and managers can access user assignments
-      if (!['admin', 'manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Insufficient permissions to view user assignments',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -1495,7 +1496,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Only admins and managers can modify organization assignments
-      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Only administrators and managers can modify organization assignments',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -1656,7 +1657,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Only admins and managers can modify building assignments
-      if (!['admin', 'manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Only administrators and managers can modify building assignments',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -2049,7 +2050,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Users can only access their own buildings unless they're admin/manager
-      if (currentUser.id !== userId && !['admin', 'manager'].includes(currentUser.role)) {
+      if (currentUser.id !== userId && roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Insufficient permissions',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -2171,7 +2172,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Only admins and managers can modify residence assignments
-      if (!['admin', 'manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Insufficient permissions to modify residence assignments',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -2749,7 +2750,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Only admins and managers can create demo users
-      if (!['admin', 'manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Insufficient permissions',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -2842,7 +2843,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Only admins and managers can send invitations
-      if (!['admin', 'manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Insufficient permissions',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -3104,7 +3105,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Only admins and managers can view invitations
-      if (!['admin', 'manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Insufficient permissions',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -3790,7 +3791,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Only admins and managers can view invitations
-      if (!['admin', 'manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Insufficient permissions to view invitations',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -3904,7 +3905,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // Only admins and managers can delete invitations
-      if (!['admin', 'manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Insufficient permissions to delete invitations',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -4024,7 +4025,7 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      if (!['admin', 'manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Insufficient permissions to view invitation history',
           code: 'INSUFFICIENT_PERMISSIONS',

@@ -35,6 +35,7 @@ import { checkBuildingAccess } from './buildings/access-control';
 import { logDebug, logInfo, logWarn, logError } from '../utils/logger';
 
 import { asyncHandler } from '../utils/async-handler';
+import { roleRank } from '../lib/auth/roleRank';
 // In-memory rate limiting store for urgent communications
 const urgentRateLimit = new Map<string, { count: number; resetTime: number }>();
 
@@ -151,7 +152,7 @@ export function registerCommunicationRoutes(app: import('../utils/lazy-mount').R
       }
 
       // Check if user can send communications (managers and admins only)
-      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Only managers and administrators can send general communications',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -210,7 +211,7 @@ export function registerCommunicationRoutes(app: import('../utils/lazy-mount').R
       const { organizationId } = req.params;
 
       // Check if user can send communications (managers and admins only)
-      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Only managers and administrators can access building information',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -283,7 +284,7 @@ export function registerCommunicationRoutes(app: import('../utils/lazy-mount').R
 
 
       // Check if user can send communications (managers and admins only)
-      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Only managers and administrators can send general communications',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -978,7 +979,7 @@ export function registerCommunicationRoutes(app: import('../utils/lazy-mount').R
       }
 
       // Check if user has permission to send communications
-      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Insufficient permissions to send communications',
           code: 'PERMISSION_DENIED',
@@ -1000,7 +1001,7 @@ export function registerCommunicationRoutes(app: import('../utils/lazy-mount').R
       const validatedData = insertGeneralCommunicationSchema.parse(requestData);
 
       // Additional authorization check for urgent communications
-      if (validatedData.isUrgent && !['admin', 'manager'].includes(currentUser.role)) {
+      if (validatedData.isUrgent && roleRank(currentUser.role) < roleRank('manager')) {
         // console.error(`❌ User ${currentUser.email} with role ${currentUser.role} attempted to send urgent communication`);
         return res.status(403).json({
           message: 'Only administrators and managers can send urgent communications',
@@ -1463,7 +1464,7 @@ export function registerCommunicationRoutes(app: import('../utils/lazy-mount').R
       }
 
       // Check if user has permission to create meetings
-      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Insufficient permissions to create meetings',
           code: 'PERMISSION_DENIED',
@@ -1801,7 +1802,7 @@ export function registerCommunicationRoutes(app: import('../utils/lazy-mount').R
       }
 
       // Check if user can manage notifications (managers and admins only)
-      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Only managers and administrators can view notification configurations',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -1910,7 +1911,7 @@ export function registerCommunicationRoutes(app: import('../utils/lazy-mount').R
       }
 
       // Check if user can manage notifications (managers and admins only)
-      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Only managers and administrators can create notification configurations',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -1981,7 +1982,7 @@ export function registerCommunicationRoutes(app: import('../utils/lazy-mount').R
       }
 
       // Check if user can manage notifications (managers and admins only)
-      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Only managers and administrators can update notification configurations',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -2097,7 +2098,7 @@ export function registerCommunicationRoutes(app: import('../utils/lazy-mount').R
       }
 
       // Check if user can manage notifications (managers and admins only)
-      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Only managers and administrators can delete notification configurations',
           code: 'INSUFFICIENT_PERMISSIONS',
@@ -2172,7 +2173,7 @@ export function registerCommunicationRoutes(app: import('../utils/lazy-mount').R
       }
 
       // Check if user can manage notifications (managers and admins only)
-      if (!['admin', 'manager', 'demo_manager'].includes(currentUser.role)) {
+      if (roleRank(currentUser.role) < roleRank('manager')) {
         return res.status(403).json({
           message: 'Only managers and administrators can preview notification configurations',
           code: 'INSUFFICIENT_PERMISSIONS',

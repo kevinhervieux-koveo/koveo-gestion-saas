@@ -10,6 +10,7 @@ import {
 } from '../../shared/schema';
 import { eq, and, or, ilike, inArray, sql } from 'drizzle-orm';
 import { requireAuth } from '../auth/index';
+import { roleRank } from '../lib/auth/roleRank';
 import { delayedUpdateService } from '../services/delayed-update-service';
 import { cacheInvalidationService, createInvalidationMiddleware } from '../services/cache-invalidation-service';
 
@@ -250,7 +251,7 @@ export function registerResidenceRoutes(app: Express) {
       // resolved organization set for every role, matching the strict scoping
       // applied by the other flat list endpoints.
       const accessibleBuildingIds = new Set<string>();
-      const isManagerLikeRole = ['admin', 'manager', 'demo_manager'].includes(user.role);
+      const isManagerLikeRole = roleRank(user.role) >= roleRank('manager');
 
       if (isManagerLikeRole && scope.orgIds.length > 0) {
         const orgBuildings = await db

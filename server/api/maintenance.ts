@@ -2,6 +2,7 @@
 import type { Express, Request, Response } from 'express';
 import { db } from '../db';
 import { requireAuth } from '../auth';
+import { roleRank } from '../lib/auth/roleRank';
 import { z } from 'zod';
 import { eq, and, or, sql, desc, asc, ilike, inArray, isNull, count, sum } from 'drizzle-orm';
 import { UNIFORMAT_CATALOG } from '@shared/data/uniformat-catalog';
@@ -737,7 +738,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to create vendors'
         });
@@ -821,7 +822,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to update vendors'
         });
@@ -891,7 +892,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to delete vendors'
         });
@@ -1139,7 +1140,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to create building elements'
         });
@@ -1224,7 +1225,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to update building elements'
         });
@@ -1320,7 +1321,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to delete building elements'
         });
@@ -1378,7 +1379,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
 
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to update element costs'
         });
@@ -1474,7 +1475,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
 
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to update element assignments'
         });
@@ -1746,7 +1747,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to add element history'
         });
@@ -1833,7 +1834,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to update element history'
         });
@@ -1973,7 +1974,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
 
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to view element history audit log'
         });
@@ -2069,7 +2070,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to delete element history'
         });
@@ -2138,7 +2139,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to upload documents'
         });
@@ -2462,7 +2463,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to delete documents'
         });
@@ -2756,7 +2757,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to create suggestions'
         });
@@ -2815,7 +2816,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to update suggestions'
         });
@@ -2884,7 +2885,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to convert suggestions to projects'
         });
@@ -3141,7 +3142,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to create projects'
         });
@@ -3255,7 +3256,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to update projects'
         });
@@ -3381,7 +3382,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to update projects'
         });
@@ -3521,7 +3522,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to delete projects'
         });
@@ -3723,7 +3724,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to update project steps'
         });
@@ -3798,7 +3799,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to link elements to projects'
         });
@@ -3887,7 +3888,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to reopen workflow steps'
         });
@@ -4001,7 +4002,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to sync project data'
         });
@@ -4161,7 +4162,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to manage project elements'
         });
@@ -4231,7 +4232,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to update project elements'
         });
@@ -4336,7 +4337,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to update project elements'
         });
@@ -4398,7 +4399,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to update building elements'
         });
@@ -4627,7 +4628,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to update element status'
         });
@@ -4743,7 +4744,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to delete element updates'
         });
@@ -4930,7 +4931,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         return res.status(401).json({ error: 'Authentication required' });
       }
       
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to bulk import elements'
         });
@@ -5605,7 +5606,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
       }
 
       // Only admin and manager roles can access job status
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to view job status',
           code: 'ACCESS_DENIED'
@@ -5661,7 +5662,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
       }
 
       // Only admin and manager roles can trigger jobs
-      if (!['admin', 'manager'].includes(user.role)) {
+      if (roleRank(user.role) < roleRank('manager')) {
         return res.status(403).json({
           error: 'Insufficient permissions to trigger maintenance jobs',
           code: 'ACCESS_DENIED'
