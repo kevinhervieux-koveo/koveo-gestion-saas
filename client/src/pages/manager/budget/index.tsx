@@ -1266,6 +1266,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
         description: (language === 'fr' ? 'Le projet "{title}" a été mis à jour avec succès' : 'Project "{title}" has been updated successfully').replace('{title}', data.data?.title || 'Project'),
       });
       queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'projects'] });
+      queryClient.invalidateQueries({ queryKey: ['budgetForecast', buildingId] });
       setEditProjectDialogOpen(false);
       setEditingProject(null);
     },
@@ -1331,6 +1332,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
         return next;
       });
       queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'projects'] });
+      queryClient.invalidateQueries({ queryKey: ['budgetForecast', buildingId] });
       toast({
         title: language === 'fr' ? 'Période mise à jour' : 'Period updated',
       });
@@ -2946,6 +2948,20 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
 
   const budgetData = getBudgetCategories();
   
+  // Memoize the fiscal year badge text to avoid expensive toLocaleDateString calls on every render
+  const fiscalYearBadgeText = useMemo(() => {
+    if (!currentFinancialYear) return '';
+    const locale = language === 'fr' ? 'fr-CA' : 'en-CA';
+    const fmt = { month: 'short' as const, year: 'numeric' as const };
+    const startStr = currentFinancialYear.start instanceof Date
+      ? currentFinancialYear.start.toLocaleDateString(locale, fmt)
+      : '';
+    const endStr = currentFinancialYear.end instanceof Date
+      ? currentFinancialYear.end.toLocaleDateString(locale, fmt)
+      : '';
+    return `FY ${currentFinancialYear.startYear}${startStr && endStr ? `: ${startStr} \u2013 ${endStr}` : ''}`;
+  }, [currentFinancialYear, language]);
+
   // Memoize chartData to prevent infinite re-renders in downstream useMemo hooks
   const chartData = useMemo(() => getChartData(), [
     forecastData,
@@ -3055,7 +3071,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
               data-testid="badge-active-fiscal-year"
             >
               <Calendar className="h-3.5 w-3.5" />
-              {t('budgetActiveFiscalYear')}: {currentFinancialYear.label}
+              {fiscalYearBadgeText}
             </Badge>
           )}
         </div>
@@ -5613,6 +5629,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
         }}
         onProjectUpdate={(updatedProject) => {
           queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'projects'] });
+          queryClient.invalidateQueries({ queryKey: ['budgetForecast', buildingId] });
         }}
         onProjectDelete={() => {
           if (selectedProjectForWorkflow) {

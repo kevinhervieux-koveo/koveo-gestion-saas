@@ -199,6 +199,7 @@ jest.mock('@/hooks/use-current-financial-year', () => ({
     currentFinancialYear: {
       label: '2026',
       start: new Date('2026-01-01'),
+      end: new Date('2026-12-31'),
       startYear: '2026',
       startDate: new Date('2026-01-01'),
       endDate: new Date('2026-12-31'),
