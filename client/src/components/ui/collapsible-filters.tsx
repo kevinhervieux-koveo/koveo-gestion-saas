@@ -134,9 +134,15 @@ CollapsibleFilters({
               variant='outline'
               onClick={() => setFiltersExpanded(!filtersExpanded)}
               className='flex items-center gap-2'
+              aria-label={
+                language === 'fr'
+                  ? 'Afficher / masquer les filtres'
+                  : 'Show / hide filters'
+              }
+              aria-expanded={filtersExpanded}
             >
               <Filter className='w-4 h-4' />
-              {translations.filters}
+              {!title && translations.filters}
               {filtersExpanded ? (
                 <ChevronUp className='w-4 h-4' />
               ) : (
