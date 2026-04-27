@@ -9190,7 +9190,10 @@ export default function BulkDocumentImportPage() {
                     </Button>
                   </CardHeader>
                   <CardContent className="space-y-3">
-                    <p className="text-sm text-muted-foreground">
+                    <p
+                      className="text-sm text-muted-foreground"
+                      data-testid="complete-committed-count"
+                    >
                       {tp('bulkImportCommitted', items.filter((i) => i.status === 'committed').length)}
                     </p>
                     {/* Excluded (rejected) files are hidden from step 3+ (Task #804).

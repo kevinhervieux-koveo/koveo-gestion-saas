@@ -386,7 +386,14 @@ describe('BulkDocumentImportPage — excluded file visibility (Task #804)', () =
 
     renderPage();
 
+    // The page renders the committed count via
+    // `tp('bulkImportCommitted', N)`. The mock above renders the real
+    // English string for `bulkImportCommitted` (matching the production
+    // i18n key) so we assert via `findByText` against that. The source
+    // <p> also carries a stable `complete-committed-count` testid as a
+    // defensive secondary anchor (Task #1349).
     const countLine = await screen.findByText(/1 document committed\./, undefined, { timeout: 4000 });
     expect(countLine).toBeInTheDocument();
+    expect(countLine).toHaveAttribute('data-testid', 'complete-committed-count');
   });
 });
