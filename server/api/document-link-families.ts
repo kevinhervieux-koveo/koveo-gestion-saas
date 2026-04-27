@@ -8,7 +8,10 @@ import {
   documentLinkFamilies,
   insertDocumentLinkFamilySchema,
 } from '../../shared/schemas/documents';
-import { refuseIfKoveoSystemLinkFamily } from '../mcp/system-entity-guards';
+import {
+  refuseIfKoveoSystemLinkFamily,
+  refuseIfKoveoSystemLinkFamilyUpdate,
+} from '../mcp/system-entity-guards';
 import { logError, logInfo } from '../utils/logger';
 
 const familyInputSchema = z.object({
@@ -137,8 +140,9 @@ export function registerDocumentLinkFamilyRoutes(app: Express): void {
         if (!family) {
           return res.status(404).json({ message: 'Family not found' });
         }
-        if (family.isSystem && user.role !== 'super_admin') {
-          return res.status(403).json({ message: 'Only super admins can modify Koveo system families' });
+        const systemRefusal = refuseIfKoveoSystemLinkFamilyUpdate(family);
+        if (systemRefusal) {
+          return res.status(403).json({ message: systemRefusal.content[0].text });
         }
         if (!family.isSystem && user.role !== 'admin') {
           const orgIds = await getUserOrgIds(user.id);

@@ -92,3 +92,23 @@ export function refuseIfKoveoSystemLinkFamily(family: {
   }
   return null;
 }
+
+/**
+ * Returns a standard MCP refusal when `family.isSystem === true` (update/modify path).
+ * Role-agnostic: `super_admin` is treated the same as every other role.
+ */
+export function refuseIfKoveoSystemLinkFamilyUpdate(family: {
+  isSystem: boolean;
+}): McpRefusalResponse | null {
+  if (family.isSystem) {
+    return {
+      content: [
+        {
+          type: 'text' as const,
+          text: 'System document link families cannot be modified',
+        },
+      ],
+    };
+  }
+  return null;
+}

@@ -1,13 +1,27 @@
 /**
  * @jest-environment node
  *
- * Task #1418 — super-admin-only Koveo system tags & families.
+ * Task #1418 — super-admin-only Koveo system tags & families
+ * (creation path), updated for the role-agnostic delete/update guards
+ * introduced by Tasks #1430 (link family delete), #1431 (tag delete),
+ * and #1436 (link family update).
  *
  * Verifies:
- *   - super_admin CAN create / update / delete Koveo system tags and families.
- *   - admin and manager are 403'd when attempting the same on system resources.
- *   - Non-system (org-scoped) tags and families remain accessible to admin,
- *     manager, and demo_manager exactly as before (regression).
+ *   - CREATE: super_admin can create Koveo system tags and families;
+ *     admin/manager are 403'd. (Unchanged — only the create path is
+ *     super-admin-only.)
+ *   - DELETE on system tags: every role (including super_admin) is
+ *     refused with the shared MCP guard message.
+ *   - PATCH on system link families: every role (including super_admin)
+ *     is refused with the shared MCP guard message.
+ *   - DELETE on system link families: every role (including super_admin)
+ *     is refused with the shared MCP guard message.
+ *   - Non-system (org-scoped) tags and families remain accessible to
+ *     admin, manager, and demo_manager exactly as before (regression).
+ *
+ * Note: The PATCH on system tags still uses the older
+ * `Only super admins can modify Koveo system tags` branch (no role-
+ * agnostic guard yet), so those cases are unchanged here.
  */
 
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
@@ -281,6 +295,9 @@ describe('PATCH /api/document-tags/:id — system tag protection', () => {
 // ─── DELETE /api/document-tags/:id ───────────────────────────────────────────
 
 describe('DELETE /api/document-tags/:id — system tag protection', () => {
+  // Task #1431 made the DELETE handler refuse system tags for every
+  // role — including super_admin — using the shared MCP guard
+  // (`refuseIfKoveoSystemTag` → "System tags cannot be deleted").
   it('super_admin gets 403 when trying to delete a system tag (tags are locked for all roles)', async () => {
     selectQueue.push([SYSTEM_TAG]);
     const res = await request(buildApp('super_admin'))
@@ -377,13 +394,19 @@ describe('POST /api/document-link-families — isSystem flag', () => {
 // ─── PATCH /api/document-link-families/:id ───────────────────────────────────
 
 describe('PATCH /api/document-link-families/:id — system family protection', () => {
-  it('super_admin can update a system family (200)', async () => {
+  // Task #1436 made the PATCH handler refuse system link families for
+  // every role — including super_admin — using the shared MCP guard
+  // (`refuseIfKoveoSystemLinkFamilyUpdate` →
+  // "System document link families cannot be modified").
+  it('super_admin is refused when trying to update a system family (403)', async () => {
     selectQueue.push([SYSTEM_FAMILY]);
-    updateResult = [{ ...SYSTEM_FAMILY, name: 'Updated' }];
     const res = await request(buildApp('super_admin'))
       .patch('/api/document-link-families/fam-system-1')
       .send({ name: 'Updated' });
-    expect(res.status).toBe(200);
+    expect(res.status).toBe(403);
+    expect(res.body).toEqual({
+      message: 'System document link families cannot be modified',
+    });
   });
 
   it('admin gets 403 when trying to update a system family', async () => {
@@ -392,7 +415,9 @@ describe('PATCH /api/document-link-families/:id — system family protection', (
       .patch('/api/document-link-families/fam-system-1')
       .send({ name: 'Updated' });
     expect(res.status).toBe(403);
-    expect(res.body.message).toMatch(/super admin/i);
+    expect(res.body).toEqual({
+      message: 'System document link families cannot be modified',
+    });
   });
 
   it('manager gets 403 when trying to update a system family', async () => {
@@ -401,7 +426,9 @@ describe('PATCH /api/document-link-families/:id — system family protection', (
       .patch('/api/document-link-families/fam-system-1')
       .send({ name: 'Updated' });
     expect(res.status).toBe(403);
-    expect(res.body.message).toMatch(/super admin/i);
+    expect(res.body).toEqual({
+      message: 'System document link families cannot be modified',
+    });
   });
 
   it('admin can still update a non-system family from their org (200)', async () => {
@@ -426,12 +453,18 @@ describe('PATCH /api/document-link-families/:id — system family protection', (
 // ─── DELETE /api/document-link-families/:id ──────────────────────────────────
 
 describe('DELETE /api/document-link-families/:id — system family protection', () => {
-  it('super_admin can delete a system family (200)', async () => {
+  // Task #1430 made the DELETE handler refuse system link families for
+  // every role — including super_admin — using the shared MCP guard
+  // (`refuseIfKoveoSystemLinkFamily` →
+  // "System document link families cannot be deleted").
+  it('super_admin is refused when trying to delete a system family (403)', async () => {
     selectQueue.push([SYSTEM_FAMILY]);
     const res = await request(buildApp('super_admin'))
       .delete('/api/document-link-families/fam-system-1');
-    expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
+    expect(res.status).toBe(403);
+    expect(res.body).toEqual({
+      message: 'System document link families cannot be deleted',
+    });
   });
 
   it('admin gets 403 when trying to delete a system family', async () => {
