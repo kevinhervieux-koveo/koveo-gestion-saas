@@ -125,7 +125,6 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { nameKey: 'bills', href: '/manager/bills', icon: FileText },
       { nameKey: 'demands', href: '/manager/demands', icon: AlertCircle },
       { nameKey: 'navUserManagement', href: '/manager/user-management', icon: Users },
-      { nameKey: 'documentTags', href: '/manager/document-tags', icon: FileText },
       { nameKey: 'manageCommonSpaces', href: '/manager/common-spaces-stats', icon: AreaChart },
       {
         nameKey: 'maintenanceJournal',
@@ -146,6 +145,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     requiredRole: 'admin',
     items: [
       { nameKey: 'navBulkDocumentImport', href: '/admin/bulk-document-import', icon: Folder },
+      { nameKey: 'documentTags', href: '/admin/document-tags', icon: FileText },
     ],
   },
   {

@@ -81,7 +81,7 @@ type FamilyFormValues = z.infer<typeof familyFormSchema>;
 
 // ─── Main page ────────────────────────────────────────────────────────────────
 
-export default function ManagerDocumentTags() {
+export default function AdminDocumentTags() {
   const { t } = useLanguage();
   const { toast } = useToast();
   const { user } = useAuth();

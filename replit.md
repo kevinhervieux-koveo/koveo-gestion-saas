@@ -144,7 +144,7 @@ Migration is **explicitly out of scope**. The existing `register*Routes` calls i
 - System "Koveo" tags (organizationId NULL, isSystem=true) auto-seeded by `seedKoveoDocumentTags` on startup (idempotent on isSystem+name) — covers CCQ / Loi 16 obligations in French.
 - API: CRUD at `/api/document-tags` plus assign/unassign on `/api/documents/:id/tags` (server/api/document-tags.ts).
 - GET /api/documents and /api/documents/:id include a `tags` array per document.
-- UI: Manager page at `/manager/document-tags`, multi-select TagPicker on document create/edit, tag chips and tag filter on the unified document wrapper.
+- UI: Admin-only page at `/admin/document-tags`, multi-select TagPicker on document create/edit, tag chips and tag filter on the unified document wrapper.
 - MCP tools: list/create/update/delete document tags + assign/unassign on documents.
 
 ## External Dependencies
