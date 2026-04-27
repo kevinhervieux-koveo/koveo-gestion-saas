@@ -1,6 +1,12 @@
 /**
  * Task #1074 — Frontend coverage for the new "Retry step from scratch"
- * button on the Bulk Document Import wizard.
+ * button on the Bulk Document Import wizard. **EN locale only**, plus
+ * the cancel-button regression test.
+ *
+ * The FR-locale variants of these tests live in
+ * `bulk-document-import-reset-step-fr.test.tsx`. The two suites are
+ * intentionally split into separate test files; see "Task #1535 —
+ * Flake fix" below for the why.
  *
  * Task #1068 added an AlertDialog-gated reset action to every AI step
  * (Screening, Sorting, Branching, Identification, Linking). The
@@ -10,13 +16,41 @@
  *
  *   - The "Retry step from scratch" button renders for every AI step.
  *   - Clicking it opens the bilingual confirmation dialog with the
- *     correct step label interpolated in for both EN and FR.
+ *     correct step label interpolated in (EN here, FR in the
+ *     companion file).
  *   - Cancel closes the dialog without firing the mutation.
  *   - Confirm fires exactly one POST to the new endpoint with the
  *     `{ step }` payload that matches the wizard's current step.
  *
  * A regression in any of these moving parts would silently break the
  * user-facing reset flow without the backend unit test catching it.
+ *
+ * Task #1535 — Flake fix
+ * ----------------------------------------------------------------
+ * The original single-file suite had two parameterized tests that
+ * each rendered and tore down the wizard 5 times in an in-test loop
+ * (once per AI step). Empirically the wizard can be rendered ~9 times
+ * in a single jsdom session before something in the accumulated React
+ * + React-Query + Radix portal + jsdom state starts silently dropping
+ * the wizard's `/lite` query response — the wizard stays stuck on its
+ * loading spinner forever (the fetch is made but the data never
+ * arrives at the useQuery hook), and the next test's
+ * `findByTestId('auto-run-reset-step-…')` blows past the 4 000 ms
+ * timeout.
+ *
+ * The fix has two parts:
+ *
+ *   1. Split each parameterized loop into 5 independent `it.each`
+ *      tests so each AI step gets a fresh `beforeEach` / `afterEach`
+ *      cycle (and a fresh unique session id, see `nextSessionId`)
+ *      instead of sharing one accumulating in-test loop.
+ *
+ *   2. Split the EN and FR suites into separate test files so each
+ *      jsdom session stays well below the empirical position-10
+ *      ceiling (this file: 5 EN + 1 cancel = 6 wizard renders; FR
+ *      file: 5 FR renders).
+ *
+ * No per-step timeout was bumped — the 4 000 ms ceiling is preserved.
  */
 
 import {
@@ -24,6 +58,8 @@ import {
   it,
   expect,
   jest,
+  beforeAll,
+  afterAll,
   beforeEach,
   afterEach,
 } from '@jest/globals';
@@ -71,15 +107,21 @@ jest.mock('@/components/common/DocumentInlineViewer', () => ({
 
 import BulkDocumentImportPage from '@/pages/admin/bulk-document-import';
 import { queryClient } from '@/lib/queryClient';
+import {
+  nextSessionId,
+  resetSharedQueryClient,
+} from '../../helpers/queryClientIsolation';
 
 // jest.config.cjs sets a global testTimeout of 3000ms. Each individual
-// test in this file finishes well under 1s on its own, but the wizard
-// is large and rendering+unmounting it 11 times accumulates jsdom
-// slowness — the last EN test pushes past the 3s ceiling on slower CI
-// runners. Bump the per-file timeout so the suite stays deterministic.
+// test in this file finishes well under 1s on its own, so the global
+// timeout is fine after Task #1535's split. We bump it modestly here
+// only as a safety net for slower CI runners.
 jest.setTimeout(15000);
 
-const SESSION_ID = 'session-test-1074';
+// Task #1535 — every test gets a fresh session id so a late-resolving
+// fetch from the previous test can't poison the current test's cache
+// under the same queryKey. Set in `beforeEach`.
+let SESSION_ID = 'session-task-1074-init';
 const ITEM_ID = 'item-1074';
 
 type AutoStep =
@@ -101,23 +143,17 @@ const PRE_STATUS: Record<AutoStep, string> = {
   linking: 'identified',
 };
 
-// Mirrors the EN / FR step label maps in
+// Mirrors the EN step label map in
 // client/src/pages/admin/bulk-document-import.tsx (~line 495). Kept
 // inline here so the test acts as a tripwire: if the wizard's labels
-// change, this assertion drift surfaces immediately.
+// change, this assertion drift surfaces immediately. The FR map lives
+// in `bulk-document-import-reset-step-fr.test.tsx`.
 const STEP_LABEL_EN: Record<AutoStep, string> = {
   screening: 'Screening',
   sorting: 'Branching',
   branching: 'Sorting',
   identification: 'Identification',
   linking: 'Linking',
-};
-const STEP_LABEL_FR: Record<AutoStep, string> = {
-  screening: 'Filtrage',
-  sorting: 'Aiguillage',
-  branching: 'Tri',
-  identification: 'Identification',
-  linking: 'Liaison',
 };
 
 const AI_STEPS: AutoStep[] = [
@@ -279,8 +315,37 @@ const fetchMock = jest.fn(
 ) as unknown as jest.MockedFunction<typeof fetch>;
 
 let originalFetch: typeof fetch | undefined;
+let originalQueryDefaults: ReturnType<typeof queryClient.getDefaultOptions>;
 
-beforeEach(() => {
+beforeAll(() => {
+  // Task #1535 — Disable React Query retries for the duration of this
+  // file. The default queryClient retries 401/404 responses up to two
+  // times, which can add ~2 s of delay per failed lite poll. After 9
+  // wizard renders in the same jsdom session (5 EN + 4 FR), even one
+  // transient retry can push the 10th render's findByTestId past the
+  // 4 000 ms limit. With retries off the lite query either resolves on
+  // the first request or throws — keeping every test deterministic.
+  // The same pattern is used in
+  // tests/unit/components/bulk-document-import-linking-overrides-clear.test.tsx.
+  originalQueryDefaults = queryClient.getDefaultOptions();
+  queryClient.setDefaultOptions({
+    ...originalQueryDefaults,
+    queries: { ...originalQueryDefaults.queries, retry: false },
+  });
+});
+
+afterAll(() => {
+  queryClient.setDefaultOptions(originalQueryDefaults);
+});
+
+beforeEach(async () => {
+  // Task #1535 — fresh session id per test stops a late-resolving
+  // fetch from the previous test from poisoning the cache under the
+  // same queryKey. Combined with `resetSharedQueryClient()` (which
+  // awaits `cancelQueries()` before clearing) this eliminates the
+  // resolve-after-clear race that left the wizard stuck on its
+  // loading spinner during the linking iteration.
+  SESSION_ID = nextSessionId('session-task-1074');
   scenarioStep = 'screening';
   mockLanguage = 'en';
   originalFetch = global.fetch;
@@ -288,7 +353,7 @@ beforeEach(() => {
   fetchMock.mockClear();
 
   window.localStorage.setItem('bulkImportActiveSessionId', SESSION_ID);
-  queryClient.clear();
+  await resetSharedQueryClient();
 });
 
 afterEach(async () => {
@@ -312,6 +377,8 @@ afterEach(async () => {
   window.localStorage.clear();
   mockToast.mockReset();
   queryClient.clear();
+  queryClient.getMutationCache().clear();
+  queryClient.getQueryCache().clear();
 });
 
 function renderPage() {
@@ -371,30 +438,17 @@ function getResetStepCalls(): ResetStepCall[] {
     });
 }
 
-/**
- * Tear down the wizard between iterations of the in-test loop. We
- * can't rely on the file-level `afterEach` here because we want each
- * AI step to share the same outer Jest test (rendering+unmounting the
- * wizard 5–10 times across separate `it` blocks accumulates enough
- * jsdom slowness that the global 3s testTimeout starts biting on the
- * later iterations).
- */
-async function teardownWizardBetweenIterations() {
-  await queryClient.cancelQueries();
-  await act(async () => {
-    for (let i = 0; i < 6; i++) await Promise.resolve();
-  });
-  cleanup();
-  document.body.innerHTML = '';
-  fetchMock.mockClear();
-  queryClient.clear();
-}
-
 describe('BulkDocumentImportPage — "Retry step from scratch" button (Task #1074)', () => {
-  it('opens the EN dialog at every AI step with the right step name and posts to /reset-step on confirm', async () => {
-    mockLanguage = 'en';
-
-    for (const step of AI_STEPS) {
+  // Task #1535 — Each AI step is now its own `it.each` test so jsdom
+  // state is fully reset between iterations via the file-level
+  // `beforeEach`/`afterEach`. Previously a single `it` rendered the
+  // wizard 5 times in a loop and the 5th iteration (linking) timed
+  // out because accumulated jsdom + Radix portal + queryClient state
+  // left the page stuck on its loading spinner.
+  it.each(AI_STEPS)(
+    'opens the EN dialog at the %s step with the right step name and posts to /reset-step on confirm',
+    async (step) => {
+      mockLanguage = 'en';
       scenarioStep = step;
 
       renderPage();
@@ -457,58 +511,13 @@ describe('BulkDocumentImportPage — "Retry step from scratch" button (Task #107
       await waitFor(() => {
         expect(screen.queryByTestId('reset-step-dialog')).toBeNull();
       });
+    },
+  );
 
-      await teardownWizardBetweenIterations();
-    }
-  });
-
-  it('opens the FR dialog at every AI step with the right step name', async () => {
-    mockLanguage = 'fr';
-
-    for (const step of AI_STEPS) {
-      scenarioStep = step;
-
-      renderPage();
-      const resetButton = await findResetButton(step);
-
-      await act(async () => {
-        fireEvent.click(resetButton);
-      });
-
-      const dialog = await screen.findByTestId(
-        'reset-step-dialog',
-        undefined,
-        { timeout: 4000 },
-      );
-
-      expect(
-        within(dialog).getByText("Reprendre l'étape à zéro ?"),
-      ).toBeInTheDocument();
-
-      // FR body — Task #1421: Linking uses a different description (FR)
-      // that explains existing-platform links are preserved. We check
-      // the body text via the aria-describedby paragraph rather than
-      // within(dialog) to side-step Radix portal scope edge-cases.
-      const descId = dialog.getAttribute('aria-describedby');
-      const descEl = descId ? document.getElementById(descId) : null;
-      const descText = descEl?.textContent ?? '';
-      if (step === 'linking') {
-        // Linking-specific FR copy: in-session groupings cleared, existing
-        // platform doc links preserved.
-        expect(descText).toMatch(/famille et voisin/);
-        expect(descText).toMatch(/conserv/);
-      } else {
-        expect(descText).toMatch(/Toutes les d/);
-        expect(descText).toContain(`« ${STEP_LABEL_FR[step]} »`);
-        expect(descText).toContain("L'analyse red");
-      }
-
-      const confirmButton = within(dialog).getByTestId('reset-step-confirm');
-      expect(confirmButton).toHaveTextContent("Reprendre l'étape");
-
-      await teardownWizardBetweenIterations();
-    }
-  });
+  // FR coverage lives in
+  // `bulk-document-import-reset-step-fr.test.tsx` so each jsdom
+  // session stays well below the empirical position-10 ceiling
+  // (Task #1535).
 
   it('cancel closes the dialog without firing the reset-step mutation', async () => {
     scenarioStep = 'screening';
