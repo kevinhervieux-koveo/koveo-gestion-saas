@@ -47,6 +47,70 @@ function isInsideSkippedElement(node) {
   return false;
 }
 
+// All field names declared as `date(...)` columns in shared/schema.ts.
+// `new Date(expr)` where expr is a member access ending in one of these names
+// will cause a one-day shift in any timezone west of UTC because the runtime
+// parses a YYYY-MM-DD string as UTC midnight. Use parseDateOnly / parseDateOnlyLoose
+// from client/src/lib/utils.ts instead.
+const DATE_ONLY_FIELDS = new Set([
+  'issueDate', 'scheduleCustom', 'startDate', 'endDate', 'scheduledDate',
+  'paidDate', 'approvedDate', 'targetDate', 'originalConstructionDate',
+  'lastInspectionDate', 'nextEvaluationDate', 'costEstimationDate',
+  'eventDate', 'suggestedDate', 'postponedTo', 'plannedStartDate',
+  'plannedEndDate', 'actualStartDate', 'actualEndDate', 'planningStartDate',
+  'workStartDate', 'availableDate', 'paymentPlanCustomDates', 'paymentPlanStartDate',
+  'dueDate', 'customPaymentDates', 'constructionDate', 'unplannedBillsStartDate',
+  'financialYearStart', 'notificationsStartingDate',
+]);
+
+const dateOnlyPlugin = {
+  rules: {
+    'no-date-constructor-on-date-only-fields': {
+      meta: {
+        type: 'problem',
+        docs: {
+          description:
+            'Disallow new Date(expr) when expr accesses a date-only schema field. ' +
+            'YYYY-MM-DD strings parsed by new Date() are interpreted as UTC midnight and ' +
+            'shift one day backwards in timezones west of UTC. ' +
+            'Use parseDateOnly or parseDateOnlyLoose from @/lib/utils instead.',
+        },
+        messages: {
+          dateOnlyShift:
+            '"new Date({{ field }})" may shift the date by one day in timezones west of UTC. ' +
+            'Replace with parseDateOnly({{ field }}) or parseDateOnlyLoose({{ field }}) from @/lib/utils.',
+        },
+        schema: [],
+      },
+      create(context) {
+        return {
+          NewExpression(node) {
+            if (
+              node.callee.type !== 'Identifier' ||
+              node.callee.name !== 'Date' ||
+              node.arguments.length !== 1
+            ) {
+              return;
+            }
+            const arg = node.arguments[0];
+            let fieldName = null;
+            if (arg.type === 'MemberExpression' && arg.property.type === 'Identifier') {
+              fieldName = arg.property.name;
+            }
+            if (fieldName && DATE_ONLY_FIELDS.has(fieldName)) {
+              context.report({
+                node,
+                messageId: 'dateOnlyShift',
+                data: { field: fieldName },
+              });
+            }
+          },
+        };
+      },
+    },
+  },
+};
+
 const i18nPlugin = {
   rules: {
     'no-untranslated-jsx-strings': {
@@ -200,6 +264,19 @@ export default [
     },
     rules: {
       'i18n/no-untranslated-jsx-strings': 'error',
+    },
+  },
+  // Date-only field guard: enforced across the entire client app (task #1309).
+  // Fails CI when new Date(expr) is called where expr accesses a date-only
+  // schema field, which would shift the calendar day by one in timezones west
+  // of UTC. Use parseDateOnly or parseDateOnlyLoose from @/lib/utils instead.
+  {
+    files: ['client/src/**/*.{ts,tsx}'],
+    plugins: {
+      'date-only': dateOnlyPlugin,
+    },
+    rules: {
+      'date-only/no-date-constructor-on-date-only-fields': 'error',
     },
   },
   // JavaScript files configuration

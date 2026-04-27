@@ -1813,8 +1813,8 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
       if (urgencyCompare !== 0) return urgencyCompare;
       
       // If same urgency, sort by date
-      const aDate = parseDateOnlyLoose(a.targetDate) ?? new Date(a.targetDate);
-      const bDate = parseDateOnlyLoose(b.targetDate) ?? new Date(b.targetDate);
+      const aDate = parseDateOnlyLoose(a.targetDate) ?? new Date();
+      const bDate = parseDateOnlyLoose(b.targetDate) ?? new Date();
       return aDate.getTime() - bDate.getTime();
     });
     
@@ -2053,7 +2053,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
       });
       
       filtered = filtered.filter(inv => {
-        const invDate = parseDateOnlyLoose(inv.targetDate) ?? new Date(inv.targetDate);
+        const invDate = parseDateOnlyLoose(inv.targetDate) ?? new Date();
         const isInWindow = invDate >= windowStart && invDate <= windowEnd;
         
         debugLog('Investment date check', {
@@ -2070,8 +2070,8 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
     
     // Sort by target date (earliest first), then by urgency (urgent -> suggested -> not_urgent)
     filtered.sort((a, b) => {
-      const aDate = parseDateOnlyLoose(a.targetDate) ?? new Date(a.targetDate);
-      const bDate = parseDateOnlyLoose(b.targetDate) ?? new Date(b.targetDate);
+      const aDate = parseDateOnlyLoose(a.targetDate) ?? new Date();
+      const bDate = parseDateOnlyLoose(b.targetDate) ?? new Date();
       const dateCompare = aDate.getTime() - bDate.getTime();
       if (dateCompare !== 0) return dateCompare;
       
@@ -2420,7 +2420,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
   const aggregateInvestmentsByMonth = (year: number, month: number) => {
     // Find all investments that target this specific month (custom, database, and auto-generated)
     const monthInvestments = capitalInvestments.filter(investment => {
-      const targetDate = parseDateOnlyLoose(investment.targetDate) ?? new Date(investment.targetDate);
+      const targetDate = parseDateOnlyLoose(investment.targetDate) ?? new Date();
       return targetDate.getFullYear() === year && targetDate.getMonth() + 1 === month;
     });
 
@@ -2488,7 +2488,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
   const aggregateCustomInvestmentsByMonth = (year: number, month: number) => {
     // Find only custom investments that target this specific month
     const monthInvestments = capitalInvestments.filter(investment => {
-      const targetDate = parseDateOnlyLoose(investment.targetDate) ?? new Date(investment.targetDate);
+      const targetDate = parseDateOnlyLoose(investment.targetDate) ?? new Date();
       return targetDate.getFullYear() === year && 
              targetDate.getMonth() + 1 === month &&
              investment.type === 'custom'; // Only custom investments
@@ -3784,7 +3784,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                             const p = projects.find(proj => proj.id === id);
                             if (!p) return;
                             if (p.isQuickProject) {
-                              const plannedDate = p.plannedStartDate ? (parseDateOnlyLoose(p.plannedStartDate) ?? new Date(p.plannedStartDate)) : null;
+                              const plannedDate = p.plannedStartDate ? (parseDateOnlyLoose(p.plannedStartDate) ?? new Date()) : null;
                               setEditingProject({
                                 id: p.id,
                                 title: p.title,
@@ -3896,7 +3896,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                             }}
                             onEdit={async (p) => {
                               if (p.isQuickProject) {
-                                const plannedDate = p.plannedStartDate ? (parseDateOnlyLoose(p.plannedStartDate) ?? new Date(p.plannedStartDate)) : null;
+                                const plannedDate = p.plannedStartDate ? (parseDateOnlyLoose(p.plannedStartDate) ?? new Date()) : null;
                                 setEditingProject({
                                   id: p.id,
                                   title: p.title,
@@ -4116,7 +4116,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                       <div className='flex justify-between text-sm'>
                         <span className='text-muted-foreground'>{t('budgetFinancialYearStart')}:</span>
                         <span className='font-medium'>
-                          {localSettings.financialYearStart ? (parseDateOnlyLoose(localSettings.financialYearStart) ?? new Date(localSettings.financialYearStart)).toLocaleDateString() : `${new Date().getFullYear()}-01-01`}
+                          {localSettings.financialYearStart ? (parseDateOnlyLoose(localSettings.financialYearStart) ?? new Date()).toLocaleDateString() : `${new Date().getFullYear()}-01-01`}
                         </span>
                       </div>
                       {(bankAccountData as BankAccountData)?.bankAccountUpdatedAt && (
@@ -5396,7 +5396,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                           };
                           
                           const config = urgencyConfig[investment.urgency];
-                          const targetDate = parseDateOnlyLoose(investment.targetDate) ?? new Date(investment.targetDate);
+                          const targetDate = parseDateOnlyLoose(investment.targetDate) ?? new Date();
                           const isAutoGenerated = investment.type === 'auto_generated';
                           
                           return (

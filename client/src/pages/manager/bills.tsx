@@ -62,7 +62,7 @@ import ModularBillForm from '@/components/bill-management/ModularBillForm';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { useTableState } from '@/lib/common-hooks';
-import { cn, parseDateOnly } from '@/lib/utils';
+import { cn, parseDateOnly, parseDateOnlyLoose } from '@/lib/utils';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { useCurrentFinancialYear } from '@/hooks/use-current-financial-year';
@@ -1365,7 +1365,7 @@ function BillCard({
                   )}
                   {bill.issueDate && (
                     <span className='ml-2'>
-                      · {t('bills.issueDate') || 'Issue Date'}: {formatDate(parseDateOnly(bill.issueDate) ?? new Date(bill.issueDate), 'MMM d, yyyy')}
+                      · {t('bills.issueDate') || 'Issue Date'}: {formatDate(parseDateOnlyLoose(bill.issueDate) ?? new Date(), 'MMM d, yyyy')}
                     </span>
                   )}
                 </p>
@@ -1802,7 +1802,7 @@ export function BillDetail({
         <div>
           <Label className='text-sm font-medium'>{t('bills.issueDate') || 'Issue Date'}</Label>
           <p className='text-sm text-gray-600'>
-            {currentBill.issueDate ? formatDate(parseDateOnly(currentBill.issueDate) ?? new Date(currentBill.issueDate), 'MMM d, yyyy') : '-'}
+            {currentBill.issueDate ? formatDate(parseDateOnlyLoose(currentBill.issueDate) ?? new Date(), 'MMM d, yyyy') : '-'}
           </p>
         </div>
         <div>

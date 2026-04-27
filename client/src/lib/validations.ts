@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { parseDateOnly } from './utils';
 
 // Common enum definitions
 export const USER_ROLES = ['admin', 'manager', 'tenant', 'resident'] as const;
@@ -98,10 +99,7 @@ export const commonFields = {
       .string()
       .min(1, `${fieldName} is required`)
       .refine(
-        (dateStr) => {
-          const date = new Date(dateStr);
-          return !isNaN(date.getTime());
-        },
+        (dateStr) => parseDateOnly(dateStr) !== null,
         {
           message: `Valid ${fieldName.toLowerCase()} is required`,
         }

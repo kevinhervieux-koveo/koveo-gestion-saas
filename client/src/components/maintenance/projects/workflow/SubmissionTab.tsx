@@ -24,7 +24,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { MaintenanceProject, type SubmissionVendor } from '@shared/schemas/maintenance';
 import { PaymentPlanForm } from './PaymentPlanForm';
 import { ElementManagementTab } from './ElementManagementTab';
-import { cn, formatStatus, parseDateOnly, safeCapitalize } from '@/lib/utils';
+import { cn, formatStatus, parseDateOnly, parseDateOnlyLoose, safeCapitalize } from '@/lib/utils';
 import {
   CheckCircle2,
   Users,
@@ -438,7 +438,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     // object is what the API returns alongside each submission row.
     editVendorForm.reset({
       vendorId: vendor.vendorId ?? '',
-      availableDate: vendor.availableDate ? (parseDateOnly(vendor.availableDate) ?? new Date(vendor.availableDate)) : undefined,
+      availableDate: vendor.availableDate ? (parseDateOnlyLoose(vendor.availableDate) ?? new Date()) : undefined,
       description: vendor.notes || '',
       contactInfo: vendor.contactInfo || '',
       preferred: vendor.preferred,
@@ -446,7 +446,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
       paymentType,
       totalAmount,
       schedulePayment,
-      dateFirstPayment: vendor.paymentPlanStartDate ? (parseDateOnly(vendor.paymentPlanStartDate) ?? new Date(vendor.paymentPlanStartDate)) : undefined,
+      dateFirstPayment: vendor.paymentPlanStartDate ? (parseDateOnlyLoose(vendor.paymentPlanStartDate) ?? new Date()) : undefined,
       dateEndPayment: undefined, // Not used in current implementation
       hasInitialPayment,
       recurringPaymentsEqual,
@@ -1572,7 +1572,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                         {vendor.availableDate && (
                           <span className="flex items-center gap-1">
                             <Calendar className="h-3 w-3" />
-                            {t('submissionAvailableLabel')}: {(parseDateOnly(vendor.availableDate) ?? new Date(vendor.availableDate)).toLocaleDateString()}
+                            {t('submissionAvailableLabel')}: {(parseDateOnlyLoose(vendor.availableDate) ?? new Date()).toLocaleDateString()}
                           </span>
                         )}
                         {vendor.contactInfo && (
@@ -1648,7 +1648,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                       {vendor.availableDate && (
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>{t('submissionAvailableForWorkLabel')}: {(parseDateOnly(vendor.availableDate) ?? new Date(vendor.availableDate)).toLocaleDateString()}</span>
+                          <span>{t('submissionAvailableForWorkLabel')}: {(parseDateOnlyLoose(vendor.availableDate) ?? new Date()).toLocaleDateString()}</span>
                         </div>
                       )}
                       {vendor.addedLifespan && (
@@ -1679,7 +1679,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                       {vendor.paymentPlanStartDate && (
                         <div className="flex items-center gap-1">
                           <Calendar className="h-3 w-3" />
-                          <span>{t('submissionPaymentStartsTemplate').replace('{date}', (parseDateOnly(vendor.paymentPlanStartDate) ?? new Date(vendor.paymentPlanStartDate)).toLocaleDateString())}</span>
+                          <span>{t('submissionPaymentStartsTemplate').replace('{date}', (parseDateOnlyLoose(vendor.paymentPlanStartDate) ?? new Date()).toLocaleDateString())}</span>
                         </div>
                       )}
                       {vendor.paymentPlanCosts && vendor.paymentPlanCosts.length > 0 && (

@@ -63,18 +63,18 @@ function getProjectFiscalYear(
 ): string {
   if (project.financialYear) return String(project.financialYear);
   if (!project.plannedStartDate) return 'N/A';
-  const d = new Date(project.plannedStartDate);
-  if (isNaN(d.getTime())) return 'N/A';
-  const calendarYear = d.getUTCFullYear();
-  const calendarMonth = d.getUTCMonth() + 1;
+  const d = parseDateOnly(project.plannedStartDate);
+  if (!d) return 'N/A';
+  const calendarYear = d.getFullYear();
+  const calendarMonth = d.getMonth() + 1;
   let fyStartMonth = 1;
   if (financialYearStart) {
     const m = financialYearStart.match(/^\d{4}-(\d{2})-\d{2}/);
     if (m) {
       fyStartMonth = parseInt(m[1], 10);
     } else {
-      const parsed = new Date(financialYearStart);
-      if (!isNaN(parsed.getTime())) fyStartMonth = parsed.getUTCMonth() + 1;
+      const parsed = parseDateOnly(financialYearStart);
+      if (parsed) fyStartMonth = parsed.getMonth() + 1;
     }
   }
   return String(calendarMonth < fyStartMonth ? calendarYear - 1 : calendarYear);
@@ -914,7 +914,7 @@ export default function FinancialOverview() {
     if (!selectedBuilding || !selectedBuilding.financialYearStart) {
       return 1; // Default to January
     }
-    const fiscalDate = parseDateOnlyLoose(selectedBuilding.financialYearStart) ?? new Date(selectedBuilding.financialYearStart);
+    const fiscalDate = parseDateOnlyLoose(selectedBuilding.financialYearStart) ?? new Date();
     return fiscalDate.getMonth() + 1; // Convert 0-11 to 1-12
   }, [selectedBuilding]);
 

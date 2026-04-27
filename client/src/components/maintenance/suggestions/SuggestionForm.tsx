@@ -32,7 +32,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
-import { cn, parseDateOnly } from '@/lib/utils';
+import { cn, parseDateOnly, parseDateOnlyLoose } from '@/lib/utils';
 import {
   CalendarIcon,
   Building,
@@ -128,7 +128,7 @@ export function SuggestionForm({
       buildingId: buildingId || '',
       elementId: elementId || suggestion?.elementId || '',
       suggestedDate: suggestion?.suggestedDate
-        ? (parseDateOnly(suggestion.suggestedDate) ?? new Date(suggestion.suggestedDate))
+        ? (parseDateOnlyLoose(suggestion.suggestedDate) ?? new Date())
         : addMonths(new Date(), 1),
       suggestedType: suggestion?.suggestedType || 'inspection',
       reason: suggestion?.reason || '',
@@ -191,7 +191,7 @@ export function SuggestionForm({
       form.setValue('suggestedType', calc.recommendedType);
       form.setValue('priority', calc.recommendedPriority);
       form.setValue('reason', calc.reason);
-      form.setValue('suggestedDate', parseDateOnly(calc.suggestedDate) ?? new Date(calc.suggestedDate));
+      form.setValue('suggestedDate', parseDateOnlyLoose(calc.suggestedDate) ?? new Date());
       if (calc.costEstimate) {
         form.setValue('costEstimate', calc.costEstimate);
       }
@@ -208,7 +208,7 @@ export function SuggestionForm({
     if (!selectedElement) return;
     
     const elementAge = selectedElement.originalConstructionDate 
-      ? new Date().getFullYear() - (parseDateOnly(selectedElement.originalConstructionDate) ?? new Date(selectedElement.originalConstructionDate)).getFullYear()
+      ? new Date().getFullYear() - (parseDateOnlyLoose(selectedElement.originalConstructionDate) ?? new Date()).getFullYear()
       : 0;
     
     const lifespan = selectedElement.currentLifespan || selectedElement.originalLifespan || 0;
@@ -508,7 +508,7 @@ export function SuggestionForm({
               <div className="text-xs text-green-700 space-y-1">
                 <div>Type: {calculationResponse.calculation.recommendedType}</div>
                 <div>Priority: {calculationResponse.calculation.recommendedPriority}</div>
-                <div>Date: {format(parseDateOnly(calculationResponse.calculation.suggestedDate) ?? new Date(calculationResponse.calculation.suggestedDate), 'PPP')}</div>
+                <div>Date: {format(parseDateOnlyLoose(calculationResponse.calculation.suggestedDate) ?? new Date(), 'PPP')}</div>
                 {calculationResponse.calculation.costEstimate && (
                   <div>Estimated Cost: ${calculationResponse.calculation.costEstimate.toLocaleString()}</div>
                 )}

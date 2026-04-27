@@ -25,7 +25,7 @@ import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { format } from 'date-fns';
-import { formatStatus, parseDateOnly } from '@/lib/utils';
+import { formatStatus, parseDateOnly, parseDateOnlyLoose } from '@/lib/utils';
 import { ReopenStepDialog } from './ReopenStepDialog';
 import {
   CheckCircle2,
@@ -85,7 +85,7 @@ export function CompleteTab({ project, workflowState, onUpdate }: CompleteTabPro
     defaultValues: {
       completionSummary: project.completionSummary || '',
       actualEndDate: project.actualEndDate
-        ? format(parseDateOnly(project.actualEndDate) ?? new Date(project.actualEndDate), 'yyyy-MM-dd')
+        ? format(parseDateOnlyLoose(project.actualEndDate) ?? new Date(), 'yyyy-MM-dd')
         : format(new Date(), 'yyyy-MM-dd'),
     },
   });

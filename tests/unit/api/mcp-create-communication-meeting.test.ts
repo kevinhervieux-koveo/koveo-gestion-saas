@@ -82,6 +82,17 @@ jest.mock('../../../server/services/consolidated-ai-service', () => ({
 
 import { createMcpServer } from '../../../server/mcp/server';
 
+/**
+ * Returns an ISO-8601 timestamp string that is always `daysAhead` days in
+ * the future relative to when the test runs, so the test never becomes stale
+ * because a hardcoded literal rolled into the past.
+ */
+function futureDateISO(daysAhead: number = 30): string {
+  const d = new Date();
+  d.setDate(d.getDate() + daysAhead);
+  return d.toISOString();
+}
+
 const ORG_ID = 'mcp-org-1';
 const OAUTH_USER_ID = 'real-oauth-user-123';
 const SEED_USER_ID = 'seed-mcp-manager-id';
@@ -133,7 +144,7 @@ describe('create_communication / create_meeting OAuth attribution (task #138)', 
         organizationId: ORG_ID,
         title: 'Board meeting',
         location: 'Salle 1',
-        scheduledDate: '2026-05-01T18:00:00Z',
+        scheduledDate: futureDateISO(30),
         duration: 60,
       });
 

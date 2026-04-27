@@ -32,7 +32,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
-import { cn, parseDateOnly } from '@/lib/utils';
+import { cn, parseDateOnly, parseDateOnlyLoose } from '@/lib/utils';
 import { SharedUploader } from '@/components/document-management';
 import { GeminiBillExtractor } from './GeminiBillExtractor';
 import { AttachedFileSection } from '@/components/common/AttachedFileSection';
@@ -1202,13 +1202,13 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
   const generateNextPaymentDate = (startDate: string, schedule: string, paymentIndex: number): string => {
     if (!startDate || !schedule) return '';
     
-    const start = parseDateOnly(startDate) ?? new Date(startDate);
+    const start = parseDateOnlyLoose(startDate) ?? new Date();
     const endDate = form.getValues('endDate');
     
     // Calculate proper renewal date: endDate or startDate + 1 year
     let maxDate: Date;
     if (endDate && endDate.trim() !== '') {
-      maxDate = parseDateOnly(endDate) ?? new Date(endDate);
+      maxDate = parseDateOnlyLoose(endDate) ?? new Date();
     } else {
       maxDate = new Date(start);
       maxDate.setFullYear(start.getFullYear() + 1);
@@ -1262,16 +1262,16 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
     // Calculate proper renewal limit: endDate or startDate + 1 year
     let renewalLimit: Date;
     if (endDate && endDate.trim() !== '') {
-      renewalLimit = parseDateOnly(endDate) ?? new Date(endDate);
+      renewalLimit = parseDateOnlyLoose(endDate) ?? new Date();
     } else if (startDate) {
-      renewalLimit = parseDateOnly(startDate) ?? new Date(startDate);
+      renewalLimit = parseDateOnlyLoose(startDate) ?? new Date();
       renewalLimit.setFullYear(renewalLimit.getFullYear() + 1);
     } else {
       renewalLimit = new Date();
       renewalLimit.setFullYear(renewalLimit.getFullYear() + 1);
     }
     
-    const paymentDate = parseDateOnly(newPayment.date) ?? new Date(newPayment.date);
+    const paymentDate = parseDateOnlyLoose(newPayment.date) ?? new Date();
     
     // Check if we're exceeding the bill's renewal period
     if (!isCustomSchedule && newPayment.date && paymentDate >= renewalLimit) {
