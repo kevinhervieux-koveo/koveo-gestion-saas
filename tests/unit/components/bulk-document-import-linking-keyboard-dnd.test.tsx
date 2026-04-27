@@ -636,3 +636,157 @@ describe('BulkDocumentImportPage — Linking keyboard handler delegates to drop 
     expect(computeLinkingDropChangesSpy).not.toHaveBeenCalled();
   });
 });
+
+// =============================================================================
+// 3. Keyboard reorders are announced to screen readers (Task #1257)
+// =============================================================================
+//
+// The Linking step renders a single polite live region (role="status",
+// aria-live="polite") whose text content is driven by the
+// `linkingAnnouncement` state hook. Each ArrowUp / ArrowDown / ArrowLeft
+// keystroke on a chain row updates that hook with a localized message
+// (e.g. "Position 2 of 3" / "Position 2 sur 3" or
+// "File removed from group" / "Fichier dissocié du groupe"). These tests
+// dispatch the keystrokes and assert the live region picks up the matching
+// copy in both English and French so a regression that disconnects the
+// state from the live region cannot silently break screen-reader
+// accessibility.
+
+/**
+ * Locate the single Linking-step polite live region. It is the only
+ * element on the page with both role="status" AND aria-live="polite",
+ * so we query by the aria-live attribute (which is unique to it) to
+ * disambiguate from the other role="status" elements (loading spinners
+ * elsewhere in the page).
+ */
+function getLinkingLiveRegion(): HTMLElement {
+  const liveRegions = document.querySelectorAll('[aria-live="polite"]');
+  expect(liveRegions.length).toBe(1);
+  const region = liveRegions[0] as HTMLElement;
+  // Sanity: the live region should also advertise role="status" so that
+  // assistive tech that filters by role still picks it up.
+  expect(region.getAttribute('role')).toBe('status');
+  return region;
+}
+
+describe('BulkDocumentImportPage — Linking keyboard reorders announce to screen readers (Task #1257)', () => {
+  describe('English (currentLanguage="en")', () => {
+    beforeEach(() => {
+      currentLanguage = 'en';
+    });
+
+    it('ArrowDown on the HEAD row announces "Position 2 of 3" in the polite live region', async () => {
+      renderPage();
+      await screen.findByTestId(`linking-group-${ITEM_HEAD}`, undefined, {
+        timeout: 4000,
+      });
+      await flushAsyncEffects();
+
+      // Live region exists and starts empty.
+      const liveRegion = getLinkingLiveRegion();
+      expect(liveRegion.textContent ?? '').toBe('');
+
+      const headHandle = screen.getByTestId(`linking-drag-handle-${ITEM_HEAD}`);
+      await act(async () => {
+        headHandle.focus();
+        fireEvent.keyDown(headHandle, { key: 'ArrowDown' });
+      });
+      await flushAsyncEffects();
+
+      // HEAD moved from slot 1 → slot 2 in a 3-item chain.
+      expect(getLinkingLiveRegion()).toHaveTextContent('Position 2 of 3');
+    });
+
+    it('ArrowUp on the TAIL row announces "Position 2 of 3" in the polite live region', async () => {
+      renderPage();
+      await screen.findByTestId(`linking-group-${ITEM_HEAD}`, undefined, {
+        timeout: 4000,
+      });
+      await flushAsyncEffects();
+
+      const tailHandle = screen.getByTestId(`linking-drag-handle-${ITEM_TAIL}`);
+      await act(async () => {
+        tailHandle.focus();
+        fireEvent.keyDown(tailHandle, { key: 'ArrowUp' });
+      });
+      await flushAsyncEffects();
+
+      // TAIL moved from slot 3 → slot 2 in a 3-item chain.
+      expect(getLinkingLiveRegion()).toHaveTextContent('Position 2 of 3');
+    });
+
+    it('ArrowLeft on a chain row announces "File removed from group" in the polite live region', async () => {
+      renderPage();
+      await screen.findByTestId(`linking-group-${ITEM_HEAD}`, undefined, {
+        timeout: 4000,
+      });
+      await flushAsyncEffects();
+
+      const midHandle = screen.getByTestId(`linking-drag-handle-${ITEM_MID}`);
+      await act(async () => {
+        midHandle.focus();
+        fireEvent.keyDown(midHandle, { key: 'ArrowLeft' });
+      });
+      await flushAsyncEffects();
+
+      expect(getLinkingLiveRegion()).toHaveTextContent('File removed from group');
+    });
+  });
+
+  describe('French (currentLanguage="fr")', () => {
+    beforeEach(() => {
+      currentLanguage = 'fr';
+    });
+
+    it('ArrowDown on the HEAD row announces "Position 2 sur 3" in the polite live region', async () => {
+      renderPage();
+      await screen.findByTestId(`linking-group-${ITEM_HEAD}`, undefined, {
+        timeout: 4000,
+      });
+      await flushAsyncEffects();
+
+      const headHandle = screen.getByTestId(`linking-drag-handle-${ITEM_HEAD}`);
+      await act(async () => {
+        headHandle.focus();
+        fireEvent.keyDown(headHandle, { key: 'ArrowDown' });
+      });
+      await flushAsyncEffects();
+
+      expect(getLinkingLiveRegion()).toHaveTextContent('Position 2 sur 3');
+    });
+
+    it('ArrowUp on the TAIL row announces "Position 2 sur 3" in the polite live region', async () => {
+      renderPage();
+      await screen.findByTestId(`linking-group-${ITEM_HEAD}`, undefined, {
+        timeout: 4000,
+      });
+      await flushAsyncEffects();
+
+      const tailHandle = screen.getByTestId(`linking-drag-handle-${ITEM_TAIL}`);
+      await act(async () => {
+        tailHandle.focus();
+        fireEvent.keyDown(tailHandle, { key: 'ArrowUp' });
+      });
+      await flushAsyncEffects();
+
+      expect(getLinkingLiveRegion()).toHaveTextContent('Position 2 sur 3');
+    });
+
+    it('ArrowLeft on a chain row announces "Fichier dissocié du groupe" in the polite live region', async () => {
+      renderPage();
+      await screen.findByTestId(`linking-group-${ITEM_HEAD}`, undefined, {
+        timeout: 4000,
+      });
+      await flushAsyncEffects();
+
+      const midHandle = screen.getByTestId(`linking-drag-handle-${ITEM_MID}`);
+      await act(async () => {
+        midHandle.focus();
+        fireEvent.keyDown(midHandle, { key: 'ArrowLeft' });
+      });
+      await flushAsyncEffects();
+
+      expect(getLinkingLiveRegion()).toHaveTextContent('Fichier dissocié du groupe');
+    });
+  });
+});
