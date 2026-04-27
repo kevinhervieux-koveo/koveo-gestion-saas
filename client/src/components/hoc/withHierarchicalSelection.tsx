@@ -637,12 +637,12 @@ function AdminManagerHierarchyFlow<T extends object>({
           {header}
           {backNav}
           <div className='flex-1 overflow-auto p-6'>
-            <SelectionGrid
-              title=""
+            <SearchableSelectionGrid
               items={items}
               onSelectItem={handleSelection}
-              onBack={null}
               isLoading={isLoadingResidences}
+              searchTestId='input-search-residences'
+              paginationTestId='residence-chooser-pagination'
             />
           </div>
         </div>
