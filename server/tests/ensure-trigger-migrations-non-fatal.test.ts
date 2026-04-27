@@ -345,6 +345,212 @@ describe('ensureTriggerOnlyMigrations — non-fatal regression', () => {
     expect(failedLine![0]).not.toContain(FAKE_DDL);
   });
 
+  describe('Task #1443 — cross-container advisory-lock serialization', () => {
+    /** Builds a pool that returns a NEW client on every connect() call. */
+    function makeMultiClientPool(opts: { ddlError?: Error } = {}) {
+      const clients: Array<{
+        query: jest.Mock;
+        release: jest.Mock<() => void>;
+        sqls: string[];
+      }> = [];
+      const pool = {
+        connect: jest.fn(async () => {
+          const sqls: string[] = [];
+          const client = {
+            query: jest.fn(async (sql: string, _params?: unknown[]) => {
+              if (typeof sql === 'string') sqls.push(sql.trim());
+              const s = typeof sql === 'string' ? sql.trim().toUpperCase() : '';
+              if (
+                s === 'BEGIN' ||
+                s.startsWith('SET ') ||
+                s === 'COMMIT' ||
+                s === 'ROLLBACK' ||
+                s.startsWith('SELECT PG_ADVISORY_LOCK') ||
+                s.startsWith('SELECT PG_ADVISORY_UNLOCK')
+              ) {
+                return { rows: [] };
+              }
+              if (opts.ddlError) throw opts.ddlError;
+              return { rows: [] };
+            }),
+            release: jest.fn<() => void>(),
+            sqls,
+          };
+          clients.push(client as any);
+          return client;
+        }),
+      };
+      return { pool, clients };
+    }
+
+    it('acquires pg_advisory_lock on a dedicated client BEFORE the first DDL when advisoryLockKey is set', async () => {
+      const { pool, clients } = makeMultiClientPool();
+
+      const result = await ensureTriggerOnlyMigrations(
+        ['0010_demands_residence_building_check.sql'],
+        {
+          pool: pool as any,
+          readFile: () => FAKE_DDL,
+          migrationsDir: '/fake/migrations',
+          logger,
+          advisoryLockKey: '7426891234567890',
+        },
+      );
+
+      expect(result.ok).toEqual(['0010_demands_residence_building_check.sql']);
+      expect(result.failed).toEqual([]);
+
+      // First connect() is the lock client; second is the per-file DDL client.
+      expect(pool.connect).toHaveBeenCalledTimes(2);
+      const lockClient = clients[0];
+      const ddlClient = clients[1];
+
+      const lockIdx = lockClient.sqls.findIndex((q) =>
+        q.toLowerCase().includes('pg_advisory_lock('),
+      );
+      const unlockIdx = lockClient.sqls.findIndex((q) =>
+        q.toLowerCase().includes('pg_advisory_unlock('),
+      );
+      expect(lockIdx).toBeGreaterThan(-1);
+      expect(unlockIdx).toBeGreaterThan(lockIdx);
+
+      // The DDL client never called pg_advisory_lock — only the lock
+      // client did. This proves the lock is held on a session that
+      // outlives any single file.
+      expect(
+        ddlClient.sqls.some((q) =>
+          q.toLowerCase().includes('pg_advisory_lock('),
+        ),
+      ).toBe(false);
+      // And the lock client's release happened (cleanup).
+      expect(lockClient.release).toHaveBeenCalled();
+    });
+
+    it('passes the supplied key as a parameter to pg_advisory_lock and pg_advisory_unlock', async () => {
+      const { pool, clients } = makeMultiClientPool();
+      const key = '7426891234567890';
+
+      await ensureTriggerOnlyMigrations(
+        ['0010_demands_residence_building_check.sql'],
+        {
+          pool: pool as any,
+          readFile: () => FAKE_DDL,
+          migrationsDir: '/fake/migrations',
+          logger,
+          advisoryLockKey: key,
+        },
+      );
+
+      const lockCalls = clients[0].query.mock.calls;
+      const lockCall = lockCalls.find(
+        (c) =>
+          typeof c[0] === 'string' &&
+          (c[0] as string).toLowerCase().includes('pg_advisory_lock('),
+      );
+      const unlockCall = lockCalls.find(
+        (c) =>
+          typeof c[0] === 'string' &&
+          (c[0] as string).toLowerCase().includes('pg_advisory_unlock('),
+      );
+      expect(lockCall?.[1]).toEqual([key]);
+      expect(unlockCall?.[1]).toEqual([key]);
+    });
+
+    it('releases the advisory lock even when one of the files fails', async () => {
+      const pgErr = Object.assign(new Error('lock timeout'), { code: '55P03' });
+      const { pool, clients } = makeMultiClientPool({ ddlError: pgErr });
+
+      const result = await ensureTriggerOnlyMigrations(
+        ['0010_demands_residence_building_check.sql'],
+        {
+          pool: pool as any,
+          readFile: () => FAKE_DDL,
+          migrationsDir: '/fake/migrations',
+          logger,
+          advisoryLockKey: '7426891234567890',
+        },
+      );
+
+      expect(result.failed).toEqual(['0010_demands_residence_building_check.sql']);
+
+      const lockClient = clients[0];
+      expect(
+        lockClient.sqls.some((q) =>
+          q.toLowerCase().includes('pg_advisory_unlock('),
+        ),
+      ).toBe(true);
+      expect(lockClient.release).toHaveBeenCalled();
+    });
+
+    it('returns an empty result and does NOT throw when the advisory lock cannot be acquired', async () => {
+      // Lock client's pg_advisory_lock query rejects (e.g. statement
+      // timeout 57014 because a peer container is holding it).
+      const lockErr = Object.assign(
+        new Error('canceling statement due to statement timeout'),
+        { code: '57014' },
+      );
+      const lockClient = {
+        query: jest.fn(async (sql: string) => {
+          if (typeof sql === 'string' && sql.toLowerCase().includes('pg_advisory_lock(')) {
+            throw lockErr;
+          }
+          return { rows: [] };
+        }),
+        release: jest.fn<() => void>(),
+      };
+      const pool = {
+        connect: jest.fn(async () => lockClient as any),
+      };
+
+      const result = await ensureTriggerOnlyMigrations(
+        ['0010_demands_residence_building_check.sql'],
+        {
+          pool: pool as any,
+          readFile: () => FAKE_DDL,
+          migrationsDir: '/fake/migrations',
+          logger,
+          advisoryLockKey: '7426891234567890',
+        },
+      );
+
+      expect(result.ok).toEqual([]);
+      expect(result.failed).toEqual([]);
+
+      // Per-file DDL client was never opened — we bailed out early.
+      expect(pool.connect).toHaveBeenCalledTimes(1);
+      expect(lockClient.release).toHaveBeenCalled();
+
+      const errLogs = logs.filter(([, level]) => level === 'error').map(([m]) => m);
+      const skippedLine = errLogs.find((l) => l.includes('SKIPPED (advisory lock unavailable)'));
+      expect(skippedLine).toBeDefined();
+      expect(skippedLine).toContain('57014');
+    });
+
+    it('does NOT acquire any advisory lock when advisoryLockKey is omitted (back-compat)', async () => {
+      const { pool, clients } = makeMultiClientPool();
+
+      await ensureTriggerOnlyMigrations(
+        ['0010_demands_residence_building_check.sql'],
+        {
+          pool: pool as any,
+          readFile: () => FAKE_DDL,
+          migrationsDir: '/fake/migrations',
+          logger,
+        },
+      );
+
+      // Only the per-file DDL client was opened.
+      expect(pool.connect).toHaveBeenCalledTimes(1);
+      const allSqls = clients.flatMap((c) => c.sqls);
+      expect(
+        allSqls.some((q) => q.toLowerCase().includes('pg_advisory_lock(')),
+      ).toBe(false);
+      expect(
+        allSqls.some((q) => q.toLowerCase().includes('pg_advisory_unlock(')),
+      ).toBe(false);
+    });
+  });
+
   it('startup resilience: caller can call setFrontendReady(true) immediately after a trigger failure', async () => {
     let frontendReady = false;
     const setFrontendReady = (v: boolean) => { frontendReady = v; };

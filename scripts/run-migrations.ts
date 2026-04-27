@@ -141,7 +141,16 @@ import {
 // Stable advisory lock key so concurrent runners (e.g. multiple
 // Autoscale containers booting at once) serialize on the same lock
 // rather than racing each other.
-const MIGRATION_LOCK_KEY = '7426891234567890';
+//
+// Exported so the boot-time trigger re-application step
+// (`ensureTriggerOnlyMigrations()` in server/index.ts) can re-use the
+// SAME key. Without that, two concurrent boots can interleave a
+// RowExclusiveLock-holding UPDATE (e.g. 0015's cross-org cleanup on
+// `demands`) with an AccessExclusiveLock-needing DROP/CREATE TRIGGER
+// (0010/0012) on the same table — which is exactly the lock-wait
+// failure (SQLSTATE 55P03) Task #1439 instrumented and Task #1443 is
+// fixing the root cause of.
+export const MIGRATION_LOCK_KEY = '7426891234567890';
 
 async function ensureMigrationsTable(client: PoolClient): Promise<void> {
   await client.query(`

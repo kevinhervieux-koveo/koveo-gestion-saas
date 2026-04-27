@@ -468,7 +468,7 @@ async function loadFullApplication(): Promise<void> {
     if (shouldRunMigrations) {
       try {
         log('🔄 Running database migrations...');
-        const { runMigrations } = await import('../scripts/run-migrations');
+        const { runMigrations, MIGRATION_LOCK_KEY } = await import('../scripts/run-migrations');
         const r = await runMigrations({});
         if (r.baselined.length > 0) {
           log(`📝 Baselined ${r.baselined.length} migration(s) as already applied.`);
@@ -533,6 +533,13 @@ async function loadFullApplication(): Promise<void> {
           ],
           {
             logger: (msg, level) => log(msg, level === 'error' ? 'error' : 'express'),
+            // Task #1443: serialize this pass across concurrent
+            // containers using the SAME advisory lock the numbered
+            // migration runner uses. Without it, two boots can
+            // interleave 0015's UPDATE on `demands` (RowExclusive)
+            // with 0010/0012's DROP/CREATE TRIGGER (AccessExclusive)
+            // and trigger the 5:11 AM-style lock-wait failure.
+            advisoryLockKey: MIGRATION_LOCK_KEY,
           },
         );
 
