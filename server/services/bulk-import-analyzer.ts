@@ -204,16 +204,28 @@ export interface BranchResult extends AnalyzerConfidence {
   /**
    * Task #1401 — clean human-readable filename stem (no extension)
    * suggested by the AI for this row. Sanitised in the analyzer so the
-   * server route never has to re-clean it. `null` when the AI did not
-   * supply a meaningful suggestion or the response was a fallback stub.
+   * server route never has to re-clean it. After Task #1454 this field
+   * is always non-null for rows that completed the branching step: when
+   * the AI omits a suggestion the original-filename stem is used as a
+   * fallback (see `suggestedFinalFileNameIsFallback`).
    */
   suggestedFinalFileName?: string | null;
   /**
    * Task #1401 — pair of clean filename stems for split rows, in the
-   * same order as the slice (Part 1 / Part 2). `null` when the AI did
-   * not supply a meaningful suggestion or it could not be sanitised.
+   * same order as the slice (Part 1 / Part 2). After Task #1454 this
+   * field is always non-null for rows that completed branching: when the
+   * AI omits a valid pair the original-filename stem is used for both
+   * halves. See `suggestedFinalFileNameIsFallback`.
    */
   suggestedSplitFinalNames?: [string, string] | null;
+  /**
+   * Task #1454 — true when `suggestedFinalFileName` (and
+   * `suggestedSplitFinalNames`) were populated with the original-filename
+   * stem because the AI did not return a usable suggestion. The UI uses
+   * this to suppress the "AI suggestion" badge for stem-fallback values
+   * while still pre-filling the input so admins never see an empty field.
+   */
+  suggestedFinalFileNameIsFallback?: boolean;
 }
 
 export interface IdentificationResult extends AnalyzerConfidence {
@@ -1345,9 +1357,30 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
       'other',
     ];
     if (!raw) {
-      // Task #1401 — fallback rows carry no AI suggestion so the rename
-      // input falls back to the original-stem placeholder.
-      return { branch: 'building_documents', subCategory: 'other', reason: 'fallback', confidence: 0.2, fallbackReason, retryCount, degraded, residenceId: null, residenceConfidence: null, residenceReason: null, residenceFallbackReason: null, suggestedFinalFileName: null, suggestedSplitFinalNames: null };
+      // Task #1454 — fallback/api_error rows have no real AI suggestion.
+      // Persist the original-filename stem so the rename input is never
+      // blank on first open; mark it as a fallback so the UI suppresses
+      // the "AI suggestion" badge.
+      const stemFallback =
+        (sanitizeAiSuggestedFileName(input.originalName) ??
+        input.originalName.replace(/\.[^/.]+$/, '').trim()) ||
+        input.originalName;
+      return {
+        branch: 'building_documents',
+        subCategory: 'other',
+        reason: 'fallback',
+        confidence: 0.2,
+        fallbackReason,
+        retryCount,
+        degraded,
+        residenceId: null,
+        residenceConfidence: null,
+        residenceReason: null,
+        residenceFallbackReason: null,
+        suggestedFinalFileName: stemFallback,
+        suggestedSplitFinalNames: [stemFallback, stemFallback],
+        suggestedFinalFileNameIsFallback: true,
+      };
     }
     const branch: BranchDestination = allowed.includes(raw.branch as BranchDestination)
       ? (raw.branch as BranchDestination)
@@ -1386,23 +1419,37 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
     }
 
     // Task #1401 — extract and sanitise the AI's filename suggestions.
-    // We persist `null` (rather than the original stem) when the AI omits
-    // a suggestion or returns one we can't sanitise, so the UI knows to
-    // fall back to the original filename placeholder. Split suggestions
-    // are only kept when BOTH halves sanitise cleanly — a half-good pair
-    // would defeat the "matches verbatim" hint logic on the unsuggested
-    // side.
+    // Split suggestions are only kept when BOTH halves sanitise cleanly —
+    // a half-good pair would defeat the "matches verbatim" hint logic on
+    // the unsuggested side.
+    // Task #1454 — when the AI omits or cannot produce a usable suggestion,
+    // fall back to the original-filename stem so the rename input is never
+    // blank on first open. Mark the fallback with `suggestedFinalFileNameIsFallback`
+    // so the UI suppresses the "AI suggestion" badge for stem-only values.
     const rawSuggested = (raw as Record<string, unknown>).suggestedFilename;
-    const suggestedFinalFileName = sanitizeAiSuggestedFileName(rawSuggested);
+    const aiSuggestedFinalFileName = sanitizeAiSuggestedFileName(rawSuggested);
     const rawSplit = (raw as Record<string, unknown>).suggestedSplitFilenames;
-    let suggestedSplitFinalNames: [string, string] | null = null;
+    let aiSuggestedSplitFinalNames: [string, string] | null = null;
     if (Array.isArray(rawSplit) && rawSplit.length === 2) {
       const part1 = sanitizeAiSuggestedFileName(rawSplit[0]);
       const part2 = sanitizeAiSuggestedFileName(rawSplit[1]);
       if (part1 && part2) {
-        suggestedSplitFinalNames = [part1, part2];
+        aiSuggestedSplitFinalNames = [part1, part2];
       }
     }
+    // Stem fallback: used when the AI produced no usable name.
+    const stemFallback =
+      (sanitizeAiSuggestedFileName(input.originalName) ??
+      input.originalName.replace(/\.[^/.]+$/, '').trim()) ||
+      input.originalName;
+    const isFallback = !aiSuggestedFinalFileName;
+    const suggestedFinalFileName = aiSuggestedFinalFileName ?? stemFallback;
+    // When the AI provided a real single suggestion, keep split names as whatever the
+    // AI returned (or null if absent) so the badge only fires when the value is a real
+    // AI split suggestion. When the AI had no single suggestion either (isFallback),
+    // populate both split slots with the stem so split rows are never blank.
+    const suggestedSplitFinalNames: [string, string] | null =
+      aiSuggestedSplitFinalNames ?? (isFallback ? [stemFallback, stemFallback] : null);
 
     return {
       branch,
@@ -1420,6 +1467,7 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
       residenceFallbackReason,
       suggestedFinalFileName,
       suggestedSplitFinalNames,
+      suggestedFinalFileNameIsFallback: isFallback,
     };
   },
 

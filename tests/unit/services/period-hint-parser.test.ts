@@ -276,4 +276,41 @@ describe('parsePeriodHint', () => {
   it('returns null for "2024-" (trailing dash, not a valid format)', () => {
     expect(parsePeriodHint('2024-')).toBeNull();
   });
+
+  // ── Comma-separated ISO date range (Task #1454) ────────────────────────────
+  it('parses "2021-10-01,2022-09-30" → start date 2021-10-01', () => {
+    expectDate('2021-10-01,2022-09-30', 2021, 10, 1);
+  });
+
+  it('parses range with spaces around the comma "2021-10-01, 2022-09-30"', () => {
+    expectDate('2021-10-01, 2022-09-30', 2021, 10, 1);
+  });
+
+  it('parses range with spaces on both sides "2021-10-01 , 2022-09-30"', () => {
+    expectDate('2021-10-01 , 2022-09-30', 2021, 10, 1);
+  });
+
+  it('parses range where start equals end "2021-10-01,2021-10-01"', () => {
+    expectDate('2021-10-01,2021-10-01', 2021, 10, 1);
+  });
+
+  it('returns null for reversed range "2022-09-30,2021-10-01" (start > end)', () => {
+    expect(parsePeriodHint('2022-09-30,2021-10-01')).toBeNull();
+  });
+
+  it('returns null for range with invalid start month "2021-13-01,2022-09-30"', () => {
+    expect(parsePeriodHint('2021-13-01,2022-09-30')).toBeNull();
+  });
+
+  it('returns null for range with invalid end day "2021-10-01,2022-09-00"', () => {
+    expect(parsePeriodHint('2021-10-01,2022-09-00')).toBeNull();
+  });
+
+  it('returns null for a range with a non-ISO half "2021-10,2022-09-30"', () => {
+    expect(parsePeriodHint('2021-10,2022-09-30')).toBeNull();
+  });
+
+  it('returns null for a single ISO date that happens to contain a comma "2021-10-01,"', () => {
+    expect(parsePeriodHint('2021-10-01,')).toBeNull();
+  });
 });

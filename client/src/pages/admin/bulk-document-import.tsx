@@ -8014,8 +8014,10 @@ export default function BulkDocumentImportPage() {
                                                         // admin hasn't typed an override and the analyzer produced a
                                                         // pair. The hint badge below the input fires when the value
                                                         // still matches the suggestion verbatim.
+                                                        // Task #1454 — suppress the badge for stem-fallback values.
                                                         const aiPart1 = sibling.branchSuggestedSplitFinalNames?.[0] ?? null;
                                                         const aiPart2 = sibling.branchSuggestedSplitFinalNames?.[1] ?? null;
+                                                        const splitIsRealAi = !!aiPart1 && !(sibling as unknown as { branchSuggestedFinalFileNameIsFallback?: boolean }).branchSuggestedFinalFileNameIsFallback;
                                                         const part1Value = inlineRenameSplit.get(sibling.id)?.[0]
                                                           ?? sibling.sortingDecisionSplitFinalNames?.[0]
                                                           ?? aiPart1
@@ -8024,8 +8026,8 @@ export default function BulkDocumentImportPage() {
                                                           ?? sibling.sortingDecisionSplitFinalNames?.[1]
                                                           ?? aiPart2
                                                           ?? '';
-                                                        const part1IsAi = !!aiPart1 && part1Value === aiPart1;
-                                                        const part2IsAi = !!aiPart2 && part2Value === aiPart2;
+                                                        const part1IsAi = splitIsRealAi && part1Value === aiPart1;
+                                                        const part2IsAi = splitIsRealAi && !!aiPart2 && part2Value === aiPart2;
                                                         return (
                                                           <>
                                                             <div className="flex flex-col gap-1">
@@ -8094,12 +8096,16 @@ export default function BulkDocumentImportPage() {
                                                     // Task #1401 — non-split rename input defaults to the lead
                                                     // item's AI-suggested filename when the admin hasn't typed
                                                     // anything and no `finalFileName` override is persisted yet.
+                                                    // Task #1454 — `branchSuggestedFinalFileName` is now always
+                                                    // non-null after branching (stem fallback when AI omitted a
+                                                    // suggestion). Only show the badge for real AI proposals.
                                                     const aiSuggested = leadItem.branchSuggestedFinalFileName ?? null;
+                                                    const isRealAiSuggestion = !!aiSuggested && !(leadItem as unknown as { branchSuggestedFinalFileNameIsFallback?: boolean }).branchSuggestedFinalFileNameIsFallback;
                                                     const renameValue = inlineRename.get(mergeLeadId)
                                                       ?? leadItem.finalFileName
                                                       ?? aiSuggested
                                                       ?? '';
-                                                    const isAi = !!aiSuggested && renameValue === aiSuggested;
+                                                    const isAi = isRealAiSuggestion && renameValue === aiSuggested;
                                                     return (
                                                       <div className="flex flex-col gap-1">
                                                         <label className="text-xs text-muted-foreground">

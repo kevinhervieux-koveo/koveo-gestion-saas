@@ -53,6 +53,31 @@ export function parsePeriodHint(
     return null;
   }
 
+  // 1b. Comma-separated ISO date range: "YYYY-MM-DD,YYYY-MM-DD" (Task #1454).
+  // The screening AI commonly emits fiscal-year ranges in this form
+  // (e.g. "2021-10-01,2022-09-30"). We resolve to the **start** date
+  // of the range for consistency with how fiscal-year ranges already
+  // pre-fill the picker. Both halves must be valid ISO dates and the
+  // start must be on or before the end; otherwise we return null.
+  const isoRange = /^(\d{4}-\d{2}-\d{2})\s*,\s*(\d{4}-\d{2}-\d{2})$/.exec(trimmed);
+  if (isoRange) {
+    const parseIso = (s: string): Date | null => {
+      const m2 = /^(\d{4})-(\d{2})-(\d{2})$/.exec(s);
+      if (!m2) return null;
+      const y = parseInt(m2[1], 10);
+      const mo = parseInt(m2[2], 10);
+      const d = parseInt(m2[3], 10);
+      if (mo < 1 || mo > 12 || d < 1 || d > 31) return null;
+      return new Date(Date.UTC(y, mo - 1, d));
+    };
+    const startDate = parseIso(isoRange[1]);
+    const endDate = parseIso(isoRange[2]);
+    if (startDate && endDate && startDate <= endDate) {
+      return startDate;
+    }
+    return null;
+  }
+
   // 2. ISO month: "2023-07"
   const isoMonth = /^(\d{4})-(\d{2})$/.exec(trimmed);
   if (isoMonth) {

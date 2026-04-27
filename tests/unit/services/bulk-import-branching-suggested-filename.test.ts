@@ -1,6 +1,6 @@
 /**
- * Unit tests for Task #1401 — AI-suggested filenames in the Branching
- * (a.k.a. Sorting) step of the Bulk Document Import wizard.
+ * Unit tests for Task #1401 / Task #1454 — AI-suggested filenames in the
+ * Branching (a.k.a. Sorting) step of the Bulk Document Import wizard.
  *
  * Coverage:
  *   - `suggestBranch` parses `suggestedFilename` from a well-formed
@@ -10,13 +10,15 @@
  *   - The sanitiser drops file extensions, path separators, control /
  *     NTFS-reserved characters, leading dots, and caps long values at
  *     210 chars.
- *   - Empty / missing / non-string suggestions become `null` so the UI
- *     falls back to the original-stem placeholder.
+ *   - When the AI omits or returns an unusable suggestion, the original
+ *     filename stem is used as a fallback (Task #1454). The fallback is
+ *     always non-null and `suggestedFinalFileNameIsFallback` is true.
+ *   - A real AI suggestion keeps `suggestedFinalFileNameIsFallback = false`
+ *     and still shows the "AI suggestion" badge.
  *   - A half-valid split pair (only one part sanitises cleanly) is
- *     dropped entirely so the "matches verbatim" hint can't be confused
- *     by a half-AI / half-original combination.
- *   - The fallback path (no API key) returns BOTH suggestion fields as
- *     `null` so fallback / api_error rows never default to an AI value.
+ *     dropped entirely so the fallback is the stem for both halves.
+ *   - The fallback path (no API key) also uses the stem fallback and
+ *     sets `suggestedFinalFileNameIsFallback: true`.
  */
 
 const cacheMockStore = new Map<string, unknown>();
@@ -143,7 +145,20 @@ describe('suggestBranch — suggestedFinalFileName parsing (Task #1401)', () => 
     expect(r.suggestedSplitFinalNames).toBeNull();
   });
 
-  it('returns null suggestedFinalFileName when the AI omits the field', async () => {
+  it('real AI suggestion sets isFallback=false (Task #1454)', async () => {
+    makeFakeClient({
+      branch: 'building_documents',
+      subCategory: 'financial_statement',
+      reason: 'budget report',
+      confidence: 0.88,
+      suggestedFilename: 'Budget annuel 2024',
+    });
+    const r = await bulkImportAnalyzer.suggestBranch({ originalName: 'budget.pdf' });
+    expect(r.suggestedFinalFileName).toBe('Budget annuel 2024');
+    expect(r.suggestedFinalFileNameIsFallback).toBe(false);
+  });
+
+  it('falls back to stem when the AI omits suggestedFilename (Task #1454)', async () => {
     makeFakeClient({
       branch: 'bill',
       subCategory: 'utility',
@@ -153,11 +168,12 @@ describe('suggestBranch — suggestedFinalFileName parsing (Task #1401)', () => 
 
     const r = await bulkImportAnalyzer.suggestBranch({ originalName: 'electricity.pdf' });
 
-    expect(r.suggestedFinalFileName).toBeNull();
-    expect(r.suggestedSplitFinalNames).toBeNull();
+    expect(r.suggestedFinalFileName).toBe('electricity');
+    expect(r.suggestedFinalFileNameIsFallback).toBe(true);
+    expect(r.suggestedSplitFinalNames).toEqual(['electricity', 'electricity']);
   });
 
-  it('returns null when the AI returns an empty / whitespace suggestion', async () => {
+  it('falls back to stem when the AI returns an empty / whitespace suggestion (Task #1454)', async () => {
     makeFakeClient({
       branch: 'other',
       subCategory: 'other',
@@ -168,10 +184,11 @@ describe('suggestBranch — suggestedFinalFileName parsing (Task #1401)', () => 
 
     const r = await bulkImportAnalyzer.suggestBranch({ originalName: 'mystery.pdf' });
 
-    expect(r.suggestedFinalFileName).toBeNull();
+    expect(r.suggestedFinalFileName).toBe('mystery');
+    expect(r.suggestedFinalFileNameIsFallback).toBe(true);
   });
 
-  it('returns null when the suggestion sanitises to an empty stem', async () => {
+  it('falls back to stem when the suggestion sanitises to an empty stem (Task #1454)', async () => {
     makeFakeClient({
       branch: 'other',
       subCategory: 'other',
@@ -182,7 +199,8 @@ describe('suggestBranch — suggestedFinalFileName parsing (Task #1401)', () => 
 
     const r = await bulkImportAnalyzer.suggestBranch({ originalName: 'mystery.pdf' });
 
-    expect(r.suggestedFinalFileName).toBeNull();
+    expect(r.suggestedFinalFileName).toBe('mystery');
+    expect(r.suggestedFinalFileNameIsFallback).toBe(true);
   });
 
   it('parses a clean split-filename pair into suggestedSplitFinalNames', async () => {
@@ -236,17 +254,27 @@ describe('suggestBranch — suggestedFinalFileName parsing (Task #1401)', () => 
   });
 });
 
-describe('suggestBranch — fallback path drops AI suggestions (Task #1401)', () => {
+describe('suggestBranch — fallback path uses stem fallback (Task #1401 / #1454)', () => {
   beforeAll(() => {
     delete process.env.ANTHROPIC_API_KEY;
     bulkImportAnalyzer.__setClientForTests(null);
   });
 
-  it('returns null suggestedFinalFileName / suggestedSplitFinalNames when the client is missing', async () => {
+  it('uses the original stem when the client is missing (Task #1454)', async () => {
     const r = await bulkImportAnalyzer.suggestBranch({ originalName: 'fallback.pdf' });
 
     expect(r.fallbackReason).toBe('no_api_key');
-    expect(r.suggestedFinalFileName).toBeNull();
-    expect(r.suggestedSplitFinalNames).toBeNull();
+    // Task #1454: stem fallback is persisted so the rename input is never empty.
+    expect(r.suggestedFinalFileName).toBe('fallback');
+    expect(r.suggestedFinalFileNameIsFallback).toBe(true);
+    // Split slots also carry the stem so split rows are pre-filled.
+    expect(r.suggestedSplitFinalNames).toEqual(['fallback', 'fallback']);
+  });
+
+  it('uses the stem without extension for files with multi-part names (Task #1454)', async () => {
+    const r = await bulkImportAnalyzer.suggestBranch({ originalName: 'rapport.annuel.2023.pdf' });
+
+    expect(r.suggestedFinalFileName).toBe('rapport.annuel.2023');
+    expect(r.suggestedFinalFileNameIsFallback).toBe(true);
   });
 });

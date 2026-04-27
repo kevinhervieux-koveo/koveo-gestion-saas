@@ -3048,6 +3048,8 @@ export function registerBulkImportRoutes(app: Express): void {
           // placeholder".
           suggestedFinalFileName: null,
           suggestedSplitFinalNames: null,
+          // Task #1454 — not a fallback value (no data at all for this row).
+          suggestedFinalFileNameIsFallback: false,
         };
         const validBranches: BranchDestination[] = [
           'building_documents', 'residence_documents', 'demand', 'bill', 'maintenance', 'other',
@@ -3101,6 +3103,10 @@ export function registerBulkImportRoutes(app: Express): void {
         ) {
           suggestedSplitFinalNames = [rawSuggestedSplit[0], rawSuggestedSplit[1]];
         }
+        // Task #1454 — surface the fallback flag so the UI can suppress
+        // the "AI suggestion" badge when the value is just the original stem.
+        const suggestedFinalFileNameIsFallback =
+          (json.suggestedFinalFileNameIsFallback as boolean | null | undefined) === true;
         return {
           ...base,
           branch,
@@ -3117,6 +3123,7 @@ export function registerBulkImportRoutes(app: Express): void {
           residenceAiConfirmed,
           suggestedFinalFileName,
           suggestedSplitFinalNames,
+          suggestedFinalFileNameIsFallback,
         };
       }
 
@@ -3222,8 +3229,11 @@ export function registerBulkImportRoutes(app: Express): void {
               // the rename input in the Sorting (a.k.a. Branching) step can
               // default to them and render an "AI suggestion" hint when
               // unchanged.
+              // Task #1454 — also surface the fallback flag so the UI can
+              // suppress the "AI suggestion" badge for stem-only values.
               branchSuggestedFinalFileName: br.suggestedFinalFileName,
               branchSuggestedSplitFinalNames: br.suggestedSplitFinalNames,
+              branchSuggestedFinalFileNameIsFallback: br.suggestedFinalFileNameIsFallback ?? false,
               identificationConfidence: id.confidence,
               identificationFallback: id.fallbackReason,
               identificationRetryCount: id.retryCount,
