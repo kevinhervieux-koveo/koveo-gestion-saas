@@ -382,6 +382,13 @@ export const userTimeLimits = pgTable('user_time_limits', {
 }));
 
 // Insert schemas
+//
+// Numeric guards (Task #1342): the same `.min(1)` / `.min(0)` / `.positive()`
+// constraints that `server/mcp/server.ts` enforces on `create_building` /
+// `update_building` / `create_residence` / `update_residence` MUST be mirrored
+// here so that REST API and form callers reject impossible values (negative
+// unit counts, zero square footage, etc.) before the row reaches the
+// database.
 export const insertBuildingSchema = z.object({
   organizationId: z.string().uuid(),
   name: z.string().min(1),
@@ -391,10 +398,10 @@ export const insertBuildingSchema = z.object({
   postalCode: z.string(),
   buildingType: z.string(),
   yearBuilt: z.number().int().optional(),
-  totalUnits: z.number().int().optional(),
-  totalFloors: z.number().int().optional(),
-  parkingSpaces: z.number().int().optional(),
-  storageSpaces: z.number().int().optional(),
+  totalUnits: z.number().int().min(1, 'Total units must be at least 1').optional(),
+  totalFloors: z.number().int().min(1, 'Total floors must be at least 1').optional(),
+  parkingSpaces: z.number().int().min(0, 'Parking spaces must not be negative').optional(),
+  storageSpaces: z.number().int().min(0, 'Storage spaces must not be negative').optional(),
   amenities: z.array(z.string()).optional(),
   managementCompany: z.string().optional(),
   bankAccountNumber: z.string().optional(),
@@ -409,14 +416,14 @@ export const insertResidenceSchema = z.object({
   buildingId: z.string().uuid(),
   unitNumber: z.string(),
   floor: z.number().int().optional(),
-  squareFootage: z.number().optional(),
-  bedrooms: z.number().int().optional(),
-  bathrooms: z.number().optional(),
+  squareFootage: z.number().positive('Square footage must be positive').optional(),
+  bedrooms: z.number().int().min(0, 'Bedrooms must not be negative').optional(),
+  bathrooms: z.number().min(0, 'Bathrooms must not be negative').optional(),
   balcony: z.boolean().optional(),
   parkingSpaceNumbers: z.array(z.string()).optional(),
   storageSpaceNumbers: z.array(z.string()).optional(),
-  ownershipPercentage: z.number().optional(),
-  monthlyFees: z.number().optional(),
+  ownershipPercentage: z.number().min(0).max(100).optional(),
+  monthlyFees: z.number().min(0, 'Monthly fees must not be negative').optional(),
 });
 
 export const insertUserResidenceSchema = z.object({
