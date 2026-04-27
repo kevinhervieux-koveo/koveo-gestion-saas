@@ -639,9 +639,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
   };
 
   const formatCurrency = (amount?: string | number) => {
-    if (!amount) return 'Not specified';
+    if (!amount) return t('wfCompleteNotSpecified');
     const numericAmount = typeof amount === 'string' ? parseFloat(amount) : amount;
-    if (isNaN(numericAmount)) return 'Not specified';
+    if (isNaN(numericAmount)) return t('wfCompleteNotSpecified');
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
@@ -649,9 +649,9 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
   };
 
   const formatPaymentSchedule = (schedule?: string) => {
-    if (!schedule) return 'Not specified';
-    const formatted = formatStatus(schedule, 'Not specified');
-    return safeCapitalize(formatted, 'Not specified');
+    if (!schedule) return t('wfCompleteNotSpecified');
+    const formatted = formatStatus(schedule, t('wfCompleteNotSpecified'));
+    return safeCapitalize(formatted, t('wfCompleteNotSpecified'));
   };
 
   const handleSubmissionSubmit = (data: NewSubmissionForm) => {

@@ -228,9 +228,9 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
   // Helper function to format intervention type for display
   const formatInterventionType = (type: InterventionType): string => {
     switch (type) {
-      case 'minor_rehab': return 'Minor Rehab';
-      case 'major_rehab': return 'Major Rehab';
-      case 'nothing': return 'No Work';
+      case 'minor_rehab': return t('postWorkInterventionMinorRehab');
+      case 'major_rehab': return t('postWorkInterventionMajorRehab');
+      case 'nothing': return t('postWorkInterventionNoWork');
       default: return type.charAt(0).toUpperCase() + type.slice(1);
     }
   };

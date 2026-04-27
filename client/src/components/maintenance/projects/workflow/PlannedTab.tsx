@@ -125,7 +125,7 @@ export function PlannedTab({ project, workflowState, onUpdate, onAdvanceToNext }
       planningDescription: project.planningDescription || '',
       planningStartDate: project.planningStartDate ? (parseDateOnly(project.planningStartDate) ?? undefined) : undefined,
       estimatedCost: project.estimatedCost ? parseFloat(project.estimatedCost) : undefined,
-      financialYear: project.financialYear || new Date().getFullYear(),
+      financialYear: project.financialYear ? Number(project.financialYear) : new Date().getFullYear(),
       selectedElements: currentElementIds,
     },
   });

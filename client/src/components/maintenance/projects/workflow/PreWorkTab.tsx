@@ -662,7 +662,7 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
                               <span className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
                                 {notification.timingType === 'custom' 
                                   ? t('preWorkCustomDaysBeforeTemplate').replace('{days}', String(notification.customDaysBefore))
-                                  : formatStatus(notification.timingType, 'Not specified').replace('_', ' ')
+                                  : formatStatus(notification.timingType, t('postWorkNotSpecified')).replace('_', ' ')
                                 }
                               </span>
                               {notification.isSent ? (

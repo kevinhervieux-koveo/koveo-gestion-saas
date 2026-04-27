@@ -51,7 +51,7 @@ export function ProjectWorkflowModal(props: any) {
 
 export function WorkflowTabNavigation(props: any) {
   return (
-    <Suspense fallback={<div className="h-16 flex items-center justify-center">Loading...</div>}>
+    <Suspense fallback={<div className="h-16 flex items-center justify-center"><LoadingSpinner /></div>}>
       <LazyWorkflowTabNavigation {...props} />
     </Suspense>
   );
@@ -60,7 +60,7 @@ export function WorkflowTabNavigation(props: any) {
 
 export function PlannedTab(props: any) {
   return (
-    <Suspense fallback={<div className="p-4">Loading planned tab...</div>}>
+    <Suspense fallback={<div className="p-4 flex justify-center"><LoadingSpinner /></div>}>
       <LazyPlannedTab {...props} />
     </Suspense>
   );
@@ -68,7 +68,7 @@ export function PlannedTab(props: any) {
 
 export function SubmissionTab(props: any) {
   return (
-    <Suspense fallback={<div className="p-4">Loading submission tab...</div>}>
+    <Suspense fallback={<div className="p-4 flex justify-center"><LoadingSpinner /></div>}>
       <LazySubmissionTab {...props} />
     </Suspense>
   );
@@ -76,7 +76,7 @@ export function SubmissionTab(props: any) {
 
 export function PreWorkTab(props: any) {
   return (
-    <Suspense fallback={<div className="p-4">Loading pre-work tab...</div>}>
+    <Suspense fallback={<div className="p-4 flex justify-center"><LoadingSpinner /></div>}>
       <LazyPreWorkTab {...props} />
     </Suspense>
   );
@@ -84,7 +84,7 @@ export function PreWorkTab(props: any) {
 
 export function InProgressTab(props: any) {
   return (
-    <Suspense fallback={<div className="p-4">Loading in-progress tab...</div>}>
+    <Suspense fallback={<div className="p-4 flex justify-center"><LoadingSpinner /></div>}>
       <LazyInProgressTab {...props} />
     </Suspense>
   );
@@ -92,7 +92,7 @@ export function InProgressTab(props: any) {
 
 export function PostWorkTab(props: any) {
   return (
-    <Suspense fallback={<div className="p-4">Loading post-work tab...</div>}>
+    <Suspense fallback={<div className="p-4 flex justify-center"><LoadingSpinner /></div>}>
       <LazyPostWorkTab {...props} />
     </Suspense>
   );
@@ -100,7 +100,7 @@ export function PostWorkTab(props: any) {
 
 export function CompleteTab(props: any) {
   return (
-    <Suspense fallback={<div className="p-4">Loading complete tab...</div>}>
+    <Suspense fallback={<div className="p-4 flex justify-center"><LoadingSpinner /></div>}>
       <LazyCompleteTab {...props} />
     </Suspense>
   );

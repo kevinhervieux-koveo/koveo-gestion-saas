@@ -1,5 +1,4 @@
-// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
-import { useState } from 'react';
+import { type ComponentType, useState } from 'react';
 import { useMutation } from '@tanstack/react-query';
 import { format } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -24,7 +23,7 @@ import {
 } from '@/components/ui/tooltip';
 import { Progress } from '@/components/ui/progress';
 import { Separator } from '@/components/ui/separator';
-// import { useBuildingContext } from '@/hooks/use-building-context';
+import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -64,7 +63,7 @@ interface StatusConfig {
   key: string;
   labelKey: keyof Translations;
   descriptionKey: keyof Translations;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: ComponentType<{ className?: string }>;
   color: string;
   bgColor: string;
   allowedTransitions: string[];
@@ -109,10 +108,10 @@ const statusConfigs: Record<string, StatusConfig> = {
     icon: Pause,
     color: 'text-yellow-600',
     bgColor: 'bg-yellow-50 border-yellow-200',
-    allowedTransitions: ['submission', 'work'],
+    allowedTransitions: ['submission', 'in_progress'],
   },
-  work: {
-    key: 'work',
+  in_progress: {
+    key: 'in_progress',
     labelKey: 'projectStatusInProgressStage',
     descriptionKey: 'projectStatusInProgressDesc',
     icon: Wrench,
@@ -128,7 +127,7 @@ const statusConfigs: Record<string, StatusConfig> = {
     icon: CheckSquare,
     color: 'text-indigo-600',
     bgColor: 'bg-indigo-50 border-indigo-200',
-    allowedTransitions: ['work', 'completed'],
+    allowedTransitions: ['in_progress', 'completed'],
   },
   completed: {
     key: 'completed',
@@ -143,7 +142,7 @@ const statusConfigs: Record<string, StatusConfig> = {
 };
 
 // Define the standard workflow order
-const workflowOrder = ['planned', 'evaluation', 'submission', 'pre_work', 'work', 'post_work', 'completed'];
+const workflowOrder = ['planned', 'evaluation', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed'];
 
 /**
  * StatusStepper component for visualizing and managing project workflow status
@@ -159,9 +158,7 @@ export function StatusStepper({
   onStatusChange,
   interactive = true,
 }: StatusStepperProps) {
-  // Simplified placeholder - no context for now
-  const hasPermission = () => true;
-  const buildingId = 'placeholder-building-id';
+  const { hasPermission, buildingId } = useBuildingContext();
   const { toast } = useToast();
   const { t } = useLanguage();
   const [pendingStatus, setPendingStatus] = useState<string | null>(null);
@@ -252,7 +249,7 @@ export function StatusStepper({
     // In a real implementation, this would come from project steps or history
     // For now, we'll use the project dates or creation time
     if (stepStatus === 'planned') return project.createdAt;
-    if (stepStatus === 'work' && project.actualStartDate) return project.actualStartDate;
+    if (stepStatus === 'in_progress' && project.actualStartDate) return project.actualStartDate;
     if (stepStatus === 'completed' && project.actualEndDate) return project.actualEndDate;
     return null;
   };
@@ -406,9 +403,10 @@ export function StatusStepper({
               "p-2 rounded-lg",
               statusConfigs[project.status]?.bgColor
             )}>
-              {React.createElement(statusConfigs[project.status]?.icon, {
-                className: cn("h-5 w-5", statusConfigs[project.status]?.color)
-              })}
+              {(() => {
+                const IconComp = statusConfigs[project.status]?.icon;
+                return IconComp ? <IconComp className={cn("h-5 w-5", statusConfigs[project.status]?.color)} /> : null;
+              })()}
             </div>
             
             <div className="flex-1 space-y-1">
