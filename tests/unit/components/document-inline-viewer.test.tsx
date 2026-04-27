@@ -677,6 +677,97 @@ describe('DocumentInlineViewer keyboard navigation', () => {
     expect(onNavigate).not.toHaveBeenCalled();
   });
 
+  it('ArrowUp while the first family is active leaves the first family active', () => {
+    const { onNavigate } = renderWithFamilies();
+    expect(screen.getByTestId('family-nav-row-fam-1')).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowUp' });
+
+    expect(screen.getByTestId('family-nav-row-fam-1')).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+    expect(screen.getByTestId('family-nav-row-fam-2')).toHaveAttribute(
+      'aria-selected',
+      'false'
+    );
+    expect(onNavigate).not.toHaveBeenCalled();
+
+    // After clamping, ArrowRight should still navigate within the first family.
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' });
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+    expect(onNavigate).toHaveBeenCalledWith('next-1');
+  });
+
+  it('ArrowDown while the last family is active leaves the last family active', () => {
+    const { onNavigate } = renderWithFamilies();
+    // Move to the last (second) family first.
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowDown' });
+    expect(screen.getByTestId('family-nav-row-fam-2')).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+
+    // ArrowDown again must clamp at the last family, not crash the row lookup.
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowDown' });
+
+    expect(screen.getByTestId('family-nav-row-fam-2')).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+    expect(screen.getByTestId('family-nav-row-fam-1')).toHaveAttribute(
+      'aria-selected',
+      'false'
+    );
+    expect(onNavigate).not.toHaveBeenCalled();
+
+    // After clamping, ArrowRight should still navigate within the last family.
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' });
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+    expect(onNavigate).toHaveBeenCalledWith('next-2');
+  });
+
+  it('ArrowLeft/Right do nothing when the active family has no previous/next neighbor', () => {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    client.setQueryData(['/api/documents', 'doc-key', 'neighbors'], {
+      currentId: 'doc-key',
+      families: [
+        {
+          familyId: 'fam-only',
+          familyName: 'Only Family',
+          familyDescription: null,
+          previous: null,
+          previousIsChainEnd: true,
+          next: null,
+          nextIsChainEnd: true,
+        },
+      ],
+    });
+    const onNavigate = jest.fn();
+    render(
+      <QueryClientProvider client={client}>
+        <DocumentInlineViewer
+          isOpen
+          onClose={jest.fn()}
+          fileUrl="/api/documents/doc-key/file"
+          fileName="photo.png"
+          documentId="doc-key"
+          onNavigate={onNavigate}
+        />
+      </QueryClientProvider>
+    );
+
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowLeft' });
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' });
+
+    expect(onNavigate).not.toHaveBeenCalled();
+  });
+
   it('does nothing when the keydown originates from an input element', () => {
     const { onNavigate } = renderWithFamilies();
 
