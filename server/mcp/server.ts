@@ -85,6 +85,7 @@ import { db } from "../db";
 import * as schema from "@shared/schema";
 import { registerBudgetTools } from "./budget-tools";
 import { registerBulkImportTools } from "./bulk-import-tools";
+import { registerDocumentTagMcpTools } from "./document-tag-mcp-tools";
 import * as commonSpaceRules from "../api/common-spaces-rules";
 import { adjustResidenceCount } from "../api/buildings/operations";
 import { eq, and, inArray, desc, asc, isNull, or, sql, count, gte, lte, type SQL } from "drizzle-orm";
@@ -7706,149 +7707,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   registerBudgetTools(server, { roleParam, getMcpUser, getMcpOrgIds });
   registerBulkImportTools(server, { roleParam, getMcpUser, getMcpOrgIds });
-
-  // ===========================================================================
-  // Document Tags
-  // ===========================================================================
-  server.tool(
-    "list_document_tags",
-    "List document tags available to the caller (system Koveo tags + tags from caller's organizations)",
-    { role: roleParam },
-    async () => {
-      const orgIds = await getOrgIds();
-      const rows = await db
-        .select()
-        .from(schema.documentTags)
-        .where(
-          or(
-            eq(schema.documentTags.isSystem, true),
-            orgIds.length > 0 ? inArray(schema.documentTags.organizationId, orgIds) : sql`false`,
-          ),
-        );
-      return { content: [{ type: "text" as const, text: JSON.stringify(rows, null, 2) }] };
-    },
-  );
-
-  server.tool(
-    "create_document_tag",
-    "Create a custom document tag for an organization (manager/admin)",
-    {
-      role: roleParam,
-      organizationId: z.string().describe("Organization ID owning the tag"),
-      name: z.string().min(1).describe("Tag name"),
-      description: z.string().optional().describe("Description"),
-      scope: z.enum(["building", "residence", "any"]).default("any"),
-      importance: z.enum(["obligatoire", "nice_to_have", "extra"]).default("nice_to_have"),
-      suggestedProfessionals: z.array(z.string()).default([]),
-    },
-    async ({ role, organizationId, name, description, scope, importance, suggestedProfessionals }) => {
-      if (role === "tenant") {
-        return { content: [{ type: "text" as const, text: "Access denied" }] };
-      }
-      const orgIds = await getOrgIds();
-      if (!orgIds.includes(organizationId)) {
-        return { content: [{ type: "text" as const, text: "Organization not in MCP scope" }] };
-      }
-      const [created] = await db
-        .insert(schema.documentTags)
-        .values({
-          organizationId,
-          name,
-          description: description ?? null,
-          scope,
-          importance,
-          suggestedProfessionals,
-          isSystem: false,
-          source: organizationId,
-        })
-        .returning();
-      return { content: [{ type: "text" as const, text: JSON.stringify(created, null, 2) }] };
-    },
-  );
-
-  server.tool(
-    "update_document_tag",
-    "Update a custom document tag (cannot modify system tags)",
-    {
-      role: roleParam,
-      tagId: z.string(),
-      name: z.string().optional(),
-      description: z.string().optional(),
-      scope: z.enum(["building", "residence", "any"]).optional(),
-      importance: z.enum(["obligatoire", "nice_to_have", "extra"]).optional(),
-      suggestedProfessionals: z.array(z.string()).optional(),
-    },
-    async ({ role, tagId, ...updates }) => {
-      if (role === "tenant") {
-        return { content: [{ type: "text" as const, text: "Access denied" }] };
-      }
-      const [tag] = await db.select().from(schema.documentTags).where(eq(schema.documentTags.id, tagId));
-      if (!tag) return { content: [{ type: "text" as const, text: "Tag not found" }] };
-      if (tag.isSystem) return { content: [{ type: "text" as const, text: "System tags cannot be modified" }] };
-      const orgIds = await getOrgIds();
-      if (!tag.organizationId || !orgIds.includes(tag.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Tag not in MCP scope" }] };
-      }
-      const set: Record<string, unknown> = { updatedAt: new Date() };
-      for (const [k, v] of Object.entries(updates)) if (v !== undefined) set[k] = v;
-      const [updated] = await db.update(schema.documentTags).set(set).where(eq(schema.documentTags.id, tagId)).returning();
-      return { content: [{ type: "text" as const, text: JSON.stringify(updated, null, 2) }] };
-    },
-  );
-
-  server.tool(
-    "delete_document_tag",
-    "Delete a custom document tag (cannot delete system tags)",
-    { role: roleParam, tagId: z.string() },
-    async ({ role, tagId }) => {
-      if (role === "tenant") {
-        return { content: [{ type: "text" as const, text: "Access denied" }] };
-      }
-      const [tag] = await db.select().from(schema.documentTags).where(eq(schema.documentTags.id, tagId));
-      if (!tag) return { content: [{ type: "text" as const, text: "Tag not found" }] };
-      if (tag.isSystem) return { content: [{ type: "text" as const, text: "System tags cannot be deleted" }] };
-      const orgIds = await getOrgIds();
-      if (!tag.organizationId || !orgIds.includes(tag.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Tag not in MCP scope" }] };
-      }
-      await db.delete(schema.documentTags).where(eq(schema.documentTags.id, tagId));
-      return { content: [{ type: "text" as const, text: "Deleted" }] };
-    },
-  );
-
-  server.tool(
-    "assign_document_tag",
-    "Assign a tag to a document",
-    { role: roleParam, documentId: z.string(), tagId: z.string() },
-    async ({ documentId, tagId }) => {
-      try {
-        const [created] = await db
-          .insert(schema.documentTagAssignments)
-          .values({ documentId, tagId })
-          .returning();
-        return { content: [{ type: "text" as const, text: JSON.stringify(created, null, 2) }] };
-      } catch {
-        return { content: [{ type: "text" as const, text: "Already assigned" }] };
-      }
-    },
-  );
-
-  server.tool(
-    "unassign_document_tag",
-    "Remove a tag from a document",
-    { role: roleParam, documentId: z.string(), tagId: z.string() },
-    async ({ documentId, tagId }) => {
-      await db
-        .delete(schema.documentTagAssignments)
-        .where(
-          and(
-            eq(schema.documentTagAssignments.documentId, documentId),
-            eq(schema.documentTagAssignments.tagId, tagId),
-          ),
-        );
-      return { content: [{ type: "text" as const, text: "Unassigned" }] };
-    },
-  );
+  registerDocumentTagMcpTools(server, { roleParam, getMcpOrgIds });
 
   // ===========================================================================
   // Document Links — sequence chaining with AI suggestions (Task #397)
