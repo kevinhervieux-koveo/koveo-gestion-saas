@@ -1852,8 +1852,14 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // Task #257 — shared MCP error classifier (see rest-db-error.ts).
       // Delete-action variant emits FK_VIOLATION envelopes with a
       // `blocking_entity` hint when child rows still reference the bill.
+      // Task #1341 — when the failure is an FK violation, query the
+      // actual blocking rows so the frontend can render a list of
+      // records that must be removed first.
+      const { queryDeleteBlockers } = await import('../mcp/server');
+      const blockers = await queryDeleteBlockers(_error, 'bills', req.params.id);
       return sendDbWriteError(res, _error, 'bill', 'delete', {
         logPrefix: '[BILLS API] delete failed',
+        blockers,
       });
     }
   });

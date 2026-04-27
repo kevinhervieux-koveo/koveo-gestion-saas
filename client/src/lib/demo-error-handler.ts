@@ -1,4 +1,5 @@
 import { toast } from '@/hooks/use-toast';
+import { extractFkViolation, formatFkViolationDescription } from './fk-violation';
 
 /**
  * Interface for demo restriction error responses from the backend
@@ -70,6 +71,25 @@ export function handleApiError(
 ): void {
   // First, try to handle as demo restriction error
   if (handleDemoRestrictionError(error, language)) {
+    return;
+  }
+
+  // Task #1341 — FK-violation envelopes get the structured blocker list
+  // surfaced in the toast so admins can see exactly which child rows are
+  // preventing the delete instead of a generic "cannot delete" message.
+  const fk = extractFkViolation(error);
+  if (fk) {
+    const fallback =
+      language === 'fr'
+        ? "D'autres enregistrements référencent encore cet élément. Supprimez-les d'abord."
+        : 'Other records still reference this item. Remove them first.';
+    toast({
+      title:
+        language === 'fr' ? 'Suppression impossible' : 'Cannot delete',
+      description: formatFkViolationDescription(fk, { emptyFallback: fallback }),
+      variant: 'destructive',
+      duration: 8000,
+    });
     return;
   }
 

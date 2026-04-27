@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { extractFkViolation, formatFkViolationDescription } from '@/lib/fk-violation';
 import { MaintenanceProject, SubmissionVendor } from '@shared/schemas/maintenance';
 
 // Types for workflow management
@@ -964,6 +965,20 @@ export function useDeleteProject() {
     },
     onError: (error: Error) => {
       console.error('Failed to delete project:', error);
+      // Task #1341 — render the structured FK blocker list when the server
+      // refuses the delete because child rows still reference the project.
+      const fk = extractFkViolation(error);
+      if (fk) {
+        toast({
+          title: 'Cannot delete project',
+          description: formatFkViolationDescription(fk, {
+            emptyFallback: 'Other records still reference this project. Remove them first.',
+          }),
+          variant: 'destructive',
+          duration: 8000,
+        });
+        return;
+      }
       toast({
         title: 'Delete Failed',
         description: error.message || 'Failed to delete project',

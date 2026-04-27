@@ -5,6 +5,8 @@ import { requireAuth, requireRole } from '../auth';
 import { z } from 'zod';
 import * as schema from '@shared/schema';
 import { resolveOrgScope, assertBuildingWriteAccess } from '../utils/org-scope';
+import { sendDbWriteError } from '../utils/rest-db-error';
+import { queryDeleteBlockers } from '../mcp/server';
 import {
   getUserBookingHours,
   checkUserTimeLimit,
@@ -1418,9 +1420,20 @@ export function registerCommonSpacesRoutes(app: Express): void {
         });
       } catch (error: any) {
         console.error('❌ Error deleting common space:', error);
-        res.status(500).json({
-          message: 'Failed to delete common space',
-          error: 'internal_error',
+        // Task #1341 — surface FK violations as a structured envelope so the
+        // delete dialog can show admins the actual blocking rows (bookings,
+        // restrictions, time limits) instead of a generic 500 toast. Read
+        // the id from req.params so we still have it after the try-block
+        // destructuring went out of scope.
+        const rawSpaceId = typeof (req.params as { spaceId?: unknown }).spaceId === 'string'
+          ? (req.params as { spaceId: string }).spaceId
+          : '';
+        const blockers = rawSpaceId
+          ? await queryDeleteBlockers(error, 'common_spaces', rawSpaceId)
+          : null;
+        return sendDbWriteError(res, error, 'common space', 'delete', {
+          logPrefix: '[COMMON SPACES API] delete failed',
+          blockers,
         });
       }
     }

@@ -75,6 +75,11 @@ jest.mock('drizzle-orm', () => ({
     jest.fn((s: any) => ({ sql: String(s) })),
     { join: (parts: any[]) => ({ sql: 'join', parts }) },
   ),
+  // Task #1341 — common-spaces.ts now transitively loads `server/mcp/server.ts`
+  // via the new `queryDeleteBlockers` / `sendDbWriteError` imports, which in
+  // turn loads `shared/schemas/maintenance.ts` whose top-level `relations(...)`
+  // call would otherwise crash this mock with `relations is not a function`.
+  relations: jest.fn(() => ({})),
 }));
 
 type Row = { buildingId?: string; organizationId?: string; canAccessAllOrganizations?: boolean };

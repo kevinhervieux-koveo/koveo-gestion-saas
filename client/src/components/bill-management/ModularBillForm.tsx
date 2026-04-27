@@ -31,6 +31,7 @@ import { FileText, Sparkles, Plus, X, Calendar, Trash2 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
+import { fkViolationToastDescription } from '@/lib/fk-violation';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { cn, parseDateOnly, parseDateOnlyLoose } from '@/lib/utils';
 import { SharedUploader } from '@/components/document-management';
@@ -1142,7 +1143,13 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
     },
     successTitle: 'Success',
     successMessage: 'Bill deleted successfully',
-    errorMessage: (error) => error?.message || 'Failed to delete bill',
+    errorTitle: (error) =>
+      fkViolationToastDescription(error) ? 'Cannot delete bill' : 'Error',
+    // Task #1341 — when the server rejects the delete with an FK envelope,
+    // surface the structured blocker list (payments, scheduled payments)
+    // instead of the raw error message.
+    errorMessage: (error) =>
+      fkViolationToastDescription(error) || error?.message || 'Failed to delete bill',
     invalidateQueries: (_data, qc) => {
       // Invalidate all bill-related queries to ensure proper refresh
       qc.invalidateQueries({ queryKey: ['/api/bills'] });

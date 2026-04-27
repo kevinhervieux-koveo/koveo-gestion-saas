@@ -51,6 +51,8 @@ import {
   type InsertElementProjectUpdate,
 } from '@shared/schemas/maintenance';
 import { buildings, organizations, userOrganizations, userBuildings, residences, users } from '@shared/schema';
+import { sendDbWriteError } from '../utils/rest-db-error';
+import { queryDeleteBlockers } from '../mcp/server';
 import { isFinancialYearCoveredForBuilding, buildFyValidationError } from './project-fy-validator';
 import { documents } from '@shared/schemas/documents';
 import { workflowService } from '../services/workflow-service';
@@ -3563,21 +3565,13 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
       });
     } catch (error: any) {
       console.error('Error deleting maintenance project:', error);
-      // Surface FK constraint violations with a clear user-facing message so the
-      // frontend toast can display something meaningful instead of a generic 500.
-      const isConstraintError =
-        error?.code === '23503' ||
-        error?.message?.includes('foreign key') ||
-        error?.message?.includes('violates');
-      if (isConstraintError) {
-        return res.status(409).json({
-          error: 'Cannot delete project',
-          message: 'This project has dependent data that could not be removed automatically. Please contact support.',
-        });
-      }
-      res.status(500).json({
-        error: 'Internal server error',
-        message: 'Failed to delete maintenance project',
+      // Task #1341 — surface FK constraint violations as the shared
+      // structured envelope so the frontend can render the actual blocking
+      // rows (project_steps, project_elements) instead of a generic toast.
+      const blockers = await queryDeleteBlockers(error, 'maintenance_projects', req.params.id);
+      return sendDbWriteError(res, error, 'project', 'delete', {
+        logPrefix: '[MAINTENANCE API] project delete failed',
+        blockers,
       });
     }
   });

@@ -26,11 +26,28 @@ import { logError } from './logger';
 
 type WriteAction = 'create' | 'update' | 'delete';
 
+/**
+ * Structured blocker entry surfaced on FK-violation delete envelopes so
+ * frontends can render an explicit "these N records must be removed first"
+ * list instead of a generic toast. Populated by `queryDeleteBlockers` in
+ * `server/mcp/server.ts` (Task #1341).
+ */
+export interface FkBlocker {
+  id: string;
+  label?: string;
+}
+
 interface SendDbWriteErrorOptions {
   /** Optional log prefix; the full error is always logged before sanitization. */
   logPrefix?: string;
   /** Extra fields merged into the response body (e.g. legacy `error_id`). */
   extraFields?: Record<string, unknown>;
+  /**
+   * Optional structured FK blockers to merge into the response envelope when
+   * the underlying error is a delete-FK violation. Ignored for any other error
+   * shape so non-FK errors keep their existing payload contract.
+   */
+  blockers?: FkBlocker[] | null;
 }
 
 interface ParsedEnvelope {
@@ -41,6 +58,7 @@ interface ParsedEnvelope {
   pgCode?: string;
   blocking_entity?: string;
   referenced_entity?: string;
+  blockers?: FkBlocker[];
 }
 
 /**
@@ -92,7 +110,8 @@ export function sendDbWriteError(
     err instanceof Error ? err : new Error(String(err)),
   );
 
-  const envelope = buildWriteErrorResponse(err, entityLabel, action);
+  const blockers = options.blockers && options.blockers.length > 0 ? options.blockers : null;
+  const envelope = buildWriteErrorResponse(err, entityLabel, action, blockers);
   const text = envelope.content[0]?.text ?? '';
 
   let parsed: ParsedEnvelope | null = null;
@@ -127,7 +146,14 @@ export function sendDbWriteError(
     res.setHeader('Retry-After', '1');
   }
 
+  // Task #1341 — surface a top-level `error: 'fk_violation'` discriminator
+  // alongside the existing `status`/`code` envelope so frontend delete
+  // dialogs can branch on a single, stable shape (matches the contract
+  // documented in the task description).
+  const errorDiscriminator = parsed.code === 'FK_VIOLATION' ? 'fk_violation' : undefined;
+
   return res.status(status).json({
+    ...(errorDiscriminator ? { error: errorDiscriminator } : {}),
     ...parsed,
     ...(options.extraFields ?? {}),
   });
