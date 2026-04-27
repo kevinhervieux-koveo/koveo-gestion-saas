@@ -74,6 +74,7 @@ import {
   Link2Off,
   Library,
   FolderOpen,
+  Info,
 } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
 import { StandaloneDatePicker } from '@/components/common/DatePickerField';
@@ -642,6 +643,13 @@ interface RunAllProgress {
   finishedAt: string | null;
   /** Items currently being analyzed (Task #898). Populated by the worker pool. */
   inFlight?: Array<{ itemId: string; originalName: string }>;
+  /** Task #1534 — Linking-step candidate summary (only set on the linking progress entry). */
+  candidateSummary?: {
+    familyCount: number;
+    anchorDocCount: number;
+    openChainCount: number;
+    maxInScopeCount: number;
+  };
 }
 
 function readRunAllProgress(
@@ -651,6 +659,28 @@ function readRunAllProgress(
   const progress = session?.progress as Record<string, unknown> | null | undefined;
   const runAll = progress?.runAll as Record<string, RunAllProgress> | undefined;
   return runAll?.[step] ?? null;
+}
+
+/**
+ * Task #1534 — Determine which of the five "why no links" variants to show
+ * on the linking-step empty-result banner, in priority order:
+ *   no-families → no-anchor-docs → no-open-chains → all-out-of-scope → low-confidence
+ */
+type LinkingEmptyReason =
+  | 'no-families'
+  | 'no-anchor-docs'
+  | 'no-open-chains'
+  | 'all-out-of-scope'
+  | 'low-confidence';
+
+function getLinkingEmptyReason(
+  candidateSummary: RunAllProgress['candidateSummary'] | undefined,
+): LinkingEmptyReason {
+  if (!candidateSummary || candidateSummary.familyCount === 0) return 'no-families';
+  if (candidateSummary.anchorDocCount === 0) return 'no-anchor-docs';
+  if (candidateSummary.openChainCount === 0) return 'no-open-chains';
+  if (candidateSummary.maxInScopeCount === 0) return 'all-out-of-scope';
+  return 'low-confidence';
 }
 
 // NOTE: The internal step keys `sorting` and `branching` are deliberately
@@ -4127,6 +4157,14 @@ export default function BulkDocumentImportPage() {
    */
   const [linkingStaleDataDismissed, setLinkingStaleDataDismissed] = useState(false);
 
+  /**
+   * Task #1534 — When the linking run-all finishes with zero linked items,
+   * a banner explains why.  Dismissible for the rest of the session view;
+   * state lives in component state (not persisted) so a fresh run-all
+   * after a reset shows the banner again.
+   */
+  const [linkingEmptyResultDismissed, setLinkingEmptyResultDismissed] = useState(false);
+
   /** ID of the item currently being dragged (linking step only). */
   const [linkingDragId, setLinkingDragId] = useState<string | null>(null);
 
@@ -6581,6 +6619,73 @@ export default function BulkDocumentImportPage() {
                           </button>
                         </div>
                       )}
+
+                      {/* Task #1534 — Empty-result banner: shown when the linking run-all
+                          finished but zero items ended up with a linkingFamilyId. Explains
+                          which gate filtered all candidates out, with raw counts for
+                          support triage. Dismissible per session view. */}
+                      {(() => {
+                        if (currentStep !== 'linking') return null;
+                        const linkingProgress = readRunAllProgress(session, 'linking');
+                        if (!linkingProgress?.finishedAt) return null;
+                        const anyLinked = items.some(
+                          (i) => i.status !== 'rejected' && (i as BulkImportItemLite).linkingFamilyId,
+                        );
+                        if (anyLinked) return null;
+                        if (linkingEmptyResultDismissed) return null;
+                        const cs = linkingProgress.candidateSummary;
+                        const reason = getLinkingEmptyReason(cs);
+                        const headlineFr: Record<LinkingEmptyReason, string> = {
+                          'no-families': "Aucune famille de liens n'existe encore pour cette organisation. Configurez-en une dans Document Tags pour permettre la liaison.",
+                          'no-anchor-docs': "Aucun document de cet immeuble n'est encore rattaché à une famille existante. Importez ou liez d'abord un document d'ancrage.",
+                          'no-open-chains': "Toutes les chaînes existantes de cet immeuble ont déjà un voisin de chaque côté.",
+                          'all-out-of-scope': `L'IA a trouvé ${cs?.openChainCount ?? 0} document(s) candidat(s) dans cet immeuble, mais aucun ne correspondait à la portée de résidence des fichiers importés.`,
+                          'low-confidence': `L'IA a évalué ${cs?.maxInScopeCount ?? 0} candidat(s) mais n'a trouvé aucune correspondance suffisamment fiable.`,
+                        };
+                        const headlineEn: Record<LinkingEmptyReason, string> = {
+                          'no-families': 'No link families exist yet for this organization. Set one up in Document Tags to enable linking.',
+                          'no-anchor-docs': 'No document in this building is attached to an existing family yet. Commit or link an anchor document first.',
+                          'no-open-chains': 'Every existing chain in this building already has a neighbor on both sides.',
+                          'all-out-of-scope': `The AI found ${cs?.openChainCount ?? 0} candidate document(s) in this building, but none matched the residence scope of the imported files.`,
+                          'low-confidence': `The AI evaluated ${cs?.maxInScopeCount ?? 0} candidate(s) but did not find any match confident enough.`,
+                        };
+                        const rawCountsFr = cs
+                          ? `${cs.familyCount} famille${cs.familyCount !== 1 ? 's' : ''} · ${cs.anchorDocCount} document${cs.anchorDocCount !== 1 ? 's' : ''} d'ancrage · ${cs.openChainCount} chaîne${cs.openChainCount !== 1 ? 's' : ''} ouverte${cs.openChainCount !== 1 ? 's' : ''}`
+                          : null;
+                        const rawCountsEn = cs
+                          ? `${cs.familyCount} ${cs.familyCount !== 1 ? 'families' : 'family'} · ${cs.anchorDocCount} anchor ${cs.anchorDocCount !== 1 ? 'documents' : 'document'} · ${cs.openChainCount} open ${cs.openChainCount !== 1 ? 'chains' : 'chain'}`
+                          : null;
+                        return (
+                          <div
+                            className="mb-3 rounded-md border border-blue-300 bg-blue-50 px-3 py-2 text-sm text-blue-900 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-200"
+                            data-testid="linking-empty-result-banner"
+                            data-reason={reason}
+                            role="status"
+                          >
+                            <div className="flex items-start gap-2">
+                              <Info className="h-4 w-4 shrink-0 mt-0.5" aria-hidden="true" />
+                              <div className="flex-1 min-w-0">
+                                <p className="leading-snug">
+                                  {isFr ? headlineFr[reason] : headlineEn[reason]}
+                                </p>
+                                {(rawCountsFr || rawCountsEn) && (
+                                  <p className="mt-1 text-xs text-blue-600 dark:text-blue-400">
+                                    {isFr ? rawCountsFr : rawCountsEn}
+                                  </p>
+                                )}
+                              </div>
+                              <button
+                                type="button"
+                                aria-label={isFr ? "Masquer l'explication" : 'Dismiss explanation'}
+                                className="ml-1 rounded p-0.5 hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 flex-shrink-0"
+                                onClick={() => setLinkingEmptyResultDismissed(true)}
+                              >
+                                ×
+                              </button>
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       {/* Task #1425: Family group cards — items grouped by the existing
                           document family they are assigned to. Replaces the old in-session

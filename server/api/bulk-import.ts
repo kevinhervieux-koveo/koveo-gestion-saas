@@ -1235,6 +1235,26 @@ interface RunAllProgress {
   finishedAt: string | null;
   /** Items currently being analyzed (Task #898). Cleared when done. */
   inFlight?: Array<{ itemId: string; originalName: string }>;
+  /**
+   * Task #1534 — Linking-step candidate summary persisted once at the
+   * start of the run so the wizard can render an explanatory banner
+   * when zero items end up linked. Only present on linking progress
+   * entries; undefined for all other steps.
+   */
+  candidateSummary?: {
+    /** Visible document-link families for this org (global + org-scoped). */
+    familyCount: number;
+    /** Unique building-scoped docs that participate in at least one family link. */
+    anchorDocCount: number;
+    /** Open-chain candidates building-wide (docs with a free before/after slot). */
+    openChainCount: number;
+    /**
+     * Max per-item count of open-chain candidates that survive the
+     * per-item residence-scope filter. 0 means every item's residence
+     * filter excluded all building-wide candidates.
+     */
+    maxInScopeCount: number;
+  };
 }
 
 function runAllKey(sessionId: string, step: AutoStep): string {
@@ -2275,6 +2295,10 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
     // the legacy in-session chain suggestion prompt, violating the requirement
     // that Linking only ever attaches to existing library families.
     let sessionExistingLinkCandidates: import('../services/bulk-import-analyzer').ExistingDocumentCandidate[] | undefined;
+    // Task #1534: tracking variables for the linking candidate summary, captured
+    // during the pre-fetch block so they are available after it closes.
+    let _linkFamCount = 0;
+    let _linkAnchorDocCount = 0;
     if (step === 'linking') {
       sessionExistingLinkCandidates = [];   // strict existing-family mode
       const linkSession = await loadSession(sessionId);
@@ -2288,6 +2312,7 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
               eq(schema.documentLinkFamilies.organizationId, linkSession.organizationId),
             ),
           );
+        _linkFamCount = famRows.length;
         if (famRows.length > 0) {
           const famIds = famRows.map((f) => f.id);
           const famMap = new Map(famRows.map((f) => [f.id, f]));
@@ -2351,11 +2376,54 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
               processDoc(link.fromDocumentId, true);
               processDoc(link.toDocumentId, false);
             }
+            // Task #1534: count unique anchor docs (docs in any link of a visible family).
+            const _anchorDocIdSet = new Set<string>();
+            for (const entry of candidateMap.values()) {
+              _anchorDocIdSet.add(entry.id);
+            }
+            _linkAnchorDocCount = _anchorDocIdSet.size;
             sessionExistingLinkCandidates = Array.from(candidateMap.values())
               .filter((c) => c.canLinkBefore || c.canLinkAfter);
           }
         }
       }
+    }
+
+    // Task #1534: compute and persist the linking candidate summary so the
+    // wizard can render an explanatory banner when zero items end up linked.
+    // Emitted once at the start of the run so support can correlate banner
+    // content with log history even if the session is later reset.
+    let linkingCandidateSummary: RunAllProgress['candidateSummary'] | undefined;
+    if (step === 'linking') {
+      const openChainCount = sessionExistingLinkCandidates?.length ?? 0;
+      // maxInScopeCount: max over eligible items of how many open-chain
+      // candidates survive the per-item residence-scope filter (same logic
+      // as the per-item filter inside processItemForStep for linking).
+      let maxInScopeCount = 0;
+      if (openChainCount > 0) {
+        const candidates = sessionExistingLinkCandidates ?? [];
+        for (const item of eligible) {
+          const bd = (item.branchDecision as { branch?: string; residenceId?: string | null } | null) ?? {};
+          const itemResidenceId = bd.branch === 'residence_documents' ? (bd.residenceId ?? null) : null;
+          const inScope = candidates.filter((c) => c.residenceId === itemResidenceId).length;
+          if (inScope > maxInScopeCount) maxInScopeCount = inScope;
+        }
+      }
+      linkingCandidateSummary = {
+        familyCount: _linkFamCount,
+        anchorDocCount: _linkAnchorDocCount,
+        openChainCount,
+        maxInScopeCount,
+      };
+      logInfo('[bulk-import] linking candidate summary', {
+        metadata: {
+          sessionId,
+          familyCount: linkingCandidateSummary.familyCount,
+          anchorDocCount: linkingCandidateSummary.anchorDocCount,
+          openChainCount: linkingCandidateSummary.openChainCount,
+          maxInScopeCount: linkingCandidateSummary.maxInScopeCount,
+        },
+      });
     }
 
     await patchRunAllProgress(sessionId, step, {
@@ -2365,6 +2433,7 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
       startedAt: new Date().toISOString(),
       finishedAt: null,
       inFlight: [],
+      ...(linkingCandidateSummary !== undefined ? { candidateSummary: linkingCandidateSummary } : {}),
     });
 
     if (eligible.length === 0) {
