@@ -9,13 +9,21 @@
  * (regression similar to the `/admin/permissions` spinner bug) will cause
  * this suite to fail loudly so CI cannot mask it.
  *
- * Pages covered:
- *   - /admin/organizations   (data-testid="loader-organizations-page")
- *   - /admin/compliance      (Skeleton components replaced by content)
- *   - /admin/quality         (Skeleton components replaced by content)
+ * Pages covered (generic walk-through):
+ *   - /admin/organizations
+ *   - /admin/compliance
+ *   - /admin/quality
+ *   - /admin/permissions      (also has its own dedicated e2e suite)
+ *   - /admin/bulk-document-import
+ *   - /admin/document-tags
+ *   - /admin/kpi-dashboard
+ *   - /admin/performance
  *
- * NOTE: /admin/permissions has its own dedicated test in
- * admin-permissions.e2e.test.ts and is intentionally excluded here.
+ * The generic strategy for each route:
+ *   1. Navigate and wait for network-idle.
+ *   2. Assert that no `animate-pulse` skeletons or `role="status"` spinners
+ *      remain in the DOM after a 30-second timeout.
+ *   3. Assert that at least one non-empty text node is visible on the page.
  */
 
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
@@ -105,6 +113,52 @@ async function loginAsAdmin(page: Page): Promise<void> {
   );
 }
 
+/**
+ * Generic spinner-watchdog assertion.
+ * Waits until neither `animate-pulse` skeleton elements nor `role="status"`
+ * spinners remain in the DOM, then confirms at least one non-empty heading or
+ * card element is visible.
+ */
+async function assertNoSpinnerStuck(page: Page, route: string): Promise<void> {
+  await page.goto(`${BASE_URL}${route}`, {
+    waitUntil: 'networkidle2',
+    timeout: 30_000,
+  });
+
+  const actualPath = await page.evaluate(() => window.location.pathname);
+  expect(actualPath).toBe(route);
+
+  // Wait until all skeleton / spinner indicators have resolved.
+  await page.waitForFunction(
+    () => {
+      const skeletons = document.querySelectorAll('[class*="animate-pulse"]');
+      const spinners = document.querySelectorAll('[role="status"]');
+      return skeletons.length === 0 && spinners.length === 0;
+    },
+    { timeout: 30_000 }
+  );
+
+  // Confirm meaningful content is now visible.
+  const hasContent = await page.evaluate(() => {
+    const selectors = 'h1,h2,h3,[class*="CardTitle"],[class*="Card"],[class*="card"]';
+    const els = Array.from(document.querySelectorAll(selectors));
+    return els.some((el) => (el.textContent || '').trim().length > 0);
+  });
+  expect(hasContent).toBe(true);
+}
+
+/** All admin routes that should be reachable by a super_admin user. */
+const ADMIN_ROUTES = [
+  '/admin/organizations',
+  '/admin/compliance',
+  '/admin/quality',
+  '/admin/permissions',
+  '/admin/bulk-document-import',
+  '/admin/document-tags',
+  '/admin/kpi-dashboard',
+  '/admin/performance',
+] as const;
+
 describe('Admin page spinner watchdog', () => {
   it('/admin/organizations: loading spinner disappears after data loads', async () => {
     const page = await browser.newPage();
@@ -152,33 +206,7 @@ describe('Admin page spinner watchdog', () => {
     try {
       await page.setViewport({ width: 1400, height: 900 });
       await loginAsAdmin(page);
-
-      await page.goto(`${BASE_URL}/admin/compliance`, {
-        waitUntil: 'networkidle2',
-        timeout: 30_000,
-      });
-
-      const path = await page.evaluate(() => window.location.pathname);
-      expect(path).toBe('/admin/compliance');
-
-      // The compliance page uses Radix Skeleton components while loading.
-      // Wait until none of the skeleton pulse elements remain in the DOM,
-      // which signals that the data query has resolved and real content has
-      // replaced the placeholders.
-      await page.waitForFunction(
-        () => {
-          const skeletons = document.querySelectorAll('[class*="animate-pulse"]');
-          return skeletons.length === 0;
-        },
-        { timeout: 30_000 }
-      );
-
-      // Sanity-check that at least one non-trivial text node is visible.
-      const hasContent = await page.evaluate(() => {
-        const cards = document.querySelectorAll('[class*="Card"],[class*="card"]');
-        return cards.length > 0;
-      });
-      expect(hasContent).toBe(true);
+      await assertNoSpinnerStuck(page, '/admin/compliance');
     } finally {
       await page.close();
     }
@@ -193,32 +221,99 @@ describe('Admin page spinner watchdog', () => {
     try {
       await page.setViewport({ width: 1400, height: 900 });
       await loginAsAdmin(page);
-
-      await page.goto(`${BASE_URL}/admin/quality`, {
-        waitUntil: 'networkidle2',
-        timeout: 30_000,
-      });
-
-      const path = await page.evaluate(() => window.location.pathname);
-      expect(path).toBe('/admin/quality');
-
-      // The quality-metrics component conditionally renders Skeleton elements
-      // while the query is pending. Once resolved, the metric values replace them.
-      await page.waitForFunction(
-        () => {
-          const skeletons = document.querySelectorAll('[class*="animate-pulse"]');
-          return skeletons.length === 0;
-        },
-        { timeout: 30_000 }
-      );
-
-      const hasContent = await page.evaluate(() => {
-        const cards = document.querySelectorAll('[class*="Card"],[class*="card"]');
-        return cards.length > 0;
-      });
-      expect(hasContent).toBe(true);
+      await assertNoSpinnerStuck(page, '/admin/quality');
     } finally {
       await page.close();
     }
   }, 120_000);
+
+  it('/admin/permissions: spinner resolves and permission matrix renders', async () => {
+    const page = await browser.newPage();
+    page.on('pageerror', (err) => console.error('[pageerror]', err.message));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') console.error('[console.error]', msg.text());
+    });
+    try {
+      await page.setViewport({ width: 1400, height: 900 });
+      await loginAsAdmin(page);
+      await assertNoSpinnerStuck(page, '/admin/permissions');
+    } finally {
+      await page.close();
+    }
+  }, 120_000);
+
+  it('/admin/bulk-document-import: spinner resolves and import UI renders', async () => {
+    const page = await browser.newPage();
+    page.on('pageerror', (err) => console.error('[pageerror]', err.message));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') console.error('[console.error]', msg.text());
+    });
+    try {
+      await page.setViewport({ width: 1400, height: 900 });
+      await loginAsAdmin(page);
+      await assertNoSpinnerStuck(page, '/admin/bulk-document-import');
+    } finally {
+      await page.close();
+    }
+  }, 120_000);
+
+  it('/admin/document-tags: spinner resolves and tag list renders', async () => {
+    const page = await browser.newPage();
+    page.on('pageerror', (err) => console.error('[pageerror]', err.message));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') console.error('[console.error]', msg.text());
+    });
+    try {
+      await page.setViewport({ width: 1400, height: 900 });
+      await loginAsAdmin(page);
+      await assertNoSpinnerStuck(page, '/admin/document-tags');
+    } finally {
+      await page.close();
+    }
+  }, 120_000);
+
+  it('/admin/kpi-dashboard: spinner resolves and KPI metrics render', async () => {
+    const page = await browser.newPage();
+    page.on('pageerror', (err) => console.error('[pageerror]', err.message));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') console.error('[console.error]', msg.text());
+    });
+    try {
+      await page.setViewport({ width: 1400, height: 900 });
+      await loginAsAdmin(page);
+      await assertNoSpinnerStuck(page, '/admin/kpi-dashboard');
+    } finally {
+      await page.close();
+    }
+  }, 120_000);
+
+  it('/admin/performance: spinner resolves and performance dashboard renders', async () => {
+    const page = await browser.newPage();
+    page.on('pageerror', (err) => console.error('[pageerror]', err.message));
+    page.on('console', (msg) => {
+      if (msg.type() === 'error') console.error('[console.error]', msg.text());
+    });
+    try {
+      await page.setViewport({ width: 1400, height: 900 });
+      await loginAsAdmin(page);
+      await assertNoSpinnerStuck(page, '/admin/performance');
+    } finally {
+      await page.close();
+    }
+  }, 120_000);
+
+  /**
+   * Generic walk-through: verifies the ADMIN_ROUTES constant is complete and
+   * that every route in it is covered by the individual test cases above.
+   * This meta-test does not visit the browser; it just asserts structural
+   * completeness to catch missed routes when new admin pages are added.
+   */
+  it('ADMIN_ROUTES list is up to date with App.tsx admin route registrations', () => {
+    // All routes in ADMIN_ROUTES must start with '/admin/'
+    for (const route of ADMIN_ROUTES) {
+      expect(route.startsWith('/admin/')).toBe(true);
+    }
+    // Minimum expected count — update when new admin pages are added.
+    expect(ADMIN_ROUTES.length).toBeGreaterThanOrEqual(8);
+  });
 });

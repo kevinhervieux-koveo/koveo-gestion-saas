@@ -3,10 +3,12 @@
  *
  * Coverage:
  * 1. NotFound renders with localized titles and a "Go to Dashboard" button
- *    in both supported languages (English / French).
- * 2. The "Go to Dashboard" button links to `/dashboard` so the in-app router
+ *    for authenticated users in both supported languages (English / French).
+ * 2. NotFound shows a "Go to Login" button for unauthenticated users.
+ * 3. The "Go to Dashboard" button links to `/dashboard` so the in-app router
  *    can forward users to the authenticated overview without a full page reload.
- * 3. Parent-route redirects – each top-level route (`/dashboard`, `/admin`,
+ * 4. The "Go to Login" button links to `/login` for unauthenticated users.
+ * 5. Parent-route redirects – each top-level route (`/dashboard`, `/admin`,
  *    `/manager`, `/residents`) redirects to its registered sub-route.
  *    Tests verify that a component using the identical useEffect+setLocation
  *    pattern as App.tsx actually calls navigate() with the expected target.
@@ -14,7 +16,7 @@
 
 import React, { useEffect } from 'react';
 import { render, act, screen } from '@testing-library/react';
-import { describe, it, expect, jest, beforeEach } from '@jest/globals';
+import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
 import * as wouter from 'wouter';
 import '@testing-library/jest-dom';
 
@@ -24,6 +26,10 @@ import '@testing-library/jest-dom';
 
 jest.mock('@/hooks/use-language', () => ({
   useLanguage: jest.fn(),
+}));
+
+jest.mock('@/hooks/use-auth', () => ({
+  useAuth: jest.fn(),
 }));
 
 jest.mock('@/components/ui/card', () => ({
@@ -54,7 +60,7 @@ jest.mock('wouter', () => {
       children: React.ReactNode;
       className?: string;
     }) => (
-      <a href={href} className={className} data-testid='dashboard-link'>
+      <a href={href} className={className} data-testid='page-link'>
         {children}
       </a>
     ),
@@ -62,6 +68,7 @@ jest.mock('wouter', () => {
 });
 
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/hooks/use-auth';
 import { PARENT_ROUTE_REDIRECTS } from '@/config/route-redirects';
 
 // ---------------------------------------------------------------------------
@@ -73,6 +80,7 @@ const englishT = (key: string) => {
     notFoundTitle: 'Page not found',
     notFoundMessage: 'Page not found. Check the URL or return to the dashboard.',
     goToDashboard: 'Go to Dashboard',
+    goToLogin: 'Go to Login',
   };
   return map[key] ?? key;
 };
@@ -82,17 +90,19 @@ const frenchT = (key: string) => {
     notFoundTitle: 'Page introuvable',
     notFoundMessage: "Page introuvable. Vérifiez l'URL ou retournez au tableau de bord.",
     goToDashboard: 'Aller au tableau de bord',
+    goToLogin: 'Aller à la connexion',
   };
   return map[key] ?? key;
 };
 
 // ---------------------------------------------------------------------------
-// 404 page rendering tests
+// 404 page rendering tests — authenticated user
 // ---------------------------------------------------------------------------
 
-describe('NotFound page', () => {
+describe('NotFound page (authenticated)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    (useAuth as jest.Mock).mockReturnValue({ isAuthenticated: true });
   });
 
   it('renders the English title and Go to Dashboard button', async () => {
@@ -124,7 +134,7 @@ describe('NotFound page', () => {
     const { default: NotFound } = await import('@/pages/not-found');
     render(<NotFound />);
 
-    const link = screen.getByTestId('dashboard-link');
+    const link = screen.getByTestId('page-link');
     expect(link).toHaveAttribute('href', '/dashboard');
   });
 
@@ -139,12 +149,53 @@ describe('NotFound page', () => {
 });
 
 // ---------------------------------------------------------------------------
+// 404 page rendering tests — unauthenticated user
+// ---------------------------------------------------------------------------
+
+describe('NotFound page (unauthenticated)', () => {
+  beforeEach(() => {
+    jest.clearAllMocks();
+    (useAuth as jest.Mock).mockReturnValue({ isAuthenticated: false });
+  });
+
+  it('renders Go to Login button (English) when unauthenticated', async () => {
+    (useLanguage as jest.Mock).mockReturnValue({ t: englishT });
+
+    const { default: NotFound } = await import('@/pages/not-found');
+    render(<NotFound />);
+
+    expect(screen.getByText('Go to Login')).toBeInTheDocument();
+    expect(screen.queryByText('Go to Dashboard')).not.toBeInTheDocument();
+  });
+
+  it('renders Go to Login button (French) when unauthenticated', async () => {
+    (useLanguage as jest.Mock).mockReturnValue({ t: frenchT });
+
+    const { default: NotFound } = await import('@/pages/not-found');
+    render(<NotFound />);
+
+    expect(screen.getByText('Aller à la connexion')).toBeInTheDocument();
+    expect(screen.queryByText('Aller au tableau de bord')).not.toBeInTheDocument();
+  });
+
+  it('the Go to Login button links to /login when unauthenticated', async () => {
+    (useLanguage as jest.Mock).mockReturnValue({ t: englishT });
+
+    const { default: NotFound } = await import('@/pages/not-found');
+    render(<NotFound />);
+
+    const link = screen.getByTestId('page-link');
+    expect(link).toHaveAttribute('href', '/login');
+  });
+});
+
+// ---------------------------------------------------------------------------
 // PARENT_ROUTE_REDIRECTS constant tests
 // ---------------------------------------------------------------------------
 
 describe('PARENT_ROUTE_REDIRECTS (client/src/config/route-redirects.ts)', () => {
-  it('covers all four authenticated parent routes', () => {
-    expect(Object.keys(PARENT_ROUTE_REDIRECTS)).toHaveLength(4);
+  it('covers all five authenticated parent routes', () => {
+    expect(Object.keys(PARENT_ROUTE_REDIRECTS)).toHaveLength(5);
   });
 
   it.each(Object.entries(PARENT_ROUTE_REDIRECTS))(
@@ -168,6 +219,10 @@ describe('PARENT_ROUTE_REDIRECTS (client/src/config/route-redirects.ts)', () => 
 
   it('/residents redirects to /residents/residence', () => {
     expect(PARENT_ROUTE_REDIRECTS['/residents']).toBe('/residents/residence');
+  });
+
+  it('/settings redirects to /settings/general', () => {
+    expect(PARENT_ROUTE_REDIRECTS['/settings']).toBe('/settings/general');
   });
 });
 

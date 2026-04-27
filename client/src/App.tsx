@@ -436,7 +436,8 @@ function AuthenticatedLayout() {
             <Route path='/resident/my-calendar' component={ResidentsMyCalendar} />
 
             {/* Settings routes */}
-            <Route path='/settings' component={SettingsSettings} />
+            <Route path='/settings' component={SettingsOverviewRedirect} />
+            <Route path='/settings/general' component={SettingsSettings} />
 
             {/* Auto-discovered pages — drop new pages in
                 client/src/pages/auto/ instead of editing this file.
@@ -506,6 +507,16 @@ function AdminOverviewRedirect() {
 
   useEffect(() => {
     setLocation(PARENT_ROUTE_REDIRECTS['/admin']);
+  }, [setLocation]);
+
+  return <LoadingSpinner />;
+}
+
+function SettingsOverviewRedirect() {
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    setLocation(PARENT_ROUTE_REDIRECTS['/settings']);
   }, [setLocation]);
 
   return <LoadingSpinner />;

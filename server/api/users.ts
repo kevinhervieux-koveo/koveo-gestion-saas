@@ -83,10 +83,19 @@ export function registerUserRoutes(app: Express): void {
       const scope = await resolveOrgScope(req, res);
       if (!scope) return;
 
-      // Parse pagination parameters
+      // Detect whether the caller requested server-side pagination.
+      // When neither `page` nor `limit` is present the endpoint returns a
+      // flat `User[]` so consumers don't have to unwrap a wrapper object.
+      const paginationRequested =
+        req.query.page !== undefined || req.query.limit !== undefined;
+
+      // Parse pagination parameters (only used in paginated mode)
       const page = parseInt(req.query.page as string) || 1;
-      const limit = parseInt(req.query.limit as string) || 10;
-      const offset = (page - 1) * limit;
+      const FLAT_LIMIT = 500; // maximum users returned in flat (unpaginated) mode
+      const limit = paginationRequested
+        ? parseInt(req.query.limit as string) || 10
+        : FLAT_LIMIT;
+      const offset = paginationRequested ? (page - 1) * limit : 0;
 
       // Parse filter parameters
       const filters: {
@@ -121,17 +130,11 @@ export function registerUserRoutes(app: Express): void {
           logDebug('[ADMIN] Restricting to users from resolved org scope', { metadata: { organizationIds: scope.orgIds } });
         } else {
           // Admin with no accessible orgs - return empty result
-          return res.json({
-            users: [],
-            pagination: {
-              page,
-              limit,
-              total: 0,
-              totalPages: 0,
-              hasNext: false,
-              hasPrev: false,
-            },
-          });
+          return res.json(
+            paginationRequested
+              ? { users: [], pagination: { page, limit, total: 0, totalPages: 0, hasNext: false, hasPrev: false } }
+              : []
+          );
         }
       } else if (['demo_manager', 'demo_tenant', 'demo_resident'].includes(currentUser.role)) {
         // All demo users (including demo_manager) can only see other demo users in their organizations
@@ -162,17 +165,11 @@ export function registerUserRoutes(app: Express): void {
           roleBasedFilters.managerOrganizations = scope.orgIds.join(',');
         } else {
           // Demo user has no organizations, return empty result
-          return res.json({
-            users: [],
-            pagination: {
-              page,
-              limit,
-              total: 0,
-              totalPages: 0,
-              hasNext: false,
-              hasPrev: false
-            }
-          });
+          return res.json(
+            paginationRequested
+              ? { users: [], pagination: { page, limit, total: 0, totalPages: 0, hasNext: false, hasPrev: false } }
+              : []
+          );
         }
       } else {
         // Regular managers: scope to the resolved org set.
@@ -181,17 +178,11 @@ export function registerUserRoutes(app: Express): void {
           roleBasedFilters.managerOrganizations = scope.orgIds.join(',');
         } else {
           // Manager has no organizations, return empty result
-          return res.json({
-            users: [],
-            pagination: {
-              page,
-              limit,
-              total: 0,
-              totalPages: 0,
-              hasNext: false,
-              hasPrev: false
-            }
-          });
+          return res.json(
+            paginationRequested
+              ? { users: [], pagination: { page, limit, total: 0, totalPages: 0, hasNext: false, hasPrev: false } }
+              : []
+          );
         }
       }
 
@@ -210,7 +201,12 @@ export function registerUserRoutes(app: Express): void {
         serializeUserForResponse(u, currentUser.id, currentUser.role)
       );
 
-      // Return paginated response with metadata
+      // Return flat array when no pagination params were supplied, otherwise
+      // return the paginated wrapper so the user-management table keeps working.
+      if (!paginationRequested) {
+        return res.json(filteredUsers);
+      }
+
       res.json({
         users: filteredUsers,
         pagination: {

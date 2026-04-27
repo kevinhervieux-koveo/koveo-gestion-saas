@@ -142,13 +142,12 @@ export default function Permissions() {
     queryKey: ['/api/user-permissions'],
   });
 
-  // Fetch users — `/api/users` returns `{ users: User[], pagination: … }`.
-  // Read the list directly from the `users` field; fall back to an empty
-  // array so downstream `.filter()` calls never see a non-array value.
-  const { data: usersData, isLoading: usersLoading } = useQuery<{ users: User[] }>({
+  // Fetch users — `/api/users` (without page/limit params) returns a flat
+  // `User[]` directly, so no wrapper-object unwrapping is needed.
+  const { data: usersData, isLoading: usersLoading } = useQuery<User[]>({
     queryKey: ['/api/users'],
   });
-  const users: User[] = usersData?.users ?? [];
+  const users: User[] = usersData ?? [];
 
   const isLoading = matrixLoading || userPermissionsLoading || usersLoading;
 

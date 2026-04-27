@@ -203,7 +203,9 @@ describe('HTTP — private fields redaction (Task #1307)', () => {
   describe('GET /api/users — list endpoint', () => {
     it('admin sees phone and profileImage in user list', async () => {
       const res = await request(appAsAdmin).get('/api/users').expect(200);
-      const users: any[] = res.body?.users ?? [];
+      // /api/users without pagination params MUST return a flat User[] directly
+      expect(Array.isArray(res.body)).toBe(true);
+      const users: any[] = res.body;
       expect(users.length).toBeGreaterThan(0);
       expect(users[0]).toHaveProperty('phone');
       expect(users[0]).toHaveProperty('profileImage');
@@ -212,7 +214,9 @@ describe('HTTP — private fields redaction (Task #1307)', () => {
 
     it('manager does NOT see phone or profileImage in user list', async () => {
       const res = await request(appAsManager).get('/api/users').expect(200);
-      const users: any[] = res.body?.users ?? [];
+      // /api/users without pagination params MUST return a flat User[] directly
+      expect(Array.isArray(res.body)).toBe(true);
+      const users: any[] = res.body;
       expect(users.length).toBeGreaterThan(0);
       expect(users[0]).not.toHaveProperty('phone');
       expect(users[0]).not.toHaveProperty('profileImage');

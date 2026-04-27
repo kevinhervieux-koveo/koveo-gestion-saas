@@ -12,6 +12,7 @@ export const PARENT_ROUTE_REDIRECTS = {
   '/admin': '/admin/organizations',
   '/manager': '/manager/buildings',
   '/residents': '/residents/residence',
+  '/settings': '/settings/general',
 } as const;
 
 export type ParentRoute = keyof typeof PARENT_ROUTE_REDIRECTS;

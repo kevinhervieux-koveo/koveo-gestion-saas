@@ -249,8 +249,9 @@ describeIfDb('User serializer HTTP — no password leak (all 8 endpoints)', () =
       .expect(200);
 
     assertNoPasswordLeak(res.body, 'GET /api/users');
-    const usersList: unknown[] = res.body.users ?? [];
-    expect(Array.isArray(usersList)).toBe(true);
+    // /api/users without pagination params MUST return a flat User[] directly
+    expect(Array.isArray(res.body)).toBe(true);
+    const usersList: unknown[] = res.body as unknown[];
     if (usersList.length > 0) {
       const keys = Object.keys(usersList[0] as object);
       expect(keys).not.toContain('password');
@@ -267,7 +268,9 @@ describeIfDb('User serializer HTTP — no password leak (all 8 endpoints)', () =
       .expect(200);
 
     assertNoPasswordLeak(res.body, 'GET /api/users?organizationId');
-    const usersList: unknown[] = res.body.users ?? [];
+    // /api/users without pagination params MUST return a flat User[] directly
+    expect(Array.isArray(res.body)).toBe(true);
+    const usersList: unknown[] = res.body as unknown[];
     for (const u of usersList) {
       expect(Object.keys(u as object)).not.toContain('password');
     }
@@ -355,7 +358,9 @@ describeIfDb('User serializer HTTP — no password leak (all 8 endpoints)', () =
 
     if (res.status === 200) {
       assertNoPasswordLeak(res.body, 'GET /api/users (tenant)');
-      const usersList: unknown[] = res.body.users ?? [];
+      // /api/users without pagination params MUST return a flat User[] directly
+      expect(Array.isArray(res.body)).toBe(true);
+      const usersList: unknown[] = res.body as unknown[];
       for (const u of usersList) {
         expect(Object.keys(u as object)).not.toContain('password');
       }

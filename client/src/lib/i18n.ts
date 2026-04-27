@@ -1768,6 +1768,7 @@ export interface Translations {
   forQuebec: string;
   startManagingToday: string;
   goToDashboard: string;
+  goToLogin: string;
   everythingYouNeed: string;
   builtForPropertyOwners: string;
   buildingManagement: string;
@@ -5812,6 +5813,7 @@ export const translations: Record<Language, Translations> = {
     forQuebec: 'for Quebec',
     startManagingToday: 'Start managing today',
     goToDashboard: 'Go to Dashboard',
+    goToLogin: 'Go to Login',
     everythingYouNeed: 'Everything You Need',
     builtForPropertyOwners: 'Built for Property Owners and Managers',
     buildingManagement: 'Building Management',
@@ -10077,6 +10079,7 @@ export const translations: Record<Language, Translations> = {
     forQuebec: 'pour le Québec',
     comprehensivePropertyManagement: 'Solution de gestion immobilière complète conçue spécifiquement pour les communautés résidentielles du Québec',
     goToDashboard: 'Aller au tableau de bord',
+    goToLogin: 'Aller à la connexion',
     everythingYouNeed: 'Tout ce dont vous avez besoin',
     builtForPropertyOwners: 'Conçu pour les propriétaires et gestionnaires immobiliers',
     buildingManagement: 'Gestion de bâtiments',
