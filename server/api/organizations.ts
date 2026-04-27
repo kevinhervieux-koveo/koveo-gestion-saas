@@ -126,7 +126,7 @@ export function registerOrganizationRoutes(app: Express): void {
 
       // Get user's accessible organizations first
       let accessibleOrgs;
-      if (currentUser.role === 'admin') {
+      if (currentUser.role === 'admin' || currentUser.role === 'super_admin') {
         accessibleOrgs = await db
           .select({ id: organizations.id })
           .from(organizations)

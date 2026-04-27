@@ -170,6 +170,7 @@ export function registerBuildingRoutes(app: Express): void {
 
       const hasGlobalAccess =
         currentUser.role === 'admin' ||
+        currentUser.role === 'super_admin' ||
         userOrgs.some((org) => org.canAccessAllOrganizations);
 
       if (hasGlobalAccess) {
@@ -520,14 +521,15 @@ export function registerBuildingRoutes(app: Express): void {
 
       const hasGlobalAccess =
         currentUser.role === 'admin' ||
+        currentUser.role === 'super_admin' ||
         userOrgs.some((org) => org.canAccessAllOrganizations);
 
       if (hasGlobalAccess) {
         hasAccess = true;
         accessType = 'global';
       } else {
-        // Check organization-based access for Admin and Manager
-        if (currentUser.role === 'admin' || currentUser.role === 'manager') {
+        // Check organization-based access for Admin, Super Admin, and Manager
+        if (currentUser.role === 'admin' || currentUser.role === 'super_admin' || currentUser.role === 'manager') {
           if (userOrgs.length > 0) {
             const orgIds = userOrgs.map((uo) => uo.organizationId);
 
@@ -685,9 +687,9 @@ export function registerBuildingRoutes(app: Express): void {
           totalResidences: buildingResidences.length,
         },
         userResidences: userResidencesInBuilding,
-        // Only include full residence list for managers/admins
+        // Only include full residence list for managers/admins/super_admins
         residences:
-          currentUser.role === 'admin' || currentUser.role === 'manager'
+          currentUser.role === 'admin' || currentUser.role === 'super_admin' || currentUser.role === 'manager'
             ? buildingResidences
             : undefined,
       });

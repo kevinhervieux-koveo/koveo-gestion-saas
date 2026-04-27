@@ -1895,7 +1895,7 @@ export function registerUserRoutes(app: Express): void {
       }
 
       // For admins, get ALL buildings
-      if (req.user.role === 'admin') {
+      if (req.user.role === 'admin' || req.user.role === 'super_admin') {
         let buildingQuery;
         
         const whereConditions = [eq(schema.buildings.isActive, true)];
