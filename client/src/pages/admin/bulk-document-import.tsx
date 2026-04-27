@@ -109,6 +109,7 @@ import {
 } from './bulk-import-next-step-block';
 import { DocumentInlineViewer } from '@/components/common/DocumentInlineViewer';
 import { TagPicker } from '@/components/document-tags/TagPicker';
+import { enumLabels } from '@/lib/i18n/enumLabels';
 
 interface Building {
   id: string;
@@ -4631,10 +4632,9 @@ export default function BulkDocumentImportPage() {
                                 <SelectItem
                                   key={t}
                                   value={t}
-                                  className="capitalize"
                                   data-testid={`option-building-type-${t}`}
                                 >
-                                  {t}
+                                  {enumLabels.buildingType(t, isFr ? 'fr' : 'en')}
                                 </SelectItem>
                               ))}
                             </SelectContent>
@@ -4671,9 +4671,17 @@ export default function BulkDocumentImportPage() {
                               <div className="grid gap-3 sm:grid-cols-2">
                                 {group.items.map((b) => {
                                   const selected = buildingId === b.id;
-                                  const location = [b.city, b.province]
+                                  const titleCasedCity = b.city
+                                    ? b.city.replace(/\b\w/g, (c) => c.toUpperCase())
+                                    : null;
+                                  const location = [titleCasedCity, b.province]
                                     .filter(Boolean)
                                     .join(', ');
+                                  const typeLabel = b.buildingType
+                                    ? enumLabels.buildingType(b.buildingType, isFr ? 'fr' : 'en')
+                                    : null;
+                                  const addressIsSameAsName =
+                                    b.address?.trim().toLowerCase() === b.name?.trim().toLowerCase();
                                   const isCreating =
                                     createSession.isPending && selected;
                                   return (
@@ -4702,13 +4710,18 @@ export default function BulkDocumentImportPage() {
                                       </div>
                                       <div className="min-w-0 flex-1">
                                         <div className="truncate font-medium">{b.name}</div>
-                                        {b.address && (
+                                        {b.address && !addressIsSameAsName && (
                                           <div className="mt-0.5 flex items-start gap-1 text-xs text-muted-foreground">
                                             <MapPin className="mt-0.5 h-3 w-3 flex-shrink-0" />
-                                            <span className="truncate">
-                                              {b.address}
-                                              {location ? `, ${location}` : ''}
-                                            </span>
+                                            <span className="truncate">{b.address}</span>
+                                          </div>
+                                        )}
+                                        {location && (
+                                          <div className="mt-0.5 flex items-start gap-1 text-xs text-muted-foreground">
+                                            {addressIsSameAsName && (
+                                              <MapPin className="mt-0.5 h-3 w-3 flex-shrink-0" />
+                                            )}
+                                            <span className="truncate">{location}</span>
                                           </div>
                                         )}
                                         <div className="mt-1 flex flex-wrap items-center gap-1">
@@ -4718,12 +4731,12 @@ export default function BulkDocumentImportPage() {
                                               {isFr ? 'unités' : 'units'}
                                             </Badge>
                                           )}
-                                          {b.buildingType && (
+                                          {typeLabel && (
                                             <Badge
                                               variant="outline"
-                                              className="text-[10px] capitalize"
+                                              className="text-[10px]"
                                             >
-                                              {b.buildingType}
+                                              {typeLabel}
                                             </Badge>
                                           )}
                                         </div>
