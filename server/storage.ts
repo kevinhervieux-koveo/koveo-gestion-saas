@@ -63,6 +63,7 @@ export interface IStorage {
   }>;
   getUsersByOrganizations(_userId: string): Promise<User[]>;
   getUser(_id: string): Promise<SafeUser | undefined>;
+  getUserPasswordHash(_id: string): Promise<string | undefined>;
   getUserOrganizations(_userId: string): Promise<Array<{ organizationId: string }>>;
   getUserResidences(_userId: string): Promise<Array<{ residenceId: string }>>;
   getUserByEmail(_email: string): Promise<User | undefined>;
@@ -352,6 +353,10 @@ export class MemStorage implements IStorage {
   async getUser(id: string): Promise<SafeUser | undefined> {
     const user = this.users.get(id);
     return user ? stripPassword(user) : undefined;
+  }
+
+  async getUserPasswordHash(id: string): Promise<string | undefined> {
+    return this.users.get(id)?.password;
   }
 
   async getUserOrganizations(_userId: string): Promise<Array<{ organizationId: string }>> {
@@ -1299,6 +1304,10 @@ class ProductionFallbackStorage implements IStorage {
 
   async getUser(id: string): Promise<SafeUser | undefined> {
     return await this.safeDbOperation(() => this.dbStorage.getUser(id));
+  }
+
+  async getUserPasswordHash(id: string): Promise<string | undefined> {
+    return await this.safeDbOperation(() => this.dbStorage.getUserPasswordHash(id));
   }
 
   async getUserOrganizations(userId: string): Promise<Array<{ organizationId: string }>> {

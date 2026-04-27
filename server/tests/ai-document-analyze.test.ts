@@ -290,9 +290,11 @@ describe('POST /api/ai/analyze-document', () => {
     expect(res.status).toBe(500);
     expect(res.body).toMatchObject({
       success: false,
-      error: 'AI analysis failed',
+      error: 'AI analysis failed. Please try again later.',
     });
-    expect(res.body.details).toMatch(/Gemini exploded/);
+    // Raw AI error message must not be forwarded to the client (Task #1307)
+    expect(JSON.stringify(res.body)).not.toContain('Gemini exploded');
+    expect(res.body.details).toBeUndefined();
   });
 
   it('returns 400 when no document is uploaded', async () => {

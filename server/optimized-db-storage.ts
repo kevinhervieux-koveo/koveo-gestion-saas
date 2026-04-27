@@ -1433,6 +1433,14 @@ export class OptimizedDatabaseStorage implements IStorage {
    * Retrieves a user by email with caching.
    * @param email
    */
+  async getUserPasswordHash(id: string): Promise<string | undefined> {
+    const result = await db
+      .select({ password: schema.users.password })
+      .from(schema.users)
+      .where(eq(schema.users.id, id));
+    return result[0]?.password ?? undefined;
+  }
+
   async getUserByEmail(email: string): Promise<User | undefined> {
     return this.withOptimizations('getUserByEmail', `user_email:${email}`, 'users', async () => {
       const result = await db.select().from(schema.users).where(eq(schema.users.email, email));

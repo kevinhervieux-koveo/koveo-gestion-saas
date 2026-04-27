@@ -87,6 +87,41 @@ export function stripPassword<T extends { password?: string }>(user: T): Omit<T,
 }
 
 /**
+ * Serialize a user object for an API response, applying private-field
+ * redaction based on the caller's identity and role.
+ *
+ * Rules:
+ *  - `password` is always stripped (defence-in-depth on top of the storage layer).
+ *  - `phone` and `profileImage` are only visible to the owner (same user ID)
+ *    or to an admin; all other callers receive the response without these fields.
+ *
+ * @param user       - The user object to serialize (may or may not contain password).
+ * @param callerId   - The ID of the authenticated caller making the request.
+ * @param callerRole - The role string of the authenticated caller.
+ */
+export function serializeUserForResponse<
+  T extends { id?: string; password?: string; phone?: string | null; profileImage?: string | null },
+>(user: T, callerId: string, callerRole: string): Omit<T, 'password' | 'phone' | 'profileImage'> | Omit<T, 'password'> {
+  const isOwner = callerId != null && user.id != null && callerId === user.id;
+  const isAdmin = callerRole === 'admin';
+
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { password: _pw, ...withoutPassword } = user;
+
+  if (isOwner || isAdmin) {
+    return withoutPassword as Omit<T, 'password'>;
+  }
+
+  // Cast to the known intersection so we can destructure without `as any`.
+  // `T` is already constrained to have `phone?` and `profileImage?`, so this
+  // widened alias is always safe.
+  type WithoutPw = Omit<T, 'password'> & { phone?: string | null; profileImage?: string | null };
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  const { phone: _phone, profileImage: _profileImage, ...publicData } = withoutPassword as WithoutPw;
+  return publicData as Omit<T, 'password' | 'phone' | 'profileImage'>;
+}
+
+/**
  * Get users accessible to the current user based on their role and associations.
  * Admins see all users, managers see users in their organizations,
  * owners see users in their buildings, tenants typically see only themselves.

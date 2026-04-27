@@ -1,4 +1,3 @@
-// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import type { Express } from 'express';
 import { storage } from '../storage';
 import { insertUserSchema, type User, type InsertUser } from '@shared/schema';
@@ -18,7 +17,7 @@ import {
   generateUsernameFromEmail,
 } from '../utils/input-sanitization';
 import { logUserCreation } from '../utils/user-creation-logger';
-import { stripPassword } from '../db/queries/user-queries';
+import { stripPassword, serializeUserForResponse } from '../db/queries/user-queries';
 import { queryCache, CacheInvalidator } from '../query-cache';
 import { emailService } from '../services/email-service';
 import {
@@ -201,10 +200,13 @@ export function registerUserRoutes(app: Express): void {
 
       
 
-      // Defence-in-depth: strip password from every user object before sending.
-      // The storage layer already excludes the field, but this guard ensures
-      // that any future storage regression cannot accidentally leak the hash.
-      const filteredUsers = result.users.map(({ password: _pw, ...safe }) => safe);
+      // Defence-in-depth: strip password and private fields from every user
+      // object before sending.  The storage layer already excludes the password
+      // field, but this guard also redacts phone and profileImage for callers
+      // who are not the owner or an admin.
+      const filteredUsers = result.users.map((u) =>
+        serializeUserForResponse(u, currentUser.id, currentUser.role)
+      );
 
       // Return paginated response with metadata
       res.json({
@@ -370,7 +372,7 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      res.json(stripPassword(user));
+      res.json(serializeUserForResponse(user, currentUser.id, currentUser.role));
     }, { errorMessage: 'Failed to fetch user', errorLogPrefix: '❌ Error fetching user', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
@@ -404,7 +406,7 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      res.json(stripPassword(user));
+      res.json(serializeUserForResponse(user, currentUser.id, currentUser.role));
     }, { errorMessage: 'Failed to fetch user', errorLogPrefix: '❌ Error fetching user by email', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
@@ -511,7 +513,13 @@ export function registerUserRoutes(app: Express): void {
         userAgent: req.get('User-Agent'),
       });
 
-      res.status(201).json(stripPassword(user));
+      // For the response: the caller is either the admin who created the user
+      // (has a session) or the user themselves (self-registration, no session).
+      const sessionUserId = (req as any).session?.userId;
+      const sessionUser = sessionUserId ? await storage.getUser(sessionUserId) : null;
+      const callerId = sessionUser?.id ?? user.id;
+      const callerRole = sessionUser?.role ?? user.role;
+      res.status(201).json(serializeUserForResponse(user, callerId, callerRole));
     } catch (error: any) {
       // Log failed user creation attempt
       logUserCreation({
@@ -557,7 +565,7 @@ export function registerUserRoutes(app: Express): void {
       // Validate the update data (excluding password updates for security)
       const updateSchema = insertUserSchema
         .partial()
-        .omit({ password: true, id: true, role: true });
+        .omit({ password: true, role: true });
       const validatedData = updateSchema.parse(req.body);
 
       const user = await storage.updateUser(currentUser.id, {
@@ -572,7 +580,7 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      res.json(stripPassword(user));
+      res.json(serializeUserForResponse(user, currentUser.id, currentUser.role));
     }, { errorMessage: 'Failed to update profile', errorLogPrefix: '❌ Error updating user profile', extraErrorFields: { error: 'Internal server error' } }));
 
   /**
@@ -723,7 +731,7 @@ export function registerUserRoutes(app: Express): void {
       queryCache.invalidate('users', 'all_users');
       queryCache.invalidate('users', `user:${id}`);
 
-      res.json(stripPassword(user));
+      res.json(serializeUserForResponse(user, currentUser.id, currentUser.role));
     } catch (error: any) {
       if (error instanceof z.ZodError) {
         return res.status(400).json({
@@ -780,7 +788,6 @@ export function registerUserRoutes(app: Express): void {
       
       res.status(500).json({ 
         error: 'Failed to delete orphan users',
-        details: error instanceof Error ? error.message : 'Unknown error',
         timestamp: new Date().toISOString()
       });
     }
@@ -901,7 +908,7 @@ export function registerUserRoutes(app: Express): void {
   /**
    * Check if the current user has permission to delete the target user.
    */
-  async function checkDeletePermission(currentUser: User, targetUser: User, operationId: string): Promise<{allowed: boolean, reason: string}> {
+  async function checkDeletePermission(currentUser: Pick<User, 'id' | 'role'>, targetUser: Pick<User, 'id' | 'role'>, operationId: string): Promise<{allowed: boolean, reason: string}> {
     logDebug('[PERMISSION CHECK] Checking delete permissions', { requestId: operationId });
     
     // Admin can delete any user
@@ -2330,8 +2337,8 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Remove sensitive fields
-      const { password, ...userDataExport } = userData;
+      // SafeUser already has no password field; use it directly as the export object.
+      const userDataExport = userData;
 
       // Get related data
       const [organizations, residences, bills, documents, notifications, maintenanceRequests] =
@@ -2673,9 +2680,10 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      // Verify current password
-      const user = await storage.getUser(currentUser.id);
-      if (!user || !(await bcrypt.compare(currentPassword, user.password))) {
+      // Verify current password via dedicated hash-only query (storage.getUser
+      // returns SafeUser without the password field by design).
+      const passwordHash = await storage.getUserPasswordHash(currentUser.id);
+      if (!passwordHash || !(await bcrypt.compare(currentPassword, passwordHash))) {
         return res.status(400).json({
           message: 'Current password is incorrect',
           code: 'INVALID_PASSWORD',
@@ -2926,7 +2934,7 @@ export function registerUserRoutes(app: Express): void {
             ipAddress,
             userAgent,
           },
-          logError: (msg, err) => logError(msg, err),
+          logError: (msg, err) => logError(msg, err as Error),
         });
 
       // Get organization details for email
@@ -2956,12 +2964,14 @@ export function registerUserRoutes(app: Express): void {
       // for Quebec Law 25 compliance; full details remain available at
       // debug level for local development.
       logInfo('Invitation created', {
-        id: newInvitation.id,
-        email,
-        role,
-        organizationId,
-        invitedBy: currentUser.email,
-        emailSent,
+        metadata: {
+          id: newInvitation.id,
+          email,
+          role,
+          organizationId,
+          invitedBy: currentUser.email,
+          emailSent,
+        },
       });
       logDebug('Invitation created (full email)', {
         metadata: {
@@ -3005,7 +3015,7 @@ export function registerUserRoutes(app: Express): void {
         return res.status(409).json({
           error: 'Conflict',
           code: 'INVITATION_ALREADY_PENDING',
-          message: error.message,
+          message: 'An active invitation already exists for this recipient. Use resend or cancel to manage it.',
         });
       }
       // Task #257 — route remaining DB errors through the shared MCP
@@ -3278,7 +3288,7 @@ export function registerUserRoutes(app: Express): void {
 
       // Soft-replaced invitations retain their token; the user must use the
       // newer invitation that replaced this one.
-      if (invitation.status === 'replaced') {
+      if ((invitation.status as string) === 'replaced') {
         return res.status(400).json({
           message: 'Invitation has been replaced by a newer invitation. Please use the latest invitation email.',
           code: 'INVITATION_REPLACED',
@@ -3490,14 +3500,12 @@ export function registerUserRoutes(app: Express): void {
 
       logInfo('User assigned to organization (via invitation)', {
         userId: newUser.id,
-        organizationId: invitation.organizationId,
-        role: invitation.role,
+        metadata: { organizationId: invitation.organizationId, role: invitation.role },
       });
       if (invitation.residenceId) {
         logInfo('User assigned to residence (via invitation)', {
           userId: newUser.id,
-          residenceId: invitation.residenceId,
-          role: invitation.role,
+          metadata: { residenceId: invitation.residenceId, role: invitation.role },
         });
       }
 
@@ -3517,12 +3525,14 @@ export function registerUserRoutes(app: Express): void {
 
       logInfo('User created via invitation acceptance', {
         userId: newUser.id,
-        email: newUser.email,
-        role: newUser.role,
-        organizationId: invitation.organizationId,
-        residenceId: invitation.residenceId,
-        assignedToOrganization: !!invitation.organizationId,
-        assignedToResidence: !!invitation.residenceId,
+        metadata: {
+          email: newUser.email,
+          role: newUser.role,
+          organizationId: invitation.organizationId,
+          residenceId: invitation.residenceId,
+          assignedToOrganization: !!invitation.organizationId,
+          assignedToResidence: !!invitation.residenceId,
+        },
       });
 
       res.status(201).json({
@@ -3585,7 +3595,7 @@ export function registerUserRoutes(app: Express): void {
       // was soft-deleted by a newer invite for the same (org, email,
       // residence) tuple; resurrecting it would silently undo the
       // replacement.
-      if (invitation.status === 'replaced' || invitation.status === 'accepted' || invitation.status === 'cancelled') {
+      if ((invitation.status as string) === 'replaced' || invitation.status === 'accepted' || invitation.status === 'cancelled') {
         return res.status(400).json({
           message: `Cannot resend invitation: status is "${invitation.status}"`,
           code: 'INVITATION_NOT_RESENDABLE',
@@ -3695,10 +3705,7 @@ export function registerUserRoutes(app: Express): void {
       );
 
       logInfo('Invitation resent', {
-        id,
-        email: invitation.email,
-        newExpiresAt,
-        emailSent,
+        metadata: { id, email: invitation.email, newExpiresAt, emailSent },
       });
 
       if (!emailSent) {

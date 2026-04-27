@@ -1,4 +1,3 @@
-// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 /**
  * AI Document Analysis API
  * 
@@ -93,6 +92,7 @@ const upload = multer({
   storage: multer.memoryStorage(),
   // Force utf8 multipart param parsing so French/diacritic filenames survive
   // (multer 2.x defaults to latin1, which mangles "Procès-verbal été 2024.pdf").
+  // `defParamCharset` is declared via types/multer-extensions.d.ts.
   defParamCharset: 'utf8',
   limits: {
     fileSize: 50 * 1024 * 1024, // 50MB limit
@@ -245,7 +245,7 @@ function generateContextPrompt(formType: string, uploadContext?: UploadContext):
 /**
  * Register AI document analysis routes
  */
-export function registerAiAnalysisRoutes(app: import('../utils/lazy-mount').RouteRegistry) {
+export function registerAiAnalysisRoutes(app: import('express').Express) {
   /**
    * GET /api/ai/status
    *
@@ -330,8 +330,7 @@ export function registerAiAnalysisRoutes(app: import('../utils/lazy-mount').Rout
           console.error('[AI ANALYSIS] Analysis failed:', aiError);
           return res.status(500).json({
             success: false,
-            error: 'AI analysis failed',
-            details: aiError instanceof Error ? aiError.message : 'Unknown AI error'
+            error: 'AI analysis failed. Please try again later.',
           });
         }
 
@@ -379,8 +378,7 @@ export function registerAiAnalysisRoutes(app: import('../utils/lazy-mount').Rout
         console.error('[AI ANALYSIS] Unexpected error:', error);
         res.status(500).json({
           success: false,
-          error: 'Internal server error during AI analysis',
-          details: error instanceof Error ? error.message : 'Unknown error'
+          error: 'An unexpected error occurred during document analysis. Please try again.',
         });
       }
     }
@@ -476,7 +474,7 @@ export function registerAiAnalysisRoutes(app: import('../utils/lazy-mount').Rout
             success: false,
             tagIds: [],
             source: 'unavailable',
-            error: aiError instanceof Error ? aiError.message : 'AI unavailable',
+            error: 'AI tag suggestion is temporarily unavailable.',
           });
         }
       } catch (error) {

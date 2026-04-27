@@ -52,6 +52,8 @@ export class MemStorage implements IStorage {
 
   getUser = jest.fn(async (_id: string) => undefined as any);
 
+  getUserPasswordHash = jest.fn(async (_id: string) => undefined as string | undefined);
+
   getUserOrganizations = jest.fn(async (_userId: string) => [] as any[]);
 
   getUserResidences = jest.fn(async (_userId: string) => [] as any[]);
