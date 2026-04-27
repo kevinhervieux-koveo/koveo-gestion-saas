@@ -1238,6 +1238,43 @@ async function patchRunAllProgress(
 }
 
 /**
+ * Build the per-step `sessionItems` array shared by every parallel
+ * worker in `runAllForStep`. The shape is intentionally minimal so the
+ * array does not retain heavy DB columns longer than necessary, but
+ * the sorting step needs each sibling's `screening` JSONB so that
+ * `processItemForStep` can:
+ *
+ *   1. Pass real `quickAnalysis` + `periodHint` for every sibling into
+ *      the Branching analyzer's `SiblingContext` prompt.
+ *   2. Run `isTriviallyKeep` correctly — that helper walks siblings
+ *      looking for a `typeGuess + bucketGuess` match, and an empty
+ *      `screening` makes every check return "no merge candidate" so
+ *      EVERY item is silently short-circuited to `decision: 'keep'`
+ *      without an AI call (Task #1252 regression of Task #1235).
+ *
+ * Other steps either don't read sibling screening (`screening`,
+ * `branching`, `identification`) or trim the candidate list down to
+ * `{id, name}` themselves before calling the AI (`linking`), so we
+ * keep them lean to preserve the Task #1235 memory win in the linking
+ * worker pool.
+ *
+ * Exported for unit tests.
+ */
+export function buildSessionItemsForStep(
+  items: ReadonlyArray<Pick<schema.BulkImportItem, 'id' | 'originalName' | 'screening'>>,
+  step: AutoStep,
+): Array<{ id: string; name: string; screening?: Record<string, unknown> | null }> {
+  if (step === 'sorting') {
+    return items.map((i) => ({
+      id: i.id,
+      name: i.originalName,
+      screening: i.screening as Record<string, unknown> | null,
+    }));
+  }
+  return items.map((i) => ({ id: i.id, name: i.originalName }));
+}
+
+/**
  * Wrap a promise with a per-item time budget (Task #898). On timeout
  * rejects with a descriptive error so the caller can increment `failed`
  * and continue the batch without blocking indefinitely.
@@ -2010,10 +2047,12 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
 
     const eligibleStatuses = STEP_ELIGIBLE_STATUSES[step];
     const eligible = items.filter((i) => eligibleStatuses.includes(i.status));
-    const sessionItems = items.map((i) => ({
-      id: i.id,
-      name: i.originalName,
-    }));
+    // Build the per-step sibling array. Sorting needs each sibling's
+    // screening JSONB (otherwise `isTriviallyKeep` thinks no item has a
+    // merge candidate and silently short-circuits everything to 'keep'
+    // — Task #1252). Linking and the other steps stay lean to keep the
+    // Task #1235 memory win.
+    const sessionItems = buildSessionItemsForStep(items, step);
 
     const concurrencyForLog = Math.min(RUN_ALL_CONCURRENCY, eligible.length);
     logDebug('[bulk-import] run-all pool start', {
