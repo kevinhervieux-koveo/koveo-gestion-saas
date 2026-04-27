@@ -85,6 +85,19 @@ jest.mock('@/components/document-management/DocumentContext', () => ({
   }),
 }));
 
+// DocumentSequencePanel is rendered as a child of the inline viewer when the
+// sequence panel is open. The keyboard-navigation tests need a real <input>
+// inside the dialog tree to verify that arrow keys are ignored when focus is
+// inside an input. We replace the panel with a simple input element for that
+// purpose; tests that don't open the panel are unaffected.
+jest.mock('@/components/documents/DocumentSequencePanel', () => ({
+  DocumentSequencePanel: () =>
+    React.createElement('input', {
+      'data-testid': 'seq-panel-input',
+      type: 'text',
+    }),
+}));
+
 // queryClient module is referenced indirectly through invalidateQueries.
 jest.mock('@/lib/queryClient', () => {
   const apiRequest = jest.fn(async (_method: string, url: string) => {
@@ -536,6 +549,158 @@ describe('DocumentInlineViewer', () => {
     );
     fireEvent.click(screen.getByTestId('button-inline-viewer-close'));
     expect(onClose).toHaveBeenCalledTimes(1);
+  });
+});
+
+// =============================================================================
+// DocumentInlineViewer — multi-family viewer keyboard navigation
+// =============================================================================
+
+describe('DocumentInlineViewer keyboard navigation', () => {
+  const baseNeighbor = {
+    source: 'date' as const,
+    effectiveDate: null,
+    createdAt: '2026-01-01T00:00:00Z',
+    documentType: null,
+  };
+
+  const families = [
+    {
+      familyId: 'fam-1',
+      familyName: 'Family 1',
+      familyDescription: null,
+      previous: { id: 'prev-1', name: 'Prev 1', ...baseNeighbor },
+      previousIsChainEnd: false,
+      next: { id: 'next-1', name: 'Next 1', ...baseNeighbor },
+      nextIsChainEnd: false,
+    },
+    {
+      familyId: 'fam-2',
+      familyName: 'Family 2',
+      familyDescription: null,
+      previous: { id: 'prev-2', name: 'Prev 2', ...baseNeighbor },
+      previousIsChainEnd: false,
+      next: { id: 'next-2', name: 'Next 2', ...baseNeighbor },
+      nextIsChainEnd: false,
+    },
+  ];
+
+  function renderWithFamilies() {
+    const client = new QueryClient({
+      defaultOptions: { queries: { retry: false } },
+    });
+    // Pre-populate the neighbors query so the viewer renders both family rows
+    // immediately, without depending on the default test fetcher.
+    client.setQueryData(['/api/documents', 'doc-key', 'neighbors'], {
+      currentId: 'doc-key',
+      families,
+    });
+    const onNavigate = jest.fn();
+    render(
+      <QueryClientProvider client={client}>
+        <DocumentInlineViewer
+          isOpen
+          onClose={jest.fn()}
+          fileUrl="/api/documents/doc-key/file"
+          fileName="photo.png"
+          documentId="doc-key"
+          onNavigate={onNavigate}
+        />
+      </QueryClientProvider>
+    );
+    return { onNavigate };
+  }
+
+  it('ArrowRight calls onNavigate with the next document of the active family', () => {
+    const { onNavigate } = renderWithFamilies();
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' });
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+    expect(onNavigate).toHaveBeenCalledWith('next-1');
+  });
+
+  it('ArrowLeft calls onNavigate with the previous document of the active family', () => {
+    const { onNavigate } = renderWithFamilies();
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowLeft' });
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+    expect(onNavigate).toHaveBeenCalledWith('prev-1');
+  });
+
+  it('ArrowDown increments the active family index (next row is highlighted)', () => {
+    const { onNavigate } = renderWithFamilies();
+    expect(screen.getByTestId('family-nav-row-fam-1')).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+    expect(screen.getByTestId('family-nav-row-fam-2')).toHaveAttribute(
+      'aria-selected',
+      'false'
+    );
+
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowDown' });
+
+    expect(screen.getByTestId('family-nav-row-fam-2')).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+    expect(screen.getByTestId('family-nav-row-fam-1')).toHaveAttribute(
+      'aria-selected',
+      'false'
+    );
+    expect(onNavigate).not.toHaveBeenCalled();
+
+    // After the active family switched, ArrowRight should now navigate within
+    // the second family's neighbors.
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowRight' });
+    expect(onNavigate).toHaveBeenCalledTimes(1);
+    expect(onNavigate).toHaveBeenCalledWith('next-2');
+  });
+
+  it('ArrowUp decrements the active family index', () => {
+    const { onNavigate } = renderWithFamilies();
+    // Move down first so we have somewhere to come back up from.
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowDown' });
+    expect(screen.getByTestId('family-nav-row-fam-2')).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+
+    fireEvent.keyDown(screen.getByRole('dialog'), { key: 'ArrowUp' });
+
+    expect(screen.getByTestId('family-nav-row-fam-1')).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+    expect(screen.getByTestId('family-nav-row-fam-2')).toHaveAttribute(
+      'aria-selected',
+      'false'
+    );
+    expect(onNavigate).not.toHaveBeenCalled();
+  });
+
+  it('does nothing when the keydown originates from an input element', () => {
+    const { onNavigate } = renderWithFamilies();
+
+    // Open the sequence panel — our jest.mock above renders an <input> in its
+    // place, giving us a real input inside the dialog's React tree.
+    fireEvent.click(screen.getByTestId('button-toggle-sequence-fam-1'));
+    const input = screen.getByTestId('seq-panel-input');
+    expect(input.tagName).toBe('INPUT');
+
+    fireEvent.keyDown(input, { key: 'ArrowRight' });
+    fireEvent.keyDown(input, { key: 'ArrowLeft' });
+    fireEvent.keyDown(input, { key: 'ArrowDown' });
+    fireEvent.keyDown(input, { key: 'ArrowUp' });
+
+    expect(onNavigate).not.toHaveBeenCalled();
+    // Active family must remain the first one (ArrowDown was suppressed).
+    expect(screen.getByTestId('family-nav-row-fam-1')).toHaveAttribute(
+      'aria-selected',
+      'true'
+    );
+    expect(screen.getByTestId('family-nav-row-fam-2')).toHaveAttribute(
+      'aria-selected',
+      'false'
+    );
   });
 });
 
