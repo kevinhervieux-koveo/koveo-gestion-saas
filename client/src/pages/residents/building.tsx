@@ -81,7 +81,7 @@ function MyBuilding({ organizationId, showBackButton, backButtonLabel, onBack }:
   if (isLoadingBuildings) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title={t('myBuildings')} subtitle={t('viewAccessibleBuildingsAndDocuments')} />
+        <Header title={t('myBuilding')} subtitle={t('viewAccessibleBuildingsAndDocuments')} />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-6xl mx-auto'>
             <div className='text-center py-8'>
@@ -97,7 +97,7 @@ function MyBuilding({ organizationId, showBackButton, backButtonLabel, onBack }:
   if (error) {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
-        <Header title={t('myBuildings')} subtitle={t('viewAccessibleBuildingsAndDocuments')} />
+        <Header title={t('myBuilding')} subtitle={t('viewAccessibleBuildingsAndDocuments')} />
         <div className='flex-1 overflow-auto p-6'>
           <div className='max-w-6xl mx-auto'>
             <Card>
@@ -119,7 +119,7 @@ function MyBuilding({ organizationId, showBackButton, backButtonLabel, onBack }:
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title={t('myBuildings')} subtitle={t('viewAccessibleBuildingsAndDocuments')} />
+      <Header title={t('myBuilding')} subtitle={t('viewAccessibleBuildingsAndDocuments')} />
 
       {showBackButton && onBack && (
         <div className='border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60'>
@@ -203,4 +203,5 @@ function MyBuilding({ organizationId, showBackButton, backButtonLabel, onBack }:
 // Export the component wrapped with hierarchical selection
 export default withHierarchicalSelection(MyBuilding, {
   hierarchy: ['organization'],
+  titleKey: 'myBuilding',
 });
