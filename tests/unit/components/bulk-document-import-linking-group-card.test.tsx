@@ -23,7 +23,7 @@
  */
 
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
-import { render, screen, cleanup, act } from '@testing-library/react';
+import { render, screen, cleanup, act, fireEvent, within, waitFor } from '@testing-library/react';
 import { QueryClientProvider } from '@tanstack/react-query';
 import '@testing-library/jest-dom';
 import React from 'react';
@@ -227,7 +227,39 @@ const fetchMock = jest.fn(async (input: RequestInfo | URL, init?: RequestInit): 
     }
   }
 
-  // No mutations are exercised by these read-only rendering tests.
+  // Linking persistence: when the page POSTs the batch decisions,
+  // apply them to the in-memory `items` fixture so the subsequent
+  // refetch (triggered by onSuccess → invalidateQueries) returns the
+  // new server-of-record order.  Otherwise the page would clear its
+  // optimistic overrides and revert the chain to the original order
+  // before the break-group assertions can run.
+  if (
+    method === 'POST' &&
+    pathname ===
+      `/api/admin/bulk-import/sessions/${SESSION_ID}/batch-set-linking-decisions`
+  ) {
+    try {
+      const body = init?.body
+        ? JSON.parse(typeof init.body === 'string' ? init.body : String(init.body))
+        : { decisions: [] };
+      const decisions: Array<{
+        itemId: string;
+        beforeItemId: string | null;
+        afterItemId: string | null;
+      }> = body?.decisions ?? [];
+      for (const d of decisions) {
+        const it = items.find((i) => i.id === d.itemId);
+        if (!it) continue;
+        it.linkingBeforeItemId = d.beforeItemId;
+        it.linkingAfterItemId = d.afterItemId;
+        it.linkingManualOverride = true;
+      }
+    } catch {
+      /* tolerate parse failures — handler returns ok regardless */
+    }
+    return jsonResponse({ ok: true });
+  }
+
   if (method !== 'GET') {
     return jsonResponse({ ok: true });
   }
@@ -534,4 +566,192 @@ describe('BulkDocumentImportPage — Linking Manual badge (Task #1233/#1242)', (
     expect(header).toHaveTextContent('Chain · 3 files');
     expect(header).not.toHaveTextContent('Manual');
   });
+});
+
+// =============================================================================
+// 3. Break-group button (Task #1281)
+// =============================================================================
+
+describe('BulkDocumentImportPage — Linking Break-group button (Task #1281)', () => {
+  // The flow does several async hops (initial lite poll → break click →
+  // mutation fetch).  Give the test a generous timeout (15s) — passed
+  // as the third argument to `it` because `jest.setTimeout()` only
+  // affects subsequent tests.
+  it('renders the break-group button and persists null/null for every chain member when clicked', async () => {
+    renderPage();
+    // Wait for the break-group button to appear — only rendered once
+    // the chain group card has been resolved and laid out.
+    const breakBtn = await screen.findByTestId(
+      `linking-break-group-${ITEM_HEAD}`,
+      undefined,
+      { timeout: 4000 },
+    );
+    await flushAsyncEffects();
+
+    expect(breakBtn).toHaveAttribute('aria-label', 'Break chain');
+    expect(breakBtn).toHaveTextContent('Break chain');
+    // Sanity: the chain rows really exist on the page before the click.
+    for (const id of [ITEM_HEAD, ITEM_MID, ITEM_TAIL]) {
+      expect(screen.getByTestId(`linking-row-${id}`)).toBeInTheDocument();
+    }
+
+    // Re-query the button immediately before clicking. The page does
+    // multiple async settles between mount and "ready", and the live
+    // group card may have been re-keyed/re-rendered during the lite
+    // poll, leaving the original reference detached from the DOM.
+    const liveBreakBtn = screen.getByTestId(
+      `linking-break-group-${ITEM_HEAD}`,
+    );
+    expect(liveBreakBtn.isConnected).toBe(true);
+    expect(liveBreakBtn).not.toBeDisabled();
+
+    await act(async () => {
+      fireEvent.click(liveBreakBtn);
+    });
+    await flushAsyncEffects();
+
+    // The handler synchronously updates the aria-live announcement
+    // *after* the optimistic `applyLinkingChanges` call, so seeing the
+    // expected EN copy in the live region proves the click handler ran
+    // to completion (and the optimistic state was queued).
+    const liveRegion = document.querySelector(
+      '[role="status"][aria-live="polite"]',
+    );
+    expect(liveRegion).not.toBeNull();
+    expect(liveRegion!.textContent).toBe(
+      'Chain broken — 3 files now standalone',
+    );
+
+    // The persistence mutation runs asynchronously — fetch() resolves on
+    // a later microtask.  Wait until the batch endpoint has been hit,
+    // then inspect the request body.
+    function getPersistenceCalls() {
+      return fetchMock.mock.calls.filter(([input, init]) => {
+        const url =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : (input as Request).url;
+        const method = (init?.method || 'GET').toUpperCase();
+        return (
+          method === 'POST' &&
+          url.includes(
+            `/sessions/${SESSION_ID}/batch-set-linking-decisions`,
+          )
+        );
+      });
+    }
+    await waitFor(
+      () => {
+        expect(getPersistenceCalls().length).toBeGreaterThanOrEqual(1);
+      },
+      { timeout: 8000 },
+    );
+    const persistenceCalls = getPersistenceCalls();
+    const [, init] = persistenceCalls[0]!;
+    const body = JSON.parse(
+      typeof init?.body === 'string' ? init.body : String(init?.body),
+    );
+    const decisions: Array<{
+      itemId: string;
+      beforeItemId: string | null;
+      afterItemId: string | null;
+    }> = body?.decisions ?? [];
+    const decisionIds = decisions.map((d) => d.itemId).sort();
+    expect(decisionIds).toEqual([ITEM_HEAD, ITEM_MID, ITEM_TAIL].sort());
+    for (const d of decisions) {
+      expect(d.beforeItemId).toBeNull();
+      expect(d.afterItemId).toBeNull();
+    }
+
+    // UI outcome: optimistic update should remove the chain group card
+    // and surface every former member as a standalone row (each item
+    // still renders a `linking-row-position-*` testid, just no longer
+    // nested inside the group container).
+    await waitFor(
+      () => {
+        expect(
+          screen.queryByTestId(`linking-group-${ITEM_HEAD}`),
+        ).not.toBeInTheDocument();
+      },
+      { timeout: 4000 },
+    );
+    for (const id of [ITEM_HEAD, ITEM_MID, ITEM_TAIL]) {
+      expect(
+        screen.getByTestId(`linking-row-position-${id}`),
+      ).toBeInTheDocument();
+    }
+  }, 15000);
+
+  it('renders the FR aria-label and live-region copy when language is fr', async () => {
+    currentLanguage = 'fr';
+    try {
+      renderPage();
+      const breakBtn = await screen.findByTestId(
+        `linking-break-group-${ITEM_HEAD}`,
+        undefined,
+        { timeout: 4000 },
+      );
+      await flushAsyncEffects();
+
+      expect(breakBtn).toHaveAttribute('aria-label', 'Dissocier la chaîne');
+      expect(breakBtn).toHaveTextContent('Dissocier la chaîne');
+
+      const liveBreakBtn = screen.getByTestId(
+        `linking-break-group-${ITEM_HEAD}`,
+      );
+      await act(async () => {
+        fireEvent.click(liveBreakBtn);
+      });
+      await flushAsyncEffects();
+
+      const liveRegion = document.querySelector(
+        '[role="status"][aria-live="polite"]',
+      );
+      expect(liveRegion).not.toBeNull();
+      expect(liveRegion!.textContent).toBe(
+        'Chaîne dissociée — 3 fichiers désormais autonomes',
+      );
+    } finally {
+      currentLanguage = 'en';
+    }
+  }, 15000);
+
+  it('activates the break-group button via keyboard (Enter)', async () => {
+    renderPage();
+    const breakBtn = await screen.findByTestId(
+      `linking-break-group-${ITEM_HEAD}`,
+      undefined,
+      { timeout: 4000 },
+    );
+    await flushAsyncEffects();
+
+    // Native <button> elements activate their click handler on
+    // Enter / Space keypresses; firing a `click` event after focus
+    // mirrors what assistive technologies trigger when activating the
+    // control via the keyboard.  We additionally assert focusability.
+    const liveBreakBtn = screen.getByTestId(
+      `linking-break-group-${ITEM_HEAD}`,
+    );
+    liveBreakBtn.focus();
+    expect(document.activeElement).toBe(liveBreakBtn);
+
+    await act(async () => {
+      fireEvent.keyDown(liveBreakBtn, { key: 'Enter', code: 'Enter' });
+      // jsdom does not auto-fire `click` on Enter for buttons, so emit
+      // it explicitly to model the platform behaviour observed in real
+      // browsers when a focused <button> receives Enter.
+      fireEvent.click(liveBreakBtn);
+    });
+    await flushAsyncEffects();
+
+    const liveRegion = document.querySelector(
+      '[role="status"][aria-live="polite"]',
+    );
+    expect(liveRegion).not.toBeNull();
+    expect(liveRegion!.textContent).toBe(
+      'Chain broken — 3 files now standalone',
+    );
+  }, 15000);
 });

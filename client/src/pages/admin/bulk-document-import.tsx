@@ -70,6 +70,7 @@ import {
   RefreshCw,
   GripVertical,
   Link2,
+  Link2Off,
 } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
 import { StandaloneDatePicker } from '@/components/common/DatePickerField';
@@ -88,6 +89,7 @@ import {
   resolveLinkingGroups,
   computeLinkingDropChanges,
   computeLinkingMakeStandaloneChanges,
+  computeLinkingBreakGroupChanges,
 } from './bulk-import-linking-groups';
 import type { LinkingGroup } from './bulk-import-linking-groups';
 import {
@@ -3649,6 +3651,23 @@ export default function BulkDocumentImportPage() {
   }
 
   /**
+   * Detaches every member of a chain at once: each member becomes
+   * standalone (before = null, after = null).  Used by the "Break group"
+   * button in the chain header.
+   */
+  function handleLinkingBreakGroup(itemIds: string[]) {
+    const changes = computeLinkingBreakGroupChanges(itemIds, getLinkingEffective);
+    if (changes.length === 0) return;
+    applyLinkingChanges(changes);
+    const count = changes.length;
+    setLinkingAnnouncement(
+      isFr
+        ? `Chaîne dissociée — ${count} fichier${count > 1 ? 's' : ''} désormais autonome${count > 1 ? 's' : ''}`
+        : `Chain broken — ${count} file${count > 1 ? 's' : ''} now standalone`,
+    );
+  }
+
+  /**
    * Keyboard DnD for linking rows: ArrowUp/Down moves within a group,
    * ArrowLeft makes the item standalone, ArrowRight joins the next group.
    */
@@ -5661,6 +5680,21 @@ export default function BulkDocumentImportPage() {
                                 {isFr ? 'Manuel' : 'Manual'}
                               </Badge>
                             )}
+                            <Button
+                              size="sm"
+                              variant="ghost"
+                              className="h-6 px-2 text-xs ml-auto"
+                              data-testid={`linking-break-group-${group.id}`}
+                              aria-label={isFr ? 'Dissocier la chaîne' : 'Break chain'}
+                              onClick={() =>
+                                handleLinkingBreakGroup(group.items.map((gi) => gi.id))
+                              }
+                            >
+                              <Link2Off className="h-3.5 w-3.5" />
+                              <span className="ml-1">
+                                {isFr ? 'Dissocier la chaîne' : 'Break chain'}
+                              </span>
+                            </Button>
                           </div>
 
                           {/* Group item rows */}

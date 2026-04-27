@@ -286,3 +286,25 @@ export function computeLinkingMakeStandaloneChanges(
 
   return Array.from(changes.entries()).map(([itemId, v]) => ({ itemId, ...v }));
 }
+
+/**
+ * Pure computation behind "Break group" / `handleLinkingBreakGroup`.
+ *
+ * Detaches every member of a chain at once: each item ends up with
+ * `beforeItemId: null, afterItemId: null`.  Items that are already
+ * standalone (both pointers null) are skipped so the persisted batch
+ * contains only real diffs.  Returns an empty array when no item in
+ * `itemIds` is currently linked.
+ */
+export function computeLinkingBreakGroupChanges(
+  itemIds: string[],
+  getEffective: (id: string) => LinkingEffective,
+): LinkingChange[] {
+  const out: LinkingChange[] = [];
+  for (const id of itemIds) {
+    const eff = getEffective(id);
+    if (eff.before === null && eff.after === null) continue;
+    out.push({ itemId: id, beforeItemId: null, afterItemId: null });
+  }
+  return out;
+}

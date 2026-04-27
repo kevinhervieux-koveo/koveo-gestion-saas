@@ -13,6 +13,7 @@ import { describe, it, expect } from '@jest/globals';
 import {
   computeLinkingDropChanges,
   computeLinkingMakeStandaloneChanges,
+  computeLinkingBreakGroupChanges,
   type LinkingChange,
   type LinkingEffective,
 } from '@/pages/admin/bulk-import-linking-groups';
@@ -256,5 +257,67 @@ describe('computeLinkingMakeStandaloneChanges', () => {
     const changes = byId(computeLinkingMakeStandaloneChanges('c', get));
     expect(changes['c']).toEqual({ itemId: 'c', beforeItemId: null, afterItemId: null });
     expect(changes['b']).toEqual({ itemId: 'b', beforeItemId: 'a', afterItemId: null });
+  });
+});
+
+describe('computeLinkingBreakGroupChanges (Task #1281)', () => {
+  it('returns three null/null changes for a 3-item chain', () => {
+    // chain: a → b → c.  Break-group on [a,b,c] → all three become standalone.
+    const get = makeGetEffective({
+      a: { after: 'b' },
+      b: { before: 'a', after: 'c' },
+      c: { before: 'b' },
+    });
+    const changes = byId(computeLinkingBreakGroupChanges(['a', 'b', 'c'], get));
+    expect(changes['a']).toEqual({ itemId: 'a', beforeItemId: null, afterItemId: null });
+    expect(changes['b']).toEqual({ itemId: 'b', beforeItemId: null, afterItemId: null });
+    expect(changes['c']).toEqual({ itemId: 'c', beforeItemId: null, afterItemId: null });
+  });
+
+  it('returns two null/null changes for a 2-item chain', () => {
+    // chain: a → b.  Break-group on [a,b] → both standalone.
+    const get = makeGetEffective({
+      a: { after: 'b' },
+      b: { before: 'a' },
+    });
+    const result = computeLinkingBreakGroupChanges(['a', 'b'], get);
+    expect(result).toHaveLength(2);
+    const changes = byId(result);
+    expect(changes['a']).toEqual({ itemId: 'a', beforeItemId: null, afterItemId: null });
+    expect(changes['b']).toEqual({ itemId: 'b', beforeItemId: null, afterItemId: null });
+  });
+
+  it('only emits diffs for still-linked members of a partially-broken chain', () => {
+    // a is already standalone (broken from chain). b → c is still linked.
+    // Break-group on [a, b, c] → only b and c are emitted.
+    const get = makeGetEffective({
+      a: {},
+      b: { after: 'c' },
+      c: { before: 'b' },
+    });
+    const result = computeLinkingBreakGroupChanges(['a', 'b', 'c'], get);
+    expect(result).toHaveLength(2);
+    const changes = byId(result);
+    expect(changes['a']).toBeUndefined();
+    expect(changes['b']).toEqual({ itemId: 'b', beforeItemId: null, afterItemId: null });
+    expect(changes['c']).toEqual({ itemId: 'c', beforeItemId: null, afterItemId: null });
+  });
+
+  it('returns an empty array when every member is already standalone', () => {
+    // All standalone → no diffs at all.
+    const get = makeGetEffective({ a: {}, b: {}, c: {} });
+    expect(computeLinkingBreakGroupChanges(['a', 'b', 'c'], get)).toEqual([]);
+  });
+
+  it('returns an empty array for a non-existent chain (unknown ids)', () => {
+    // Unknown ids resolve to before=null/after=null via the fallback in
+    // makeGetEffective, so they're treated as standalone and skipped.
+    const get = makeGetEffective({});
+    expect(computeLinkingBreakGroupChanges(['nope1', 'nope2'], get)).toEqual([]);
+  });
+
+  it('returns an empty array for an empty input list', () => {
+    const get = makeGetEffective({ a: { after: 'b' }, b: { before: 'a' } });
+    expect(computeLinkingBreakGroupChanges([], get)).toEqual([]);
   });
 });
