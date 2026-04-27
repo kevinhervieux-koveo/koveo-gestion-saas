@@ -113,9 +113,40 @@ import {
 } from '../../helpers/queryClientIsolation';
 
 // jest.config.cjs sets a global testTimeout of 3000ms. Each individual
-// test in this file finishes well under 1s on its own, so the global
-// timeout is fine after Task #1535's split. We bump it modestly here
-// only as a safety net for slower CI runners.
+// test in this file finishes well under 1s on its own, but the wizard
+// is large and rendering+unmounting it 11 times accumulates jsdom
+// slowness — the last EN test pushes past the 3s ceiling on slower CI
+// runners. Bump the per-file timeout so the suite stays deterministic.
+//
+// Task #1545 — Previously this file ran the EN/FR step matrix as two
+// `it` blocks that each looped over all five AI steps, sharing a single
+// jsdom + queryClient across the loop. The 5th iteration (linking)
+// drifted past the 4 s `findByTestId` timeout in two ways:
+//   (a) Radix AlertDialog portals leaked between iterations (the FR
+//       loop in particular never closed the dialog before tearing
+//       down), so portal-cleanup time piled up across iterations.
+//   (b) Each render had to wait for the `/lite` query (`isLoading`
+//       gates the page-level spinner at line 4746 of the wizard) to
+//       resolve through fetchMock + jsdom + TanStack's microtask
+//       chain. By the 10th render that round-trip was still finishing
+//       *just* past the 4 s deadline on slower CI runners — only when
+//       FR linking happened to land at the back of the test file.
+//
+// Two changes pin the suite down:
+//   1. `describe.each` splits the matrix into one `it` per step so
+//      every test starts from a freshly-reset queryClient, jsdom DOM,
+//      and Radix portal scope (the file-level afterEach handles the
+//      cleanup).
+//   2. `renderPage()` pre-seeds the `/lite` query cache via
+//      `queryClient.setQueryData` so `loadingSession` is `false` on
+//      first render and the page-level spinner never shows up. This
+//      makes the wizard's auto-mount and reset-step UI available on
+//      the very first commit instead of waiting for fetchMock to
+//      resolve through TanStack's pending → fetching → success state
+//      machine.
+// Combined, every step renders against a pristine, already-hydrated
+// wizard and the 15 s per-step budget below is the true safety net
+// rather than the actual measured budget.
 jest.setTimeout(15000);
 
 // Task #1535 — every test gets a fresh session id so a late-resolving
@@ -382,6 +413,17 @@ afterEach(async () => {
 });
 
 function renderPage() {
+  // Task #1545 — Pre-seed the lite session query before mounting so the
+  // wizard's `loadingSession` flag is `false` on first render and the
+  // page-level loading spinner never shows. Without this, TanStack
+  // Query has to walk the pending → fetching → success state machine
+  // off the fetchMock promise, and on slower CI runners that round
+  // trip can still be in flight when `findResetButton`'s 4s deadline
+  // fires (especially for the last test in the file).
+  queryClient.setQueryData(
+    ['/api/admin/bulk-import/sessions', SESSION_ID, 'lite'],
+    buildSessionPayload(),
+  );
   return render(
     <QueryClientProvider client={queryClient}>
       <BulkDocumentImportPage />
@@ -390,15 +432,23 @@ function renderPage() {
 }
 
 async function findResetButton(step: AutoStep): Promise<HTMLElement> {
-  const button = await screen.findByTestId(
-    `auto-run-reset-step-${step}`,
-    undefined,
-    { timeout: 4000 },
+  // Wait for the button to both exist AND be enabled. We re-query the
+  // node inside `waitFor` rather than holding a reference from the
+  // initial `findByTestId` because the wizard's auto-mount run-all
+  // mutation may flip the button between disabled (`runAll.isPending`
+  // true) and enabled across several React commits, and React can
+  // unmount/remount the surrounding row while the row's loading state
+  // changes — which leaves a stale DOM reference whose `disabled`
+  // attribute will never update.
+  let button: HTMLElement | null = null;
+  await waitFor(
+    () => {
+      button = screen.getByTestId(`auto-run-reset-step-${step}`);
+      expect(button).toBeEnabled();
+    },
+    { timeout: 8000 },
   );
-  // Wait for the auto-mount /run-all mutation to settle so the button
-  // is no longer disabled by `runAll.isPending`.
-  await waitFor(() => expect(button).toBeEnabled(), { timeout: 4000 });
-  return button;
+  return button!;
 }
 
 interface ResetStepCall {
@@ -439,15 +489,15 @@ function getResetStepCalls(): ResetStepCall[] {
 }
 
 describe('BulkDocumentImportPage — "Retry step from scratch" button (Task #1074)', () => {
-  // Task #1535 — Each AI step is now its own `it.each` test so jsdom
-  // state is fully reset between iterations via the file-level
-  // `beforeEach`/`afterEach`. Previously a single `it` rendered the
-  // wizard 5 times in a loop and the 5th iteration (linking) timed
-  // out because accumulated jsdom + Radix portal + queryClient state
-  // left the page stuck on its loading spinner.
-  it.each(AI_STEPS)(
-    'opens the EN dialog at the %s step with the right step name and posts to /reset-step on confirm',
-    async (step) => {
+  // Task #1545 — One `it` per AI step instead of a single test that
+  // loops over the whole matrix. Each step now starts from a freshly
+  // reset queryClient, jsdom DOM, and Radix portal scope (the file-
+  // level afterEach handles the cleanup), which keeps the 5th
+  // (`linking`) iteration from inheriting the slowness/leaked nodes
+  // that previously made `findByTestId('auto-run-reset-step-linking')`
+  // miss its 4 s deadline.
+  describe.each(AI_STEPS)('EN — step "%s"', (step) => {
+    it('opens the dialog with the right step name and posts to /reset-step on confirm', async () => {
       mockLanguage = 'en';
       scenarioStep = step;
 
@@ -511,13 +561,65 @@ describe('BulkDocumentImportPage — "Retry step from scratch" button (Task #107
       await waitFor(() => {
         expect(screen.queryByTestId('reset-step-dialog')).toBeNull();
       });
-    },
-  );
+    });
+  });
 
-  // FR coverage lives in
-  // `bulk-document-import-reset-step-fr.test.tsx` so each jsdom
-  // session stays well below the empirical position-10 ceiling
-  // (Task #1535).
+  describe.each(AI_STEPS)('FR — step "%s"', (step) => {
+    it('opens the FR dialog with the right step name', async () => {
+      mockLanguage = 'fr';
+      scenarioStep = step;
+
+      renderPage();
+      const resetButton = await findResetButton(step);
+
+      await act(async () => {
+        fireEvent.click(resetButton);
+      });
+
+      const dialog = await screen.findByTestId(
+        'reset-step-dialog',
+        undefined,
+        { timeout: 4000 },
+      );
+
+      expect(
+        within(dialog).getByText("Reprendre l'étape à zéro ?"),
+      ).toBeInTheDocument();
+
+      // FR body — Task #1421: Linking uses a different description (FR)
+      // that explains existing-platform links are preserved. We check
+      // the body text via the aria-describedby paragraph rather than
+      // within(dialog) to side-step Radix portal scope edge-cases.
+      const descId = dialog.getAttribute('aria-describedby');
+      const descEl = descId ? document.getElementById(descId) : null;
+      const descText = descEl?.textContent ?? '';
+      if (step === 'linking') {
+        // Linking-specific FR copy: in-session groupings cleared, existing
+        // platform doc links preserved.
+        expect(descText).toMatch(/famille et voisin/);
+        expect(descText).toMatch(/conserv/);
+      } else {
+        expect(descText).toMatch(/Toutes les d/);
+        expect(descText).toContain(`« ${STEP_LABEL_FR[step]} »`);
+        expect(descText).toContain("L'analyse red");
+      }
+
+      const confirmButton = within(dialog).getByTestId('reset-step-confirm');
+      expect(confirmButton).toHaveTextContent("Reprendre l'étape");
+
+      // Task #1545 — Close the dialog before the file-level afterEach
+      // runs so the Radix portal nodes are reaped via the normal
+      // unmount path rather than via the document.body.innerHTML reset.
+      // (Confirm-then-close is the EN test's job; FR only verifies copy.)
+      const cancelButton = within(dialog).getByTestId('reset-step-cancel');
+      await act(async () => {
+        fireEvent.click(cancelButton);
+      });
+      await waitFor(() => {
+        expect(screen.queryByTestId('reset-step-dialog')).toBeNull();
+      });
+    });
+  });
 
   it('cancel closes the dialog without firing the reset-step mutation', async () => {
     scenarioStep = 'screening';
