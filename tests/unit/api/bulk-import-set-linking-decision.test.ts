@@ -311,6 +311,58 @@ describe('POST /api/admin/bulk-import/items/:id/set-linking-decision (Task #1233
     });
   });
 
+  /**
+   * Task #1376 — Idempotency guard.
+   *
+   * When a client emits a decision for an item that is already in the
+   * requested final state (e.g. due to a racing re-run or a network
+   * retry after a successful write), the server must silently accept
+   * it with 200 instead of running the bidirectional consistency
+   * guard and rejecting.  No DB write should fire because the row's
+   * persisted `beforeItemId` / `afterItemId` already match.
+   */
+  it('Task #1376: redundant decision matching the persisted state is accepted silently with no DB write', async () => {
+    // doc-a is already linked to doc-b with a fully consistent chain.
+    seedItem('doc-a', SESSION, { beforeItemId: null, afterItemId: 'doc-b', manualOverride: true });
+    seedItem('doc-b', SESSION, { beforeItemId: 'doc-a', afterItemId: null, manualOverride: true });
+
+    const snapshotA = JSON.parse(JSON.stringify(itemStore.get('doc-a')!));
+    mockDb.update.mockClear();
+
+    // Re-emit the exact same decision a second time.
+    const res = await request(buildApp())
+      .post(ITEM_URL('doc-a'))
+      .send({ beforeItemId: null, afterItemId: 'doc-b' })
+      .expect(200);
+
+    // Response reflects the current persisted row.
+    expect(res.body.linkDecisions.beforeItemId).toBeNull();
+    expect(res.body.linkDecisions.afterItemId).toBe('doc-b');
+    // No DB write fired — the request short-circuited as a no-op ack.
+    expect(mockDb.update).not.toHaveBeenCalled();
+    // The persisted row was not touched (manualOverride flag preserved as-is).
+    expect(itemStore.get('doc-a')!.linkDecisions).toEqual(snapshotA.linkDecisions);
+  });
+
+  it('Task #1376: redundant null/null decision on a row that was never linked is also a no-op', async () => {
+    // doc-a was never linked (linkDecisions === null). The client's
+    // decision is the zero-state {null, null} — already the persisted
+    // shape — so no write should fire.
+    seedItem('doc-a', SESSION, null);
+
+    mockDb.update.mockClear();
+
+    const res = await request(buildApp())
+      .post(ITEM_URL('doc-a'))
+      .send({ beforeItemId: null, afterItemId: null })
+      .expect(200);
+
+    expect(res.body.id).toBe('doc-a');
+    expect(mockDb.update).not.toHaveBeenCalled();
+    // Row is unchanged — linkDecisions stays null.
+    expect(itemStore.get('doc-a')!.linkDecisions).toBeNull();
+  });
+
   it('Task #1254: rejects setting beforeItemId when the target does not point back', async () => {
     seedItem('doc-a', SESSION, { beforeItemId: null, afterItemId: null });
     seedItem('doc-b', SESSION, null);

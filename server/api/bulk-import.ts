@@ -6317,6 +6317,39 @@ export function registerBulkImportRoutes(app: Express): void {
           return res.status(404).json({ error: 'Item not found' });
         }
 
+        // Task #1376 — Idempotency guard.
+        //
+        // The bidirectional consistency guard below relies on the
+        // client sweeping every stale neighbor in lock-step.  When a
+        // client retries a decision for an item that is *already* in
+        // the requested final state (a racing re-run, a network retry
+        // after a successful write, etc.), the proposed pointers are a
+        // no-op for this row — there is nothing to write.  Returning
+        // 200 silently in that case avoids a spurious 4xx that would
+        // otherwise force the client to recover from a write that
+        // already succeeded.  We compare *only* the `beforeItemId` /
+        // `afterItemId` pair; the `manualOverride` stamp is irrelevant
+        // to the desired-state check because the row's chain shape is
+        // already correct either way.
+        const currentLd = (item.linkDecisions ?? {}) as Record<string, unknown>;
+        const currentBefore =
+          (currentLd.beforeItemId as string | null | undefined) ?? null;
+        const currentAfter =
+          (currentLd.afterItemId as string | null | undefined) ?? null;
+        if (currentBefore === beforeItemId && currentAfter === afterItemId) {
+          logDebug('[bulk-import] route exit POST set-linking-decision ok idempotent no-op', {
+            metadata: {
+              itemId,
+              beforeItemId,
+              afterItemId,
+              status: 200,
+              idempotent: true,
+              durationMs: Date.now() - t0,
+            },
+          });
+          return res.json(item);
+        }
+
         // Load all items in the session for validation and cycle detection.
         const sessionItems = await db
           .select({ id: schema.bulkImportItems.id, linkDecisions: schema.bulkImportItems.linkDecisions })
