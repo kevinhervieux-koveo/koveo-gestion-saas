@@ -252,9 +252,10 @@ export default function UserManagement() {
     },
   });
 
-  // Extract users and pagination info from response
-  // Ensure users is always an array, even if API returns unexpected data
-  const users = Array.isArray(usersResponse?.users) ? usersResponse.users : [];
+  // Extract users and pagination info from response.
+  // `/api/users` always returns `{ users: UserWithAssignments[], pagination: … }`;
+  // fall back to an empty array only if the response hasn't arrived yet.
+  const users = usersResponse?.users ?? [];
   const paginationInfo = usersResponse?.pagination;
 
   // Fetch dynamic filter options
@@ -444,7 +445,7 @@ export default function UserManagement() {
 
   // Organization context detection for role filtering
   const userOrganizationContext = useMemo(() => {
-    if (!currentUser || !organizations || !Array.isArray(organizations) || !users || !Array.isArray(users)) return null;
+    if (!currentUser || !organizations || !Array.isArray(organizations)) return null;
 
     // Get current user's organization assignments - if not in current page, we'll skip for admin
     const currentUserWithAssignments = users.find(u => u.id === currentUser.id);
@@ -515,7 +516,7 @@ export default function UserManagement() {
     // Manager role assignment restrictions
     if (role === 'manager') {
       // Check if editing user has demo organizations
-      if (editingUser && users && Array.isArray(users)) {
+      if (editingUser) {
         const editingUserWithAssignments = users.find(u => u.id === editingUser.id);
         if (editingUserWithAssignments?.organizations && Array.isArray(editingUserWithAssignments.organizations)) {
           const editingUserHasDemoOrgs = editingUserWithAssignments.organizations.some(org => {

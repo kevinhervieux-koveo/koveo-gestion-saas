@@ -43,7 +43,6 @@ import { useToast } from '@/hooks/use-toast';
 import {
   buildPermissionsMatrixView,
   coerceRolePermissionIds,
-  coerceToArray,
 } from './permissions-data';
 
 // Permissions config reference for display purposes
@@ -143,14 +142,13 @@ export default function Permissions() {
     queryKey: ['/api/user-permissions'],
   });
 
-  // Fetch users — `/api/users` returns `{ users: User[] }` in production
-  // but is consumed here as a flat `User[]`. Coerce defensively so a
-  // wrapped response (or any other unexpected shape) cannot crash the
-  // page on `.filter()` like it did in the original regression.
-  const { data: usersRaw, isLoading: usersLoading } = useQuery<unknown>({
+  // Fetch users — `/api/users` returns `{ users: User[], pagination: … }`.
+  // Read the list directly from the `users` field; fall back to an empty
+  // array so downstream `.filter()` calls never see a non-array value.
+  const { data: usersData, isLoading: usersLoading } = useQuery<{ users: User[] }>({
     queryKey: ['/api/users'],
   });
-  const users: User[] = coerceToArray<User>(usersRaw);
+  const users: User[] = usersData?.users ?? [];
 
   const isLoading = matrixLoading || userPermissionsLoading || usersLoading;
 
