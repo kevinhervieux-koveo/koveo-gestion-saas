@@ -177,8 +177,11 @@ beforeEach(() => {
 
 describe('POST /api/admin/bulk-import/items/:id/set-linking-decision (Task #1233)', () => {
   it('links two unrelated items: sets afterItemId and stamps manualOverride', async () => {
+    // Pre-seed doc-b with the matching back-pointer so that adding
+    // doc-a.after = doc-b leaves the chain bidirectionally consistent
+    // (Task #1254 — the per-item endpoint refuses half-updates).
     seedItem('doc-a', SESSION, null);
-    seedItem('doc-b', SESSION, null);
+    seedItem('doc-b', SESSION, { beforeItemId: 'doc-a', afterItemId: null });
 
     const res = await request(buildApp())
       .post(ITEM_URL('doc-a'))
@@ -192,10 +195,12 @@ describe('POST /api/admin/bulk-import/items/:id/set-linking-decision (Task #1233
     expect(itemStore.get('doc-a')!.linkDecisions?.afterItemId).toBe('doc-b');
   });
 
-  it('breaks a middle item out of a chain: clears both before and after', async () => {
-    seedItem('doc-a', SESSION, { beforeItemId: null, afterItemId: 'doc-b', manualOverride: true });
+  it('clears both pointers when the neighbors no longer reference the item', async () => {
+    // doc-b has stale pointers but its former neighbors have already
+    // been detached.  Clearing doc-b restores a fully consistent state.
+    seedItem('doc-a', SESSION, { beforeItemId: null, afterItemId: null });
     seedItem('doc-b', SESSION, { beforeItemId: 'doc-a', afterItemId: 'doc-c', manualOverride: true });
-    seedItem('doc-c', SESSION, { beforeItemId: 'doc-b', afterItemId: null, manualOverride: true });
+    seedItem('doc-c', SESSION, { beforeItemId: null, afterItemId: null });
 
     const res = await request(buildApp())
       .post(ITEM_URL('doc-b'))
@@ -251,6 +256,75 @@ describe('POST /api/admin/bulk-import/items/:id/set-linking-decision (Task #1233
       .expect(404);
 
     expect(res.body.error).toMatch(/not found/i);
+  });
+
+  /**
+   * Task #1254 — bidirectional consistency rejection on the per-item
+   * endpoint.  A buggy/malicious client must not be able to persist a
+   * row whose new pointer targets a neighbor that does not point back.
+   */
+  it('Task #1254: rejects setting afterItemId when the target does not point back', async () => {
+    seedItem('doc-a', SESSION, null);
+    // doc-b's beforeItemId is null, so setting doc-a.after = doc-b
+    // would leave doc-a.after = doc-b without doc-b.before = doc-a.
+    seedItem('doc-b', SESSION, { beforeItemId: null, afterItemId: null });
+
+    const snapshotA = JSON.parse(JSON.stringify(itemStore.get('doc-a')!));
+    const snapshotB = JSON.parse(JSON.stringify(itemStore.get('doc-b')!));
+
+    const res = await request(buildApp())
+      .post(ITEM_URL('doc-a'))
+      .send({ beforeItemId: null, afterItemId: 'doc-b' })
+      .expect(400);
+
+    expect(res.body.error).toMatch(/bidirectional inconsistency/i);
+    expect(res.body.error).toContain('doc-a');
+    expect(res.body.error).toContain('doc-b');
+    // Critically: no row was mutated.
+    expect(itemStore.get('doc-a')!.linkDecisions).toEqual(snapshotA.linkDecisions);
+    expect(itemStore.get('doc-b')!.linkDecisions).toEqual(snapshotB.linkDecisions);
+  });
+
+  it('Task #1254: rejects clearing a middle item that would orphan its neighbors', async () => {
+    // Properly-linked chain doc-a → doc-b → doc-c.
+    seedItem('doc-a', SESSION, { beforeItemId: null, afterItemId: 'doc-b', manualOverride: true });
+    seedItem('doc-b', SESSION, { beforeItemId: 'doc-a', afterItemId: 'doc-c', manualOverride: true });
+    seedItem('doc-c', SESSION, { beforeItemId: 'doc-b', afterItemId: null, manualOverride: true });
+
+    const snapshots = ['doc-a', 'doc-b', 'doc-c'].map((id) =>
+      JSON.parse(JSON.stringify(itemStore.get(id)!)),
+    );
+
+    // Per-item endpoint cannot atomically rewire doc-a and doc-c, so
+    // clearing doc-b would leave doc-a.after = doc-b (and doc-c.before
+    // = doc-b) dangling.  The endpoint must refuse the change.
+    const res = await request(buildApp())
+      .post(ITEM_URL('doc-b'))
+      .send({ beforeItemId: null, afterItemId: null })
+      .expect(400);
+
+    expect(res.body.error).toMatch(/bidirectional inconsistency/i);
+    // No row touched.
+    ['doc-a', 'doc-b', 'doc-c'].forEach((id, i) => {
+      expect(itemStore.get(id)!.linkDecisions).toEqual(snapshots[i].linkDecisions);
+    });
+  });
+
+  it('Task #1254: rejects setting beforeItemId when the target does not point back', async () => {
+    seedItem('doc-a', SESSION, { beforeItemId: null, afterItemId: null });
+    seedItem('doc-b', SESSION, null);
+
+    const snapshotA = JSON.parse(JSON.stringify(itemStore.get('doc-a')!));
+
+    // Setting doc-b.before = doc-a, but doc-a.after stays null.
+    const res = await request(buildApp())
+      .post(ITEM_URL('doc-b'))
+      .send({ beforeItemId: 'doc-a', afterItemId: null })
+      .expect(400);
+
+    expect(res.body.error).toMatch(/bidirectional inconsistency/i);
+    expect(itemStore.get('doc-a')!.linkDecisions).toEqual(snapshotA.linkDecisions);
+    expect(itemStore.get('doc-b')!.linkDecisions).toBeNull();
   });
 });
 
@@ -327,6 +401,74 @@ describe('POST /api/admin/bulk-import/sessions/:id/batch-set-linking-decisions (
       .expect(404);
 
     expect(res.body.error).toMatch(/session not found/i);
+  });
+
+  /**
+   * Task #1254 — bidirectional consistency rejection on the batch
+   * endpoint.  The batch contract is that the client sends matched
+   * dual-side updates; if it doesn't, the server must refuse and roll
+   * back the entire transaction so storage stays consistent.
+   */
+  it('Task #1254: rejects a batch that sets afterItemId on one row without the matching back-pointer', async () => {
+    seedItem('doc-a', SESSION, null);
+    seedItem('doc-b', SESSION, null);
+    seedItem('doc-c', SESSION, null);
+
+    const snapshots = ['doc-a', 'doc-b', 'doc-c'].map((id) =>
+      JSON.parse(JSON.stringify(itemStore.get(id)!)),
+    );
+
+    // Half-update: doc-a.after = doc-b is set but doc-b.before is left
+    // untouched (null).  The batch must be refused atomically.
+    const res = await request(buildApp())
+      .post(BATCH_URL(SESSION))
+      .send({
+        decisions: [
+          { itemId: 'doc-a', beforeItemId: null, afterItemId: 'doc-b' },
+        ],
+      })
+      .expect(400);
+
+    expect(res.body.error).toMatch(/bidirectional inconsistency/i);
+    expect(res.body.error).toContain('doc-a');
+    expect(res.body.error).toContain('doc-b');
+    // No row was mutated — the all-or-nothing contract holds.
+    ['doc-a', 'doc-b', 'doc-c'].forEach((id, i) => {
+      expect(itemStore.get(id)!.linkDecisions).toEqual(snapshots[i].linkDecisions);
+    });
+  });
+
+  it('Task #1254: rejects a batch that orphans a former neighbor (source-chain not stitched)', async () => {
+    // Source chain doc-a → doc-b → doc-c.
+    seedItem('doc-a', SESSION, { beforeItemId: null, afterItemId: 'doc-b', manualOverride: true });
+    seedItem('doc-b', SESSION, { beforeItemId: 'doc-a', afterItemId: 'doc-c', manualOverride: true });
+    seedItem('doc-c', SESSION, { beforeItemId: 'doc-b', afterItemId: null, manualOverride: true });
+    // Standalone target.
+    seedItem('doc-x', SESSION, null);
+
+    const snapshots = ['doc-a', 'doc-b', 'doc-c', 'doc-x'].map((id) =>
+      JSON.parse(JSON.stringify(itemStore.get(id)!)),
+    );
+
+    // Buggy client moves doc-b after doc-x but forgets to stitch
+    // doc-a and doc-c back together.  After the proposed change:
+    //   doc-a.after = doc-b (stale) but doc-b.before = doc-x.
+    //   doc-c.before = doc-b (stale) but doc-b.after = null.
+    // The endpoint must refuse before any row is touched.
+    const res = await request(buildApp())
+      .post(BATCH_URL(SESSION))
+      .send({
+        decisions: [
+          { itemId: 'doc-x', beforeItemId: null, afterItemId: 'doc-b' },
+          { itemId: 'doc-b', beforeItemId: 'doc-x', afterItemId: null },
+        ],
+      })
+      .expect(400);
+
+    expect(res.body.error).toMatch(/bidirectional inconsistency/i);
+    ['doc-a', 'doc-b', 'doc-c', 'doc-x'].forEach((id, i) => {
+      expect(itemStore.get(id)!.linkDecisions).toEqual(snapshots[i].linkDecisions);
+    });
   });
 });
 

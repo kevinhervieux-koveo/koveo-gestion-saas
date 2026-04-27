@@ -5996,6 +5996,51 @@ export function registerBulkImportRoutes(app: Express): void {
           }
         }
 
+        // Task #1254 — Bidirectional consistency guard.
+        //
+        // Build the proposed final before/after pointer maps for every
+        // row in the session (current persisted state with the proposed
+        // change overlaid) and verify that every non-null pointer is
+        // mirrored on the neighbor: `X.afterItemId = Y` iff
+        // `Y.beforeItemId = X`.  This stops a buggy/malicious caller
+        // from persisting half-updates that leave a row pointing at a
+        // neighbor that no longer (or never did) point back, even when
+        // the resulting graph happens to be acyclic.
+        const proposedBefore = new Map<string, string | null>();
+        const proposedAfter = new Map<string, string | null>();
+        for (const si of sessionItems) {
+          const ld = (si.linkDecisions ?? {}) as Record<string, unknown>;
+          proposedBefore.set(si.id, (ld.beforeItemId as string | null | undefined) ?? null);
+          proposedAfter.set(si.id, (ld.afterItemId as string | null | undefined) ?? null);
+        }
+        proposedBefore.set(itemId, beforeItemId);
+        proposedAfter.set(itemId, afterItemId);
+
+        for (const [id, after] of proposedAfter) {
+          if (after === null) continue;
+          const targetBefore = proposedBefore.get(after) ?? null;
+          if (targetBefore !== id) {
+            logDebug('[bulk-import] route exit POST set-linking-decision status 400 bidirectional', {
+              metadata: { itemId, violatingId: id, after, targetBefore, status: 400, durationMs: Date.now() - t0 },
+            });
+            return res.status(400).json({
+              error: `Bidirectional inconsistency: item ${id} has afterItemId = ${after} but item ${after}.beforeItemId is not ${id}`,
+            });
+          }
+        }
+        for (const [id, before] of proposedBefore) {
+          if (before === null) continue;
+          const targetAfter = proposedAfter.get(before) ?? null;
+          if (targetAfter !== id) {
+            logDebug('[bulk-import] route exit POST set-linking-decision status 400 bidirectional', {
+              metadata: { itemId, violatingId: id, before, targetAfter, status: 400, durationMs: Date.now() - t0 },
+            });
+            return res.status(400).json({
+              error: `Bidirectional inconsistency: item ${id} has beforeItemId = ${before} but item ${before}.afterItemId is not ${id}`,
+            });
+          }
+        }
+
         // Persist the override.
         const existing = (item.linkDecisions ?? {}) as Record<string, unknown>;
         const nextLinkDecisions: Record<string, unknown> = {
@@ -6128,6 +6173,53 @@ export function registerBulkImportRoutes(app: Express): void {
             cursor = afterMap.get(cursor);
           }
           for (const id of path) globalVisited.add(id);
+        }
+
+        // Task #1254 — Bidirectional consistency guard.
+        //
+        // Build the proposed final before/after pointer maps for every
+        // row in the session (current persisted state with the proposed
+        // changes overlaid) and verify that every non-null pointer is
+        // mirrored on the neighbor: `X.afterItemId = Y` iff
+        // `Y.beforeItemId = X`.  This stops a buggy/malicious caller
+        // from persisting half-updates that leave a row pointing at a
+        // neighbor that no longer (or never did) point back, even when
+        // the resulting graph happens to be acyclic.
+        const proposedBefore = new Map<string, string | null>();
+        const proposedAfter = new Map<string, string | null>();
+        for (const si of sessionItems) {
+          const ld = (si.linkDecisions ?? {}) as Record<string, unknown>;
+          proposedBefore.set(si.id, (ld.beforeItemId as string | null | undefined) ?? null);
+          proposedAfter.set(si.id, (ld.afterItemId as string | null | undefined) ?? null);
+        }
+        for (const d of decisions) {
+          proposedBefore.set(d.itemId, d.beforeItemId);
+          proposedAfter.set(d.itemId, d.afterItemId);
+        }
+
+        for (const [id, after] of proposedAfter) {
+          if (after === null) continue;
+          const targetBefore = proposedBefore.get(after) ?? null;
+          if (targetBefore !== id) {
+            logDebug('[bulk-import] batch-set-linking-decisions: bidirectional inconsistency', {
+              metadata: { sessionId, violatingId: id, after, targetBefore, status: 400, durationMs: Date.now() - t0 },
+            });
+            return res.status(400).json({
+              error: `Bidirectional inconsistency: item ${id} has afterItemId = ${after} but item ${after}.beforeItemId is not ${id}`,
+            });
+          }
+        }
+        for (const [id, before] of proposedBefore) {
+          if (before === null) continue;
+          const targetAfter = proposedAfter.get(before) ?? null;
+          if (targetAfter !== id) {
+            logDebug('[bulk-import] batch-set-linking-decisions: bidirectional inconsistency', {
+              metadata: { sessionId, violatingId: id, before, targetAfter, status: 400, durationMs: Date.now() - t0 },
+            });
+            return res.status(400).json({
+              error: `Bidirectional inconsistency: item ${id} has beforeItemId = ${before} but item ${before}.afterItemId is not ${id}`,
+            });
+          }
         }
 
         // Apply all changes in a single transaction.
