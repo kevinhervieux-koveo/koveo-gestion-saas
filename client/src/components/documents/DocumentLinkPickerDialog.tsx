@@ -16,6 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
 import { parseDateOnlyLoose } from '@/lib/utils';
+import { getSystemFamilyDisplay } from '@/lib/system-family-display';
 
 interface SuggestionItem {
   document: {
@@ -175,16 +176,19 @@ export function DocumentLinkPickerDialog({
                 <SelectValue placeholder={t('linkFamilyPlaceholder') || 'Select a family…'} />
               </SelectTrigger>
               <SelectContent>
-                {families.map((f) => (
-                  <SelectItem key={f.id} value={f.id}>
-                    <span className="flex items-center gap-1.5">
-                      {f.name}
-                      {f.isSystem && (
-                        <span className="text-[10px] text-muted-foreground">(Koveo)</span>
-                      )}
-                    </span>
-                  </SelectItem>
-                ))}
+                {families.map((f) => {
+                  const display = getSystemFamilyDisplay(f, t);
+                  return (
+                    <SelectItem key={f.id} value={f.id}>
+                      <span className="flex items-center gap-1.5">
+                        {display.name}
+                        {f.isSystem && (
+                          <span className="text-[10px] text-muted-foreground">(Koveo)</span>
+                        )}
+                      </span>
+                    </SelectItem>
+                  );
+                })}
                 {families.length === 0 && (
                   <SelectItem value="__none__" disabled>
                     {t('linkFamilyNone') || 'No families available'}

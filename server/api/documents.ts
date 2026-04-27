@@ -4775,6 +4775,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
         familyId: f.family.id,
         familyName: f.family.name,
         familyDescription: f.family.description ?? null,
+        familyIsSystem: f.family.isSystem,
         previous: f.previous.document
           ? {
               id: f.previous.document.id,

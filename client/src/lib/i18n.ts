@@ -4232,6 +4232,7 @@ export interface Translations {
   lfSectionHeading: string;
   lfSectionDescription: string;
   lfCreateButton: string;
+  lfSearchPlaceholder: string;
   lfSystemCardTitle: string;
   lfCustomCardTitle: string;
   lfDialogEditTitle: string;
@@ -4250,6 +4251,58 @@ export interface Translations {
   lfToastDeletedTitle: string;
   lfToastErrorTitle: string;
   lfDeleteConfirm: string;
+  sfNameSequence: string;
+  sfDescSequence: string;
+  sfNameFinancial: string;
+  sfDescFinancial: string;
+  sfNameMeetingsAGA: string;
+  sfDescMeetingsAGA: string;
+  sfNameContracts: string;
+  sfDescContracts: string;
+  sfNameMaintenance: string;
+  sfDescMaintenance: string;
+  sfNameDeclarationCopropriete: string;
+  sfDescDeclarationCopropriete: string;
+  sfNameReglementsImmeuble: string;
+  sfDescReglementsImmeuble: string;
+  sfNameCertificatLocalisation: string;
+  sfDescCertificatLocalisation: string;
+  sfNameEtudeFondsPrevoyance: string;
+  sfDescEtudeFondsPrevoyance: string;
+  sfNameCarnetEntretien: string;
+  sfDescCarnetEntretien: string;
+  sfNameProcesVerbauxCA: string;
+  sfDescProcesVerbauxCA: string;
+  sfNameAvisCoproprietaires: string;
+  sfDescAvisCoproprietaires: string;
+  sfNameEtatsFinanciers: string;
+  sfDescEtatsFinanciers: string;
+  sfNameBudgetsAnnuels: string;
+  sfDescBudgetsAnnuels: string;
+  sfNameCotisationsSpeciales: string;
+  sfDescCotisationsSpeciales: string;
+  sfNameAssurances: string;
+  sfDescAssurances: string;
+  sfNameSinistres: string;
+  sfDescSinistres: string;
+  sfNamePermisAutorisations: string;
+  sfDescPermisAutorisations: string;
+  sfNameInspectionsImmeuble: string;
+  sfDescInspectionsImmeuble: string;
+  sfNameTravauxMajeurs: string;
+  sfDescTravauxMajeurs: string;
+  sfNameBaux: string;
+  sfDescBaux: string;
+  sfNameDossierCoproprietaire: string;
+  sfDescDossierCoproprietaire: string;
+  sfNameMutationsVentes: string;
+  sfDescMutationsVentes: string;
+  sfNameProceduresJuridiques: string;
+  sfDescProceduresJuridiques: string;
+  sfNameEvaluationsMunicipales: string;
+  sfDescEvaluationsMunicipales: string;
+  sfNameServicesPublics: string;
+  sfDescServicesPublics: string;
   linkFamilyLabel: string;
   linkFamilyPlaceholder: string;
   linkFamilyNone: string;
@@ -8526,6 +8579,7 @@ export const translations: Record<Language, Translations> = {
     lfSectionHeading: 'Link Families',
     lfSectionDescription: 'Link families group documents into independent reading sequences. A document can belong to multiple families (e.g. Financial, AGA). In the viewer, ← / → navigates within the active family and ↑ / ↓ switches between families.',
     lfCreateButton: 'New family',
+    lfSearchPlaceholder: 'Search families…',
     lfSystemCardTitle: 'Koveo families',
     lfCustomCardTitle: 'Custom families',
     lfDialogEditTitle: 'Edit link family',
@@ -8544,6 +8598,58 @@ export const translations: Record<Language, Translations> = {
     lfToastDeletedTitle: 'Family deleted',
     lfToastErrorTitle: 'Error',
     lfDeleteConfirm: 'Delete family "{name}"?',
+    sfNameSequence: 'Sequence',
+    sfDescSequence: 'General sequential order (e.g. version history or reading order)',
+    sfNameFinancial: 'Financial',
+    sfDescFinancial: 'Financial documents linked in chronological order (budgets, statements)',
+    sfNameMeetingsAGA: 'Meetings (AGA)',
+    sfDescMeetingsAGA: 'Annual general assembly minutes and related documents',
+    sfNameContracts: 'Contracts',
+    sfDescContracts: 'Contracts and amendments linked across versions or renewals',
+    sfNameMaintenance: 'Maintenance',
+    sfDescMaintenance: 'Maintenance reports, inspections, and follow-up documents',
+    sfNameDeclarationCopropriete: 'Declaration of co-ownership',
+    sfDescDeclarationCopropriete: 'Versions and amendments of the founding act registered at the land registry',
+    sfNameReglementsImmeuble: 'Building bylaws',
+    sfDescReglementsImmeuble: 'Adoption and amendments of internal building bylaws',
+    sfNameCertificatLocalisation: 'Certificate of location',
+    sfDescCertificatLocalisation: 'Successive certificates of location issued for the building',
+    sfNameEtudeFondsPrevoyance: 'Contingency fund study',
+    sfDescEtudeFondsPrevoyance: 'Quinquennial contingency fund studies and updates (Bill 16)',
+    sfNameCarnetEntretien: 'Maintenance logbook',
+    sfDescCarnetEntretien: 'Entries and updates of the official maintenance logbook (Bill 16)',
+    sfNameProcesVerbauxCA: 'Board meeting minutes',
+    sfDescProcesVerbauxCA: 'Board meeting minutes and resolutions (distinct from the AGM chain)',
+    sfNameAvisCoproprietaires: 'Notices to co-owners',
+    sfDescAvisCoproprietaires: 'Official notices: convocations, assessment notices, art. 1069 notices, etc.',
+    sfNameEtatsFinanciers: 'Financial statements',
+    sfDescEtatsFinanciers: 'Annual financial statements, review engagements, and audit reports',
+    sfNameBudgetsAnnuels: 'Annual budgets',
+    sfDescBudgetsAnnuels: 'Yearly budget approvals and revisions',
+    sfNameCotisationsSpeciales: 'Special assessments',
+    sfDescCotisationsSpeciales: 'Life cycle of a special assessment: resolution → notice → releases',
+    sfNameAssurances: 'Insurance',
+    sfDescAssurances: 'Annual insurance policy renewals and endorsements',
+    sfNameSinistres: 'Insurance claims & losses',
+    sfDescSinistres: 'A single loss event: declaration → expert reports → settlement',
+    sfNamePermisAutorisations: 'Permits & authorizations',
+    sfDescPermisAutorisations: 'Municipal permits and amendments tied to a project',
+    sfNameInspectionsImmeuble: 'Building inspections',
+    sfDescInspectionsImmeuble: 'Recurring façade, roof, garage, elevator, and environment inspections',
+    sfNameTravauxMajeurs: 'Major works',
+    sfDescTravauxMajeurs: 'Full project life: bids → contract → amendments → progress payments → releases',
+    sfNameBaux: 'Leases',
+    sfDescBaux: 'Lease renewals per rental unit (TAL-compliant chain)',
+    sfNameDossierCoproprietaire: 'Resident file',
+    sfDescDossierCoproprietaire: 'Per-resident document history',
+    sfNameMutationsVentes: 'Unit sales & transfers',
+    sfDescMutationsVentes: 'Documents tied to a unit sale: art. 1069 certificate, charges statement, notary follow-up',
+    sfNameProceduresJuridiques: 'Legal proceedings',
+    sfDescProceduresJuridiques: 'Life of a dispute: demand letter → proceedings → judgment → enforcement',
+    sfNameEvaluationsMunicipales: 'Municipal assessments & taxes',
+    sfDescEvaluationsMunicipales: 'Annual assessment roll and tax bills',
+    sfNameServicesPublics: 'Utilities',
+    sfDescServicesPublics: 'Recurring utility bill series (Hydro, gas, water, telecom) per account/meter',
     linkFamilyLabel: 'Family',
     linkFamilyPlaceholder: 'Select a family…',
     linkFamilyNone: 'No families available',
@@ -12825,6 +12931,7 @@ export const translations: Record<Language, Translations> = {
     lfSectionHeading: 'Familles de liens',
     lfSectionDescription: 'Les familles de liens regroupent des documents en séquences de lecture indépendantes. Un document peut appartenir à plusieurs familles (ex. : Financier, AGA). Dans le visualiseur, ← / → navigue au sein de la famille active et ↑ / ↓ change de famille.',
     lfCreateButton: 'Nouvelle famille',
+    lfSearchPlaceholder: 'Rechercher des familles…',
     lfSystemCardTitle: 'Familles Koveo',
     lfCustomCardTitle: 'Familles personnalisées',
     lfDialogEditTitle: 'Modifier la famille de liens',
@@ -12843,6 +12950,58 @@ export const translations: Record<Language, Translations> = {
     lfToastDeletedTitle: 'Famille supprimée',
     lfToastErrorTitle: 'Erreur',
     lfDeleteConfirm: 'Supprimer la famille « {name} » ?',
+    sfNameSequence: 'Séquence',
+    sfDescSequence: 'Ordre séquentiel général (ex. : historique de versions ou ordre de lecture)',
+    sfNameFinancial: 'Finances',
+    sfDescFinancial: 'Documents financiers liés en ordre chronologique (budgets, états financiers)',
+    sfNameMeetingsAGA: 'Assemblées (AGA)',
+    sfDescMeetingsAGA: 'Procès-verbaux d\'assemblées générales annuelles et documents connexes',
+    sfNameContracts: 'Contrats',
+    sfDescContracts: 'Contrats et avenants liés entre versions ou renouvellements',
+    sfNameMaintenance: 'Entretien',
+    sfDescMaintenance: 'Rapports d\'entretien, inspections et documents de suivi',
+    sfNameDeclarationCopropriete: 'Déclaration de copropriété',
+    sfDescDeclarationCopropriete: 'Versions et modifications de l\'acte constitutif inscrit au Registre foncier',
+    sfNameReglementsImmeuble: 'Règlements de l\'immeuble',
+    sfDescReglementsImmeuble: 'Adoption et modifications des règlements internes de l\'immeuble',
+    sfNameCertificatLocalisation: 'Certificat de localisation',
+    sfDescCertificatLocalisation: 'Certificats de localisation successifs délivrés pour l\'immeuble',
+    sfNameEtudeFondsPrevoyance: 'Étude du fonds de prévoyance',
+    sfDescEtudeFondsPrevoyance: 'Études quinquennales du fonds de prévoyance et mises à jour (Loi 16)',
+    sfNameCarnetEntretien: 'Carnet d\'entretien',
+    sfDescCarnetEntretien: 'Entrées et mises à jour du carnet d\'entretien officiel (Loi 16)',
+    sfNameProcesVerbauxCA: 'Procès-verbaux du conseil d\'administration',
+    sfDescProcesVerbauxCA: 'Procès-verbaux et résolutions du CA (distincte de la chaîne AGA)',
+    sfNameAvisCoproprietaires: 'Avis aux copropriétaires',
+    sfDescAvisCoproprietaires: 'Avis officiels : convocations, avis de cotisation, avis art. 1069, etc.',
+    sfNameEtatsFinanciers: 'États financiers',
+    sfDescEtatsFinanciers: 'États financiers annuels, missions d\'examen et rapports de vérification',
+    sfNameBudgetsAnnuels: 'Budgets annuels',
+    sfDescBudgetsAnnuels: 'Approbations et révisions du budget annuel',
+    sfNameCotisationsSpeciales: 'Cotisations spéciales',
+    sfDescCotisationsSpeciales: 'Cycle de vie d\'une cotisation spéciale : résolution → avis → quittances',
+    sfNameAssurances: 'Assurances',
+    sfDescAssurances: 'Renouvellements annuels de police d\'assurance et avenants',
+    sfNameSinistres: 'Sinistres et réclamations',
+    sfDescSinistres: 'Un sinistre de bout en bout : déclaration → expertises → règlement',
+    sfNamePermisAutorisations: 'Permis et autorisations',
+    sfDescPermisAutorisations: 'Permis municipaux et modifications liés à un projet',
+    sfNameInspectionsImmeuble: 'Inspections de l\'immeuble',
+    sfDescInspectionsImmeuble: 'Inspections périodiques : façade, toiture, garage, ascenseur, environnement',
+    sfNameTravauxMajeurs: 'Travaux majeurs',
+    sfDescTravauxMajeurs: 'Cycle complet : soumissions → contrat → avenants → décompte progressif → quittances',
+    sfNameBaux: 'Baux',
+    sfDescBaux: 'Renouvellements de bail par logement locatif (chaîne conforme TAL)',
+    sfNameDossierCoproprietaire: 'Dossier de copropriétaire / locataire',
+    sfDescDossierCoproprietaire: 'Historique documentaire par résident',
+    sfNameMutationsVentes: 'Mutations et ventes',
+    sfDescMutationsVentes: 'Documents liés à la vente d\'une unité : attestation art. 1069, état des charges, suivi notaire',
+    sfNameProceduresJuridiques: 'Procédures juridiques',
+    sfDescProceduresJuridiques: 'Cycle d\'un litige : mise en demeure → procédures → jugement → exécution',
+    sfNameEvaluationsMunicipales: 'Évaluations municipales et taxes',
+    sfDescEvaluationsMunicipales: 'Rôle d\'évaluation annuel et comptes de taxes',
+    sfNameServicesPublics: 'Services publics',
+    sfDescServicesPublics: 'Séries de factures récurrentes (Hydro, gaz, eau, télécom) par compte/compteur',
     linkFamilyLabel: 'Famille',
     linkFamilyPlaceholder: 'Sélectionner une famille…',
     linkFamilyNone: 'Aucune famille disponible',

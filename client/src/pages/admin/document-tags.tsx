@@ -41,13 +41,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Tag as TagIcon, Plus, Pencil, Trash2, Lock, Link2 } from 'lucide-react';
+import { Tag as TagIcon, Plus, Pencil, Trash2, Lock, Link2, Search } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Header } from '@/components/layout/header';
 import type { DocumentTag } from '@/components/document-tags/TagPicker';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
+import { getSystemFamilyDisplay } from '@/lib/system-family-display';
 
 // ─── Tag form schema ──────────────────────────────────────────────────────────
 
@@ -221,6 +222,7 @@ export default function AdminDocumentTags() {
   // ── Link families ─────────────────────────────────────────────────────────
   const [familyDialogOpen, setFamilyDialogOpen] = useState(false);
   const [editingFamily, setEditingFamily] = useState<LinkFamily | null>(null);
+  const [familySearch, setFamilySearch] = useState('');
 
   const { data: familyData, isLoading: familiesLoading } = useQuery<{ families: LinkFamily[] }>({
     queryKey: ['/api/document-link-families'],
@@ -320,8 +322,19 @@ export default function AdminDocumentTags() {
   };
 
   const families = familyData?.families ?? [];
-  const systemFamilies = families.filter((f) => f.isSystem);
-  const customFamilies = families.filter((f) => !f.isSystem);
+
+  const familyMatchesSearch = (f: LinkFamily): boolean => {
+    const q = familySearch.trim().toLowerCase();
+    if (!q) return true;
+    const display = getSystemFamilyDisplay(f, t);
+    return (
+      f.name.toLowerCase().includes(q) ||
+      display.name.toLowerCase().includes(q)
+    );
+  };
+
+  const systemFamilies = families.filter((f) => f.isSystem && familyMatchesSearch(f));
+  const customFamilies = families.filter((f) => !f.isSystem && familyMatchesSearch(f));
 
   return (
     <div className="flex-1">
@@ -428,6 +441,17 @@ export default function AdminDocumentTags() {
             {t('lfSectionDescription') ||
               'Link families group documents into independent reading sequences. A document can belong to multiple families (e.g. Financial, AGA). In the viewer, ← / → navigates within the active family and ↑ / ↓ switches between families.'}
           </p>
+
+          <div className="relative max-w-xs">
+            <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+            <Input
+              className="pl-8"
+              placeholder={t('lfSearchPlaceholder') || 'Search families…'}
+              value={familySearch}
+              onChange={(e) => setFamilySearch(e.target.value)}
+              data-testid="input-family-search"
+            />
+          </div>
 
           <Card>
             <CardHeader>
@@ -849,7 +873,7 @@ function TagsTable({
 
 // ─── Families table ───────────────────────────────────────────────────────────
 
-function FamiliesTable({
+export function FamiliesTable({
   families,
   isLoading,
   readOnly,
@@ -864,55 +888,59 @@ function FamiliesTable({
   onDelete?: (f: LinkFamily) => void;
   readOnlyText?: string;
 }) {
-  if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
-  if (families.length === 0) return <p className="text-muted-foreground">No families yet.</p>;
+  const { t } = useLanguage();
+  if (isLoading) return <p className="text-muted-foreground">{t('dtLoading')}</p>;
+  if (families.length === 0) return <p className="text-muted-foreground">{t('dtEmpty')}</p>;
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>Name</TableHead>
-          <TableHead>Description</TableHead>
-          <TableHead className="text-right">Actions</TableHead>
+          <TableHead>{t('dtColName')}</TableHead>
+          <TableHead>{t('lfDescriptionLabel')}</TableHead>
+          <TableHead className="text-right">{t('dtColActions')}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
-        {families.map((f) => (
-          <TableRow key={f.id} data-testid={`row-family-${f.id}`}>
-            <TableCell>
-              <div className="flex items-center gap-2">
-                {f.isSystem && <Lock className="w-3 h-3 text-muted-foreground" />}
-                <span className="font-medium">{f.name}</span>
-              </div>
-            </TableCell>
-            <TableCell className="text-sm text-muted-foreground">
-              {f.description || '—'}
-            </TableCell>
-            <TableCell className="text-right">
-              {!readOnly && onEdit && onDelete ? (
-                <div className="flex justify-end gap-1">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onEdit(f)}
-                    data-testid={`button-edit-family-${f.id}`}
-                  >
-                    <Pencil className="w-4 h-4" />
-                  </Button>
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() => onDelete(f)}
-                    data-testid={`button-delete-family-${f.id}`}
-                  >
-                    <Trash2 className="w-4 h-4 text-destructive" />
-                  </Button>
+        {families.map((f) => {
+          const display = getSystemFamilyDisplay(f, t);
+          return (
+            <TableRow key={f.id} data-testid={`row-family-${f.id}`}>
+              <TableCell>
+                <div className="flex items-center gap-2">
+                  {f.isSystem && <Lock className="w-3 h-3 text-muted-foreground" />}
+                  <span className="font-medium">{display.name}</span>
                 </div>
-              ) : (
-                <span className="text-xs text-muted-foreground">{readOnlyText ?? 'Read-only'}</span>
-              )}
-            </TableCell>
-          </TableRow>
-        ))}
+              </TableCell>
+              <TableCell className="text-sm text-muted-foreground">
+                {display.description || '—'}
+              </TableCell>
+              <TableCell className="text-right">
+                {!readOnly && onEdit && onDelete ? (
+                  <div className="flex justify-end gap-1">
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onEdit(f)}
+                      data-testid={`button-edit-family-${f.id}`}
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => onDelete(f)}
+                      data-testid={`button-delete-family-${f.id}`}
+                    >
+                      <Trash2 className="w-4 h-4 text-destructive" />
+                    </Button>
+                  </div>
+                ) : (
+                  <span className="text-xs text-muted-foreground">{readOnlyText ?? t('dtReadOnly')}</span>
+                )}
+              </TableCell>
+            </TableRow>
+          );
+        })}
       </TableBody>
     </Table>
   );

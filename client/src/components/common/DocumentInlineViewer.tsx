@@ -21,6 +21,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { DocumentLinkPickerDialog } from '@/components/documents/DocumentLinkPickerDialog';
 import { DocumentSequencePanel } from '@/components/documents/DocumentSequencePanel';
 import { parseDateOnlyLoose } from '@/lib/utils';
+import { getSystemFamilyDisplay } from '@/lib/system-family-display';
 
 export interface ChainSibling {
   id: string;
@@ -55,6 +56,7 @@ interface FamilyRow {
   familyId: string;
   familyName: string;
   familyDescription: string | null;
+  familyIsSystem: boolean;
   previous: NeighborInfo | null;
   previousIsChainEnd: boolean;
   next: NeighborInfo | null;
@@ -312,9 +314,17 @@ export function DocumentInlineViewer({
         )}
 
         {/* Family label */}
-        <span className="text-xs font-medium text-muted-foreground shrink-0 min-w-[80px] max-w-[100px] truncate" title={family.familyDescription ?? family.familyName}>
-          {family.familyName}
-        </span>
+        {(() => {
+          const display = getSystemFamilyDisplay(
+            { name: family.familyName, description: family.familyDescription, isSystem: family.familyIsSystem ?? false },
+            t,
+          );
+          return (
+            <span className="text-xs font-medium text-muted-foreground shrink-0 min-w-[80px] max-w-[100px] truncate" title={display.description ?? display.name}>
+              {display.name}
+            </span>
+          );
+        })()}
 
         {/* Previous side */}
         <div className="flex items-center gap-1 flex-1 min-w-0">
@@ -507,7 +517,7 @@ export function DocumentInlineViewer({
             <DocumentSequencePanel
               documentId={documentId}
               familyId={activeFamily.familyId}
-              familyName={activeFamily.familyName}
+              familyName={getSystemFamilyDisplay({ name: activeFamily.familyName, description: activeFamily.familyDescription, isSystem: activeFamily.familyIsSystem ?? false }, t).name}
               onNavigate={onNavigate}
               className="w-80 shrink-0 border-l overflow-y-auto bg-background"
             />
