@@ -348,28 +348,191 @@ export function registerBulkImportTools(
             break;
           }
           case 'link': {
-            const candidates = await db
+            // Task #1268 — Bidirectionally consistent AI link writes.
+            //
+            // The analyzer's per-item suggestion only updates this item's
+            // pointer. If we wrote it as-is, the neighbor row would still
+            // be missing the matching back-pointer, which means the new
+            // bidirectional guard added in Task #1254 would later reject
+            // any admin edit through `set-linking-decision` /
+            // `batch-set-linking-decisions`. To keep the wizard editable
+            // after the AI run, we mirror the suggestion onto the
+            // neighbor and detach any previously-pointing rows so every
+            // chain we persist satisfies `X.afterItemId = Y ⟺ Y.beforeItemId = X`.
+            const sessionRows = await db
               .select({
                 id: schema.bulkImportItems.id,
                 name: schema.bulkImportItems.originalName,
+                linkDecisions: schema.bulkImportItems.linkDecisions,
               })
               .from(schema.bulkImportItems)
               .where(eq(schema.bulkImportItems.sessionId, item.sessionId));
-            payload = (await bulkImportAnalyzer.suggestLinks({
+            const sessionItemIds = new Set(sessionRows.map((c) => c.id));
+
+            const rawSuggestion = await bulkImportAnalyzer.suggestLinks({
               originalName: item.originalName,
-              candidates: candidates.filter((c) => c.id !== itemId),
+              candidates: sessionRows
+                .filter((c) => c.id !== itemId)
+                .map((c) => ({ id: c.id, name: c.name })),
               stagedPath: item.stagedPath,
               mimeType: item.mimeType,
-            })) as unknown as Record<string, unknown>;
+            });
+
+            // Sanitize the analyzer's suggestion: drop self-links and
+            // any IDs that don't belong to this session so we never
+            // persist a pointer the bidirectional guard would reject.
+            // `null` here means "AI did not suggest a (valid) value for
+            // this direction" — we then leave the existing pointer
+            // alone instead of clobbering whatever a previous AI run
+            // (or earlier mirror update) already wrote.
+            let sanitizedAfter: string | null =
+              rawSuggestion.afterItemId &&
+              rawSuggestion.afterItemId !== itemId &&
+              sessionItemIds.has(rawSuggestion.afterItemId)
+                ? rawSuggestion.afterItemId
+                : null;
+            let sanitizedBefore: string | null =
+              rawSuggestion.beforeItemId &&
+              rawSuggestion.beforeItemId !== itemId &&
+              sessionItemIds.has(rawSuggestion.beforeItemId)
+                ? rawSuggestion.beforeItemId
+                : null;
+            // before and after pointing at the same neighbor would
+            // either be a self-loop on the neighbor or a 2-cycle once
+            // mirrored — drop the before half to keep things sane.
+            if (sanitizedBefore && sanitizedAfter && sanitizedBefore === sanitizedAfter) {
+              sanitizedBefore = null;
+            }
+
+            // Build proposed before/after maps from current persisted
+            // state, then overlay the new pointers + their mirrors.
+            const proposedBefore = new Map<string, string | null>();
+            const proposedAfter = new Map<string, string | null>();
+            for (const c of sessionRows) {
+              const ld = (c.linkDecisions ?? {}) as Record<string, unknown>;
+              proposedBefore.set(c.id, (ld.beforeItemId as string | null | undefined) ?? null);
+              proposedAfter.set(c.id, (ld.afterItemId as string | null | undefined) ?? null);
+            }
+
+            // Track which rows (other than itemId) need a DB update so
+            // we don't waste writes on untouched neighbors.
+            const dirtyNeighbors = new Set<string>();
+
+            // Set X.afterItemId = Y, mirroring Y.beforeItemId = X and
+            // detaching whatever used to sit on either side.
+            const setForwardEdge = (from: string, to: string | null) => {
+              const prevAfter = proposedAfter.get(from) ?? null;
+              if (prevAfter !== null && prevAfter !== to) {
+                if ((proposedBefore.get(prevAfter) ?? null) === from) {
+                  proposedBefore.set(prevAfter, null);
+                  if (prevAfter !== itemId) dirtyNeighbors.add(prevAfter);
+                }
+              }
+              proposedAfter.set(from, to);
+              if (from !== itemId) dirtyNeighbors.add(from);
+              if (to !== null) {
+                const prevBackOfTo = proposedBefore.get(to) ?? null;
+                if (prevBackOfTo !== null && prevBackOfTo !== from) {
+                  if ((proposedAfter.get(prevBackOfTo) ?? null) === to) {
+                    proposedAfter.set(prevBackOfTo, null);
+                    if (prevBackOfTo !== itemId) dirtyNeighbors.add(prevBackOfTo);
+                  }
+                }
+                proposedBefore.set(to, from);
+                if (to !== itemId) dirtyNeighbors.add(to);
+              }
+            };
+
+            // Set X.beforeItemId = Y by reusing the forward-edge helper
+            // (Y.after = X covers both directions of the mirror) plus a
+            // null-clearing branch that detaches any stale row sitting
+            // behind X.
+            const setBackwardEdge = (to: string, from: string | null) => {
+              if (from !== null) {
+                setForwardEdge(from, to);
+                return;
+              }
+              const prevBack = proposedBefore.get(to) ?? null;
+              if (prevBack !== null) {
+                if ((proposedAfter.get(prevBack) ?? null) === to) {
+                  proposedAfter.set(prevBack, null);
+                  if (prevBack !== itemId) dirtyNeighbors.add(prevBack);
+                }
+              }
+              proposedBefore.set(to, null);
+              if (to !== itemId) dirtyNeighbors.add(to);
+            };
+
+            // Only override pointers the AI gave us a (valid) value
+            // for. A `null` sanitized value means the AI didn't suggest
+            // a neighbor in this direction; the existing pointer (e.g.
+            // a back-pointer that an earlier item's AI run mirrored
+            // onto this row) is left intact so we don't undo it.
+            if (sanitizedAfter !== null) setForwardEdge(itemId, sanitizedAfter);
+            if (sanitizedBefore !== null) setBackwardEdge(itemId, sanitizedBefore);
+
+            // Cycle detection on the proposed forward graph. If the new
+            // after-link would close a cycle (e.g. AI suggested
+            // afterItemId pointing to something already upstream of
+            // itemId), undo it so we don't persist an unsortable chain.
+            const detectCycleFromItem = () => {
+              const seen = new Set<string>();
+              let cursor: string | null = itemId;
+              while (cursor) {
+                if (seen.has(cursor)) {
+                  // The walk re-entered a node it already visited.
+                  // Treat any revisit as a cycle (whether it loops back
+                  // through itemId or just through a neighbor) so the
+                  // proposed graph is guaranteed acyclic.
+                  return true;
+                }
+                seen.add(cursor);
+                cursor = proposedAfter.get(cursor) ?? null;
+              }
+              return false;
+            };
+            if (detectCycleFromItem()) {
+              setForwardEdge(itemId, null);
+              sanitizedAfter = null;
+            }
+
+            // Build the rows to persist. The analyzed item gets the
+            // full AI payload (relatedItemIds, reason, confidence, …)
+            // with the resolved pointers stamped on top; neighbors only
+            // have their before/after pointers rewritten so we don't
+            // clobber any AI/manual fields they already carry.
+            const aiPayloadForItem: Record<string, unknown> = {
+              ...(rawSuggestion as unknown as Record<string, unknown>),
+              beforeItemId: proposedBefore.get(itemId) ?? null,
+              afterItemId: proposedAfter.get(itemId) ?? null,
+            };
+            payload = aiPayloadForItem;
+
             await withRetryableDbCall(() =>
-              db
-                .update(schema.bulkImportItems)
-                .set({
-                  linkDecisions: payload,
-                  status: 'linked',
-                  updatedAt: new Date(),
-                })
-                .where(eq(schema.bulkImportItems.id, itemId)),
+              db.transaction(async (tx) => {
+                await tx
+                  .update(schema.bulkImportItems)
+                  .set({
+                    linkDecisions: aiPayloadForItem,
+                    status: 'linked',
+                    updatedAt: new Date(),
+                  })
+                  .where(eq(schema.bulkImportItems.id, itemId));
+                for (const neighborId of dirtyNeighbors) {
+                  if (neighborId === itemId) continue;
+                  const neighbor = sessionRows.find((c) => c.id === neighborId);
+                  const existing = (neighbor?.linkDecisions ?? {}) as Record<string, unknown>;
+                  const next: Record<string, unknown> = {
+                    ...existing,
+                    beforeItemId: proposedBefore.get(neighborId) ?? null,
+                    afterItemId: proposedAfter.get(neighborId) ?? null,
+                  };
+                  await tx
+                    .update(schema.bulkImportItems)
+                    .set({ linkDecisions: next, updatedAt: new Date() })
+                    .where(eq(schema.bulkImportItems.id, neighborId));
+                }
+              }),
             );
             nextStatus = 'linked';
             break;
