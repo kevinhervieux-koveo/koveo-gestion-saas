@@ -4101,6 +4101,224 @@ export function registerBulkImportRoutes(app: Express): void {
   );
 
   /**
+   * Batched exclude / re-include for the wizard's checkbox toolbar
+   * (Task #1273). Mirrors the per-item PATCH /items/:itemId/exclude
+   * contract for every requested itemId so admins can act on a multi-row
+   * selection without firing one HTTP request per row:
+   *
+   *  - committed and duplicate items are refused (counted under
+   *    `skipped.committed` / `skipped.duplicate`) — never silently flipped;
+   *  - excluding remembers the row's current status as `preExcludeStatus`
+   *    (only when transitioning from non-rejected → rejected);
+   *  - re-including restores `preExcludeStatus` (defaulting to `pending`
+   *    for legacy rows) and clears `preExcludeStatus` + `excludeSource`;
+   *  - the `client_excluded_fingerprints` cache is upserted (excluded=true)
+   *    or deleted (excluded=false) in the same transaction with
+   *    `source='manual'` so cross-session memory stays in lockstep with
+   *    the row state, exactly like the per-item endpoint.
+   *
+   * Returns `{ updated, items, skipped: { committed, duplicate, notFound } }`
+   * so the wizard can show "N excluded, M skipped" feedback after the
+   * batch resolves. All eligible rows are committed in one transaction
+   * so a partial failure rolls everything back.
+   */
+  const bulkExcludeSchema = z.object({
+    itemIds: z.array(z.string().min(1)).min(1).max(500),
+    excluded: z.boolean(),
+  });
+  app.patch(
+    '/api/admin/bulk-import/sessions/:id/items/exclude-bulk',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const sessionId = req.params.id;
+      logDebug('[bulk-import] route entry PATCH /api/admin/bulk-import/sessions/:id/items/exclude-bulk', {
+        metadata: { sessionId, userId: req.user?.id },
+      });
+      try {
+        const { itemIds, excluded } = bulkExcludeSchema.parse(req.body);
+        const session = await loadSession(sessionId);
+        if (!session) {
+          logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/sessions/:id/items/exclude-bulk status 404', {
+            metadata: { sessionId, status: 404, durationMs: Date.now() - t0 },
+          });
+          return res.status(404).json({ error: 'Session not found' });
+        }
+        const allowed = await canUserAccessOrganization(
+          req.user!.id,
+          session.organizationId,
+        );
+        if (!allowed) {
+          logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/sessions/:id/items/exclude-bulk status 403', {
+            metadata: { sessionId, status: 403, durationMs: Date.now() - t0 },
+          });
+          return res.status(403).json({ error: 'You do not have access to this session' });
+        }
+
+        const uniqueIds = Array.from(new Set(itemIds));
+        const rows = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(
+            and(
+              eq(schema.bulkImportItems.sessionId, session.id),
+              inArray(schema.bulkImportItems.id, uniqueIds),
+            ),
+          );
+
+        const foundIds = new Set(rows.map((r) => r.id));
+        const notFound = uniqueIds.filter((id) => !foundIds.has(id)).length;
+        const committedRows = rows.filter((r) => r.status === 'committed');
+        const duplicateRows = rows.filter((r) => r.status === 'duplicate');
+        const eligibleRows = rows.filter(
+          (r) => r.status !== 'committed' && r.status !== 'duplicate',
+        );
+
+        // No-op fast path: nothing eligible to touch.
+        if (eligibleRows.length === 0) {
+          logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/sessions/:id/items/exclude-bulk noop', {
+            metadata: {
+              sessionId,
+              status: 200,
+              updated: 0,
+              skippedCommitted: committedRows.length,
+              skippedDuplicate: duplicateRows.length,
+              skippedNotFound: notFound,
+              durationMs: Date.now() - t0,
+            },
+          });
+          return res.json({
+            updated: 0,
+            items: [],
+            skipped: {
+              committed: committedRows.length,
+              duplicate: duplicateRows.length,
+              notFound,
+            },
+          });
+        }
+
+        const now = new Date();
+        const updatedItems = await db.transaction(async (tx) => {
+          const out: schema.BulkImportItem[] = [];
+          for (const row of eligibleRows) {
+            if (excluded) {
+              // Already excluded: upsert fingerprint (idempotent) and
+              // return the row untouched so the optimistic UI stays in
+              // sync. Mirrors the single-item endpoint's idempotent path.
+              if (row.status === 'rejected') {
+                await tx
+                  .insert(schema.clientExcludedFingerprints)
+                  .values({
+                    organizationId: session.organizationId,
+                    contentHash: row.contentHash,
+                    source: 'manual',
+                  })
+                  .onConflictDoNothing({
+                    target: [
+                      schema.clientExcludedFingerprints.organizationId,
+                      schema.clientExcludedFingerprints.contentHash,
+                    ],
+                  });
+                out.push(row);
+                continue;
+              }
+              const [u] = await tx
+                .update(schema.bulkImportItems)
+                .set({
+                  status: 'rejected',
+                  preExcludeStatus: row.status,
+                  excludeSource: null,
+                  updatedAt: now,
+                })
+                .where(eq(schema.bulkImportItems.id, row.id))
+                .returning();
+              await tx
+                .insert(schema.clientExcludedFingerprints)
+                .values({
+                  organizationId: session.organizationId,
+                  contentHash: row.contentHash,
+                  source: 'manual',
+                })
+                .onConflictDoNothing({
+                  target: [
+                    schema.clientExcludedFingerprints.organizationId,
+                    schema.clientExcludedFingerprints.contentHash,
+                  ],
+                });
+              if (u) out.push(u);
+            } else {
+              // Re-include: only meaningful for currently-rejected rows;
+              // pass-through everything else so the response reflects
+              // the canonical row state without spurious writes.
+              if (row.status !== 'rejected') {
+                out.push(row);
+                continue;
+              }
+              const restored = row.preExcludeStatus ?? 'pending';
+              const [u] = await tx
+                .update(schema.bulkImportItems)
+                .set({
+                  status: restored,
+                  preExcludeStatus: null,
+                  excludeSource: null,
+                  updatedAt: now,
+                })
+                .where(eq(schema.bulkImportItems.id, row.id))
+                .returning();
+              await tx
+                .delete(schema.clientExcludedFingerprints)
+                .where(
+                  and(
+                    eq(schema.clientExcludedFingerprints.organizationId, session.organizationId),
+                    eq(schema.clientExcludedFingerprints.contentHash, row.contentHash),
+                  ),
+                );
+              if (u) out.push(u);
+            }
+          }
+          return out;
+        });
+
+        logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/sessions/:id/items/exclude-bulk ok', {
+          metadata: {
+            sessionId,
+            excluded,
+            status: 200,
+            updated: updatedItems.length,
+            skippedCommitted: committedRows.length,
+            skippedDuplicate: duplicateRows.length,
+            skippedNotFound: notFound,
+            durationMs: Date.now() - t0,
+          },
+        });
+        return res.json({
+          updated: updatedItems.length,
+          items: updatedItems,
+          skipped: {
+            committed: committedRows.length,
+            duplicate: duplicateRows.length,
+            notFound,
+          },
+        });
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/sessions/:id/items/exclude-bulk status 400 zod', {
+            metadata: { sessionId, status: 400, durationMs: Date.now() - t0 },
+          });
+          return res.status(400).json({ error: err.errors });
+        }
+        logError('[bulk-import] bulk exclude/unexclude failed', err as Error);
+        logDebug('[bulk-import] route exit PATCH /api/admin/bulk-import/sessions/:id/items/exclude-bulk status 500', {
+          metadata: { sessionId, status: 500, durationMs: Date.now() - t0 },
+        });
+        return res.status(500).json({ error: 'Failed to bulk update exclusion' });
+      }
+    },
+  );
+
+  /**
    * Reassign a single item's branch destination and sub-category
    * without re-running the AI (Task #768). The existing `branchDecision`
    * blob is preserved except for `branch`, `subCategory`, and a new

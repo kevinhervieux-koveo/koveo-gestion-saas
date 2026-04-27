@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Checkbox } from '@/components/ui/checkbox';
 import {
   Select,
   SelectContent,
@@ -2132,6 +2133,26 @@ export default function BulkDocumentImportPage() {
     setHideReady(false);
   }, [currentStep]);
 
+  // Bulk-selection state (Task #1273). Tracks the set of itemIds the
+  // admin has checked so the floating toolbar can fire Exclude /
+  // Re-include actions against the new batched endpoint. Selection is
+  // cleared whenever the wizard advances to a new step or switches
+  // sessions so stale ids from a different view never sneak into a
+  // bulk request.
+  const [selectedItemIds, setSelectedItemIds] = useState<Set<string>>(new Set());
+  useEffect(() => {
+    setSelectedItemIds(new Set());
+  }, [currentStep, sessionId]);
+  const toggleItemSelection = useCallback((itemId: string, selected: boolean) => {
+    setSelectedItemIds((prev) => {
+      const next = new Set(prev);
+      if (selected) next.add(itemId);
+      else next.delete(itemId);
+      return next;
+    });
+  }, []);
+  const clearItemSelection = useCallback(() => setSelectedItemIds(new Set()), []);
+
   /**
    * Track consecutive errored polls of the lite status endpoint so we
    * can warn the admin when the counter has frozen because the server
@@ -2765,6 +2786,112 @@ export default function BulkDocumentImportPage() {
     },
     onSettled: (_data, err, vars) => {
       if (!err) debugLog('toggleExclude success', { itemId: vars.itemId, sessionId, excluded: vars.excluded });
+      return queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+    },
+  });
+
+  /**
+   * Toggle the exclusion of every checked item in one round-trip
+   * (Task #1273). Mirrors `toggleExclude`'s optimistic update so the
+   * cached lite payload flips immediately for all selected rows, then
+   * reconciles against the server's authoritative `preExcludeStatus`
+   * after the batched response lands. Terminal rows (committed /
+   * duplicate) are skipped server-side and counted under
+   * `skipped` — surfaced in the success toast so admins know exactly
+   * how many of their checked rows were actually flipped.
+   */
+  const bulkToggleExclude = useMutation({
+    mutationFn: async ({
+      itemIds,
+      excluded,
+    }: {
+      itemIds: string[];
+      excluded: boolean;
+    }) => {
+      const res = await apiRequest(
+        'PATCH',
+        `/api/admin/bulk-import/sessions/${sessionId}/items/exclude-bulk`,
+        { itemIds, excluded },
+      );
+      return res.json() as Promise<{
+        updated: number;
+        items: BulkImportItem[];
+        skipped: { committed: number; duplicate: number; notFound: number };
+      }>;
+    },
+    onMutate: async ({ itemIds, excluded }) => {
+      debugLog('bulkToggleExclude start', { sessionId, count: itemIds.length, excluded });
+      const queryKey = ['/api/admin/bulk-import/sessions', sessionId, 'lite'];
+      await queryClient.cancelQueries({ queryKey });
+      const previous = queryClient.getQueryData<SessionPayloadLite>(queryKey);
+      if (previous) {
+        const ids = new Set(itemIds);
+        queryClient.setQueryData<SessionPayloadLite>(queryKey, {
+          ...previous,
+          items: previous.items.map((it) => {
+            if (!ids.has(it.id)) return it;
+            // Mirror the per-item endpoint's terminal-state guard
+            // client-side so the optimistic flip never paints a
+            // committed/duplicate row as rejected.
+            if (it.status === 'committed' || it.status === 'duplicate') return it;
+            if (excluded) {
+              if (it.status === 'rejected') return it;
+              return {
+                ...it,
+                status: 'rejected' as const,
+                preExcludeStatus: it.preExcludeStatus ?? it.status,
+              };
+            }
+            if (it.status !== 'rejected') return it;
+            return {
+              ...it,
+              status: (it.preExcludeStatus ?? 'pending') as BulkImportItem['status'],
+              preExcludeStatus: null,
+            };
+          }),
+        });
+      }
+      return { previous };
+    },
+    onError: (_err, _vars, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(
+          ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+          context.previous,
+        );
+      }
+      toast({
+        variant: 'destructive',
+        title: isFr ? 'Échec de la mise à jour groupée' : 'Bulk update failed',
+      });
+    },
+    onSuccess: (data, vars) => {
+      debugLog('bulkToggleExclude success', {
+        sessionId,
+        excluded: vars.excluded,
+        updated: data.updated,
+        skipped: data.skipped,
+      });
+      const skippedTotal =
+        data.skipped.committed + data.skipped.duplicate + data.skipped.notFound;
+      const titleEn = vars.excluded
+        ? `Excluded ${data.updated} file${data.updated === 1 ? '' : 's'}`
+        : `Re-included ${data.updated} file${data.updated === 1 ? '' : 's'}`;
+      const titleFr = vars.excluded
+        ? `${data.updated} fichier${data.updated === 1 ? '' : 's'} exclu${data.updated === 1 ? '' : 's'}`
+        : `${data.updated} fichier${data.updated === 1 ? '' : 's'} réinclus`;
+      const skippedSuffixEn =
+        skippedTotal > 0 ? ` (${skippedTotal} skipped)` : '';
+      const skippedSuffixFr =
+        skippedTotal > 0 ? ` (${skippedTotal} ignoré${skippedTotal === 1 ? '' : 's'})` : '';
+      toast({
+        title: (isFr ? titleFr : titleEn) + (isFr ? skippedSuffixFr : skippedSuffixEn),
+      });
+      clearItemSelection();
+    },
+    onSettled: () => {
       return queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       });
@@ -5623,8 +5750,136 @@ export default function BulkDocumentImportPage() {
                         const displayedTopLevelItems = hideReady
                           ? topLevelItems.filter((item) => item.status === 'rejected' || !isItemReadyForNextStep(item, currentStep))
                           : topLevelItems;
+                        // Bulk-selection toolbar inputs (Task #1273): only
+                        // rows the admin can actually flip count toward the
+                        // counters and the select-all-visible action so the
+                        // toolbar's totals always match what the server will
+                        // accept.
+                        const selectableTopLevelItems = displayedTopLevelItems.filter(
+                          (it) => it.status !== 'committed' && it.status !== 'duplicate',
+                        );
+                        const selectableTopLevelIds = selectableTopLevelItems.map((it) => it.id);
+                        const selectedVisibleIds = selectableTopLevelIds.filter((id) =>
+                          selectedItemIds.has(id),
+                        );
+                        const selectedVisibleCount = selectedVisibleIds.length;
+                        const selectedAllOnPage =
+                          selectableTopLevelIds.length > 0 &&
+                          selectedVisibleCount === selectableTopLevelIds.length;
+                        const selectedHasIndeterminate =
+                          selectedVisibleCount > 0 && !selectedAllOnPage;
+                        const bulkExcludePending = bulkToggleExclude.isPending;
                         return (
                           <>
+                      {/* Task #1273 — bulk-selection toolbar. Renders above the
+                          row list whenever any visible row is checked so the
+                          admin can exclude / re-include the entire selection
+                          in a single round-trip. Mirrors the per-row contract:
+                          terminal rows (committed/duplicate) are filtered out
+                          of the selection counters and the "select visible"
+                          action so the totals can never overstate what the
+                          server will accept. */}
+                      {selectableTopLevelIds.length > 0 && (
+                        <div
+                          className="sticky top-0 z-10 mb-2 flex flex-wrap items-center gap-3 rounded-md border border-border bg-background px-3 py-2 shadow-sm"
+                          data-testid="bulk-exclude-toolbar"
+                        >
+                          <Checkbox
+                            id="bulk-select-visible"
+                            checked={
+                              selectedHasIndeterminate
+                                ? 'indeterminate'
+                                : selectedAllOnPage
+                            }
+                            onCheckedChange={(state) => {
+                              if (state === true) {
+                                setSelectedItemIds((prev) => {
+                                  const next = new Set(prev);
+                                  for (const id of selectableTopLevelIds) next.add(id);
+                                  return next;
+                                });
+                              } else {
+                                setSelectedItemIds((prev) => {
+                                  const next = new Set(prev);
+                                  for (const id of selectableTopLevelIds) next.delete(id);
+                                  return next;
+                                });
+                              }
+                            }}
+                            data-testid="bulk-select-visible-checkbox"
+                            aria-label={
+                              isFr
+                                ? 'Tout sélectionner sur cette page'
+                                : 'Select all on this page'
+                            }
+                          />
+                          <Label
+                            htmlFor="bulk-select-visible"
+                            className="cursor-pointer text-sm text-muted-foreground"
+                          >
+                            {selectedVisibleCount > 0
+                              ? isFr
+                                ? `${selectedVisibleCount} sélectionné${selectedVisibleCount === 1 ? '' : 's'}`
+                                : `${selectedVisibleCount} selected`
+                              : isFr
+                                ? 'Tout sélectionner sur cette page'
+                                : 'Select all on this page'}
+                          </Label>
+                          <div className="ml-auto flex flex-wrap items-center gap-2">
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 text-xs"
+                              data-testid="bulk-exclude-button"
+                              disabled={selectedVisibleCount === 0 || bulkExcludePending}
+                              onClick={() =>
+                                bulkToggleExclude.mutate({
+                                  itemIds: selectedVisibleIds,
+                                  excluded: true,
+                                })
+                              }
+                            >
+                              {bulkExcludePending && bulkToggleExclude.variables?.excluded === true ? (
+                                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                              ) : null}
+                              {isFr
+                                ? `Exclure la sélection${selectedVisibleCount > 0 ? ` (${selectedVisibleCount})` : ''}`
+                                : `Exclude selected${selectedVisibleCount > 0 ? ` (${selectedVisibleCount})` : ''}`}
+                            </Button>
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 text-xs"
+                              data-testid="bulk-reinclude-button"
+                              disabled={selectedVisibleCount === 0 || bulkExcludePending}
+                              onClick={() =>
+                                bulkToggleExclude.mutate({
+                                  itemIds: selectedVisibleIds,
+                                  excluded: false,
+                                })
+                              }
+                            >
+                              {bulkExcludePending && bulkToggleExclude.variables?.excluded === false ? (
+                                <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                              ) : null}
+                              {isFr
+                                ? `Réinclure la sélection${selectedVisibleCount > 0 ? ` (${selectedVisibleCount})` : ''}`
+                                : `Re-include selected${selectedVisibleCount > 0 ? ` (${selectedVisibleCount})` : ''}`}
+                            </Button>
+                            {selectedVisibleCount > 0 && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-8 text-xs"
+                                data-testid="bulk-clear-selection-button"
+                                onClick={clearItemSelection}
+                              >
+                                {isFr ? 'Effacer' : 'Clear'}
+                              </Button>
+                            )}
+                          </div>
+                        </div>
+                      )}
                       {/* Task #1233 — accessibility: live region for keyboard DnD announcements */}
                       {currentStep === 'linking' && (
                         <div
@@ -7110,6 +7365,25 @@ export default function BulkDocumentImportPage() {
                               })}
                             >
                             <div className="flex items-center gap-3 p-3 flex-wrap">
+                            {/* Task #1273 — per-row selection checkbox. Hidden
+                                for terminal rows (committed/duplicate) so the
+                                admin cannot stage a selection the server would
+                                reject. Stops click propagation so checking the
+                                row never triggers the preview. */}
+                            {canToggleExclude && (
+                              <Checkbox
+                                checked={selectedItemIds.has(item.id)}
+                                onCheckedChange={(state) =>
+                                  toggleItemSelection(item.id, state === true)
+                                }
+                                onClick={(e) => e.stopPropagation()}
+                                data-testid={`bulk-select-checkbox-${item.id}`}
+                                aria-label={
+                                  isFr ? 'Sélectionner ce fichier' : 'Select this file'
+                                }
+                                className="flex-shrink-0"
+                              />
+                            )}
                             {hasAnalysis && !(currentStep === 'sorting' && (sortingIsPending || sortingIsRejected || isDraftSplitLead || _mergeGroupAnyNonAccepted)) ? (
                               <button
                                 type="button"

@@ -55,6 +55,10 @@ const TEST_TAG = 'task456-bulk-import-rest';
 const describeIfDb = REAL_DB_URL ? describe : describe.skip;
 
 const PDF_BODY = Buffer.from('%PDF-1.4\n%%EOF', 'utf8');
+// Distinct PDF body for tests that need two non-duplicate uploads in
+// the same session (Task #1273 bulk exclude tests). Same valid header,
+// different trailer bytes so the dedup contentHash differs.
+const PDF_BODY_B = Buffer.from('%PDF-1.4\n% task-1273\n%%EOF', 'utf8');
 const PNG_BODY = Buffer.from(
   '89504e470d0a1a0a0000000d49484452000000010000000108060000001f15c489',
   'hex',
@@ -1263,6 +1267,156 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
         .from(schema.bulkImportItems)
         .where(eq(schema.bulkImportItems.id, itemId));
       expect(row.status).toBe('screened');
+      expect(row.preExcludeStatus).toBeNull();
+    });
+  });
+
+  /**
+   * Task #1273: end-to-end coverage for the wizard's batched
+   * exclude/re-include endpoint. Mirrors the per-row contract:
+   * preExcludeStatus is captured/restored, terminal items are refused
+   * and counted under `skipped`, and the fingerprint cache is updated
+   * in lockstep.
+   */
+  describe('PATCH /sessions/:id/items/exclude-bulk (Task #1273)', () => {
+    it('excludes a batch and remembers preExcludeStatus per row', async () => {
+      const sid = await createSession();
+      const upload = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', PDF_BODY, { filename: 'a.pdf', contentType: 'application/pdf' })
+        .attach('files', PDF_BODY_B, { filename: 'b.pdf', contentType: 'application/pdf' });
+      expect(upload.status).toBe(201);
+      const [a, b] = upload.body;
+      trackedItems.add(a.id);
+      trackedItems.add(b.id);
+      // Force one row to `screened` so we can prove preExcludeStatus
+      // captures the per-row status, not a constant `pending`.
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status: 'screened' })
+        .where(eq(schema.bulkImportItems.id, a.id));
+
+      const res = await request(app)
+        .patch(`/api/admin/bulk-import/sessions/${sid}/items/exclude-bulk`)
+        .set('x-test-user-id', ids.admin)
+        .send({ itemIds: [a.id, b.id], excluded: true });
+      expect(res.status).toBe(200);
+      expect(res.body.updated).toBe(2);
+      expect(res.body.skipped).toEqual({ committed: 0, duplicate: 0, notFound: 0 });
+
+      const rows = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(inArray(schema.bulkImportItems.id, [a.id, b.id]));
+      const byId = new Map(rows.map((r) => [r.id, r]));
+      expect(byId.get(a.id)?.status).toBe('rejected');
+      expect(byId.get(a.id)?.preExcludeStatus).toBe('screened');
+      expect(byId.get(b.id)?.status).toBe('rejected');
+      expect(byId.get(b.id)?.preExcludeStatus).toBe('pending');
+    });
+
+    it('re-includes a batch and restores per-row preExcludeStatus', async () => {
+      const sid = await createSession();
+      const upload = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', PDF_BODY, { filename: 'c.pdf', contentType: 'application/pdf' })
+        .attach('files', PDF_BODY_B, { filename: 'd.pdf', contentType: 'application/pdf' });
+      expect(upload.status).toBe(201);
+      const [a, b] = upload.body;
+      trackedItems.add(a.id);
+      trackedItems.add(b.id);
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status: 'screened' })
+        .where(eq(schema.bulkImportItems.id, a.id));
+
+      const excl = await request(app)
+        .patch(`/api/admin/bulk-import/sessions/${sid}/items/exclude-bulk`)
+        .set('x-test-user-id', ids.admin)
+        .send({ itemIds: [a.id, b.id], excluded: true });
+      expect(excl.status).toBe(200);
+      expect(excl.body.updated).toBe(2);
+
+      const restore = await request(app)
+        .patch(`/api/admin/bulk-import/sessions/${sid}/items/exclude-bulk`)
+        .set('x-test-user-id', ids.admin)
+        .send({ itemIds: [a.id, b.id], excluded: false });
+      expect(restore.status).toBe(200);
+      expect(restore.body.updated).toBe(2);
+
+      const rows = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(inArray(schema.bulkImportItems.id, [a.id, b.id]));
+      const byId = new Map(rows.map((r) => [r.id, r]));
+      expect(byId.get(a.id)?.status).toBe('screened');
+      expect(byId.get(a.id)?.preExcludeStatus).toBeNull();
+      expect(byId.get(b.id)?.status).toBe('pending');
+      expect(byId.get(b.id)?.preExcludeStatus).toBeNull();
+    });
+
+    it('skips committed and duplicate rows and reports them under `skipped`', async () => {
+      const sid = await createSession();
+      const upload = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', PDF_BODY, { filename: 'e.pdf', contentType: 'application/pdf' })
+        .attach('files', PDF_BODY_B, { filename: 'f.pdf', contentType: 'application/pdf' });
+      expect(upload.status).toBe(201);
+      const [committed, duplicate] = upload.body;
+      trackedItems.add(committed.id);
+      trackedItems.add(duplicate.id);
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status: 'committed' })
+        .where(eq(schema.bulkImportItems.id, committed.id));
+      await db
+        .update(schema.bulkImportItems)
+        .set({ status: 'duplicate' })
+        .where(eq(schema.bulkImportItems.id, duplicate.id));
+
+      const fakeId = crypto.randomUUID();
+      const res = await request(app)
+        .patch(`/api/admin/bulk-import/sessions/${sid}/items/exclude-bulk`)
+        .set('x-test-user-id', ids.admin)
+        .send({ itemIds: [committed.id, duplicate.id, fakeId], excluded: true });
+      expect(res.status).toBe(200);
+      expect(res.body.updated).toBe(0);
+      expect(res.body.items).toEqual([]);
+      expect(res.body.skipped).toEqual({ committed: 1, duplicate: 1, notFound: 1 });
+
+      const rows = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(inArray(schema.bulkImportItems.id, [committed.id, duplicate.id]));
+      const byId = new Map(rows.map((r) => [r.id, r]));
+      expect(byId.get(committed.id)?.status).toBe('committed');
+      expect(byId.get(duplicate.id)?.status).toBe('duplicate');
+    });
+
+    it('returns 403 for a cross-org admin and does not mutate any row', async () => {
+      const sid = await createSession();
+      const upload = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+        .set('x-test-user-id', ids.admin)
+        .attach('files', PDF_BODY, { filename: 'g.pdf', contentType: 'application/pdf' });
+      expect(upload.status).toBe(201);
+      const [item] = upload.body;
+      trackedItems.add(item.id);
+
+      const res = await request(app)
+        .patch(`/api/admin/bulk-import/sessions/${sid}/items/exclude-bulk`)
+        .set('x-test-user-id', ids.foreignAdmin)
+        .send({ itemIds: [item.id], excluded: true });
+      expect(res.status).toBe(403);
+
+      const [row] = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.id, item.id));
+      expect(row.status).toBe('pending');
       expect(row.preExcludeStatus).toBeNull();
     });
   });
