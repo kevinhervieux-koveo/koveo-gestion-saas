@@ -110,7 +110,7 @@ async function mintApiBillNumber(opts: {
 
 // Helper function to check user access to building
 async function checkBuildingAccess(userId: string, buildingId: string, userRole: string): Promise<boolean> {
-  if (userRole === 'admin') {
+  if (userRole === 'admin' || userRole === 'super_admin') {
     return true;
   }
   

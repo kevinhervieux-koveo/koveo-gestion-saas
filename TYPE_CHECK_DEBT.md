@@ -209,6 +209,7 @@ Six more files were cleaned up in task #1482 (see section above).
 - `server/tests/ai-suggest-payment-schedule-route.test.ts` — **LOW**: test file
 - `server/tests/ai-suggestion-cache.test.ts` — **LOW**: test file
 - `server/tests/bill-api-integration.test.ts` — **LOW**: test file
+- `server/tests/bills-available-years-monthly-summary-access.test.ts` — **LOW**: test file (task #1540)
 - `server/tests/bill-generation-reliability.test.ts` — **LOW**: test file
 - `server/tests/budget-api-integration.test.ts` — **LOW**: test file
 - `server/tests/budget-database-integrity.test.ts` — **LOW**: test file

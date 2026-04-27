@@ -56,6 +56,7 @@ UNIT_PATHS=(
   server/tests/ai-document-extra-methods.test.ts
   server/tests/ai-invoice-extract-route.test.ts
   server/tests/ai-suggest-payment-schedule-route.test.ts
+  server/tests/bills-available-years-monthly-summary-access.test.ts
   server/tests/document-text-endpoint.test.ts
   server/tests/upload-filename-normalization-secondary-routes.test.ts
   # Task #1473 — impersonation E2E (guards against silent audit-row drops).
