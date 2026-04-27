@@ -46,15 +46,15 @@ const SCAN_ROOTS = [
 ];
 
 /**
- * Files to skip when walking the tests trees. The companion
- * production-code guard's allow-list contains paths that intentionally
- * do not exist on disk (and that are accounted for over there); the
- * file lives under `tests/` only because Jest discovers it there, so
- * it would otherwise pollute this guard's findings with cross-guard
- * noise.
+ * Files to skip when walking the tests trees. The companion guards'
+ * allow-lists contain paths that intentionally do not exist on disk
+ * (and that are accounted for over there); those files live under
+ * `tests/` only because Jest discovers them there, so they would
+ * otherwise pollute this guard's findings with cross-guard noise.
  */
 const EXCLUDE_FILES = new Set<string>([
   'tests/unit/test-prod-doc-path-references.test.ts',
+  'tests/unit/test-markdown-doc-path-references.test.ts',
 ]);
 
 interface AllowedRef {

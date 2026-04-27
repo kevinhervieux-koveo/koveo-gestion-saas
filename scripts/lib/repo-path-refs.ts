@@ -1,17 +1,23 @@
 /**
- * Shared helpers for the stale repo-path reference guards (Tasks #1229, #1236).
+ * Shared helpers for the stale repo-path reference guards
+ * (Tasks #1229, #1236, #1246).
  *
- * Both the tests-tree guard (`tests/unit/test-doc-path-references.test.ts`)
- * and the production-code guard
- * (`tests/unit/test-prod-doc-path-references.test.ts`) walk a configured
- * set of source trees, scan every line of every file, and pull out
- * substrings that look like repo-relative source paths under known
- * top-level directories. When any extracted path no longer resolves on
- * disk, the calling guard fails (modulo a per-guard allow-list).
+ * Three guards share this helper:
+ *   - `tests/unit/test-doc-path-references.test.ts` (tests trees)
+ *   - `tests/unit/test-prod-doc-path-references.test.ts` (production code)
+ *   - `tests/unit/test-markdown-doc-path-references.test.ts` (Markdown
+ *     documentation under `docs/`, `replit.md`, and other repo-root
+ *     `*.md`/`*.mdx` files)
  *
- * The regex/prefix list/lookbehind logic lives here so both guards stay
- * in lock-step: a fix to the false-positive lookbehind in one tree
- * automatically benefits the other.
+ * Each guard walks a configured set of source/doc trees, scans every
+ * line of every file, and pulls out substrings that look like
+ * repo-relative source paths under known top-level directories. When
+ * any extracted path no longer resolves on disk, the calling guard
+ * fails (modulo a per-guard allow-list).
+ *
+ * The regex/prefix list/lookbehind logic lives here so all three guards
+ * stay in lock-step: a fix to the false-positive lookbehind in one tree
+ * automatically benefits the others.
  *
  * False-positive avoidance:
  *   - The leading lookbehind rejects `@`, `/`, `.`, `\w`, `-`
@@ -64,10 +70,23 @@ export const SOURCE_FILE_EXTENSIONS = [
 ] as const;
 
 /**
- * File extensions the walker actually opens and scans. We only look
- * inside text source files — not assets, not lockfiles.
+ * File extensions the walker actually opens and scans by default. We
+ * only look inside text source files — not assets, not lockfiles.
+ *
+ * Callers that want to scan a different set of files (e.g. Markdown
+ * documentation) can pass `scanFilePattern` in {@link WalkOptions} to
+ * override this on a per-walk basis. See {@link SCAN_DOC_FILE_EXTENSIONS}.
  */
 export const SCAN_FILE_EXTENSIONS = /\.(ts|tsx|js|jsx|cjs|mjs)$/;
+
+/**
+ * Docs-specific equivalent of {@link SCAN_FILE_EXTENSIONS}: matches
+ * Markdown sources (`.md`) and MDX (`.mdx`). Used by the Markdown
+ * stale-path guard (Task #1246) so it can walk `docs/` and the
+ * repo-root `*.md` / `*.mdx` files (`replit.md`, `README.md`,
+ * `CHANGELOG.md`, etc.) without picking up source code.
+ */
+export const SCAN_DOC_FILE_EXTENSIONS = /\.(md|mdx)$/;
 
 const PREFIX_GROUP = `(?:${REPO_PATH_PREFIXES.join('|')})`;
 const EXT_GROUP = `(?:${SOURCE_FILE_EXTENSIONS.join('|')})`;
@@ -117,6 +136,13 @@ export interface WalkOptions {
    * dotfile directory.
    */
   excludeDirNames?: ReadonlySet<string>;
+  /**
+   * Filename pattern the walker uses to decide which files to open
+   * and scan. Defaults to {@link SCAN_FILE_EXTENSIONS} (source code).
+   * Pass {@link SCAN_DOC_FILE_EXTENSIONS} to walk Markdown/MDX docs
+   * instead.
+   */
+  scanFilePattern?: RegExp;
 }
 
 const DEFAULT_EXCLUDE_DIR_NAMES: ReadonlySet<string> = new Set([
@@ -130,10 +156,14 @@ const DEFAULT_EXCLUDE_DIR_NAMES: ReadonlySet<string> = new Set([
 /**
  * Recursively collect every scannable source file under `dir`,
  * applying the exclusion rules in `opts`. Returns absolute paths.
+ *
+ * The set of files considered "scannable" is controlled by
+ * `opts.scanFilePattern` (defaults to {@link SCAN_FILE_EXTENSIONS}).
  */
 export function walkScanFiles(dir: string, opts: WalkOptions = {}): string[] {
   if (!fs.existsSync(dir)) return [];
   const excludeDirNames = opts.excludeDirNames ?? DEFAULT_EXCLUDE_DIR_NAMES;
+  const scanFilePattern = opts.scanFilePattern ?? SCAN_FILE_EXTENSIONS;
   const out: string[] = [];
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     if (entry.name.startsWith('.')) continue;
@@ -141,7 +171,7 @@ export function walkScanFiles(dir: string, opts: WalkOptions = {}): string[] {
     const p = path.join(dir, entry.name);
     if (entry.isDirectory()) {
       out.push(...walkScanFiles(p, opts));
-    } else if (SCAN_FILE_EXTENSIONS.test(entry.name)) {
+    } else if (scanFilePattern.test(entry.name)) {
       out.push(p);
     }
   }
@@ -151,6 +181,14 @@ export function walkScanFiles(dir: string, opts: WalkOptions = {}): string[] {
 export interface FindMissingRefsArgs {
   repoRoot: string;
   scanRoots: readonly string[];
+  /**
+   * Optional explicit list of absolute file paths to scan in addition
+   * to whatever the recursive walk over `scanRoots` finds. Useful for
+   * pulling in individual top-level files (e.g. repo-root `*.md`
+   * sources for the Markdown guard) without recursing into the entire
+   * repository.
+   */
+  extraScanFiles?: readonly string[];
   walkOptions?: WalkOptions;
 }
 
@@ -164,29 +202,47 @@ export interface FindMissingRefsArgs {
  * can point readers at every site that needs editing.
  */
 export function findMissingRepoPathRefs(args: FindMissingRefsArgs): FoundRef[] {
-  const { repoRoot, scanRoots, walkOptions = {} } = args;
+  const {
+    repoRoot,
+    scanRoots,
+    extraScanFiles = [],
+    walkOptions = {},
+  } = args;
   const excludeFiles = walkOptions.excludeFiles ?? new Set<string>();
   const findings: FoundRef[] = [];
 
+  const seenAbsFiles = new Set<string>();
+  const orderedFiles: string[] = [];
   for (const root of scanRoots) {
     for (const file of walkScanFiles(root, walkOptions)) {
-      const rel = path.relative(repoRoot, file);
-      if (excludeFiles.has(rel)) continue;
-      const content = fs.readFileSync(file, 'utf-8');
-      const lines = content.split('\n');
-      const seenInFile = new Set<string>();
-      for (let i = 0; i < lines.length; i++) {
-        for (const refPath of extractRepoPathRefsFromLine(lines[i])) {
-          if (seenInFile.has(refPath)) continue;
-          seenInFile.add(refPath);
-          const absPath = path.join(repoRoot, refPath);
-          if (!fs.existsSync(absPath)) {
-            findings.push({
-              refPath,
-              sourceFile: rel,
-              line: i + 1,
-            });
-          }
+      if (seenAbsFiles.has(file)) continue;
+      seenAbsFiles.add(file);
+      orderedFiles.push(file);
+    }
+  }
+  for (const file of extraScanFiles) {
+    if (seenAbsFiles.has(file)) continue;
+    seenAbsFiles.add(file);
+    orderedFiles.push(file);
+  }
+
+  for (const file of orderedFiles) {
+    const rel = path.relative(repoRoot, file);
+    if (excludeFiles.has(rel)) continue;
+    const content = fs.readFileSync(file, 'utf-8');
+    const lines = content.split('\n');
+    const seenInFile = new Set<string>();
+    for (let i = 0; i < lines.length; i++) {
+      for (const refPath of extractRepoPathRefsFromLine(lines[i])) {
+        if (seenInFile.has(refPath)) continue;
+        seenInFile.add(refPath);
+        const absPath = path.join(repoRoot, refPath);
+        if (!fs.existsSync(absPath)) {
+          findings.push({
+            refPath,
+            sourceFile: rel,
+            line: i + 1,
+          });
         }
       }
     }
