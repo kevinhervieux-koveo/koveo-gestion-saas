@@ -6954,6 +6954,36 @@ export default function BulkDocumentImportPage() {
                                                                   >
                                                                     <ChevronDown className="h-3.5 w-3.5" />
                                                                   </button>
+                                                                  <button
+                                                                    type="button"
+                                                                    disabled={idx === 0}
+                                                                    className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+                                                                    aria-label={isFr ? 'Retirer du groupe' : 'Remove from group'}
+                                                                    title={
+                                                                      idx === 0
+                                                                        ? (isFr ? 'Le fichier principal ne peut pas être retiré' : 'The lead file cannot be removed')
+                                                                        : (isFr ? 'Retirer du groupe' : 'Remove from group')
+                                                                    }
+                                                                    data-testid={`branching-merge-remove-${sibling.id}-${idx}`}
+                                                                    onClick={() => {
+                                                                      if (idx === 0) return;
+                                                                      const filtered = displayedMergeGroupIds.filter((_, i) => i !== idx);
+                                                                      if (filtered.length <= 1) {
+                                                                        cancelAutoSave(sibling.id);
+                                                                        setInlineMergeOrder((prev) => {
+                                                                          const next = new Map(prev);
+                                                                          next.delete(sibling.id);
+                                                                          return next;
+                                                                        });
+                                                                        scheduleAutoSave(sibling, 'keep');
+                                                                      } else {
+                                                                        setInlineMergeOrder((prev) => new Map(prev).set(sibling.id, filtered));
+                                                                        scheduleAutoSave(sibling);
+                                                                      }
+                                                                    }}
+                                                                  >
+                                                                    <X className="h-3.5 w-3.5" />
+                                                                  </button>
                                                                 </div>
                                                               )}
                                                             </li>
@@ -8508,6 +8538,36 @@ export default function BulkDocumentImportPage() {
                                                           }}
                                                         >
                                                           <ChevronDown className="h-3.5 w-3.5" />
+                                                        </button>
+                                                        <button
+                                                          type="button"
+                                                          disabled={idx === 0}
+                                                          className="flex h-6 w-6 items-center justify-center rounded text-muted-foreground hover:bg-destructive/10 hover:text-destructive disabled:opacity-40 disabled:hover:bg-transparent disabled:hover:text-muted-foreground"
+                                                          aria-label={isFr ? 'Retirer du groupe' : 'Remove from group'}
+                                                          title={
+                                                            idx === 0
+                                                              ? (isFr ? 'Le fichier principal ne peut pas être retiré' : 'The lead file cannot be removed')
+                                                              : (isFr ? 'Retirer du groupe' : 'Remove from group')
+                                                          }
+                                                          data-testid={`branching-merge-remove-${item.id}-${idx}`}
+                                                          onClick={() => {
+                                                            if (idx === 0) return;
+                                                            const filtered = displayedMergeGroupIds.filter((_, i) => i !== idx);
+                                                            if (filtered.length <= 1) {
+                                                              cancelAutoSave(item.id);
+                                                              setInlineMergeOrder((prev) => {
+                                                                const next = new Map(prev);
+                                                                next.delete(item.id);
+                                                                return next;
+                                                              });
+                                                              scheduleAutoSave(item, 'keep');
+                                                            } else {
+                                                              setInlineMergeOrder((prev) => new Map(prev).set(item.id, filtered));
+                                                              scheduleAutoSave(item);
+                                                            }
+                                                          }}
+                                                        >
+                                                          <X className="h-3.5 w-3.5" />
                                                         </button>
                                                       </div>
                                                     )}

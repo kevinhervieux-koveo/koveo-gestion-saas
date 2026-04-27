@@ -1,0 +1,122 @@
+client:733 [vite] connecting...
+client:827 [vite] connected.
+bulk-document-import:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+debug-log.ts:3 [bulk-import] runAll start {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+debug-log.ts:3 [bulk-import] runAll success {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+debug-log.ts:3 [bulk-import] resetStep start {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+debug-log.ts:3 [bulk-import] resetStep success {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+queryClient.ts:140  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/sessions/86642325-4c08-4c33-9e88-b3a081edb44e/lite 502 (Bad Gateway)
+(anonymous) @ queryClient.ts:140
+fetchFn @ @tanstack_react-query.js?v=1011393f:852
+run @ @tanstack_react-query.js?v=1011393f:491
+start @ @tanstack_react-query.js?v=1011393f:533
+fetch @ @tanstack_react-query.js?v=1011393f:891
+#executeFetch @ @tanstack_react-query.js?v=1011393f:2047
+(anonymous) @ @tanstack_react-query.js?v=1011393f:2084
+setInterval
+#updateRefetchInterval @ @tanstack_react-query.js?v=1011393f:2082
+#updateTimers @ @tanstack_react-query.js?v=1011393f:2090
+onQueryUpdate @ @tanstack_react-query.js?v=1011393f:2293
+(anonymous) @ @tanstack_react-query.js?v=1011393f:1010
+(anonymous) @ @tanstack_react-query.js?v=1011393f:1009
+batch @ @tanstack_react-query.js?v=1011393f:581
+#dispatch @ @tanstack_react-query.js?v=1011393f:1008
+setData @ @tanstack_react-query.js?v=1011393f:690
+fetch @ @tanstack_react-query.js?v=1011393f:900
+await in fetch
+#executeFetch @ @tanstack_react-query.js?v=1011393f:2047
+(anonymous) @ @tanstack_react-query.js?v=1011393f:2084
+queryClient.ts:140  GET https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/sessions/86642325-4c08-4c33-9e88-b3a081edb44e/lite 502 (Bad Gateway)
+(anonymous) @ queryClient.ts:140
+fetchFn @ @tanstack_react-query.js?v=1011393f:852
+run @ @tanstack_react-query.js?v=1011393f:491
+(anonymous) @ @tanstack_react-query.js?v=1011393f:515
+Promise.then
+(anonymous) @ @tanstack_react-query.js?v=1011393f:511
+Promise.catch
+run @ @tanstack_react-query.js?v=1011393f:495
+start @ @tanstack_react-query.js?v=1011393f:533
+fetch @ @tanstack_react-query.js?v=1011393f:891
+#executeFetch @ @tanstack_react-query.js?v=1011393f:2047
+(anonymous) @ @tanstack_react-query.js?v=1011393f:2084
+setInterval
+#updateRefetchInterval @ @tanstack_react-query.js?v=1011393f:2082
+#updateTimers @ @tanstack_react-query.js?v=1011393f:2090
+onQueryUpdate @ @tanstack_react-query.js?v=1011393f:2293
+(anonymous) @ @tanstack_react-query.js?v=1011393f:1010
+(anonymous) @ @tanstack_react-query.js?v=1011393f:1009
+batch @ @tanstack_react-query.js?v=1011393f:581
+#dispatch @ @tanstack_react-query.js?v=1011393f:1008
+setData @ @tanstack_react-query.js?v=1011393f:690
+fetch @ @tanstack_react-query.js?v=1011393f:900
+await in fetch
+#executeFetch @ @tanstack_react-query.js?v=1011393f:2047
+(anonymous) @ @tanstack_react-query.js?v=1011393f:2084
+debug-log.ts:3 [bulk-import] resetStep start {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+debug-log.ts:3 [bulk-import] resetStep success {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+client:865 [vite] server connection lost. Polling for restart...
+client:935 Creating a worker from 'blob:https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/45834ab8-488a-43cc-9bce-a8aad68178fa' violates the following Content Security Policy directive: "script-src 'self' 'unsafe-inline' https://replit.com https://replit-cdn.com https://*.replit.com https://*.replit-cdn.com". Note that 'worker-src' was not explicitly set, so 'script-src' is used as a fallback. The action has been blocked.
+waitForSuccessfulPing @ client:935
+handleMessage @ client:869
+await in handleMessage
+(anonymous) @ client:458
+dequeue @ client:480
+(anonymous) @ client:472
+enqueue @ client:466
+(anonymous) @ client:458
+onMessage @ client:305
+(anonymous) @ client:426
+debug-log.ts:3 [bulk-import] run-all transition running→done {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking', finishedAt: '2026-04-27T11:03:54.253Z', processed: 7, failed: 0, …}
+debug-log.ts:3 [bulk-import] linking: apply changes {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', count: 1}
+debug-log.ts:3 [bulk-import] setLinkingDecision start {count: 1, sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e'}
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/sessions/86642325-4c08-4c33-9e88-b3a081edb44e/batch-set-linking-decisions 400 (Bad Request)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ bulk-document-import.tsx:3670
+fn @ @tanstack_react-query.js?v=1011393f:1200
+run @ @tanstack_react-query.js?v=1011393f:491
+start @ @tanstack_react-query.js?v=1011393f:533
+execute @ @tanstack_react-query.js?v=1011393f:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=1011393f:2642
+(anonymous) @ @tanstack_react-query.js?v=1011393f:3356
+(anonymous) @ bulk-document-import.tsx:3748
+(anonymous) @ bulk-document-import.tsx:3785
+(anonymous) @ bulk-document-import.tsx:5942
+executeDispatch @ react-dom_client.js?v=1011393f:11736
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+processDispatchQueue @ react-dom_client.js?v=1011393f:11772
+(anonymous) @ react-dom_client.js?v=1011393f:12182
+batchedUpdates$1 @ react-dom_client.js?v=1011393f:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1011393f:11877
+dispatchEvent @ react-dom_client.js?v=1011393f:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=1011393f:14773
+debug-log.ts:3 [bulk-import] setLinkingDecision error {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', error: '400: {"error":"Bidirectional inconsistency: item 3…mId is not 398b9daf-5c46-4385-afa0-9300264be548"}'}
+react-dom_client.js?v=1011393f:16 [Violation] 'message' handler took 179ms
