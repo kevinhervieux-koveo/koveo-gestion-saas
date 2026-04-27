@@ -796,6 +796,175 @@ describe('DocumentInlineViewer keyboard navigation', () => {
 });
 
 // =============================================================================
+// DocumentInlineViewer — chain-nav-bar (multi-file siblings within one step)
+// =============================================================================
+
+describe('DocumentInlineViewer chain-nav-bar', () => {
+  const siblings = [
+    { id: 'sib-0', originalName: 'page-1.pdf', mimeType: 'application/pdf' },
+    { id: 'sib-1', originalName: 'page-2.pdf', mimeType: 'application/pdf' },
+    { id: 'sib-2', originalName: 'page-3.pdf', mimeType: 'application/pdf' },
+  ];
+
+  function renderWithChain(props: {
+    chainSiblings?: typeof siblings;
+    chainIndex?: number;
+    onChainNavigate?: (index: number) => void;
+  }) {
+    return render(
+      withQueryClient(
+        <DocumentInlineViewer
+          isOpen
+          onClose={jest.fn()}
+          fileUrl="/api/documents/sib-x/file"
+          fileName="page.pdf"
+          mimeType="application/pdf"
+          chainSiblings={props.chainSiblings}
+          chainIndex={props.chainIndex}
+          onChainNavigate={props.onChainNavigate}
+        />
+      )
+    );
+  }
+
+  it('does NOT render the chain-nav-bar when chainSiblings is undefined', () => {
+    renderWithChain({});
+    expect(screen.queryByTestId('chain-nav-bar')).not.toBeInTheDocument();
+  });
+
+  it('does NOT render the chain-nav-bar when chainSiblings has a single entry', () => {
+    renderWithChain({
+      chainSiblings: [siblings[0]],
+      chainIndex: 0,
+      onChainNavigate: jest.fn(),
+    });
+    expect(screen.queryByTestId('chain-nav-bar')).not.toBeInTheDocument();
+  });
+
+  it('does NOT render the chain-nav-bar when chainIndex is undefined', () => {
+    renderWithChain({
+      chainSiblings: siblings,
+      chainIndex: undefined,
+      onChainNavigate: jest.fn(),
+    });
+    expect(screen.queryByTestId('chain-nav-bar')).not.toBeInTheDocument();
+  });
+
+  it('renders the chain-nav-bar when there are multiple siblings', () => {
+    renderWithChain({
+      chainSiblings: siblings,
+      chainIndex: 1,
+      onChainNavigate: jest.fn(),
+    });
+    expect(screen.getByTestId('chain-nav-bar')).toBeInTheDocument();
+    expect(screen.getByTestId('button-chain-prev')).toBeInTheDocument();
+    expect(screen.getByTestId('button-chain-next')).toBeInTheDocument();
+    expect(screen.getByTestId('chain-nav-position')).toBeInTheDocument();
+  });
+
+  it('clicking Prev calls onChainNavigate with chainIndex - 1', () => {
+    const onChainNavigate = jest.fn();
+    renderWithChain({
+      chainSiblings: siblings,
+      chainIndex: 1,
+      onChainNavigate,
+    });
+
+    fireEvent.click(screen.getByTestId('button-chain-prev'));
+    expect(onChainNavigate).toHaveBeenCalledTimes(1);
+    expect(onChainNavigate).toHaveBeenCalledWith(0);
+  });
+
+  it('clicking Next calls onChainNavigate with chainIndex + 1', () => {
+    const onChainNavigate = jest.fn();
+    renderWithChain({
+      chainSiblings: siblings,
+      chainIndex: 1,
+      onChainNavigate,
+    });
+
+    fireEvent.click(screen.getByTestId('button-chain-next'));
+    expect(onChainNavigate).toHaveBeenCalledTimes(1);
+    expect(onChainNavigate).toHaveBeenCalledWith(2);
+  });
+
+  it('Prev is disabled at chainIndex === 0 and Next remains enabled', () => {
+    const onChainNavigate = jest.fn();
+    renderWithChain({
+      chainSiblings: siblings,
+      chainIndex: 0,
+      onChainNavigate,
+    });
+
+    const prev = screen.getByTestId('button-chain-prev') as HTMLButtonElement;
+    const next = screen.getByTestId('button-chain-next') as HTMLButtonElement;
+    expect(prev).toBeDisabled();
+    expect(next).not.toBeDisabled();
+
+    fireEvent.click(prev);
+    expect(onChainNavigate).not.toHaveBeenCalled();
+  });
+
+  it('Next is disabled at the last index and Prev remains enabled', () => {
+    const onChainNavigate = jest.fn();
+    renderWithChain({
+      chainSiblings: siblings,
+      chainIndex: siblings.length - 1,
+      onChainNavigate,
+    });
+
+    const prev = screen.getByTestId('button-chain-prev') as HTMLButtonElement;
+    const next = screen.getByTestId('button-chain-next') as HTMLButtonElement;
+    expect(next).toBeDisabled();
+    expect(prev).not.toBeDisabled();
+
+    fireEvent.click(next);
+    expect(onChainNavigate).not.toHaveBeenCalled();
+  });
+
+  it('disables both Prev and Next when no onChainNavigate handler is provided', () => {
+    renderWithChain({
+      chainSiblings: siblings,
+      chainIndex: 1,
+      onChainNavigate: undefined,
+    });
+    expect(screen.getByTestId('button-chain-prev')).toBeDisabled();
+    expect(screen.getByTestId('button-chain-next')).toBeDisabled();
+  });
+
+  it('position label shows (chainIndex + 1) / chainSiblings.length and the current sibling name', () => {
+    renderWithChain({
+      chainSiblings: siblings,
+      chainIndex: 1,
+      onChainNavigate: jest.fn(),
+    });
+
+    const position = screen.getByTestId('chain-nav-position');
+    // The label is rendered as "2 / 3 — page-2.pdf" (with thin spaces around /).
+    expect(position.textContent).toContain('2');
+    expect(position.textContent).toContain('3');
+    expect(position.textContent).toContain('/');
+    expect(position.textContent).toContain('page-2.pdf');
+    // Sanity check: it shouldn't display a sibling that isn't current.
+    expect(position.textContent).not.toContain('page-1.pdf');
+    expect(position.textContent).not.toContain('page-3.pdf');
+  });
+
+  it('position label updates to reflect a different chainIndex / sibling', () => {
+    renderWithChain({
+      chainSiblings: siblings,
+      chainIndex: 2,
+      onChainNavigate: jest.fn(),
+    });
+
+    const position = screen.getByTestId('chain-nav-position');
+    expect(position.textContent).toContain('3');
+    expect(position.textContent).toContain('3');
+    expect(position.textContent).toContain('page-3.pdf');
+  });
+});
+
+// =============================================================================
 // AttachedFileSection (attached file sections callsite)
 // =============================================================================
 
