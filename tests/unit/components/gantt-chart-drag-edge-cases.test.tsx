@@ -377,14 +377,19 @@ describe('Gantt bar-drag edge cases (Task #1312)', () => {
     // Duration chip must now be visible
     const durationChip = screen.getByTestId('gantt-drag-chip-duration-dur');
     expect(durationChip).toBeInTheDocument();
-    // Duration: 29 days (2026-06-01 to 2026-06-30)
-    expect(durationChip.textContent).toContain('29');
+    // Duration: 29 days (2026-06-01 to 2026-06-30) = 4 weeks in human-readable format
+    expect(durationChip.textContent).toMatch(/4\s*week/);
 
     fireEvent.pointerUp(overlay, { clientX: 10, pointerId: 1 });
   });
 
-  // ── Hover tooltip ─────────────────────────────────────────────────────────
-  it('hovering a bar shows a custom tooltip without overlapping click target', async () => {
+  // ── Bar click overlay removed (task #1476) ─────────────────────────────────
+  // The transparent full-row overlay divs were removed so the Recharts hover
+  // Tooltip can fire natively. Click-to-edit is now handled directly by the
+  // bar rect via an onClick prop threaded through MeasuredBarShape.
+  // The unit test uses a mocked recharts, so the bar rect isn't rendered here;
+  // we verify the old overlay div is absent and that the chart still renders.
+  it('no opaque full-row overlay div is rendered (gantt-bar-click-* removed)', async () => {
     const proj: GanttProject = {
       id: 'hov',
       title: 'Hover project',
@@ -395,25 +400,20 @@ describe('Gantt bar-drag edge cases (Task #1312)', () => {
 
     renderEdge({ projects: [proj], dateRange: { start: '2026-01-01', end: '2026-12-31' } });
 
-    const clickOverlay = await screen.findByTestId('gantt-bar-click-hov');
+    // The old opaque overlay div must NOT be present
+    expect(screen.queryByTestId('gantt-bar-click-hov')).not.toBeInTheDocument();
 
-    // Hovering the click overlay must show the custom tooltip
-    fireEvent.mouseEnter(clickOverlay);
-    const tooltip = await screen.findByTestId('gantt-hover-tooltip-hov');
-    expect(tooltip).toBeInTheDocument();
-    expect(tooltip.textContent).toContain('Hover project');
+    // The custom hover tooltip must also not be present (replaced by recharts Tooltip)
+    expect(screen.queryByTestId('gantt-hover-tooltip-hov')).not.toBeInTheDocument();
 
-    // Mouse leaving hides the tooltip
-    fireEvent.mouseLeave(clickOverlay);
-    await waitFor(() => {
-      expect(screen.queryByTestId('gantt-hover-tooltip-hov')).not.toBeInTheDocument();
-    });
+    // The chart itself must still render
+    expect(screen.getByTestId('gantt-chart')).toBeInTheDocument();
   });
 
-  it('hover tooltip is non-interactive (pointerEvents: none)', async () => {
+  it('edit button still starts inline edit mode after overlay removal', async () => {
     const proj: GanttProject = {
       id: 'hov2',
-      title: 'Tooltip non-interactive',
+      title: 'Edit still works',
       status: 'planned',
       plannedStartDate: '2026-05-01',
       plannedEndDate: '2026-05-31',
@@ -421,10 +421,8 @@ describe('Gantt bar-drag edge cases (Task #1312)', () => {
 
     renderEdge({ projects: [proj], dateRange: { start: '2026-01-01', end: '2026-12-31' } });
 
-    const clickOverlay = await screen.findByTestId('gantt-bar-click-hov2');
-    fireEvent.mouseEnter(clickOverlay);
-
-    const tooltip = await screen.findByTestId('gantt-hover-tooltip-hov2');
-    expect(tooltip.style.pointerEvents).toBe('none');
+    // Clicking the pencil edit button must still start edit mode
+    fireEvent.click(screen.getByTestId('gantt-edit-hov2'));
+    await screen.findByTestId('gantt-drag-overlay-hov2');
   });
 });

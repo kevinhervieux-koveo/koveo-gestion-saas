@@ -440,22 +440,20 @@ describe('/manager/budget Gantt drag overlay alignment (real browser)', () => {
       // to coincide with the chart's top margin and would mask such bugs.
       const target = createdProjects[1];
 
-      const barClickSel = `[data-testid="gantt-bar-click-${target.id}"]`;
       const barRectSel = `[data-testid="gantt-bar-rect-${target.id}"]`;
       const overlaySel = `[data-testid="gantt-drag-overlay-${target.id}"]`;
 
-      await page.waitForSelector(barClickSel, { timeout: 30_000 });
+      await page.waitForSelector(barRectSel, { timeout: 30_000 });
 
-      // Click via puppeteer's native ElementHandle.click() so the synthetic
-      // pointerdown / mousedown / click sequence matches what a real user
-      // produces — React's onClick handler on the bar overlay fires reliably
-      // in this mode.
-      const barClick = await page.$(barClickSel);
+      // Click the bar rect directly — the transparent full-row overlay div was
+      // removed in task #1476 so the Recharts hover Tooltip fires natively.
+      // React's onClick handler on the bar rect fires reliably in this mode.
+      const barClick = await page.$(barRectSel);
       if (!barClick) {
-        throw new Error(`Could not locate ${barClickSel}`);
+        throw new Error(`Could not locate ${barRectSel}`);
       }
       await barClick.evaluate((el: Element) =>
-        (el as HTMLElement).scrollIntoView({ block: 'center' })
+        (el as SVGRectElement).scrollIntoView?.({ block: 'center' })
       );
       await barClick.click();
 

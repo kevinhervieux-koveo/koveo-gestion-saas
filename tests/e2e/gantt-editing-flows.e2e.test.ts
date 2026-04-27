@@ -388,17 +388,17 @@ describe('/manager/budget Gantt editing flows (Task #1312 e2e)', () => {
       );
 
       const target = createdProjects[1];
-      const barClickSel = `[data-testid="gantt-bar-click-${target.id}"]`;
+      const barRectSel = `[data-testid="gantt-bar-rect-${target.id}"]`;
       const overlaySel = `[data-testid="gantt-drag-overlay-${target.id}"]`;
 
-      await page.waitForSelector(barClickSel, { timeout: 30_000 });
-      const barClick = await page.$(barClickSel);
-      if (!barClick) throw new Error(`Could not locate ${barClickSel}`);
+      await page.waitForSelector(barRectSel, { timeout: 30_000 });
+      const barRect = await page.$(barRectSel);
+      if (!barRect) throw new Error(`Could not locate ${barRectSel}`);
 
-      await barClick.evaluate((el: Element) =>
-        (el as HTMLElement).scrollIntoView({ block: 'center' })
+      await barRect.evaluate((el: Element) =>
+        (el as HTMLElement).scrollIntoView?.({ block: 'center' })
       );
-      await barClick.click();
+      await barRect.click();
 
       // The drag overlay must appear within 15 s
       await page.waitForSelector(overlaySel, { visible: true, timeout: 15_000 });
@@ -425,7 +425,7 @@ describe('/manager/budget Gantt editing flows (Task #1312 e2e)', () => {
     }
   }, 120_000);
 
-  it('bar-drag: hover shows the custom tooltip without blocking click zone', async () => {
+  it('bar-drag: bar rect is click-to-edit and no opaque overlay div is present', async () => {
     const page = await browser.newPage();
     page.on('pageerror', (err) => console.error('[pageerror]', err.message));
     try {
@@ -439,31 +439,28 @@ describe('/manager/budget Gantt editing flows (Task #1312 e2e)', () => {
       );
 
       const target = createdProjects[1];
-      const barClickSel = `[data-testid="gantt-bar-click-${target.id}"]`;
-      const tooltipSel = `[data-testid="gantt-hover-tooltip-${target.id}"]`;
+      const barRectSel = `[data-testid="gantt-bar-rect-${target.id}"]`;
+      const overlaySel = `[data-testid="gantt-drag-overlay-${target.id}"]`;
 
-      await page.waitForSelector(barClickSel, { timeout: 30_000 });
+      // Bar rect must exist — it is the click target for inline edit
+      await page.waitForSelector(barRectSel, { timeout: 30_000 });
 
-      // Hover the bar click overlay
-      await page.hover(barClickSel);
-
-      // The custom tooltip must appear
-      await page.waitForSelector(tooltipSel, { visible: true, timeout: 5_000 });
-
-      // Tooltip must be non-interactive (pointer-events: none)
-      const pointerEvents = await page.$eval(
-        tooltipSel,
-        (el: Element) => (el as HTMLElement).style.pointerEvents
+      // The old opaque overlay div (gantt-bar-click-*) must NOT exist —
+      // it was removed so the Recharts hover Tooltip can fire natively.
+      const oldOverlayPresent = await page.evaluate((id: string) =>
+        !!document.querySelector(`[data-testid="gantt-bar-click-${id}"]`),
+        target.id,
       );
-      expect(pointerEvents).toBe('none');
+      expect(oldOverlayPresent).toBe(false);
 
-      // The click overlay must still be clickable — hovering the tooltip must
-      // not prevent the bar-click div from being found and interacted with
-      const clickable = await page.evaluate((sel: string) => {
-        const el = document.querySelector(sel) as HTMLElement | null;
-        return !!el && el.style.pointerEvents !== 'none';
-      }, barClickSel);
-      expect(clickable).toBe(true);
+      // Clicking the bar rect must engage inline edit mode
+      const barRect = await page.$(barRectSel);
+      if (!barRect) throw new Error(`Could not locate ${barRectSel}`);
+      await barRect.click();
+      await page.waitForSelector(overlaySel, { visible: true, timeout: 15_000 });
+
+      // Cancel to clean up
+      await page.click(`[data-testid="gantt-cancel-${target.id}"]`);
     } finally {
       await page.close();
     }

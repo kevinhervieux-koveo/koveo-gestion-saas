@@ -129,6 +129,31 @@ function formatDate(ts: number, locale: string): string {
   });
 }
 
+// Human-readable duration: "5 days", "1 month, 2 weeks", "3 months", etc.
+function formatDuration(ms: number, locale: string): string {
+  const days = Math.max(1, Math.round(ms / DAY_MS));
+  const isFr = locale.startsWith('fr');
+  if (days < 14) {
+    return isFr
+      ? `${days} jour${days === 1 ? '' : 's'}`
+      : `${days} day${days === 1 ? '' : 's'}`;
+  }
+  const months = Math.floor(days / 30);
+  const remDays = days % 30;
+  const weeks = Math.floor(remDays / 7);
+  const parts: string[] = [];
+  if (months > 0) {
+    parts.push(isFr ? `${months} mois` : `${months} month${months === 1 ? '' : 's'}`);
+  }
+  if (weeks > 0) {
+    parts.push(isFr ? `${weeks} sem.` : `${weeks} week${weeks === 1 ? '' : 's'}`);
+  }
+  if (parts.length === 0) {
+    return isFr ? `${days} jours` : `${days} days`;
+  }
+  return parts.join(', ');
+}
+
 interface GanttRow {
   id: string;
   name: string;
@@ -158,6 +183,8 @@ interface MeasuredBarShapeProps {
   fillOpacity?: number;
   payload?: GanttRow;
   onMeasure: (id: string, x: number, y: number, width: number, height: number) => void;
+  onClick?: (row: GanttRow) => void;
+  cursor?: string;
 }
 
 // Custom Bar shape that captures the actual x/y/width/height Recharts uses
@@ -166,6 +193,10 @@ interface MeasuredBarShapeProps {
 // period-header ticks, and date chips so they cannot drift from the bars
 // (e.g. due to band-scale padding or the chart's left/right margins
 // reducing the plot area below the timeline div's full width).
+// The onClick/cursor props allow the rect to serve as its own click target
+// so no transparent overlay div is needed — pointer events pass through to
+// the Recharts SVG normally (enabling the native hover Tooltip) while a
+// click on the actual bar still starts inline date editing.
 function MeasuredBarShape({
   x = 0,
   y = 0,
@@ -175,6 +206,8 @@ function MeasuredBarShape({
   fillOpacity,
   payload,
   onMeasure,
+  onClick,
+  cursor,
 }: MeasuredBarShapeProps) {
   const id = payload?.id;
   useEffect(() => {
@@ -190,6 +223,8 @@ function MeasuredBarShape({
       fillOpacity={fillOpacity}
       rx={3}
       ry={3}
+      style={cursor ? { cursor } : undefined}
+      onClick={onClick && payload ? () => onClick(payload) : undefined}
       data-testid={id ? `gantt-bar-rect-${id}` : undefined}
     />
   );
@@ -220,7 +255,6 @@ export function GanttChart({
   const cancelLabel = t('ganttCancel');
   const resizeStartLabel = t('ganttResizeStart');
   const resizeEndLabel = t('ganttResizeEnd');
-  const durationDaysLabel = t('ganttDurationDays');
 
   const timelineRef = useRef<HTMLDivElement>(null);
 
@@ -235,10 +269,6 @@ export function GanttChart({
   const [dragActive, setDragActive] = useState(false);
   const dragStartX = useRef<number | null>(null);
   const isDragging = useRef(false);
-
-  // Tracks which bar the user is hovering so a custom tooltip can be shown
-  // without the hover being intercepted by the click overlay.
-  const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
 
   // Ref to the drag overlay div — used to refocus it after re-renders so
   // keyboard arrow-key nudging is preserved across date updates.
@@ -561,22 +591,32 @@ export function GanttChart({
     }
   }, [editingProjectId, editingDates, getEffectiveEditingDates, onDragEnd]);
 
-  // Keyboard nudging for the focused drag overlay. Arrow left/right moves the
-  // whole bar ±1 day; Shift+Arrow moves it ±1 week. The nudge is committed
-  // immediately via onDragEnd so the parent's editingDates stays in sync, and
-  // the overlay retains focus across the resulting re-render.
+  // Keyboard nudging for the focused drag overlay.
+  // Left/Right: moves the whole bar ±1 day.
+  // Shift+Left/Right: resizes the bar by ±1 day (adjusts end date, start fixed).
+  // Both are committed immediately via onDragEnd so the parent's editingDates
+  // stays in sync, and the overlay retains focus across the resulting re-render.
   const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
     if (!editingProjectId || !editingDates || isSaving) return;
     if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
     e.preventDefault();
-    const nudgeMs = e.shiftKey ? 7 * DAY_MS : DAY_MS;
-    const delta = e.key === 'ArrowRight' ? nudgeMs : -nudgeMs;
-    const dur = editingDates.endTs - editingDates.startTs;
-    const tentativeStart = editingDates.startTs + delta;
-    const clampedStart = Math.max(domain[0], Math.min(tentativeStart, domain[1] - dur));
-    const clampedEnd = clampedStart + dur;
-    if (onDragEnd) {
-      onDragEnd(editingProjectId, clampedStart, clampedEnd);
+    const delta = e.key === 'ArrowRight' ? DAY_MS : -DAY_MS;
+    if (e.shiftKey) {
+      // Resize: adjust end date, keep start fixed
+      const newEnd = editingDates.endTs + delta;
+      const clampedEnd = Math.max(editingDates.startTs + DAY_MS, Math.min(newEnd, domain[1]));
+      if (onDragEnd) {
+        onDragEnd(editingProjectId, editingDates.startTs, clampedEnd);
+      }
+    } else {
+      // Move: nudge whole bar ±1 day
+      const dur = editingDates.endTs - editingDates.startTs;
+      const tentativeStart = editingDates.startTs + delta;
+      const clampedStart = Math.max(domain[0], Math.min(tentativeStart, domain[1] - dur));
+      const clampedEnd = clampedStart + dur;
+      if (onDragEnd) {
+        onDragEnd(editingProjectId, clampedStart, clampedEnd);
+      }
     }
   }, [editingProjectId, editingDates, isSaving, domain, onDragEnd]);
 
@@ -947,70 +987,6 @@ export function GanttChart({
               />
             )}
 
-            {/* Per-row clickable overlays — clicking a project's bar starts the
-                inline date-drag editing mode for that row. Only rendered for
-                rows that have dates and are not currently being edited. */}
-            {onStartEdit && displayRows.map((row, idx) => {
-              if (!row.hasDates || row.id === editingProjectId || isSaving) return null;
-              const topPx = TOP_MARGIN + idx * ROW_HEIGHT;
-              return (
-                <div
-                  key={`bar-click-${row.id}`}
-                  data-testid={`gantt-bar-click-${row.id}`}
-                  onClick={() => onStartEdit(row.id)}
-                  onMouseEnter={() => setHoveredRowId(row.id)}
-                  onMouseLeave={() => setHoveredRowId(prev => prev === row.id ? null : prev)}
-                  style={{
-                    position: 'absolute',
-                    left: 0,
-                    right: 0,
-                    top: topPx,
-                    height: ROW_HEIGHT,
-                    cursor: 'grab',
-                    zIndex: 2,
-                    background: 'transparent',
-                  }}
-                />
-              );
-            })}
-
-            {/* Custom hover tooltip — shown when the user hovers a bar's click
-                overlay. Replaces the Recharts tooltip (which cannot fire through
-                the click overlay div) with a floating card that has
-                pointerEvents:none so it never interferes with clicks. */}
-            {(() => {
-              if (!hoveredRowId) return null;
-              const hRow = displayRows.find(r => r.id === hoveredRowId);
-              if (!hRow || !hRow.hasDates || hRow.startTs == null || hRow.endTs == null) return null;
-              const hLayout = barLayouts[hoveredRowId];
-              const hTop = hLayout?.y ?? 0;
-              const hLeft = tsToLeft((hRow.startTs + hRow.endTs) / 2);
-              return (
-                <div
-                  data-testid={`gantt-hover-tooltip-${hoveredRowId}`}
-                  style={{
-                    position: 'absolute',
-                    left: hLeft,
-                    top: hTop - 8,
-                    transform: 'translate(-50%, -100%)',
-                    pointerEvents: 'none',
-                    zIndex: 8,
-                  }}
-                >
-                  <div className="rounded-md border bg-background p-2 text-xs shadow-md" style={{ whiteSpace: 'nowrap' }}>
-                    <div className="font-medium">{hRow.name}</div>
-                    {hRow.status && (
-                      <div className="text-muted-foreground capitalize">
-                        {hRow.status.replace(/_/g, ' ')}
-                      </div>
-                    )}
-                    <div className="text-muted-foreground">
-                      {formatDate(hRow.startTs, locale)} — {formatDate(hRow.endTs, locale)}
-                    </div>
-                  </div>
-                </div>
-              );
-            })()}
 
             {/* Floating date chips during a drag/resize gesture.
                 - resize-left → start chip anchored to the left edge
@@ -1040,9 +1016,10 @@ export function GanttChart({
               };
               const showStart = dragMode === 'resize-left' || dragMode === 'move';
               const showEnd = dragMode === 'resize-right' || dragMode === 'move';
-              const durDays = Math.max(1, Math.round(
-                (effectiveEditingDates.endTs - effectiveEditingDates.startTs) / DAY_MS
-              ));
+              const durLabel = formatDuration(
+                effectiveEditingDates.endTs - effectiveEditingDates.startTs,
+                locale,
+              );
               const midLeft = tsToLeft(
                 (effectiveEditingDates.startTs + effectiveEditingDates.endTs) / 2
               );
@@ -1084,7 +1061,7 @@ export function GanttChart({
                       background: '#1d4ed8',
                     }}
                   >
-                    {durDays} {durationDaysLabel}
+                    {durLabel}
                   </div>
                 </>
               );
@@ -1215,10 +1192,25 @@ export function GanttChart({
                   // subset MeasuredBarShape consumes (x/y/width/height/
                   // fill/fillOpacity/payload) — the same fields Recharts
                   // documents it injects into custom bar shapes.
+                  // onClick and cursor are threaded into the rect so that
+                  // the Recharts hover Tooltip can fire normally (no opaque
+                  // overlay div intercepting mouse events) while clicking the
+                  // actual bar still starts inline date editing.
                   shape={(props: unknown) => {
-                    const barProps = props as Omit<MeasuredBarShapeProps, 'onMeasure'>;
+                    const barProps = props as Omit<MeasuredBarShapeProps, 'onMeasure' | 'onClick' | 'cursor'>;
+                    const row = barProps.payload;
+                    const canClick =
+                      !!onStartEdit &&
+                      !!row?.hasDates &&
+                      row?.id !== editingProjectId &&
+                      !isSaving;
                     return (
-                      <MeasuredBarShape {...barProps} onMeasure={handleBarMeasure} />
+                      <MeasuredBarShape
+                        {...barProps}
+                        onMeasure={handleBarMeasure}
+                        onClick={canClick ? (r) => onStartEdit!(r.id) : undefined}
+                        cursor={canClick ? 'grab' : undefined}
+                      />
                     );
                   }}
                 >

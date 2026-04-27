@@ -2,10 +2,10 @@
  * Keyboard nudge tests for the GanttChart drag overlay.
  *
  * When a Gantt bar is in edit mode the drag overlay gains tabIndex=0 and an
- * onKeyDown handler. Arrow left/right nudge the bar by ±1 day; adding Shift
- * nudges by ±1 week (7 days). The nudge calls onDragEnd with the updated
- * timestamps so the parent can persist the new dates. Focus is preserved on
- * the overlay across re-renders caused by each nudge.
+ * onKeyDown handler. Arrow left/right nudge (move) the bar by ±1 day;
+ * Shift+Arrow resizes the bar by ±1 day (adjusts end date, start fixed).
+ * The nudge calls onDragEnd with the updated timestamps so the parent can
+ * persist the new dates. Focus is preserved on the overlay across re-renders.
  */
 
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
@@ -239,7 +239,7 @@ describe('GanttChart keyboard nudging (Task #1312)', () => {
     });
   });
 
-  it('Shift+ArrowRight nudges the bar forward by 7 days', async () => {
+  it('Shift+ArrowRight resizes the bar by +1 day (extends end, start fixed)', async () => {
     mockApiRequest.mockResolvedValue({
       ok: true,
       json: async () => ({ success: true, data: { id: 'p1' } }),
@@ -259,13 +259,14 @@ describe('GanttChart keyboard nudging (Task #1312)', () => {
     });
 
     const [, , body] = mockApiRequest.mock.calls[0];
+    // Start stays fixed; end extends by 1 day
     expect(body).toEqual({
-      plannedStartDate: '2026-06-08',
-      plannedEndDate: '2026-07-07',
+      plannedStartDate: '2026-06-01',
+      plannedEndDate: '2026-07-01',
     });
   });
 
-  it('Shift+ArrowLeft nudges the bar backward by 7 days', async () => {
+  it('Shift+ArrowLeft resizes the bar by -1 day (shrinks end, start fixed)', async () => {
     mockApiRequest.mockResolvedValue({
       ok: true,
       json: async () => ({ success: true, data: { id: 'p1' } }),
@@ -285,9 +286,10 @@ describe('GanttChart keyboard nudging (Task #1312)', () => {
     });
 
     const [, , body] = mockApiRequest.mock.calls[0];
+    // Start stays fixed; end shrinks by 1 day
     expect(body).toEqual({
-      plannedStartDate: '2026-05-25',
-      plannedEndDate: '2026-06-23',
+      plannedStartDate: '2026-06-01',
+      plannedEndDate: '2026-06-29',
     });
   });
 
@@ -343,9 +345,7 @@ describe('GanttChart keyboard nudging (Task #1312)', () => {
     fireEvent.click(screen.getByTestId('gantt-edit-p1'));
     const overlay = await screen.findByTestId('gantt-drag-overlay-p1');
 
-    // Shift+ArrowRight (7 days) from Dec 1 → Dec 8–Dec 27, still within domain
-    // Two more Shift+ArrowRight from Dec 8 → Dec 15 → Dec 22 still within domain
-    // One more ArrowRight attempts to go past Dec 31
+    // ArrowRight (1 day each) — repeat 20 times to drive the bar past Dec 31
     for (let i = 0; i < 20; i++) {
       fireEvent.keyDown(overlay, { key: 'ArrowRight' });
     }
