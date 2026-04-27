@@ -661,11 +661,11 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
       .field('relativePaths', '2024/something-else.pdf');
 
     expect(upload.status).toBe(201);
-    expect(upload.body).toHaveLength(5);
-    upload.body.forEach((row: any) => trackedItems.add(row.id));
+    expect(upload.body.items).toHaveLength(5);
+    upload.body.items.forEach((row: any) => trackedItems.add(row.id));
 
     const byName = new Map<string, any>(
-      upload.body.map((r: any) => [r.originalName, r] as const),
+      upload.body.items.map((r: any) => [r.originalName, r] as const),
     );
     expect(byName.get('jan-statement.pdf').originalPath).toBe(
       '2024 bills/January/jan-statement.pdf',
@@ -708,9 +708,9 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
       });
 
     expect(upload.status).toBe(201);
-    expect(upload.body).toHaveLength(1);
-    upload.body.forEach((row: any) => trackedItems.add(row.id));
-    expect(upload.body[0].originalPath).toBe('no-folder.pdf');
+    expect(upload.body.items).toHaveLength(1);
+    upload.body.items.forEach((row: any) => trackedItems.add(row.id));
+    expect(upload.body.items[0].originalPath).toBe('no-folder.pdf');
   });
 
   it('preserves originalPath through the replace-file route so folder lineage is not lost', async () => {
@@ -724,7 +724,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
       })
       .field('relativePaths', 'leases/2024/lease.pdf');
     expect(upload.status).toBe(201);
-    const item = upload.body[0];
+    const item = upload.body.items[0];
     trackedItems.add(item.id);
     expect(item.originalPath).toBe('leases/2024/lease.pdf');
 
@@ -1790,9 +1790,9 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
       }
       const res = await req;
       expect(res.status).toBe(201);
-      expect(res.body).toHaveLength(filenames.length);
+      expect(res.body.items).toHaveLength(filenames.length);
       const byName: Record<string, any> = {};
-      for (const row of res.body) {
+      for (const row of res.body.items) {
         trackedItems.add(row.id);
         byName[row.originalName] = row;
       }

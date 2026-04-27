@@ -5316,7 +5316,16 @@ export default function BulkDocumentImportPage() {
                         ? branchingItems.filter((item) => item.status === 'rejected' || !isItemReadyForNextStep(item, 'branching'))
                         : branchingItems;
                       const grouped = new Map<string, BulkImportItemLite[]>();
-                      for (const item of displayedBranchingItems) {
+                      // Excluded items (status === 'rejected') that have never been
+                      // assigned a branch destination are intentionally skipped here.
+                      // Placing them in the 'Unsorted' bucket creates noise when all
+                      // files in a session were excluded before branching ran.
+                      // Excluded items WITH a branch still appear in their section so
+                      // the per-row Retry button remains reachable (Task #1225).
+                      const itemsToGroup = displayedBranchingItems.filter(
+                        (item) => !(item.status === 'rejected' && item.branch === null),
+                      );
+                      for (const item of itemsToGroup) {
                         const key = item.branch ?? 'unsorted';
                         if (!grouped.has(key)) grouped.set(key, []);
                         grouped.get(key)!.push(item);
@@ -5337,7 +5346,7 @@ export default function BulkDocumentImportPage() {
                       if (sections.length === 0) {
                         return (
                           <p className="text-sm text-muted-foreground" data-testid="empty-state-branching">
-                            {hideReady && displayedBranchingItems.length === 0 && branchingItems.length > 0
+                            {hideReady && itemsToGroup.length === 0 && branchingItems.length > 0 && branchingItems.some((i) => i.status !== 'rejected')
                               ? (isFr ? 'Tous les fichiers sont prêts pour l\'étape suivante.' : 'All files are ready for the next step.')
                               : (isFr ? 'Aucun fichier' : 'No items')}
                           </p>

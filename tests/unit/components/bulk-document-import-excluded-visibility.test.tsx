@@ -67,7 +67,11 @@ import { queryClient } from '@/lib/queryClient';
 // Fixture helpers
 // -----------------------------------------------------------------------------
 
-const SESSION_ID = 'session-test-804';
+// Session ID rotates per test (Task #1076 cache-pollution fix).
+// A fixed key lets stale fetches from a previous test overwrite the
+// freshly seeded cache and flip the branching step into sections-mode.
+let SESSION_ID = 'session-test-804-init';
+let sessionCounter = 0;
 
 const INCLUDED_ITEM_ID = 'item-included';
 const EXCLUDED_ITEM_ID = 'item-excluded';
@@ -199,18 +203,30 @@ async function waitForRowEither(id: string) {
 
 let originalFetch: typeof fetch | undefined;
 
-beforeEach(() => {
+beforeEach(async () => {
+  // Rotate session ID so stale in-flight fetches from the previous test
+  // cannot pollute this test's cache (Task #1076 cache-pollution fix).
+  sessionCounter += 1;
+  SESSION_ID = `session-test-804-${sessionCounter}`;
+
   originalFetch = global.fetch;
   window.localStorage.setItem('bulkImportActiveSessionId', SESSION_ID);
+
+  // Cancel any in-flight queries BEFORE clearing so a late-resolving fetch
+  // from the previous test cannot write its stale payload into the fresh cache.
+  await queryClient.cancelQueries();
   queryClient.clear();
+  queryClient.removeQueries();
 });
 
-afterEach(() => {
+afterEach(async () => {
   cleanup();
   global.fetch = originalFetch as typeof fetch;
   window.localStorage.clear();
   mockToast.mockReset();
+  await queryClient.cancelQueries();
   queryClient.clear();
+  queryClient.removeQueries();
 });
 
 // -----------------------------------------------------------------------------
@@ -357,6 +373,51 @@ describe('BulkDocumentImportPage — excluded file visibility (Task #804)', () =
     expect(screen.getByTestId('branching-section-other')).toBeInTheDocument();
     expect(screen.getByTestId(`item-row-${EXCLUDED_ITEM_ID}`)).toBeInTheDocument();
     expect(screen.getByTestId(`item-row-${INCLUDED_ITEM_ID}`)).toBeInTheDocument();
+  });
+
+  // ---------------------------------------------------------------------------
+  // Branching empty-state: all files excluded with no branch destination
+  // ---------------------------------------------------------------------------
+
+  /**
+   * When every file in a session was excluded (status='rejected') before
+   * the Branching step ran, none of the items have a branch destination.
+   * Placing them all in the 'Unsorted' bucket would create noise; instead
+   * the renderer skips unbranched excluded items from grouping so the
+   * 'No items' empty-state appears. Excluded items that DO have a branch
+   * destination are still shown (per Task #1225).
+   */
+  it('shows "No items" on the Branching step when every file is excluded and none have a branch', async () => {
+    const items = [
+      buildItem(EXCLUDED_ITEM_ID, 'rejected'),
+    ];
+    setupTest('branching', items);
+
+    renderPage();
+
+    // Bundle all assertions inside waitFor so every check runs within the
+    // same act() snapshot. This avoids a React 18 concurrent-mode race where
+    // the component can flush deferred renders between an await and the next
+    // synchronous line, detaching the element before toBeInTheDocument() runs.
+    // A 6-second timeout gives headroom because this test is #8 in the file
+    // and the shared queryClient may have accumulated enough query-success
+    // events to trigger the cache-cleanup mechanism mid-render.
+    await waitFor(() => {
+      expect(screen.getByTestId('empty-state-branching')).toHaveTextContent('No items');
+      expect(screen.queryByTestId(`item-row-${EXCLUDED_ITEM_ID}`)).not.toBeInTheDocument();
+    }, { timeout: 6000 });
+  });
+
+  it('still shows the excluded file in Branching when it has a branch destination (Task #1225)', async () => {
+    const items = [
+      buildItem(EXCLUDED_ITEM_ID, 'rejected', 'building_documents'),
+    ];
+    setupTest('branching', items);
+
+    renderPage();
+
+    await screen.findByTestId(`item-row-${EXCLUDED_ITEM_ID}`, undefined, { timeout: 4000 });
+    expect(screen.queryByTestId('empty-state-branching')).not.toBeInTheDocument();
   });
 
   // ---------------------------------------------------------------------------
