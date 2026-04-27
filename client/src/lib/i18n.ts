@@ -13290,3 +13290,25 @@ export const translations: Record<Language, Translations> = {
     dmUploadedBy: 'par {name}',
   }
 };
+
+/**
+ * Formats a date for the compliance dashboard using a consistent FR-Canada or EN-Canada locale.
+ * Produces "YYYY-MM-DD HH h MM min SS s" in French (fr-CA) and a matching numeric style in English (en-CA).
+ *
+ * @param date - Date instance or ISO string to format.
+ * @param language - Active UI language ('fr' | 'en').
+ * @returns Formatted date-time string.
+ */
+export function formatComplianceDate(date: Date | string, language: string): string {
+  const d = typeof date === 'string' ? new Date(date) : date;
+  const locale = language === 'fr' ? 'fr-CA' : 'en-CA';
+  return new Intl.DateTimeFormat(locale, {
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false,
+  }).format(d);
+}

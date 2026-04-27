@@ -383,7 +383,7 @@ function AuthenticatedLayout() {
             <Route path='/admin' component={AdminOverviewRedirect} />
             <Route path='/admin/organizations'>{() => <ProtectedRoute requiredRole="super_admin"><AdminOrganizations /></ProtectedRoute>}</Route>
             <Route path='/admin/quality'>{() => <ProtectedRoute requiredRole="super_admin"><AdminQuality /></ProtectedRoute>}</Route>
-            <Route path='/admin/compliance'>{() => <ProtectedRoute requiredRole="super_admin"><AdminCompliance /></ProtectedRoute>}</Route>
+            <Route path='/admin/compliance'>{() => <ProtectedRoute requiredRole="admin"><AdminCompliance /></ProtectedRoute>}</Route>
             <Route path='/admin/permissions'>{() => <ProtectedRoute requiredRole="super_admin"><AdminPermissions /></ProtectedRoute>}</Route>
             <Route path='/admin/bulk-document-import'>{() => <ProtectedRoute requiredRole="super_admin"><AdminBulkDocumentImport /></ProtectedRoute>}</Route>
             <Route path='/admin/document-tags'>{() => <ProtectedRoute requiredRole="super_admin"><AdminDocumentTags /></ProtectedRoute>}</Route>

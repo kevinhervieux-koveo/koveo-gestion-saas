@@ -16,6 +16,7 @@ import {
   Scale,
 } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
+import { formatComplianceDate } from '@/lib/i18n';
 import { Skeleton } from '@/components/ui/skeleton';
 
 /**
@@ -55,7 +56,7 @@ interface Law25ComplianceData {
  * @returns Function result.
  */
 export function Law25Compliance() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   const { data: complianceData, isLoading } = useQuery<Law25ComplianceData>({
     queryKey: ['/api/law25-compliance'],
@@ -204,10 +205,7 @@ export function Law25Compliance() {
             <div className='text-center'>
               <div className='text-sm text-gray-500 mb-1'>{t('lastScan')}</div>
               <div className='text-sm font-medium text-gray-700'>
-                {new Date(complianceData.lastScanDate).toLocaleDateString()}
-              </div>
-              <div className='text-xs text-gray-400'>
-                {new Date(complianceData.lastScanDate).toLocaleTimeString()}
+                {formatComplianceDate(complianceData.lastScanDate, language)}
               </div>
             </div>
           </div>

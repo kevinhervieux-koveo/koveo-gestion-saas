@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { RefreshCw } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { formatComplianceDate } from '@/lib/i18n';
 
 interface Law25LastScan {
   lastScanDate?: string;
@@ -28,9 +29,7 @@ export default function Compliance() {
     if (!data?.lastScanDate) {
       return t('notAvailable');
     }
-    const date = new Date(data.lastScanDate);
-    const locale = language === 'fr' ? 'fr-CA' : 'en-CA';
-    return `${date.toLocaleDateString(locale)} ${date.toLocaleTimeString(locale)}`;
+    return formatComplianceDate(data.lastScanDate, language);
   };
 
   return (
