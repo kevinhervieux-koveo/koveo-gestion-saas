@@ -397,6 +397,47 @@ const FK_TABLE_TO_ENTITY: Record<string, string> = {
 };
 
 /**
+ * Hints for querying actual blocking records when a delete FK violation occurs.
+ * Keyed by the entity's table name → map of { blocking table → { filterCol, labelCol } }.
+ * `filterCol` is the column in the blocking table that references the deleted entity's id.
+ * `labelCol` is a human-readable column to include alongside the blocking id.
+ * Only tables/columns from our own schema are used here — never from user input.
+ */
+export const FK_BLOCKER_COLUMN_HINTS: Partial<Record<string, Record<string, { filterCol: string; labelCol: string }>>> = {
+  buildings: {
+    residences: { filterCol: 'building_id', labelCol: 'unit_number' },
+    bills: { filterCol: 'building_id', labelCol: 'title' },
+    maintenance_projects: { filterCol: 'building_id', labelCol: 'name' },
+    common_spaces: { filterCol: 'building_id', labelCol: 'name' },
+    budgets: { filterCol: 'building_id', labelCol: 'id' },
+  },
+  bills: {
+    payments: { filterCol: 'bill_id', labelCol: 'id' },
+    scheduled_payments: { filterCol: 'bill_id', labelCol: 'id' },
+  },
+  residences: {
+    invoices: { filterCol: 'residence_id', labelCol: 'id' },
+    demands: { filterCol: 'residence_id', labelCol: 'id' },
+    maintenance_requests: { filterCol: 'residence_id', labelCol: 'title' },
+    user_residences: { filterCol: 'residence_id', labelCol: 'user_id' },
+  },
+  maintenance_projects: {
+    project_steps: { filterCol: 'project_id', labelCol: 'id' },
+    project_elements: { filterCol: 'project_id', labelCol: 'id' },
+  },
+  common_spaces: {
+    bookings: { filterCol: 'common_space_id', labelCol: 'id' },
+    common_space_restrictions: { filterCol: 'common_space_id', labelCol: 'id' },
+    user_time_limits: { filterCol: 'common_space_id', labelCol: 'id' },
+  },
+  building_elements: {
+    project_elements: { filterCol: 'element_id', labelCol: 'id' },
+    element_history: { filterCol: 'element_id', labelCol: 'id' },
+    evaluation_suggestions: { filterCol: 'element_id', labelCol: 'id' },
+  },
+};
+
+/**
  * Build a sanitized MCP tool response for an error caught while writing
  * (`create`/`update`) or deleting (`delete`) `entityLabel`. For PostgreSQL
  * FK-violation errors (`code === '23503'`) we parse the driver `detail`
@@ -419,6 +460,7 @@ export function buildWriteErrorResponse(
   e: unknown,
   entityLabel: string,
   action: 'create' | 'update' | 'delete' = 'create',
+  blockers?: Array<{ id: string; label?: string }> | null,
 ): { content: Array<{ type: 'text'; text: string }> } {
   const code = (e as { code?: unknown } | null)?.code;
   if (code === '23503') {
@@ -436,19 +478,25 @@ export function buildWriteErrorResponse(
       : 'related_record';
     const humanLabel = relatedEntity.replace(/_/g, ' ');
     if (action === 'delete') {
+      const blockerCount = blockers && blockers.length > 0 ? blockers.length : null;
+      const countPhrase = blockerCount !== null ? blockerCount : '1 or more';
       const message = relatedTable
-        ? `Cannot delete ${entityLabel}: 1 or more ${humanLabel}s still reference it. Remove them first.`
+        ? `Cannot delete ${entityLabel}: ${countPhrase} ${humanLabel}(s) still reference it. Remove them first.`
         : `Cannot delete ${entityLabel}: other records still reference it. Remove them first.`;
+      const payload: Record<string, unknown> = {
+        status: 'fk_violation',
+        code: 'FK_VIOLATION',
+        retryable: false,
+        blocking_entity: relatedEntity,
+        message,
+      };
+      if (blockers && blockers.length > 0) {
+        payload.blockers = blockers;
+      }
       return {
         content: [{
           type: 'text' as const,
-          text: JSON.stringify({
-            status: 'fk_violation',
-            code: 'FK_VIOLATION',
-            retryable: false,
-            blocking_entity: relatedEntity,
-            message,
-          }, null, 2),
+          text: JSON.stringify(payload, null, 2),
         }],
       };
     }
@@ -510,6 +558,55 @@ export function buildWriteErrorResponse(
       text: `Failed to ${action} ${entityLabel} — please retry`,
     }],
   };
+}
+
+/**
+ * Query the database for up to `limit` records in the blocking table after a
+ * delete FK violation. Used by delete handlers to populate the `blockers` field
+ * of `buildWriteErrorResponse` with actual record IDs and labels so callers can
+ * see exactly which rows prevent the delete.
+ *
+ * `entityTable` must be one of the keys in `FK_BLOCKER_COLUMN_HINTS`.
+ * `blockingTable` is parsed from the PostgreSQL error detail string.
+ * Only table/column names from our own `FK_BLOCKER_COLUMN_HINTS` are ever
+ * interpolated into the query — they are never derived from user input.
+ *
+ * Returns `null` if the error is not a FK violation, if the blocking table
+ * is unknown, or if the follow-up query fails (the failure is logged but does
+ * not propagate — the original error response still reaches the caller).
+ */
+export async function queryDeleteBlockers(
+  e: unknown,
+  entityTable: string,
+  entityId: string,
+  limitCount = 5,
+): Promise<Array<{ id: string; label?: string }> | null> {
+  const code = (e as { code?: unknown } | null)?.code;
+  if (code !== '23503') return null;
+  const detail = (e as { detail?: unknown } | null)?.detail;
+  if (typeof detail !== 'string') return null;
+  const match = detail.match(/referenced from table "([^"]+)"/);
+  if (!match) return null;
+  const blockingTable = match[1];
+  const hints = FK_BLOCKER_COLUMN_HINTS[entityTable];
+  if (!hints) return null;
+  const hint = hints[blockingTable];
+  if (!hint) return null;
+  try {
+    const rows = await db.execute(
+      sql`SELECT id${hint.labelCol !== 'id' ? sql`, ${sql.raw(hint.labelCol)} AS label` : sql``}
+          FROM ${sql.raw(blockingTable)}
+          WHERE ${sql.raw(hint.filterCol)} = ${entityId}
+          LIMIT ${sql.raw(String(limitCount))}`
+    );
+    return (rows.rows as Array<{ id: string; label?: string }>).map((r) => ({
+      id: r.id,
+      ...(hint.labelCol !== 'id' && r.label !== undefined ? { label: String(r.label) } : {}),
+    }));
+  } catch (qErr) {
+    console.error('[mcp:queryDeleteBlockers] follow-up query failed', qErr);
+    return null;
+  }
 }
 
 /**
@@ -979,16 +1076,16 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       city: z.string().describe("City"),
       postalCode: z.string().describe("Postal code"),
       buildingType: z.enum(["apartment", "condo", "rental"]).describe("Building type"),
-      totalUnits: z.number().int().describe("Total number of units"),
+      totalUnits: z.number().int().min(1, "Total units must be at least 1").describe("Total number of units"),
       province: z.string().length(2).optional().describe("Province code (defaults to QC)"),
       constructionDate: z
         .string()
         .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD")
         .optional()
         .describe("Construction date (YYYY-MM-DD)"),
-      totalFloors: z.number().int().optional().describe("Total number of floors"),
-      parkingSpaces: z.number().int().optional().describe("Total parking spaces"),
-      storageSpaces: z.number().int().optional().describe("Total storage spaces"),
+      totalFloors: z.number().int().min(1, "Total floors must be at least 1").optional().describe("Total number of floors"),
+      parkingSpaces: z.number().int().min(0, "Parking spaces must not be negative").optional().describe("Total parking spaces"),
+      storageSpaces: z.number().int().min(0, "Storage spaces must not be negative").optional().describe("Total storage spaces"),
       amenities: z.array(z.string()).optional().describe("List of building amenities"),
       managementCompany: z.string().optional().describe("Management company name"),
       bankAccountNumber: z.string().optional().describe("Bank account number"),
@@ -1122,16 +1219,16 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       city: z.string().optional().describe("City"),
       postalCode: z.string().optional().describe("Postal code"),
       buildingType: z.enum(["apartment", "condo", "rental"]).optional().describe("Building type"),
-      totalUnits: z.number().int().optional().describe("Total number of units"),
+      totalUnits: z.number().int().min(1, "Total units must be at least 1").optional().describe("Total number of units"),
       province: z.string().length(2).optional().describe("Province code"),
       constructionDate: z
         .string()
         .regex(/^\d{4}-\d{2}-\d{2}$/, "Must be YYYY-MM-DD")
         .optional()
         .describe("Construction date (YYYY-MM-DD)"),
-      totalFloors: z.number().int().optional().describe("Total number of floors"),
-      parkingSpaces: z.number().int().optional().describe("Total parking spaces"),
-      storageSpaces: z.number().int().optional().describe("Total storage spaces"),
+      totalFloors: z.number().int().min(1, "Total floors must be at least 1").optional().describe("Total number of floors"),
+      parkingSpaces: z.number().int().min(0, "Parking spaces must not be negative").optional().describe("Total parking spaces"),
+      storageSpaces: z.number().int().min(0, "Storage spaces must not be negative").optional().describe("Total storage spaces"),
       amenities: z.array(z.string()).optional().describe("List of building amenities"),
       managementCompany: z.string().optional().describe("Management company name"),
       bankAccountNumber: z.string().optional().describe("Bank account number"),
@@ -1448,10 +1545,10 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       buildingId: z.string().describe("Building ID"),
       unitNumber: z.string().describe("Unit number"),
       floor: z.number().int().optional().describe("Floor number"),
-      bedrooms: z.number().int().optional().describe("Number of bedrooms"),
-      bathrooms: z.number().optional().describe("Number of bathrooms"),
-      monthlyFees: z.number().optional().describe("Monthly fees amount"),
-      squareFootage: z.number().optional().describe("Square footage"),
+      bedrooms: z.number().int().min(0, "Bedrooms must not be negative").optional().describe("Number of bedrooms"),
+      bathrooms: z.number().min(0, "Bathrooms must not be negative").optional().describe("Number of bathrooms"),
+      monthlyFees: z.number().min(0, "Monthly fees must not be negative").optional().describe("Monthly fees amount"),
+      squareFootage: z.number().positive("Square footage must be positive").optional().describe("Square footage"),
       balcony: z.boolean().optional().describe("Whether the residence has a balcony"),
       parkingSpaceNumbers: z.array(z.string()).optional().describe("Assigned parking space numbers"),
       storageSpaceNumbers: z.array(z.string()).optional().describe("Assigned storage space numbers"),
@@ -1514,10 +1611,10 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       residenceId: z.string().describe("Residence ID"),
       unitNumber: z.string().optional().describe("Unit number"),
       floor: z.number().int().optional().describe("Floor number"),
-      bedrooms: z.number().int().optional().describe("Number of bedrooms"),
-      bathrooms: z.number().optional().describe("Number of bathrooms"),
-      monthlyFees: z.number().optional().describe("Monthly fees amount"),
-      squareFootage: z.number().optional().describe("Square footage"),
+      bedrooms: z.number().int().min(0, "Bedrooms must not be negative").optional().describe("Number of bedrooms"),
+      bathrooms: z.number().min(0, "Bathrooms must not be negative").optional().describe("Number of bathrooms"),
+      monthlyFees: z.number().min(0, "Monthly fees must not be negative").optional().describe("Monthly fees amount"),
+      squareFootage: z.number().positive("Square footage must be positive").optional().describe("Square footage"),
       balcony: z.boolean().optional().describe("Whether the residence has a balcony"),
       parkingSpaceNumbers: z.array(z.string()).optional().describe("Assigned parking space numbers"),
       storageSpaceNumbers: z.array(z.string()).optional().describe("Assigned storage space numbers"),
@@ -2488,6 +2585,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       // can't silently let oversized rows reach the DB.
       commentText: z
         .string()
+        .trim()
         .min(1, "Comment body is required")
         .max(
           DEMAND_COMMENT_TEXT_MAX,
@@ -3219,7 +3317,8 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         return { content: [{ type: "text" as const, text: JSON.stringify({ deleted, message: "Common space deleted" }, null, 2) }] };
       } catch (e) {
         console.error("[mcp:delete_common_space]", e);
-        return buildWriteErrorResponse(e, 'common space', 'delete');
+        const blockers = await queryDeleteBlockers(e, 'common_spaces', spaceId);
+        return buildWriteErrorResponse(e, 'common space', 'delete', blockers);
       }
     }
   );
@@ -4090,7 +4189,8 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         };
       } catch (e) {
         console.error("[mcp:delete_inventory_element]", e);
-        return buildWriteErrorResponse(e, 'inventory element', 'delete');
+        const blockers = await queryDeleteBlockers(e, 'building_elements', elementId);
+        return buildWriteErrorResponse(e, 'inventory element', 'delete', blockers);
       }
     }
   );
@@ -5884,7 +5984,8 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         // server console so operators can debug, but never interpolate it
         // into the MCP response — see task #239.
         console.error("[mcp:delete_building]", e);
-        return buildWriteErrorResponse(e, 'building', 'delete');
+        const blockers = await queryDeleteBlockers(e, 'buildings', buildingId);
+        return buildWriteErrorResponse(e, 'building', 'delete', blockers);
       }
     }
   );
@@ -5997,7 +6098,8 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         // server console so operators can debug, but never interpolate it
         // into the MCP response — see task #239.
         console.error("[mcp:delete_residence]", e);
-        return buildWriteErrorResponse(e, 'residence', 'delete');
+        const blockers = await queryDeleteBlockers(e, 'residences', residenceId);
+        return buildWriteErrorResponse(e, 'residence', 'delete', blockers);
       }
     }
   );
@@ -6055,7 +6157,8 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         // server console so operators can debug, but never interpolate it
         // into the MCP response — see task #239.
         console.error("[mcp:delete_bill]", e);
-        return buildWriteErrorResponse(e, 'bill', 'delete');
+        const blockers = await queryDeleteBlockers(e, 'bills', billId);
+        return buildWriteErrorResponse(e, 'bill', 'delete', blockers);
       }
     }
   );
@@ -6157,7 +6260,8 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         // server console so operators can debug, but never interpolate it
         // into the MCP response — see task #239.
         console.error("[mcp:delete_project]", e);
-        return buildWriteErrorResponse(e, 'project', 'delete');
+        const blockers = await queryDeleteBlockers(e, 'maintenance_projects', projectId);
+        return buildWriteErrorResponse(e, 'project', 'delete', blockers);
       }
     }
   );

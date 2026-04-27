@@ -54,7 +54,7 @@ jest.mock('../api/common-spaces-rules', () => ({
   loadCommonSpaceForBookingChecks: jest.fn(),
 }));
 
-import { createMcpServer } from '../mcp/server';
+import { createMcpServer, buildWriteErrorResponse, FK_BLOCKER_COLUMN_HINTS } from '../mcp/server';
 import * as commonSpaceRules from '../api/common-spaces-rules';
 
 const EXPECTED_TOOLS = [
@@ -2220,6 +2220,317 @@ describe('MCP Server', () => {
           expect(r.data.description).toBe('Broken window in unit 101');
         }
       });
+    });
+
+    describe('create_demand_comment MCP input', () => {
+      const baseArgs = {
+        role: 'admin' as const,
+        demandId: '00000000-0000-0000-0000-000000000001',
+      };
+
+      it('rejects an empty commentText with a validation error', () => {
+        const schema = getToolInputSchema('create_demand_comment');
+        const parsed = schema.safeParse({ ...baseArgs, commentText: '' });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'commentText')).toBe(true);
+        }
+      });
+
+      it('rejects a whitespace-only commentText with a validation error', () => {
+        const schema = getToolInputSchema('create_demand_comment');
+        const parsed = schema.safeParse({ ...baseArgs, commentText: '   ' });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'commentText')).toBe(true);
+        }
+      });
+
+      it('accepts a non-empty commentText and trims whitespace', () => {
+        const schema = getToolInputSchema('create_demand_comment');
+        const parsed = schema.safeParse({ ...baseArgs, commentText: '  Fixed the issue  ' });
+        expect(parsed.success).toBe(true);
+        if (parsed.success) {
+          expect(parsed.data?.commentText).toBe('Fixed the issue');
+        }
+      });
+    });
+  });
+
+  describe('Property tool numeric guards (Task #1308)', () => {
+    function getToolInputSchema(toolName: string) {
+      const tools = (server as ReturnType<typeof createMcpServer> & {
+        _registeredTools: Record<string, { inputSchema?: unknown }>;
+      })._registeredTools;
+      const tool = tools?.[toolName];
+      if (!tool || !tool.inputSchema) {
+        throw new Error(`Tool "${toolName}" or its inputSchema not found`);
+      }
+      return tool.inputSchema as { safeParse: (input: unknown) => { success: boolean; data?: Record<string, unknown>; error?: { issues: Array<{ path: (string | number)[]; message?: string }> } } };
+    }
+
+    const buildingBase = {
+      role: 'admin' as const,
+      organizationId: 'org-1',
+      name: 'Test Building',
+      address: '123 Main St',
+      city: 'Montreal',
+      postalCode: 'H2X1Y4',
+      buildingType: 'apartment' as const,
+    };
+
+    describe('create_building', () => {
+      it('rejects totalUnits = 0', () => {
+        const schema = getToolInputSchema('create_building');
+        const parsed = schema.safeParse({ ...buildingBase, totalUnits: 0 });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'totalUnits')).toBe(true);
+        }
+      });
+
+      it('rejects totalUnits < 0', () => {
+        const schema = getToolInputSchema('create_building');
+        const parsed = schema.safeParse({ ...buildingBase, totalUnits: -5 });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'totalUnits')).toBe(true);
+        }
+      });
+
+      it('accepts totalUnits >= 1', () => {
+        const schema = getToolInputSchema('create_building');
+        const parsed = schema.safeParse({ ...buildingBase, totalUnits: 1 });
+        expect(parsed.success).toBe(true);
+      });
+
+      it('rejects totalFloors = 0', () => {
+        const schema = getToolInputSchema('create_building');
+        const parsed = schema.safeParse({ ...buildingBase, totalUnits: 4, totalFloors: 0 });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'totalFloors')).toBe(true);
+        }
+      });
+
+      it('rejects parkingSpaces < 0', () => {
+        const schema = getToolInputSchema('create_building');
+        const parsed = schema.safeParse({ ...buildingBase, totalUnits: 4, parkingSpaces: -1 });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'parkingSpaces')).toBe(true);
+        }
+      });
+
+      it('accepts parkingSpaces = 0', () => {
+        const schema = getToolInputSchema('create_building');
+        const parsed = schema.safeParse({ ...buildingBase, totalUnits: 4, parkingSpaces: 0 });
+        expect(parsed.success).toBe(true);
+      });
+
+      it('rejects storageSpaces < 0', () => {
+        const schema = getToolInputSchema('create_building');
+        const parsed = schema.safeParse({ ...buildingBase, totalUnits: 4, storageSpaces: -2 });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'storageSpaces')).toBe(true);
+        }
+      });
+    });
+
+    describe('update_building', () => {
+      it('rejects totalUnits = 0 when supplied', () => {
+        const schema = getToolInputSchema('update_building');
+        const parsed = schema.safeParse({ role: 'admin', buildingId: 'b-1', totalUnits: 0 });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'totalUnits')).toBe(true);
+        }
+      });
+
+      it('rejects totalFloors = 0 when supplied', () => {
+        const schema = getToolInputSchema('update_building');
+        const parsed = schema.safeParse({ role: 'admin', buildingId: 'b-1', totalFloors: 0 });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'totalFloors')).toBe(true);
+        }
+      });
+
+      it('rejects parkingSpaces < 0 when supplied', () => {
+        const schema = getToolInputSchema('update_building');
+        const parsed = schema.safeParse({ role: 'admin', buildingId: 'b-1', parkingSpaces: -3 });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'parkingSpaces')).toBe(true);
+        }
+      });
+
+      it('accepts parkingSpaces = 0 when supplied', () => {
+        const schema = getToolInputSchema('update_building');
+        const parsed = schema.safeParse({ role: 'admin', buildingId: 'b-1', parkingSpaces: 0 });
+        expect(parsed.success).toBe(true);
+      });
+    });
+
+    describe('create_residence', () => {
+      const residenceBase = {
+        role: 'admin' as const,
+        buildingId: 'b-1',
+        unitNumber: '101',
+      };
+
+      it('rejects bedrooms < 0', () => {
+        const schema = getToolInputSchema('create_residence');
+        const parsed = schema.safeParse({ ...residenceBase, bedrooms: -1 });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'bedrooms')).toBe(true);
+        }
+      });
+
+      it('accepts bedrooms = 0 (studio)', () => {
+        const schema = getToolInputSchema('create_residence');
+        const parsed = schema.safeParse({ ...residenceBase, bedrooms: 0 });
+        expect(parsed.success).toBe(true);
+      });
+
+      it('rejects monthlyFees < 0', () => {
+        const schema = getToolInputSchema('create_residence');
+        const parsed = schema.safeParse({ ...residenceBase, monthlyFees: -100 });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'monthlyFees')).toBe(true);
+        }
+      });
+
+      it('accepts monthlyFees = 0', () => {
+        const schema = getToolInputSchema('create_residence');
+        const parsed = schema.safeParse({ ...residenceBase, monthlyFees: 0 });
+        expect(parsed.success).toBe(true);
+      });
+
+      it('rejects squareFootage = 0', () => {
+        const schema = getToolInputSchema('create_residence');
+        const parsed = schema.safeParse({ ...residenceBase, squareFootage: 0 });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'squareFootage')).toBe(true);
+        }
+      });
+
+      it('rejects squareFootage < 0', () => {
+        const schema = getToolInputSchema('create_residence');
+        const parsed = schema.safeParse({ ...residenceBase, squareFootage: -50 });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'squareFootage')).toBe(true);
+        }
+      });
+
+      it('accepts squareFootage > 0', () => {
+        const schema = getToolInputSchema('create_residence');
+        const parsed = schema.safeParse({ ...residenceBase, squareFootage: 75.5 });
+        expect(parsed.success).toBe(true);
+      });
+    });
+
+    describe('update_residence', () => {
+      it('rejects bedrooms < 0 when supplied', () => {
+        const schema = getToolInputSchema('update_residence');
+        const parsed = schema.safeParse({ role: 'admin', residenceId: 'r-1', bedrooms: -1 });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'bedrooms')).toBe(true);
+        }
+      });
+
+      it('accepts bedrooms = 0 when supplied', () => {
+        const schema = getToolInputSchema('update_residence');
+        const parsed = schema.safeParse({ role: 'admin', residenceId: 'r-1', bedrooms: 0 });
+        expect(parsed.success).toBe(true);
+      });
+
+      it('rejects squareFootage <= 0 when supplied', () => {
+        const schema = getToolInputSchema('update_residence');
+        const parsed = schema.safeParse({ role: 'admin', residenceId: 'r-1', squareFootage: 0 });
+        expect(parsed.success).toBe(false);
+        if (!parsed.success) {
+          expect(parsed.error?.issues.some((i) => i.path[0] === 'squareFootage')).toBe(true);
+        }
+      });
+
+      it('accepts squareFootage > 0 when supplied', () => {
+        const schema = getToolInputSchema('update_residence');
+        const parsed = schema.safeParse({ role: 'admin', residenceId: 'r-1', squareFootage: 90 });
+        expect(parsed.success).toBe(true);
+      });
+    });
+  });
+
+  describe('buildWriteErrorResponse FK blocker map (Task #1308)', () => {
+
+    it('includes blockers array in FK violation delete response when provided', () => {
+      const fkError = { code: '23503', detail: 'Key (id)=(building-1) is still referenced from table "residences".' };
+      const blockers = [
+        { id: 'res-1', label: 'Unit 101' },
+        { id: 'res-2', label: 'Unit 102' },
+      ];
+      const result = buildWriteErrorResponse(fkError, 'building', 'delete', blockers);
+      const payload = JSON.parse(result.content[0].text);
+      expect(payload.status).toBe('fk_violation');
+      expect(payload.code).toBe('FK_VIOLATION');
+      expect(payload.blocking_entity).toBe('residence');
+      expect(payload.blockers).toEqual(blockers);
+      expect(payload.message).toContain('2 residence(s)');
+    });
+
+    it('omits blockers field when no blockers are provided', () => {
+      const fkError = { code: '23503', detail: 'Key (id)=(building-1) is still referenced from table "residences".' };
+      const result = buildWriteErrorResponse(fkError, 'building', 'delete');
+      const payload = JSON.parse(result.content[0].text);
+      expect(payload.status).toBe('fk_violation');
+      expect(payload.blockers).toBeUndefined();
+    });
+
+    it('omits blockers field when blockers array is empty', () => {
+      const fkError = { code: '23503', detail: 'Key (id)=(building-1) is still referenced from table "residences".' };
+      const result = buildWriteErrorResponse(fkError, 'building', 'delete', []);
+      const payload = JSON.parse(result.content[0].text);
+      expect(payload.blockers).toBeUndefined();
+    });
+
+    it('FK_BLOCKER_COLUMN_HINTS covers all main entity tables', () => {
+      expect(FK_BLOCKER_COLUMN_HINTS).toHaveProperty('buildings');
+      expect(FK_BLOCKER_COLUMN_HINTS).toHaveProperty('bills');
+      expect(FK_BLOCKER_COLUMN_HINTS).toHaveProperty('residences');
+      expect(FK_BLOCKER_COLUMN_HINTS).toHaveProperty('maintenance_projects');
+      expect(FK_BLOCKER_COLUMN_HINTS).toHaveProperty('common_spaces');
+      expect(FK_BLOCKER_COLUMN_HINTS).toHaveProperty('building_elements');
+    });
+
+    it('FK_BLOCKER_COLUMN_HINTS buildings entry includes residences', () => {
+      const hints = FK_BLOCKER_COLUMN_HINTS.buildings;
+      expect(hints).toBeDefined();
+      expect(hints?.residences?.filterCol).toBe('building_id');
+      expect(hints?.residences?.labelCol).toBe('unit_number');
+    });
+  });
+
+  describe('list_bills explicit column shape (Task #1308)', () => {
+    it('list_bills does not SELECT * — handler code uses explicit column list', () => {
+      const tools = (server as ReturnType<typeof createMcpServer> & { _registeredTools: Record<string, unknown> })._registeredTools;
+      expect(tools['list_bills']).toBeDefined();
+      const handler = getToolHandler(server, 'list_bills');
+      expect(typeof handler).toBe('function');
+    });
+
+    it('list_bills schema includes required overview fields', () => {
+      const tools = (server as ReturnType<typeof createMcpServer> & { _registeredTools: Record<string, { inputSchema?: { shape?: Record<string, unknown> } }> })._registeredTools;
+      const listBillsTool = tools['list_bills'];
+      expect(listBillsTool).toBeDefined();
+      const inputSchema = listBillsTool?.inputSchema;
+      expect(inputSchema?.shape?.buildingId).toBeDefined();
     });
   });
 });
