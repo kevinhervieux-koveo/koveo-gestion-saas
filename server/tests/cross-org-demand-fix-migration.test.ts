@@ -1,4 +1,6 @@
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { db } from '../db';
 import { organizations, buildings, residences, demands } from '../../shared/schema';
 import { eq, sql } from 'drizzle-orm';
@@ -337,4 +339,95 @@ describeOrSkip('/api/health crossOrgDemands drift healthcheck query', () => {
     const count = getCrossOrgCount(result.rows);
     expect(count).toBeGreaterThanOrEqual(1);
   }, 30_000);
+});
+
+/**
+ * Task #1453: 0015 must be a TRUE no-op against `demands` once the
+ * structural triggers (0010 / 0011 / 0012) keep the table clean.
+ *
+ * The first sub-test is a static assertion that runs without a DB:
+ * it loads the migration SQL from disk and verifies the EXISTS probe
+ * gate is in place. This protects future edits from accidentally
+ * stripping the gate and re-introducing the unconditional UPDATE that
+ * collided with the trigger DDL during concurrent-container boots
+ * (the 5:11 AM incident addressed by Task #1443).
+ *
+ * The second sub-test runs the actual file end-to-end against a real
+ * DB and asserts that `pg_stat_user_tables.n_tup_upd` for `demands`
+ * does not increase across a steady-state pass — i.e. zero rows were
+ * updated.
+ */
+describe('migration 0015 – steady-state probe gate (Task #1453)', () => {
+  const MIGRATION_PATH = join(
+    process.cwd(),
+    'migrations',
+    '0015_fix_cross_org_demand_residence_ids.sql',
+  );
+
+  it('contains an EXISTS probe gate around the cleanup UPDATE', () => {
+    const ddl = readFileSync(MIGRATION_PATH, 'utf8');
+
+    // The gate must short-circuit the UPDATE behind a read-only EXISTS
+    // probe. We assert on the structural shape rather than the exact
+    // wording so harmless re-formatting does not break the test.
+    expect(ddl).toMatch(/SELECT\s+EXISTS\s*\(/i);
+    expect(ddl).toMatch(/IF\s+has_violations\s+THEN/i);
+
+    // The UPDATE must appear AFTER the probe assignment, so a steady-
+    // state boot reaches the gate before any write candidate.
+    const probeIdx = ddl.search(/SELECT\s+EXISTS\s*\(/i);
+    const updateIdx = ddl.search(/UPDATE\s+demands/i);
+    expect(probeIdx).toBeGreaterThanOrEqual(0);
+    expect(updateIdx).toBeGreaterThan(probeIdx);
+  });
+
+  if (REAL_DB_AVAILABLE) {
+    it(
+      'issues zero UPDATEs against `demands` on a clean table',
+      async () => {
+        const ddl = readFileSync(MIGRATION_PATH, 'utf8');
+
+        // Pre-flight: make sure the table is in steady state (no
+        // cross-org rows). If it is not, abort the assertion with a
+        // helpful message rather than producing a misleading result.
+        const preCount = await db.execute(CROSS_ORG_COUNT_SQL);
+        if (getCrossOrgCount(preCount.rows) !== 0) {
+          throw new Error(
+            'Pre-condition for steady-state probe test failed: ' +
+              'cross-org demand rows already exist. Run the cleanup ' +
+              'and retry.',
+          );
+        }
+
+        // Use the transaction-scoped statistics view
+        // (`pg_stat_xact_user_tables`) instead of the global one. Its
+        // counters are updated SYNCHRONOUSLY inside the current
+        // transaction (no stats-collector lag) and reset at xact end,
+        // so this assertion is not subject to the timing/flakiness
+        // window the global `pg_stat_user_tables` would expose under
+        // concurrent CI activity. Running everything inside a single
+        // transaction also isolates the probe pass from any
+        // unrelated writes happening on the same connection pool.
+        await db.transaction(async (tx) => {
+          await tx.execute(sql.raw(ddl));
+
+          const rows = await tx.execute(sql`
+            SELECT COALESCE(n_tup_upd, 0)::bigint AS n
+            FROM pg_stat_xact_user_tables
+            WHERE relname = 'demands' AND schemaname = 'public'
+          `);
+          // Empty result row is expected when the table is untouched
+          // in this xact; treat that as 0 updates.
+          const updates = BigInt(
+            (rows.rows[0] as { n: string | number } | undefined)?.n ?? 0,
+          );
+
+          expect(updates).toBe(0n);
+        });
+      },
+      30_000,
+    );
+  } else {
+    it.skip('issues zero UPDATEs against `demands` on a clean table (skipped: no real DATABASE_URL)', () => {});
+  }
 });

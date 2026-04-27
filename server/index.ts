@@ -514,11 +514,18 @@ async function loadFullApplication(): Promise<void> {
             '0014_invitations_residence_building_check.sql',
             // Task #972: auto-fix legacy cross-org demand rows by NULLing
             // `residence_id` on demands whose linked residence belongs to a
-            // different building than the demand's own `building_id`. The
-            // UPDATE is a no-op when the table is already clean, and the
-            // post-condition DO block raises check_violation if any
-            // cross-org rows remain — making this safe to re-run on every
-            // boot as a continuous drift guard.
+            // different building than the demand's own `building_id`.
+            //
+            // Task #1453: the UPDATE is now gated behind an EXISTS probe
+            // so that steady-state boots issue zero writes against
+            // `demands` (and therefore never take the RowExclusiveLock
+            // that previously raced with 0010/0012's trigger DDL — see
+            // Task #1443 / the 5:11 AM incident). The structural
+            // triggers from 0010 / 0011 / 0012 keep the invariant in
+            // place, so the probe stays FALSE under steady state.
+            // The post-condition DO block still runs every boot and
+            // raises check_violation if drift ever does reappear, so
+            // this remains a self-healing continuous drift guard.
             '0015_fix_cross_org_demand_residence_ids.sql',
             // Task #1271: promote residence_id to a real FK on the three
             // tables that still carried a plain varchar/text column
