@@ -1457,7 +1457,10 @@ function HistoryCard({
           }
         }}
       >
-        <AlertDialogContent data-testid="history-delete-dialog">
+        <AlertDialogContent
+          data-testid="history-delete-dialog"
+          className="w-[calc(100%-2rem)] max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto"
+        >
           <AlertDialogHeader>
             <AlertDialogTitle>
               {isFr
@@ -8896,7 +8899,7 @@ export default function BulkDocumentImportPage() {
       />
 
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>
-        <DialogContent>
+        <DialogContent className="max-h-[calc(100dvh-2rem)] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>
               {isFr ? 'Confirmer la suppression' : 'Confirm deletion'}
@@ -8941,7 +8944,10 @@ export default function BulkDocumentImportPage() {
           }
         }}
       >
-        <AlertDialogContent data-testid="cancel-bulk-retry-dialog">
+        <AlertDialogContent
+          data-testid="cancel-bulk-retry-dialog"
+          className="w-[calc(100%-2rem)] max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto"
+        >
           <AlertDialogHeader>
             <AlertDialogTitle data-testid="cancel-bulk-retry-title">
               {isFr
@@ -8982,7 +8988,10 @@ export default function BulkDocumentImportPage() {
           }
         }}
       >
-        <AlertDialogContent data-testid="reset-step-dialog">
+        <AlertDialogContent
+          data-testid="reset-step-dialog"
+          className="w-[calc(100%-2rem)] max-w-lg max-h-[calc(100dvh-2rem)] overflow-y-auto"
+        >
           <AlertDialogHeader>
             <AlertDialogTitle>
               {isFr
