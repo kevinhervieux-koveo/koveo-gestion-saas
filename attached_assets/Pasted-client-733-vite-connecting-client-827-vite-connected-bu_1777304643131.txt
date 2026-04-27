@@ -1,0 +1,294 @@
+client:733 [vite] connecting...
+client:827 [vite] connected.
+bulk-document-import:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+debug-log.ts:3 [bulk-import] runAll start {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+debug-log.ts:3 [bulk-import] runAll success {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+debug-log.ts:3 [bulk-import] resetStep start {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+debug-log.ts:3 [bulk-import] resetStep success {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+debug-log.ts:3 [bulk-import] run-all transition running→done {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking', finishedAt: '2026-04-27T15:43:22.064Z', processed: 7, failed: 0, …}
+react-dom_client.js?v=1011393f:16 [Violation] 'message' handler took 188ms
+debug-log.ts:3 [bulk-import] linking: apply changes {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', count: 2}
+debug-log.ts:3 [bulk-import] setLinkingDecision start {count: 2, sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e'}
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/sessions/86642325-4c08-4c33-9e88-b3a081edb44e/batch-set-linking-decisions 400 (Bad Request)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ bulk-document-import.tsx:4036
+fn @ @tanstack_react-query.js?v=1011393f:1200
+run @ @tanstack_react-query.js?v=1011393f:491
+start @ @tanstack_react-query.js?v=1011393f:533
+execute @ @tanstack_react-query.js?v=1011393f:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=1011393f:2642
+(anonymous) @ @tanstack_react-query.js?v=1011393f:3356
+(anonymous) @ bulk-document-import.tsx:4132
+(anonymous) @ bulk-document-import.tsx:4169
+(anonymous) @ bulk-document-import.tsx:6447
+executeDispatch @ react-dom_client.js?v=1011393f:11736
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+processDispatchQueue @ react-dom_client.js?v=1011393f:11772
+(anonymous) @ react-dom_client.js?v=1011393f:12182
+batchedUpdates$1 @ react-dom_client.js?v=1011393f:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1011393f:11877
+dispatchEvent @ react-dom_client.js?v=1011393f:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=1011393f:14773
+debug-log.ts:3 [bulk-import] setLinkingDecision error {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', error: '400: {"error":"Bidirectional inconsistency: item 0…mId is not 01b95337-fa97-4e19-bf7b-d041314d1544"}'}
+react-dom_client.js?v=1011393f:16 [Violation] 'message' handler took 229ms
+debug-log.ts:3 [bulk-import] linking: apply changes {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', count: 2}
+debug-log.ts:3 [bulk-import] setLinkingDecision start {count: 2, sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e'}
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/sessions/86642325-4c08-4c33-9e88-b3a081edb44e/batch-set-linking-decisions 400 (Bad Request)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ bulk-document-import.tsx:4036
+fn @ @tanstack_react-query.js?v=1011393f:1200
+run @ @tanstack_react-query.js?v=1011393f:491
+start @ @tanstack_react-query.js?v=1011393f:533
+execute @ @tanstack_react-query.js?v=1011393f:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=1011393f:2642
+(anonymous) @ @tanstack_react-query.js?v=1011393f:3356
+(anonymous) @ bulk-document-import.tsx:4132
+(anonymous) @ bulk-document-import.tsx:4169
+(anonymous) @ bulk-document-import.tsx:6447
+executeDispatch @ react-dom_client.js?v=1011393f:11736
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+processDispatchQueue @ react-dom_client.js?v=1011393f:11772
+(anonymous) @ react-dom_client.js?v=1011393f:12182
+batchedUpdates$1 @ react-dom_client.js?v=1011393f:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1011393f:11877
+dispatchEvent @ react-dom_client.js?v=1011393f:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=1011393f:14773
+debug-log.ts:3 [bulk-import] setLinkingDecision error {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', error: '400: {"error":"Bidirectional inconsistency: item 0…mId is not 01b95337-fa97-4e19-bf7b-d041314d1544"}'}
+debug-log.ts:3 [bulk-import] linking: apply changes {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', count: 2}
+react-dom_client.js?v=1011393f:11645 [Violation] 'click' handler took 150ms
+debug-log.ts:3 [bulk-import] setLinkingDecision start {count: 2, sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e'}
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/sessions/86642325-4c08-4c33-9e88-b3a081edb44e/batch-set-linking-decisions 400 (Bad Request)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ bulk-document-import.tsx:4036
+fn @ @tanstack_react-query.js?v=1011393f:1200
+run @ @tanstack_react-query.js?v=1011393f:491
+start @ @tanstack_react-query.js?v=1011393f:533
+execute @ @tanstack_react-query.js?v=1011393f:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=1011393f:2642
+(anonymous) @ @tanstack_react-query.js?v=1011393f:3356
+(anonymous) @ bulk-document-import.tsx:4132
+(anonymous) @ bulk-document-import.tsx:4169
+(anonymous) @ bulk-document-import.tsx:6447
+executeDispatch @ react-dom_client.js?v=1011393f:11736
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+processDispatchQueue @ react-dom_client.js?v=1011393f:11772
+(anonymous) @ react-dom_client.js?v=1011393f:12182
+batchedUpdates$1 @ react-dom_client.js?v=1011393f:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1011393f:11877
+dispatchEvent @ react-dom_client.js?v=1011393f:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=1011393f:14773
+<button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1011393f:250
+_c @ button.tsx:44
+react_stack_bottom_frame @ react-dom_client.js?v=1011393f:17424
+renderWithHooks @ react-dom_client.js?v=1011393f:4206
+updateForwardRef @ react-dom_client.js?v=1011393f:6461
+beginWork @ react-dom_client.js?v=1011393f:7864
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+performUnitOfWork @ react-dom_client.js?v=1011393f:10868
+workLoopSync @ react-dom_client.js?v=1011393f:10728
+renderRootSync @ react-dom_client.js?v=1011393f:10711
+performWorkOnRoot @ react-dom_client.js?v=1011393f:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=1011393f:11623
+performWorkUntilDeadline @ react-dom_client.js?v=1011393f:36
+<Button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1011393f:250
+(anonymous) @ bulk-document-import.tsx:6440
+(anonymous) @ bulk-document-import.tsx:6401
+(anonymous) @ bulk-document-import.tsx:9907
+react_stack_bottom_frame @ react-dom_client.js?v=1011393f:17424
+renderWithHooks @ react-dom_client.js?v=1011393f:4206
+updateFunctionComponent @ react-dom_client.js?v=1011393f:6619
+beginWork @ react-dom_client.js?v=1011393f:7654
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+performUnitOfWork @ react-dom_client.js?v=1011393f:10868
+workLoopSync @ react-dom_client.js?v=1011393f:10728
+renderRootSync @ react-dom_client.js?v=1011393f:10711
+performWorkOnRoot @ react-dom_client.js?v=1011393f:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=1011393f:11623
+performWorkUntilDeadline @ react-dom_client.js?v=1011393f:36
+debug-log.ts:3 [bulk-import] setLinkingDecision error {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', error: '400: {"error":"Bidirectional inconsistency: item 0…mId is not 01b95337-fa97-4e19-bf7b-d041314d1544"}'}
+debug-log.ts:3 [bulk-import] linking: apply changes {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', count: 2}
+react-dom_client.js?v=1011393f:11645 [Violation] 'click' handler took 167ms
+debug-log.ts:3 [bulk-import] setLinkingDecision start {count: 2, sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e'}
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/sessions/86642325-4c08-4c33-9e88-b3a081edb44e/batch-set-linking-decisions 400 (Bad Request)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ bulk-document-import.tsx:4036
+fn @ @tanstack_react-query.js?v=1011393f:1200
+run @ @tanstack_react-query.js?v=1011393f:491
+start @ @tanstack_react-query.js?v=1011393f:533
+execute @ @tanstack_react-query.js?v=1011393f:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=1011393f:2642
+(anonymous) @ @tanstack_react-query.js?v=1011393f:3356
+(anonymous) @ bulk-document-import.tsx:4132
+(anonymous) @ bulk-document-import.tsx:4169
+(anonymous) @ bulk-document-import.tsx:6447
+executeDispatch @ react-dom_client.js?v=1011393f:11736
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+processDispatchQueue @ react-dom_client.js?v=1011393f:11772
+(anonymous) @ react-dom_client.js?v=1011393f:12182
+batchedUpdates$1 @ react-dom_client.js?v=1011393f:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1011393f:11877
+dispatchEvent @ react-dom_client.js?v=1011393f:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=1011393f:14773
+<button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1011393f:250
+_c @ button.tsx:44
+react_stack_bottom_frame @ react-dom_client.js?v=1011393f:17424
+renderWithHooks @ react-dom_client.js?v=1011393f:4206
+updateForwardRef @ react-dom_client.js?v=1011393f:6461
+beginWork @ react-dom_client.js?v=1011393f:7864
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+performUnitOfWork @ react-dom_client.js?v=1011393f:10868
+workLoopSync @ react-dom_client.js?v=1011393f:10728
+renderRootSync @ react-dom_client.js?v=1011393f:10711
+performWorkOnRoot @ react-dom_client.js?v=1011393f:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=1011393f:11623
+performWorkUntilDeadline @ react-dom_client.js?v=1011393f:36
+<Button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1011393f:250
+(anonymous) @ bulk-document-import.tsx:6440
+(anonymous) @ bulk-document-import.tsx:6401
+(anonymous) @ bulk-document-import.tsx:9907
+react_stack_bottom_frame @ react-dom_client.js?v=1011393f:17424
+renderWithHooks @ react-dom_client.js?v=1011393f:4206
+updateFunctionComponent @ react-dom_client.js?v=1011393f:6619
+beginWork @ react-dom_client.js?v=1011393f:7654
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+performUnitOfWork @ react-dom_client.js?v=1011393f:10868
+workLoopSync @ react-dom_client.js?v=1011393f:10728
+renderRootSync @ react-dom_client.js?v=1011393f:10711
+performWorkOnRoot @ react-dom_client.js?v=1011393f:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=1011393f:11623
+performWorkUntilDeadline @ react-dom_client.js?v=1011393f:36
+debug-log.ts:3 [bulk-import] setLinkingDecision error {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', error: '400: {"error":"Bidirectional inconsistency: item 0…mId is not 01b95337-fa97-4e19-bf7b-d041314d1544"}'}
+debug-log.ts:3 [bulk-import] linking: apply changes {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', count: 2}
+debug-log.ts:3 [bulk-import] setLinkingDecision start {count: 2, sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e'}
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/sessions/86642325-4c08-4c33-9e88-b3a081edb44e/batch-set-linking-decisions 400 (Bad Request)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ bulk-document-import.tsx:4036
+fn @ @tanstack_react-query.js?v=1011393f:1200
+run @ @tanstack_react-query.js?v=1011393f:491
+start @ @tanstack_react-query.js?v=1011393f:533
+execute @ @tanstack_react-query.js?v=1011393f:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=1011393f:2642
+(anonymous) @ @tanstack_react-query.js?v=1011393f:3356
+(anonymous) @ bulk-document-import.tsx:4132
+(anonymous) @ bulk-document-import.tsx:4169
+(anonymous) @ bulk-document-import.tsx:6447
+executeDispatch @ react-dom_client.js?v=1011393f:11736
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+processDispatchQueue @ react-dom_client.js?v=1011393f:11772
+(anonymous) @ react-dom_client.js?v=1011393f:12182
+batchedUpdates$1 @ react-dom_client.js?v=1011393f:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1011393f:11877
+dispatchEvent @ react-dom_client.js?v=1011393f:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=1011393f:14773
+<button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1011393f:250
+_c @ button.tsx:44
+react_stack_bottom_frame @ react-dom_client.js?v=1011393f:17424
+renderWithHooks @ react-dom_client.js?v=1011393f:4206
+updateForwardRef @ react-dom_client.js?v=1011393f:6461
+beginWork @ react-dom_client.js?v=1011393f:7864
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+performUnitOfWork @ react-dom_client.js?v=1011393f:10868
+workLoopSync @ react-dom_client.js?v=1011393f:10728
+renderRootSync @ react-dom_client.js?v=1011393f:10711
+performWorkOnRoot @ react-dom_client.js?v=1011393f:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=1011393f:11623
+performWorkUntilDeadline @ react-dom_client.js?v=1011393f:36
+<Button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1011393f:250
+(anonymous) @ bulk-document-import.tsx:6440
+(anonymous) @ bulk-document-import.tsx:6401
+(anonymous) @ bulk-document-import.tsx:9907
+react_stack_bottom_frame @ react-dom_client.js?v=1011393f:17424
+renderWithHooks @ react-dom_client.js?v=1011393f:4206
+updateFunctionComponent @ react-dom_client.js?v=1011393f:6619
+beginWork @ react-dom_client.js?v=1011393f:7654
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+performUnitOfWork @ react-dom_client.js?v=1011393f:10868
+workLoopSync @ react-dom_client.js?v=1011393f:10728
+renderRootSync @ react-dom_client.js?v=1011393f:10711
+performWorkOnRoot @ react-dom_client.js?v=1011393f:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=1011393f:11623
+performWorkUntilDeadline @ react-dom_client.js?v=1011393f:36
+debug-log.ts:3 [bulk-import] setLinkingDecision error {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', error: '400: {"error":"Bidirectional inconsistency: item 0…mId is not 01b95337-fa97-4e19-bf7b-d041314d1544"}'}
+debug-log.ts:3 [bulk-import] linking: apply changes {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', count: 2}
+react-dom_client.js?v=1011393f:11645 [Violation] 'click' handler took 150ms
+debug-log.ts:3 [bulk-import] setLinkingDecision start {count: 2, sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e'}
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/sessions/86642325-4c08-4c33-9e88-b3a081edb44e/batch-set-linking-decisions 400 (Bad Request)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ bulk-document-import.tsx:4036
+fn @ @tanstack_react-query.js?v=1011393f:1200
+run @ @tanstack_react-query.js?v=1011393f:491
+start @ @tanstack_react-query.js?v=1011393f:533
+execute @ @tanstack_react-query.js?v=1011393f:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=1011393f:2642
+(anonymous) @ @tanstack_react-query.js?v=1011393f:3356
+(anonymous) @ bulk-document-import.tsx:4132
+(anonymous) @ bulk-document-import.tsx:4169
+(anonymous) @ bulk-document-import.tsx:6447
+executeDispatch @ react-dom_client.js?v=1011393f:11736
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+processDispatchQueue @ react-dom_client.js?v=1011393f:11772
+(anonymous) @ react-dom_client.js?v=1011393f:12182
+batchedUpdates$1 @ react-dom_client.js?v=1011393f:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1011393f:11877
+dispatchEvent @ react-dom_client.js?v=1011393f:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=1011393f:14773
+<button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1011393f:250
+_c @ button.tsx:44
+react_stack_bottom_frame @ react-dom_client.js?v=1011393f:17424
+renderWithHooks @ react-dom_client.js?v=1011393f:4206
+updateForwardRef @ react-dom_client.js?v=1011393f:6461
+beginWork @ react-dom_client.js?v=1011393f:7864
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+performUnitOfWork @ react-dom_client.js?v=1011393f:10868
+workLoopSync @ react-dom_client.js?v=1011393f:10728
+renderRootSync @ react-dom_client.js?v=1011393f:10711
+performWorkOnRoot @ react-dom_client.js?v=1011393f:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=1011393f:11623
+performWorkUntilDeadline @ react-dom_client.js?v=1011393f:36
+<Button>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1011393f:250
+(anonymous) @ bulk-document-import.tsx:6440
+(anonymous) @ bulk-document-import.tsx:6401
+(anonymous) @ bulk-document-import.tsx:9907
+react_stack_bottom_frame @ react-dom_client.js?v=1011393f:17424
+renderWithHooks @ react-dom_client.js?v=1011393f:4206
+updateFunctionComponent @ react-dom_client.js?v=1011393f:6619
+beginWork @ react-dom_client.js?v=1011393f:7654
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+performUnitOfWork @ react-dom_client.js?v=1011393f:10868
+workLoopSync @ react-dom_client.js?v=1011393f:10728
+renderRootSync @ react-dom_client.js?v=1011393f:10711
+performWorkOnRoot @ react-dom_client.js?v=1011393f:10330
+performWorkOnRootViaSchedulerTask @ react-dom_client.js?v=1011393f:11623
+performWorkUntilDeadline @ react-dom_client.js?v=1011393f:36
+debug-log.ts:3 [bulk-import] setLinkingDecision error {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', error: '400: {"error":"Bidirectional inconsistency: item 0…mId is not 01b95337-fa97-4e19-bf7b-d041314d1544"}'}
+react-dom_client.js?v=1011393f:16 [Violation] 'message' handler took 193ms
