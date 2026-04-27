@@ -849,7 +849,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   app.get(
     '/api/common-spaces/:spaceId/stats',
     requireAuth,
-    requireRole(['admin', 'manager']),
+    requireRole(['super_admin', 'admin', 'manager']),
     async (req: any, res: Response) => {
       try {
         const user = req.user || req.session?.user;
@@ -986,7 +986,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   app.post(
     '/api/common-spaces/users/:userId/restrictions',
     requireAuth,
-    requireRole(['admin', 'manager']),
+    requireRole(['super_admin', 'admin', 'manager']),
     async (req: any, res: Response) => {
       try {
         const user = req.user || req.session?.user;
@@ -1109,7 +1109,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   app.post(
     '/api/common-spaces',
     requireAuth,
-    requireRole(['admin', 'manager']),
+    requireRole(['super_admin', 'admin', 'manager']),
     async (req: Request, res: Response) => {
       try {
         const user = req.user;
@@ -1221,7 +1221,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   app.put(
     '/api/common-spaces/:spaceId',
     requireAuth,
-    requireRole(['admin', 'manager']),
+    requireRole(['super_admin', 'admin', 'manager']),
     async (req: Request, res: Response) => {
       try {
         const user = req.user;
@@ -1339,7 +1339,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   app.delete(
     '/api/common-spaces/:spaceId',
     requireAuth,
-    requireRole(['admin', 'manager']),
+    requireRole(['super_admin', 'admin', 'manager']),
     async (req: Request, res: Response) => {
       try {
         const user = req.user;
@@ -1446,7 +1446,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   app.post(
     '/api/common-spaces/users/:userId/time-limits',
     requireAuth,
-    requireRole(['admin', 'manager']),
+    requireRole(['super_admin', 'admin', 'manager']),
     async (req: Request, res: Response) => {
       try {
         const user = req.user;
@@ -1584,7 +1584,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   app.get(
     '/api/common-spaces/users/:userId/time-limits',
     requireAuth,
-    requireRole(['admin', 'manager']),
+    requireRole(['super_admin', 'admin', 'manager']),
     async (req: Request, res: Response) => {
       try {
         const user = req.user;
@@ -1734,7 +1734,7 @@ export function registerCommonSpacesRoutes(app: Express): void {
   app.get(
     '/api/common-spaces/calendar/building/:buildingId',
     requireAuth,
-    requireRole(['admin', 'manager']),
+    requireRole(['super_admin', 'admin', 'manager']),
     async (req: any, res: Response) => {
       try {
         const user = req.user || req.session?.user;

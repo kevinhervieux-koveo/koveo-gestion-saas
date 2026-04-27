@@ -335,6 +335,54 @@ describe('CommonSpacesStatsPage', () => {
         expect(screen.queryByText('Access Denied')).not.toBeInTheDocument();
       });
     });
+
+    it('should allow access for super_admin users', async () => {
+      mockAuth = {
+        user: { id: 'test-user', role: 'super_admin', email: 'superadmin@test.com' },
+      };
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ buildings: [] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => [],
+        });
+
+      const CommonSpacesStatsPage = require('../../../client/src/pages/manager/common-spaces-stats').default;
+
+      renderWithProviders(<CommonSpacesStatsPage />);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Access Denied')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should allow access for demo_manager users', async () => {
+      mockAuth = {
+        user: { id: 'test-user', role: 'demo_manager', email: 'demomanager@test.com' },
+      };
+
+      mockFetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => ({ buildings: [] }),
+        })
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => [],
+        });
+
+      const CommonSpacesStatsPage = require('../../../client/src/pages/manager/common-spaces-stats').default;
+
+      renderWithProviders(<CommonSpacesStatsPage />);
+
+      await waitFor(() => {
+        expect(screen.queryByText('Access Denied')).not.toBeInTheDocument();
+      });
+    });
   });
 
   describe('Data Fetching', () => {

@@ -4,6 +4,7 @@ import { logDebug } from '@/lib/logger';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/hooks/use-auth';
 import { useLanguage } from '@/hooks/use-language';
+import { hasRoleOrHigher } from '@/config/navigation';
 import { Header } from '@/components/layout/header';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -158,7 +159,7 @@ function withManagerAccess<P extends object>(Component: React.ComponentType<P>) 
     const { user } = useAuth();
     const { language } = useLanguage();
 
-    if (!user || !['manager', 'admin', 'demo_manager'].includes(user.role)) {
+    if (!user || !hasRoleOrHigher(user.role, 'manager')) {
       return (
         <div className='flex-1 flex flex-col overflow-hidden'>
           <Header 
