@@ -2030,7 +2030,6 @@ export function registerUserRoutes(app: Express): void {
       logError('Error fetching user buildings', error);
       res.status(500).json({ 
         error: 'Failed to fetch user buildings',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
       });
     }
   });
@@ -2688,7 +2687,6 @@ export function registerUserRoutes(app: Express): void {
       res.status(500).json({
         error: 'Internal server error',
         message: 'Failed to delete user account',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined,
       });
     }
   });

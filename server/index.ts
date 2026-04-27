@@ -620,16 +620,22 @@ async function loadFullApplication(): Promise<void> {
       // route table. We also pass the lazy-mounted prefixes so that routes
       // under those prefixes (e.g. /api/budgets, /api/maintenance) are
       // bypassed even before the lazy loader fires on the first request.
+      // When a spec declares `methods`, the bypass is restricted to those
+      // verbs only — narrower than the legacy all-methods fallback.
       // See server/middleware/input-sanitization.ts.
-      const lazyBypassPrefixes = HEAVY_LAZY_MOUNTS
+      const lazyBypassEntries = HEAVY_LAZY_MOUNTS
         .flatMap((spec) => {
           const m = spec.matcher;
-          if (typeof m === 'string') return [m];
-          if (Array.isArray(m)) return m as string[];
-          return [];
-        })
-        .filter((prefix) => (LEGACY_BYPASS_RESOURCE_ROOTS as readonly string[]).includes(prefix));
-      buildLegacyBypassFromApp(app, lazyBypassPrefixes);
+          const prefixes: string[] = typeof m === 'string'
+            ? [m]
+            : Array.isArray(m)
+              ? (m as string[])
+              : [];
+          return prefixes
+            .filter((prefix) => (LEGACY_BYPASS_RESOURCE_ROOTS as readonly string[]).includes(prefix))
+            .map((prefix) => ({ prefix, methods: spec.methods }));
+        });
+      buildLegacyBypassFromApp(app, lazyBypassEntries);
       log('✅ Full application routes loaded including authentication');
     } catch (routesError: any) {
       log(`❌ Failed to load full routes: ${routesError.message}`, 'error');

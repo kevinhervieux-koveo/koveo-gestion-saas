@@ -755,6 +755,15 @@ export interface HeavyLazyMountSpec {
   loader: () => Promise<RouteRegistrar>;
   /** Source path the loader imports (no extension). */
   modulePath: string;
+  /**
+   * HTTP methods this route group actually serves (e.g. `['GET', 'POST',
+   * 'PATCH', 'DELETE']`).  When provided, the sanitisation-bypass rule built
+   * by `buildLegacyBypassFromApp` only matches requests whose method is in
+   * this set.  Omitting the field falls back to the previous all-methods
+   * bypass, which is kept for backward compatibility with route groups that
+   * have not yet declared their verbs.
+   */
+  methods?: readonly string[];
 }
 
 // Bills owns /api/bills/* AND a couple of /api/buildings/:id/bills/* endpoints.
@@ -789,6 +798,7 @@ export const HEAVY_LAZY_MOUNTS: readonly HeavyLazyMountSpec[] = [
       path.startsWith('/api/bills') || BILLS_BUILDING_PATTERN.test(path),
     loader: async () => (await import('./api/bills')).registerBillRoutes,
     modulePath: 'server/api/bills',
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   },
   {
     name: 'communication',
@@ -801,6 +811,7 @@ export const HEAVY_LAZY_MOUNTS: readonly HeavyLazyMountSpec[] = [
     matcher: '/api/maintenance',
     loader: async () => (await import('./api/maintenance')).registerMaintenanceRoutes,
     modulePath: 'server/api/maintenance',
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   },
   {
     name: 'demo',
@@ -862,6 +873,7 @@ export const HEAVY_LAZY_MOUNTS: readonly HeavyLazyMountSpec[] = [
     matcher: '/api/demands',
     loader: async () => (await import('./api/demands')).registerDemandRoutes,
     modulePath: 'server/api/demands',
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   },
   {
     name: 'common-spaces',
@@ -886,6 +898,7 @@ export const HEAVY_LAZY_MOUNTS: readonly HeavyLazyMountSpec[] = [
       };
     },
     modulePath: 'server/api/budgets',
+    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
   },
 ];
 

@@ -87,38 +87,119 @@ export function stripPassword<T extends { password?: string }>(user: T): Omit<T,
 }
 
 /**
+ * Role-aware Drizzle column projection for the users table.
+ *
+ * Controls which columns each caller role can retrieve at the database
+ * level so that sensitive fields never leave the database for callers who
+ * are not entitled to see them.
+ *
+ * Field visibility by role:
+ * | Column                    | admin/super_admin | manager/demo_manager | other   |
+ * |---------------------------|:-----------------:|:--------------------:|:-------:|
+ * | id, username, email, …    | ✓                 | ✓                    | ✓       |
+ * | phone                     | ✓                 | ✓                    | —       |
+ * | profileImage              | ✓                 | ✓                    | —       |
+ * | notificationsStartingDate | ✓                 | —                    | —       |
+ *
+ * Managers can see phone/profileImage because they need contact details for
+ * their tenants, but notificationsStartingDate is a personal preference field
+ * that only the account owner and admins need.
+ *
+ * @param callerRole - The role of the authenticated caller.
+ */
+export function safeUserColumnsFor(callerRole: string) {
+  const isAdmin = callerRole === 'admin' || callerRole === 'super_admin';
+  const isManager = callerRole === 'manager' || callerRole === 'demo_manager';
+
+  const base = {
+    id: users.id,
+    username: users.username,
+    email: users.email,
+    firstName: users.firstName,
+    lastName: users.lastName,
+    language: users.language,
+    role: users.role,
+    isActive: users.isActive,
+    lastLoginAt: users.lastLoginAt,
+    createdAt: users.createdAt,
+    updatedAt: users.updatedAt,
+  } as const;
+
+  if (isAdmin) {
+    return {
+      ...base,
+      phone: users.phone,
+      profileImage: users.profileImage,
+      notificationsStartingDate: users.notificationsStartingDate,
+    } as const;
+  }
+
+  if (isManager) {
+    return {
+      ...base,
+      phone: users.phone,
+      profileImage: users.profileImage,
+    } as const;
+  }
+
+  return base;
+}
+
+/**
  * Serialize a user object for an API response, applying private-field
  * redaction based on the caller's identity and role.
  *
  * Rules:
  *  - `password` is always stripped (defence-in-depth on top of the storage layer).
- *  - `phone` and `profileImage` are only visible to the owner (same user ID)
- *    or to an admin; all other callers receive the response without these fields.
+ *  - `phone` and `profileImage` are only visible to the owner (same user ID),
+ *    an admin/super_admin, or a manager (who needs contact details).
+ *  - `notificationsStartingDate` is only visible to the owner or an admin/super_admin.
  *
  * @param user       - The user object to serialize (may or may not contain password).
  * @param callerId   - The ID of the authenticated caller making the request.
  * @param callerRole - The role string of the authenticated caller.
  */
 export function serializeUserForResponse<
-  T extends { id?: string; password?: string; phone?: string | null; profileImage?: string | null },
->(user: T, callerId: string, callerRole: string): Omit<T, 'password' | 'phone' | 'profileImage'> | Omit<T, 'password'> {
+  T extends {
+    id?: string;
+    password?: string;
+    phone?: string | null;
+    profileImage?: string | null;
+    notificationsStartingDate?: Date | string | null;
+  },
+>(user: T, callerId: string, callerRole: string) {
   const isOwner = callerId != null && user.id != null && callerId === user.id;
-  const isAdmin = callerRole === 'admin';
+  const isAdmin = callerRole === 'admin' || callerRole === 'super_admin';
+  const isManager = callerRole === 'manager' || callerRole === 'demo_manager';
 
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
   const { password: _pw, ...withoutPassword } = user;
 
+  // Admins and owners receive the full (non-password) profile including all
+  // personal preference fields.
   if (isOwner || isAdmin) {
-    return withoutPassword as Omit<T, 'password'>;
+    return withoutPassword;
   }
 
-  // Cast to the known intersection so we can destructure without `as any`.
-  // `T` is already constrained to have `phone?` and `profileImage?`, so this
-  // widened alias is always safe.
-  type WithoutPw = Omit<T, 'password'> & { phone?: string | null; profileImage?: string | null };
+  // Widen to the union of private fields so we can destructure without `as any`.
+  type WithPrivate = Omit<T, 'password'> & {
+    phone?: string | null;
+    profileImage?: string | null;
+    notificationsStartingDate?: Date | string | null;
+  };
+  const wide = withoutPassword as WithPrivate;
+
+  // Managers see phone/profileImage but not notificationsStartingDate.
+  if (isManager) {
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { notificationsStartingDate: _nsd, ...managerView } = wide;
+    return managerView;
+  }
+
+  // All other roles: strip phone, profileImage, and notificationsStartingDate.
   // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const { phone: _phone, profileImage: _profileImage, ...publicData } = withoutPassword as WithoutPw;
-  return publicData as Omit<T, 'password' | 'phone' | 'profileImage'>;
+  const { phone: _phone, profileImage: _profileImage, notificationsStartingDate: _nsd2, ...publicData } = wide;
+  return publicData;
 }
 
 /**

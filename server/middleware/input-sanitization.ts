@@ -280,21 +280,39 @@ function extractMountPath(layer: any): string {
 }
 
 /**
+ * A lazy-mount bypass entry.  Either a plain URL prefix string (legacy form,
+ * backward compatible — produces an all-methods bypass rule) or a richer
+ * object that pins the bypass to a specific set of HTTP methods declared by
+ * the route group's {@link HeavyLazyMountSpec}.
+ *
+ * Using the object form is preferred because it narrows the bypass surface:
+ * an unexpected verb on a lazy-mounted path (e.g. DELETE on a read-only
+ * module) will fall through to the normal sanitiser instead of being silently
+ * skipped.
+ */
+export type LazyBypassEntry =
+  | string
+  | { prefix: string; methods?: readonly string[] };
+
+/**
  * Build the legacy bypass map by introspecting an Express app's
  * route table. Call this AFTER all routes are registered.
  *
- * @param lazyPrefixes - Optional list of URL prefixes (e.g. '/api/budgets')
- *   whose route modules are loaded lazily (via the lazyMount trampoline)
- *   and therefore have NOT yet registered their sub-routes into the Express
- *   route table when this function runs. For each prefix that is already in
- *   LEGACY_BYPASS_RESOURCE_ROOTS, an all-methods, prefix-based bypass rule
- *   is added so those routes are not blocked before the lazy loader fires.
+ * @param lazySpecs - Optional list of lazy-mounted URL prefixes (or richer
+ *   {@link LazyBypassEntry} objects) whose route modules are loaded lazily
+ *   (via the lazyMount trampoline) and therefore have NOT yet registered
+ *   their sub-routes into the Express route table when this function runs.
+ *   For each prefix that is already in LEGACY_BYPASS_RESOURCE_ROOTS, a
+ *   prefix-based bypass rule is added so those routes are not blocked before
+ *   the lazy loader fires. When the entry specifies `methods`, the bypass is
+ *   restricted to those methods only (preferred). Plain strings fall back to
+ *   the all-methods behaviour for backward compatibility.
  *   Eagerly-mounted routes keep their existing exact-path / method-pinned
  *   rules and are unaffected.
  */
 export function buildLegacyBypassFromApp(
   app: any,
-  lazyPrefixes: readonly string[] = [],
+  lazySpecs: readonly LazyBypassEntry[] = [],
 ): void {
   const collected: CollectedRoute[] = [];
   collectRoutes(app?._router, '', collected);
@@ -319,15 +337,24 @@ export function buildLegacyBypassFromApp(
   );
 
   // For each lazy-mounted prefix that opts into the legacy bypass scope,
-  // add an all-methods prefix-based rule. This covers requests that arrive
-  // before the lazy loader has registered its sub-routes (and therefore
-  // before those routes appear in the Express route table).
-  const lazyRules: LegacyBypassRule[] = lazyPrefixes
-    .filter(isInLegacyScope)
-    .map((prefix) => {
+  // add a prefix-based bypass rule. When the entry declares an explicit
+  // method set, the rule is restricted to those methods only — this is
+  // narrower (and therefore safer) than the legacy all-methods fallback.
+  const lazyRules: LegacyBypassRule[] = lazySpecs
+    .map((entry) => (typeof entry === 'string' ? { prefix: entry, methods: undefined } : entry))
+    .filter(({ prefix }) => isInLegacyScope(prefix))
+    .map(({ prefix, methods }) => {
       // Escape any regex metacharacters in the literal prefix, then match
       // the prefix itself or anything under it (prefix + '/').
       const escaped = prefix.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      if (methods && methods.length > 0) {
+        return {
+          pattern: new RegExp('^' + escaped + '(?:/|$)'),
+          methods: new Set<string>(methods.map((m) => m.toUpperCase())),
+          source: `[lazy:${methods.join(',')}] ${prefix}`,
+          allMethods: false,
+        };
+      }
       return {
         pattern: new RegExp('^' + escaped + '(?:/|$)'),
         methods: new Set<string>(),
@@ -477,6 +504,25 @@ function isInsideLabelMap(currentPath: string): boolean {
 }
 
 /**
+ * Return true when `currentPath` is a VALUE inside a label map, i.e. one
+ * level deeper than the label map field itself.
+ *
+ * Examples (LABEL_MAP_FIELD_NAMES = {'customBankFields', …}):
+ *   'customBankFields.Franchise (loi 141)' → true  (value of a map key)
+ *   'customBankFields'                     → false (the map itself)
+ *   'bankAccountStartAmount'               → false (unrelated field)
+ *
+ * Used to apply the same narrower (NoSQL-only) probe to string VALUES inside
+ * label maps, mirroring the key-side fix already applied by `isInsideLabelMap`.
+ */
+function isLabelMapValue(currentPath: string): boolean {
+  const dotIdx = currentPath.lastIndexOf('.');
+  if (dotIdx === -1) return false;
+  const parentPath = currentPath.slice(0, dotIdx);
+  return isInsideLabelMap(parentPath);
+}
+
+/**
  * Check if an object KEY inside a known user-label map contains dangerous
  * patterns. This is intentionally narrower than `containsDangerousPatterns`:
  * it runs ONLY the NoSQL-operator probe (`$ne`, `$where`, etc.) and skips
@@ -516,7 +562,14 @@ function findDangerousFieldPath(
   currentPath: string = '',
 ): string | null {
   if (typeof value === 'string') {
-    return containsDangerousPatterns(value) ? currentPath : null;
+    // String values inside a label map (e.g. a value at
+    // `customBankFields.<label>`) get the same narrowed LDAP-skip treatment
+    // as the map's keys: parentheses and other LDAP-sensitive characters are
+    // routine in French accounting labels and must not block legitimate input.
+    const probe = isLabelMapValue(currentPath)
+      ? containsDangerousLabelMapKeyPatterns
+      : containsDangerousPatterns;
+    return probe(value) ? currentPath : null;
   }
   if (Array.isArray(value)) {
     for (let i = 0; i < value.length; i++) {
