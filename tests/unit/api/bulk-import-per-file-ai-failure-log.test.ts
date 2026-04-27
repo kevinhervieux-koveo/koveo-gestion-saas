@@ -1,9 +1,9 @@
 /**
  * Task #807 — processItemForStep must emit a structured warning that
  * includes both the bulk-import item ID and the bulk-import session ID
- * whenever an analyzer call returns fallbackReason `api_error` or
- * `unreadable_response`. The session ID is the operational hook ops use
- * to find the failing row in the admin panel.
+ * whenever an analyzer call returns fallbackReason `api_error`,
+ * `unreadable_response`, or `model_misconfigured`. The session ID is the
+ * operational hook ops use to find the failing row in the admin panel.
  *
  * The test exercises the exported `logPerFileAiFailure` helper directly
  * (rather than spinning up the whole route) for two reasons:
@@ -65,6 +65,19 @@ describe('logPerFileAiFailure (Task #807)', () => {
     expect(formatted).toContain('"itemId":"item-uuid-1234"');
     expect(formatted).toContain('"bulkImportSession":"session-uuid-abcd"');
     expect(formatted).toContain('"fallbackReason":"unreadable_response"');
+    expect(formatted).not.toContain('[REDACTED]');
+  });
+
+  it('logs item ID and session ID for fallbackReason "model_misconfigured"', () => {
+    logPerFileAiFailure('sorting', item, 'model_misconfigured');
+
+    expect(warnSpy).toHaveBeenCalledTimes(1);
+    const formatted = warnSpy.mock.calls[0][0] as string;
+    expect(formatted).toContain('[bulk-import] per-file AI failure');
+    expect(formatted).toContain('"step":"sorting"');
+    expect(formatted).toContain('"itemId":"item-uuid-1234"');
+    expect(formatted).toContain('"bulkImportSession":"session-uuid-abcd"');
+    expect(formatted).toContain('"fallbackReason":"model_misconfigured"');
     expect(formatted).not.toContain('[REDACTED]');
   });
 

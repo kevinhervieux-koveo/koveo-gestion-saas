@@ -1818,7 +1818,7 @@ describe('Task #1143 — callClaudeJson retry and enriched failure logging', () 
     expect(create).toHaveBeenCalledTimes(1);
   });
 
-  it('does not retry on HTTP 401 — calls create exactly once', async () => {
+  it('does not retry on HTTP 401 — calls create exactly once and tags model_misconfigured', async () => {
     const create = jest
       .fn()
       .mockRejectedValue(
@@ -1838,11 +1838,11 @@ describe('Task #1143 — callClaudeJson retry and enriched failure logging', () 
       originalName: 'auth-fail.pdf',
     });
 
-    expect(r.fallbackReason).toBe('api_error');
+    expect(r.fallbackReason).toBe('model_misconfigured');
     expect(create).toHaveBeenCalledTimes(1);
   });
 
-  it('does not retry on HTTP 404 not_found_error — calls create exactly once', async () => {
+  it('does not retry on HTTP 404 not_found_error — calls create exactly once and tags model_misconfigured', async () => {
     const create = jest
       .fn()
       .mockRejectedValue(
@@ -1862,7 +1862,7 @@ describe('Task #1143 — callClaudeJson retry and enriched failure logging', () 
       originalName: 'not-found.pdf',
     });
 
-    expect(r.fallbackReason).toBe('api_error');
+    expect(r.fallbackReason).toBe('model_misconfigured');
     expect(create).toHaveBeenCalledTimes(1);
   });
 

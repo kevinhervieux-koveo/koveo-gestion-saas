@@ -54,6 +54,11 @@ const REASONS: ReadonlyArray<{
     en: 'AI response unreadable',
     fr: 'R\u00e9ponse de l\u2019IA illisible',
   },
+  {
+    reason: 'model_misconfigured',
+    en: 'AI misconfigured',
+    fr: 'IA mal configur\u00e9e',
+  },
 ];
 
 describe('FallbackReasonBadge (bulk-document-import)', () => {
@@ -101,6 +106,7 @@ describe('FallbackReasonBadge (bulk-document-import)', () => {
       no_api_key: true,
       api_error: true,
       unreadable_response: true,
+      model_misconfigured: true,
     };
     const covered = new Set(REASONS.map((r) => r.reason));
     for (const key of Object.keys(exhaustive) as BulkImportFallbackReason[]) {

@@ -8,6 +8,7 @@ const FALLBACK_REASON_LABEL_EN: Record<BulkImportFallbackReason, string> = {
   no_api_key: 'AI unavailable',
   api_error: 'AI service error',
   unreadable_response: 'AI response unreadable',
+  model_misconfigured: 'AI misconfigured',
 };
 
 const FALLBACK_REASON_LABEL_FR: Record<BulkImportFallbackReason, string> = {
@@ -18,6 +19,7 @@ const FALLBACK_REASON_LABEL_FR: Record<BulkImportFallbackReason, string> = {
   no_api_key: 'IA indisponible',
   api_error: 'Erreur du service IA',
   unreadable_response: "R\u00e9ponse de l\u2019IA illisible",
+  model_misconfigured: 'IA mal configur\u00e9e',
 };
 
 const FALLBACK_REASON_EXPLANATION_EN: Record<BulkImportFallbackReason, string> = {
@@ -35,6 +37,8 @@ const FALLBACK_REASON_EXPLANATION_EN: Record<BulkImportFallbackReason, string> =
     "The AI couldn\u2019t analyze this file because the AI service returned an error. You can use Retry to try again, or Accept\u00a0/\u00a0Reject the suggested choice manually.",
   unreadable_response:
     "The AI couldn\u2019t analyze this file because the AI response was unreadable. You can use Retry to try again, or Accept\u00a0/\u00a0Reject the suggested choice manually.",
+  model_misconfigured:
+    "The AI couldn\u2019t analyze this file because the AI service is misconfigured \u2014 the API key may be invalid or the model name may be incorrect. An administrator must correct the deployment settings. You can Accept\u00a0/\u00a0Reject the suggested choice manually.",
 };
 
 const FALLBACK_REASON_EXPLANATION_FR: Record<BulkImportFallbackReason, string> = {
@@ -52,6 +56,8 @@ const FALLBACK_REASON_EXPLANATION_FR: Record<BulkImportFallbackReason, string> =
     "L\u2019IA n\u2019a pas pu analyser ce fichier car le service IA a retourn\u00e9 une erreur. Vous pouvez utiliser R\u00e9essayer pour tenter \u00e0 nouveau, ou Accepter\u00a0/\u00a0Rejeter le choix sugg\u00e9r\u00e9 manuellement.",
   unreadable_response:
     "L\u2019IA n\u2019a pas pu analyser ce fichier car la r\u00e9ponse de l\u2019IA \u00e9tait illisible. Vous pouvez utiliser R\u00e9essayer pour tenter \u00e0 nouveau, ou Accepter\u00a0/\u00a0Rejeter le choix sugg\u00e9r\u00e9 manuellement.",
+  model_misconfigured:
+    "L\u2019IA n\u2019a pas pu analyser ce fichier car le service IA est mal configur\u00e9 \u2014 la cl\u00e9 API est peut-\u00eatre invalide ou le nom du mod\u00e8le est incorrect. Un administrateur doit corriger les param\u00e8tres de d\u00e9ploiement. Vous pouvez Accepter\u00a0/\u00a0Rejeter le choix sugg\u00e9r\u00e9 manuellement.",
 };
 
 export const FALLBACK_REASON_LABELS = {

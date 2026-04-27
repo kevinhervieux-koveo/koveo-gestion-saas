@@ -365,6 +365,12 @@ export type ConfidenceBand = 'low' | 'medium' | 'high';
  *   in the batch; this failure is per-file.
  * - `unreadable_response` — the Anthropic call returned but no JSON
  *   object could be extracted from the response text.
+ * - `model_misconfigured` — the Anthropic API rejected the request due to
+ *   an authentication failure (invalid or revoked API key) or a model
+ *   configuration problem (e.g. unrecognised model name). Unlike `api_error`
+ *   this is a deployment-level misconfiguration that retrying cannot fix;
+ *   admins must correct the deployment settings. Distinct from `no_api_key`
+ *   because the key is present but invalid or the named model does not exist.
  */
 export type BulkImportFallbackReason =
   | 'oversize'
@@ -373,7 +379,8 @@ export type BulkImportFallbackReason =
   | 'missing_file'
   | 'no_api_key'
   | 'api_error'
-  | 'unreadable_response';
+  | 'unreadable_response'
+  | 'model_misconfigured';
 
 export function bandForConfidence(confidence: number | null | undefined): ConfidenceBand {
   if (confidence == null || Number.isNaN(confidence)) return 'low';

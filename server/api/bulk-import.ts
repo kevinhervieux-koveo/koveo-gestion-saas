@@ -1360,6 +1360,10 @@ export function isTriviallyKeep(
  * pre-call decisions, not failed AI calls, so they are deliberately not
  * logged here — they would just be noise for ops.
  *
+ * `model_misconfigured` is also logged because it represents a
+ * deployment-level misconfiguration (bad API key or unknown model name)
+ * that ops should investigate immediately.
+ *
  * Note on the `bulkImportSession` field name: the shared logger
  * (server/utils/logger.ts) auto-redacts any metadata key whose lowercased
  * name contains `sessionid` / `session_id` because those normally hold
@@ -1373,7 +1377,11 @@ export function logPerFileAiFailure(
   item: Pick<schema.BulkImportItem, 'id' | 'sessionId' | 'originalName'>,
   fallbackReason: BulkImportFallbackReason | null | undefined,
 ): void {
-  if (fallbackReason !== 'api_error' && fallbackReason !== 'unreadable_response') {
+  if (
+    fallbackReason !== 'api_error' &&
+    fallbackReason !== 'unreadable_response' &&
+    fallbackReason !== 'model_misconfigured'
+  ) {
     return;
   }
   logWarn('[bulk-import] per-file AI failure', {

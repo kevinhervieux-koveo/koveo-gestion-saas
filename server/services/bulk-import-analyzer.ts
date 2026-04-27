@@ -309,6 +309,23 @@ const RETRYABLE_NODE_ERROR_CODES = new Set([
 ]);
 
 /**
+ * Return true when the error indicates a deployment-level AI
+ * misconfiguration: an invalid/revoked API key (HTTP 401,
+ * `authentication_error`) or an unrecognised model name (HTTP 404,
+ * `not_found_error`). These failures cannot be fixed by retrying — the
+ * admin must correct the deployment settings — so they are tagged with
+ * `model_misconfigured` instead of the generic `api_error` reason.
+ */
+function isMisconfiguredAnthropicError(err: unknown): boolean {
+  const e = err as AnthropicApiError;
+  const status = e?.status;
+  const errorType = e?.error?.type;
+  if (status === 401 || errorType === 'authentication_error') return true;
+  if (status === 404 && errorType === 'not_found_error') return true;
+  return false;
+}
+
+/**
  * Return true when the error is transient and retrying has a reasonable
  * chance of succeeding.  Non-retryable errors (bad request, auth, not-found,
  * permission) fall through immediately.
@@ -885,7 +902,13 @@ async function callClaudeJson<T>(
     }
 
     // All attempts exhausted (or a terminal error short-circuited the loop).
-    const apiErrReason = fallbackReason ?? 'api_error';
+    // Tag auth errors and model-not-found with the distinct `model_misconfigured`
+    // reason so the UI can tell the admin the deployment is misconfigured,
+    // not that a transient API error occurred.
+    const defaultApiErrReason = isMisconfiguredAnthropicError(lastErr)
+      ? 'model_misconfigured'
+      : 'api_error';
+    const apiErrReason = fallbackReason ?? defaultApiErrReason;
     const e = lastErr as AnthropicApiError;
     // Prefer the SDK's direct `request_id` property (Anthropic SDK APIError).
     // Fall back to `headers.get('request-id')` for real Headers objects, then
