@@ -2213,6 +2213,121 @@ export default function BulkDocumentImportPage() {
   }, []);
   const clearItemSelection = useCallback(() => setSelectedItemIds(new Set()), []);
 
+  // ---------------------------------------------------------------------------
+  // Task #1405 — "Next AI suggestion" navigation on the Sorting step.
+  //
+  // Now that Task #1401 pre-fills the Sorting-step rename input with the
+  // analyzer's `branchSuggestedFinalFileName` / `branchSuggestedSplitFinalNames`,
+  // admins reviewing dozens of pending rows want a way to jump to the next
+  // row whose value still matches the AI's suggestion verbatim — i.e. rows
+  // that nobody has overridden yet — so they can scan/approve in bulk
+  // without scrolling. This memo computes that ordered target list (one
+  // entry per pending row whose rename input would render the "AI
+  // suggestion" hint badge), and `goToNextAiNamedSortingRow` advances a
+  // ref-tracked cursor cyclically and focuses the matched input so the
+  // admin can press Enter to accept or just start typing to override.
+  //
+  // Merge children share the rename input on their lead, so we skip merge
+  // siblings (`sortingMergeWithItemId` set) and only enter the lead's
+  // testid (`branching-rename-merge-<leadId>`) once. Split decisions get
+  // their own per-part input (`branching-rename-split-<id>-0|1`) and we
+  // jump to whichever side still matches the AI suggestion (preferring
+  // part 1 so admins read left-to-right).
+  // ---------------------------------------------------------------------------
+  const aiNamedSortingCursorRef = useRef<number>(-1);
+  const aiNamedSortingTargets = useMemo<
+    Array<{ itemId: string; testId: string }>
+  >(() => {
+    if (currentStep !== 'sorting') return [];
+    const targets: Array<{ itemId: string; testId: string }> = [];
+    for (const item of items) {
+      if (item.sortingDecisionState !== 'pending') continue;
+      if (
+        item.status === 'rejected' ||
+        item.status === 'committed' ||
+        item.status === 'duplicate'
+      ) {
+        continue;
+      }
+      const decision = item.sortingDecision;
+      if (!decision) continue;
+      // Merge children defer their rename to the lead's input — skip them
+      // here so each merge group contributes at most one navigation target.
+      if (decision === 'merge' && item.sortingMergeWithItemId) continue;
+      if (decision === 'split') {
+        const aiPart1 = item.branchSuggestedSplitFinalNames?.[0] ?? null;
+        const aiPart2 = item.branchSuggestedSplitFinalNames?.[1] ?? null;
+        const split = inlineRenameSplit.get(item.id);
+        const part1Value =
+          split?.[0] ?? item.sortingDecisionSplitFinalNames?.[0] ?? aiPart1 ?? '';
+        const part2Value =
+          split?.[1] ?? item.sortingDecisionSplitFinalNames?.[1] ?? aiPart2 ?? '';
+        const part1IsAi = !!aiPart1 && part1Value === aiPart1;
+        const part2IsAi = !!aiPart2 && part2Value === aiPart2;
+        if (part1IsAi) {
+          targets.push({ itemId: item.id, testId: `branching-rename-split-${item.id}-0` });
+        } else if (part2IsAi) {
+          targets.push({ itemId: item.id, testId: `branching-rename-split-${item.id}-1` });
+        }
+        continue;
+      }
+      // keep / merge-lead path.
+      const aiSuggested = item.branchSuggestedFinalFileName ?? null;
+      if (!aiSuggested) continue;
+      const renameValue = inlineRename.get(item.id) ?? item.finalFileName ?? aiSuggested;
+      if (renameValue !== aiSuggested) continue;
+      const testId = decision === 'merge'
+        ? `branching-rename-merge-${item.id}`
+        : `branching-rename-${item.id}`;
+      targets.push({ itemId: item.id, testId });
+    }
+    return targets;
+  }, [currentStep, items, inlineRename, inlineRenameSplit]);
+
+  const goToNextAiNamedSortingRow = useCallback(() => {
+    if (aiNamedSortingTargets.length === 0) return;
+    const nextIdx =
+      (aiNamedSortingCursorRef.current + 1) % aiNamedSortingTargets.length;
+    aiNamedSortingCursorRef.current = nextIdx;
+    const target = aiNamedSortingTargets[nextIdx];
+    if (typeof document === 'undefined') return;
+    const el = document.querySelector<HTMLInputElement>(
+      `[data-testid="${target.testId}"]`,
+    );
+    if (!el) return;
+    if (typeof el.scrollIntoView === 'function') {
+      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    el.focus({ preventScroll: true });
+    try {
+      el.select();
+    } catch {
+      /* select() not supported on every input type — ignore. */
+    }
+  }, [aiNamedSortingTargets]);
+
+  // Reset the cursor when the step changes or the candidate list shrinks
+  // so the very first press always lands on the first match.
+  useEffect(() => {
+    aiNamedSortingCursorRef.current = -1;
+  }, [currentStep, aiNamedSortingTargets.length]);
+
+  // Alt+J keyboard shortcut for jumping to the next AI-named row on the
+  // Sorting step. Alt avoids clashing with native typing inside any of
+  // the page's many text inputs (Enter / Tab would conflict with form
+  // submission and field traversal).
+  useEffect(() => {
+    if (currentStep !== 'sorting') return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (!e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      if (e.key !== 'j' && e.key !== 'J') return;
+      e.preventDefault();
+      goToNextAiNamedSortingRow();
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [currentStep, goToNextAiNamedSortingRow]);
+
   /**
    * Track consecutive errored polls of the lite status endpoint so we
    * can warn the admin when the counter has frozen because the server
@@ -4138,7 +4253,7 @@ export default function BulkDocumentImportPage() {
         // `sorting` (keep/merge/split) gets the "Aiguillage" copy, and
         // step `branching` (destination bucket) gets the "Tri" copy.
         sorting:
-          'Les fichiers contenant plusieurs documents sont scindés au besoin en documents distincts.',
+          "Les fichiers contenant plusieurs documents sont scindés au besoin en documents distincts. Astuce : utilisez « Suggestion suivante » (Alt+J) pour aller à la prochaine ligne en attente dont le nom correspond encore à la suggestion de l'IA.",
         branching:
           'Chaque document conservé est automatiquement classé dans une catégorie (facture, contrat, procès-verbal, etc.).',
         identification:
@@ -4158,7 +4273,7 @@ export default function BulkDocumentImportPage() {
         // `sorting` (keep/merge/split) gets the "Branching" copy, and
         // step `branching` (destination bucket) gets the "Sorting" copy.
         sorting:
-          'Files that contain several documents are split into the right number of separate documents when needed.',
+          'Files that contain several documents are split into the right number of separate documents when needed. Tip: use "Next AI suggestion" (Alt+J) to jump to the next pending row whose rename still matches the AI suggestion.',
         branching:
           'Each kept document is automatically classified into a category (e.g. invoice, contract, minutes).',
         identification:
@@ -4686,22 +4801,48 @@ export default function BulkDocumentImportPage() {
                     <CardTitle>
                       {isFr ? 'Étape :' : 'Step:'} {stepLabels[currentStep]}
                     </CardTitle>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setHideReady((v) => !v)}
-                      data-testid="toggle-hide-ready"
-                      className="self-start sm:self-auto"
-                    >
-                      {hideReady ? (
-                        <Eye className="mr-2 h-4 w-4" />
-                      ) : (
-                        <EyeOff className="mr-2 h-4 w-4" />
+                    <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+                      {/* Task #1405 — "Next AI suggestion" button. Only
+                          surfaced on the Sorting step where the rename
+                          input is pre-filled with the AI's suggestion;
+                          the title attribute announces the Alt+J
+                          shortcut in the same locale as the label so
+                          keyboard-driven admins can discover it. */}
+                      {currentStep === 'sorting' && (
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={goToNextAiNamedSortingRow}
+                          disabled={aiNamedSortingTargets.length === 0}
+                          data-testid="button-next-ai-named-sorting"
+                          title={
+                            isFr
+                              ? "Aller à la prochaine ligne en attente dont le nom correspond encore à la suggestion de l'IA (raccourci : Alt+J)."
+                              : 'Jump to the next pending row whose rename still matches the AI suggestion (shortcut: Alt+J).'
+                          }
+                        >
+                          <Sparkles className="mr-2 h-4 w-4" />
+                          {isFr
+                            ? `Suggestion suivante (${aiNamedSortingTargets.length})`
+                            : `Next AI suggestion (${aiNamedSortingTargets.length})`}
+                        </Button>
                       )}
-                      {hideReady
-                        ? (isFr ? 'Afficher tous les fichiers' : 'Show all files')
-                        : (isFr ? "Masquer les fichiers prêts pour l'étape suivante" : 'Hide files ready for next step')}
-                    </Button>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setHideReady((v) => !v)}
+                        data-testid="toggle-hide-ready"
+                      >
+                        {hideReady ? (
+                          <Eye className="mr-2 h-4 w-4" />
+                        ) : (
+                          <EyeOff className="mr-2 h-4 w-4" />
+                        )}
+                        {hideReady
+                          ? (isFr ? 'Afficher tous les fichiers' : 'Show all files')
+                          : (isFr ? "Masquer les fichiers prêts pour l'étape suivante" : 'Hide files ready for next step')}
+                      </Button>
+                    </div>
                   </CardHeader>
                   <CardContent>
                     {/* Lite-status poll interruption banner (Task #1234) —

@@ -1979,4 +1979,311 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
     // before expanding.
     expect(header).toHaveTextContent('Merge · 3 files');
   });
+
+  // ---------------------------------------------------------------------------
+  // Task #1405 — "Next AI suggestion" navigation on the Sorting step.
+  //
+  // Task #1401 pre-fills the Sorting-step rename input with the analyzer's
+  // suggestion; Task #1405 adds a header button + Alt+J shortcut that
+  // jumps the focus to the next pending row whose rename input still
+  // matches that suggestion verbatim, so admins can scan and approve in
+  // bulk without scrolling. These tests guard the surface contract:
+  // header button + count, click cycles through the matching rows
+  // (cyclically), focus lands on the row's rename input, the title
+  // attribute announces the keyboard shortcut, and the FR locale shows
+  // the localized label so the help-banner translation has a paired
+  // button to back it up.
+  // ---------------------------------------------------------------------------
+
+  it('Sorting step header shows a "Next AI suggestion" button with the count of AI-named pending rows (Task #1405)', async () => {
+    const ITEM_AI_A = 'item-1405-ai-a';
+    const ITEM_AI_B = 'item-1405-ai-b';
+    items.push(
+      {
+        id: ITEM_AI_A,
+        originalName: 'scan-A.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'pending',
+        sortingDecision: 'keep',
+        sortingMergeWithItemId: null,
+        sortingMergeWithItemIds: null,
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: 'Standalone',
+        sortingConfidence: 0.9,
+        branchSuggestedFinalFileName: 'AI Name A',
+      },
+      {
+        id: ITEM_AI_B,
+        originalName: 'scan-B.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'pending',
+        sortingDecision: 'keep',
+        sortingMergeWithItemId: null,
+        sortingMergeWithItemIds: null,
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: 'Standalone',
+        sortingConfidence: 0.9,
+        branchSuggestedFinalFileName: 'AI Name B',
+      },
+    );
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_AI_A}`, undefined, { timeout: 4000 });
+
+    const button = screen.getByTestId('button-next-ai-named-sorting');
+    // ITEM_PENDING in the default fixture has no AI suggestion, so only
+    // the two newly-pushed rows count toward the AI-named total.
+    expect(button).toHaveTextContent('Next AI suggestion (2)');
+    expect(button).not.toBeDisabled();
+    // Title attribute announces the Alt+J shortcut so keyboard-driven
+    // admins can discover it (the only "tooltip" surface a plain button
+    // has on hover).
+    expect(button.getAttribute('title')).toContain('Alt+J');
+  });
+
+  it('"Next AI suggestion" button is disabled when no AI-named pending rows exist (Task #1405)', async () => {
+    // The default fixture has no rows with branchSuggestedFinalFileName,
+    // so the button must be disabled and report a count of 0.
+    renderPage();
+    await waitForRows();
+
+    const button = screen.getByTestId('button-next-ai-named-sorting');
+    expect(button).toHaveTextContent('Next AI suggestion (0)');
+    expect(button).toBeDisabled();
+  });
+
+  it('clicking "Next AI suggestion" focuses the matching row\'s rename input and cycles to the next match (Task #1405)', async () => {
+    const ITEM_AI_A = 'item-1405-cycle-a';
+    const ITEM_AI_B = 'item-1405-cycle-b';
+    items.push(
+      {
+        id: ITEM_AI_A,
+        originalName: 'scan-A.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'pending',
+        sortingDecision: 'keep',
+        sortingMergeWithItemId: null,
+        sortingMergeWithItemIds: null,
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: 'Standalone',
+        sortingConfidence: 0.9,
+        branchSuggestedFinalFileName: 'Cycle Name A',
+      },
+      {
+        id: ITEM_AI_B,
+        originalName: 'scan-B.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'pending',
+        sortingDecision: 'keep',
+        sortingMergeWithItemId: null,
+        sortingMergeWithItemIds: null,
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: 'Standalone',
+        sortingConfidence: 0.9,
+        branchSuggestedFinalFileName: 'Cycle Name B',
+      },
+    );
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_AI_A}`, undefined, { timeout: 4000 });
+    await screen.findByTestId(`item-preview-trigger-${ITEM_AI_B}`);
+
+    const inputA = screen.getByTestId(
+      `branching-rename-${ITEM_AI_A}`,
+    ) as HTMLInputElement;
+    const inputB = screen.getByTestId(
+      `branching-rename-${ITEM_AI_B}`,
+    ) as HTMLInputElement;
+    const button = screen.getByTestId('button-next-ai-named-sorting');
+
+    // First press lands on the first AI-named row.
+    await act(async () => {
+      fireEvent.click(button);
+    });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(inputA);
+    });
+
+    // Second press advances to the second AI-named row.
+    await act(async () => {
+      fireEvent.click(button);
+    });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(inputB);
+    });
+
+    // Third press wraps back to the first — the cursor is cyclical so
+    // an admin who just keeps tapping never gets stuck at the end.
+    await act(async () => {
+      fireEvent.click(button);
+    });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(inputA);
+    });
+  });
+
+  it('typing over the AI suggestion drops that row from the "Next AI suggestion" cycle (Task #1405)', async () => {
+    const ITEM_AI_KEEP = 'item-1405-keep';
+    const ITEM_AI_OVERRIDE = 'item-1405-override';
+    items.push(
+      {
+        id: ITEM_AI_KEEP,
+        originalName: 'scan-keep.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'pending',
+        sortingDecision: 'keep',
+        sortingMergeWithItemId: null,
+        sortingMergeWithItemIds: null,
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: 'Standalone',
+        sortingConfidence: 0.9,
+        branchSuggestedFinalFileName: 'Stays AI',
+      },
+      {
+        id: ITEM_AI_OVERRIDE,
+        originalName: 'scan-override.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'pending',
+        sortingDecision: 'keep',
+        sortingMergeWithItemId: null,
+        sortingMergeWithItemIds: null,
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: 'Standalone',
+        sortingConfidence: 0.9,
+        branchSuggestedFinalFileName: 'Will be overridden',
+      },
+    );
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_AI_KEEP}`, undefined, { timeout: 4000 });
+    await screen.findByTestId(`item-preview-trigger-${ITEM_AI_OVERRIDE}`);
+
+    const button = screen.getByTestId('button-next-ai-named-sorting');
+    expect(button).toHaveTextContent('Next AI suggestion (2)');
+
+    // Override the second row's suggestion — the count must drop to 1
+    // because that row's value no longer matches the AI verbatim.
+    const overrideInput = screen.getByTestId(
+      `branching-rename-${ITEM_AI_OVERRIDE}`,
+    ) as HTMLInputElement;
+    await act(async () => {
+      fireEvent.change(overrideInput, { target: { value: 'Custom name' } });
+    });
+
+    await waitFor(() => {
+      expect(screen.getByTestId('button-next-ai-named-sorting')).toHaveTextContent(
+        'Next AI suggestion (1)',
+      );
+    });
+  });
+
+  it('Alt+J keyboard shortcut focuses the next AI-named pending row on the Sorting step (Task #1405)', async () => {
+    const ITEM_AI_HOTKEY = 'item-1405-hotkey';
+    items.push({
+      id: ITEM_AI_HOTKEY,
+      originalName: 'scan-hotkey.pdf',
+      status: 'sorted',
+      sortingDecisionState: 'pending',
+      sortingDecision: 'keep',
+      sortingMergeWithItemId: null,
+      sortingMergeWithItemIds: null,
+      sortingSplitAtPage: null,
+      sortingManualOverride: false,
+      sortingReason: 'Standalone',
+      sortingConfidence: 0.9,
+      branchSuggestedFinalFileName: 'Hotkey AI Name',
+    });
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_AI_HOTKEY}`, undefined, { timeout: 4000 });
+
+    const input = screen.getByTestId(
+      `branching-rename-${ITEM_AI_HOTKEY}`,
+    ) as HTMLInputElement;
+    expect(document.activeElement).not.toBe(input);
+
+    // Dispatch the global Alt+J hotkey at document.body so we exercise
+    // the listener path (not just the button onClick); the shortcut is
+    // the only way keyboard-driven admins reach the feature, so its
+    // contract has to be held independently of the button.
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'j', altKey: true });
+    });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(input);
+    });
+  });
+
+  it('"Next AI suggestion" focuses the first split-rename input when the row keeps the AI split names (Task #1405)', async () => {
+    const ITEM_SPLIT = 'item-1405-split';
+    items.push({
+      id: ITEM_SPLIT,
+      originalName: 'merged-pages.pdf',
+      status: 'sorted',
+      sortingDecisionState: 'pending',
+      sortingDecision: 'split',
+      sortingMergeWithItemId: null,
+      sortingMergeWithItemIds: null,
+      sortingSplitAtPage: 2,
+      sortingManualOverride: false,
+      sortingReason: 'Two distinct documents',
+      sortingConfidence: 0.91,
+      branchSuggestedSplitFinalNames: ['Split Part One', 'Split Part Two'],
+    });
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_SPLIT}`, undefined, { timeout: 4000 });
+
+    const button = screen.getByTestId('button-next-ai-named-sorting');
+    // Split rows count once toward the AI-named total — the navigation
+    // lands on the first of the two split-rename inputs, not on each
+    // part separately.
+    expect(button).toHaveTextContent('Next AI suggestion (1)');
+
+    const splitInput = screen.getByTestId(
+      `branching-rename-split-${ITEM_SPLIT}-0`,
+    ) as HTMLInputElement;
+
+    await act(async () => {
+      fireEvent.click(button);
+    });
+    await waitFor(() => {
+      expect(document.activeElement).toBe(splitInput);
+    });
+  });
+
+  it('renders the French label and shortcut announcement for "Next AI suggestion" (Task #1405)', async () => {
+    languageRef.current = 'fr';
+    const ITEM_AI_FR = 'item-1405-fr';
+    items.push({
+      id: ITEM_AI_FR,
+      originalName: 'scan-fr.pdf',
+      status: 'sorted',
+      sortingDecisionState: 'pending',
+      sortingDecision: 'keep',
+      sortingMergeWithItemId: null,
+      sortingMergeWithItemIds: null,
+      sortingSplitAtPage: null,
+      sortingManualOverride: false,
+      sortingReason: 'Standalone',
+      sortingConfidence: 0.9,
+      branchSuggestedFinalFileName: "Suggestion d'IA",
+    });
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_AI_FR}`, undefined, { timeout: 4000 });
+
+    const button = screen.getByTestId('button-next-ai-named-sorting');
+    expect(button).toHaveTextContent('Suggestion suivante (1)');
+    // FR title still names the same Alt+J shortcut so the localized help
+    // banner copy and the button tooltip stay in lockstep.
+    expect(button.getAttribute('title')).toContain('Alt+J');
+    expect(button.getAttribute('title')).toContain('IA');
+  });
 });
