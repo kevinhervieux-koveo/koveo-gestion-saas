@@ -1713,6 +1713,7 @@ export interface Translations {
   navQualityAssurance: string;
   navLaw25Compliance: string;
   navBulkDocumentImport: string;
+  navImpersonationLog: string;
   rbacPermissions: string;
   modernPropertyManagement: string;
   comprehensivePropertyManagement: string;
@@ -5614,6 +5615,7 @@ export const translations: Record<Language, Translations> = {
     navQualityAssurance: 'Quality Assurance',
     navLaw25Compliance: 'Law 25 Compliance',
     navBulkDocumentImport: 'Bulk Document Import',
+    navImpersonationLog: 'Impersonation Log',
     rbacPermissions: 'RBAC Permissions',
     modernPropertyManagement: 'Modern Property Management',
     comprehensivePropertyManagement: 'Comprehensive property management solution designed specifically for Quebec residential communities',
@@ -9737,6 +9739,7 @@ export const translations: Record<Language, Translations> = {
     navQualityAssurance: 'Assurance qualité',
     navLaw25Compliance: 'Conformité Loi 25',
     navBulkDocumentImport: 'Importation de documents en masse',
+    navImpersonationLog: "Journal d'usurpation d'identité",
     rbacPermissions: 'Permissions RBAC',
     modernPropertyManagement: 'Gestion immobilière moderne',
     forQuebec: 'pour le Québec',

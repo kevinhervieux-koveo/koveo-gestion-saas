@@ -67,6 +67,14 @@ export const AUTO_ROUTE_MODULES: Record<string, AutoRouteEntry> = {
     lazy: { matcher: '/api/maintenance-requests' },
   },
 
+  // Impersonation audit log + status (task #1322). Lazy — admin-only
+  // endpoints that are only hit when an admin visits the audit log page
+  // or the ImpersonationBanner polls for status.
+  impersonationLog: {
+    load: () => import('./impersonation-log'),
+    lazy: { matcher: '/api/admin/impersonation' },
+  },
+
   // Post-deploy migration verifier (task #939). Eager so a curl against
   // /api/admin/migration-status responds the moment the server is up,
   // without waiting for a first lazy-mount hit.

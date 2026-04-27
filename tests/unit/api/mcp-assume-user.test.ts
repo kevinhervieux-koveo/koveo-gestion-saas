@@ -93,9 +93,13 @@ jest.mock('../../../server/db', () => ({
               ),
           };
         }
+        // Return a mock inserted row so recordImpersonationEvent() (shared
+        // service, Task #1322) resolves to a non-null id and writeAssumeUserAudit
+        // returns true — preserving audit-first success semantics.
+        const mockRow = [{ id: `mock-audit-id-${insertCalls.length}` }];
         return {
-          returning: () => Promise.resolve([]),
-          then: (cb: (v: unknown[]) => unknown) => Promise.resolve([]).then(cb),
+          returning: () => Promise.resolve(mockRow),
+          then: (cb: (v: typeof mockRow) => unknown) => Promise.resolve(mockRow).then(cb),
         };
       },
     })),

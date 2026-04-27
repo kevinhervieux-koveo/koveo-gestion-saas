@@ -42,6 +42,7 @@ import { HelpHighlighter } from '@/components/help/HelpHighlighter';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { InstallPrompt } from '@/components/common/InstallPrompt';
 import { AutoPageRoutes } from '@/pages/auto/_register';
+import { ImpersonationBanner } from '@/components/admin/ImpersonationBanner';
 
 // Optimized lazy-loaded Admin pages
 const AdminOrganizations = optimizedPageLoaders.AdminOrganizations;
@@ -337,7 +338,11 @@ function AuthenticatedLayout() {
   const { isCollapsed } = useSidebarState();
 
   return (
-    <div className='h-full flex bg-gray-50 font-inter'>
+    <div className='h-full flex flex-col bg-gray-50 font-inter'>
+      {/* Persistent admin-only impersonation warning banner */}
+      <ImpersonationBanner />
+
+      <div className='flex-1 flex min-h-0'>
       {/* Desktop sidebar - always visible on desktop */}
       <div className='hidden md:block'>
         <Sidebar />
@@ -441,6 +446,7 @@ function AuthenticatedLayout() {
       <HelpButton />
       <HelpOverlay />
       <HelpHighlighter />
+    </div>
     </div>
   );
 }

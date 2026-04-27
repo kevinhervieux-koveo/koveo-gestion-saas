@@ -17,6 +17,7 @@ import {
   Wrench,
   Package,
   Folder,
+  ClipboardList,
 } from 'lucide-react';
 
 // Import translation keys for navigation
@@ -47,6 +48,7 @@ export const NAVIGATION_KEYS = {
   suggestions: 'suggestions',
   rbacPermissions: 'rbacPermissions',
   bulkDocumentImport: 'bulkDocumentImport',
+  impersonationLog: 'impersonationLog',
   maintenanceJournal: 'maintenanceJournal',
   inventory: 'inventory',
   projects: 'projects',
@@ -157,6 +159,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { nameKey: 'navLaw25Compliance', href: '/admin/compliance', icon: Shield },
       { nameKey: 'rbacPermissions', href: '/admin/permissions', icon: ShieldCheck },
       { nameKey: 'navBulkDocumentImport', href: '/admin/bulk-document-import', icon: Folder },
+      { nameKey: 'navImpersonationLog', href: '/admin/impersonation-log', icon: ClipboardList },
     ],
   },
   {

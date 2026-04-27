@@ -89,6 +89,7 @@ import * as commonSpaceRules from "../api/common-spaces-rules";
 import { adjustResidenceCount } from "../api/buildings/operations";
 import { eq, and, inArray, desc, asc, isNull, or, sql, count, gte, lte, type SQL } from "drizzle-orm";
 import { DocumentService, type DocumentType } from "../services/document-service";
+import { recordImpersonationEvent } from "../services/impersonation-audit";
 import { ObjectStorageService } from "../objectStorage";
 import {
   applyAttachmentAcl,
@@ -893,37 +894,30 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
   // each `initialize` request gets a fresh `createMcpServer` call.
   let assumedUserId: string | null = null;
 
-  // Task #642 audit helper. Returns true on persisted insert, false on
-  // throw (so callers can abort without mutating session state).
+  // Task #642 audit helper. Delegates to recordImpersonationEvent() (shared
+  // service) so the MCP path and the dev test endpoint share one code path.
+  // Returns true on successful insert, false on DB error (audit-first).
   const writeAssumeUserAudit = async (args: {
     action: "assume" | "restore";
     assumedUserIdForRow: string | null;
     outcome: string;
     extraDetails?: Record<string, unknown>;
   }): Promise<boolean> => {
-    try {
-      await db.insert(schema.mcpAssumeUserLog).values({
-        performedBy: authContext?.userId ?? null,
-        assumedUserId: args.assumedUserIdForRow,
-        action: args.action,
-        ipAddress: authContext?.ipAddress ?? null,
-        userAgent: authContext?.userAgent ?? null,
-        details: {
-          tool: args.action === "assume" ? "assume_user" : "restore_acting_user",
-          outcome: args.outcome,
-          oauthBoundRole: enforcedRole ?? null,
-          oauthHasUserId: Boolean(authContext?.userId),
-          ...(args.extraDetails ?? {}),
-        },
-      });
-      return true;
-    } catch (e) {
-      console.error(
-        `[mcp:${args.action}_user] failed to write audit row (outcome=${args.outcome})`,
-        e,
-      );
-      return false;
-    }
+    const id = await recordImpersonationEvent({
+      performedBy: authContext?.userId ?? null,
+      assumedUserId: args.assumedUserIdForRow,
+      action: args.action,
+      outcome: args.outcome,
+      ipAddress: authContext?.ipAddress ?? null,
+      userAgent: authContext?.userAgent ?? null,
+      extraDetails: {
+        tool: args.action === "assume" ? "assume_user" : "restore_acting_user",
+        oauthBoundRole: enforcedRole ?? null,
+        oauthHasUserId: Boolean(authContext?.userId),
+        ...(args.extraDetails ?? {}),
+      },
+    });
+    return id !== null;
   };
 
   // Resolves the user the tool should attribute writes to. When OAuth is in
