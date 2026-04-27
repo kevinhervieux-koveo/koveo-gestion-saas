@@ -22,6 +22,7 @@
  * cause a deployment platform to bounce the pod.
  */
 import type { Request, Response } from 'express';
+import { BUILD_SHA, BUILD_TIME } from '../build-stamp';
 
 export interface ApiHealthOptions {
   port: number;
@@ -90,6 +91,8 @@ export function createApiHealthHandler(opts: ApiHealthOptions) {
 
     res.json({
       status: 'healthy',
+      buildSha: BUILD_SHA,
+      buildTime: BUILD_TIME,
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
       environment: process.env.NODE_ENV || 'development',

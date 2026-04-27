@@ -7,6 +7,7 @@ import path from 'path';
 import { createFastHealthCheck, createStatusCheck, createRootHandler, setFrontendReady, isFrontendReady, createStartupMiddleware, renderMaintenancePage, createMaintenanceEventsHandler } from './health-check';
 import { ensureTriggerOnlyMigrations } from './ensure-trigger-migrations';
 import { createApiHealthHandler } from './api/health-handler';
+import { BUILD_SHA, BUILD_TIME } from './build-stamp';
 import { log } from './vite';
 import { registerRoutes, HEAVY_LAZY_MOUNTS } from './routes';
 import { sanitizeInputMiddleware, buildLegacyBypassFromApp, LEGACY_BYPASS_RESOURCE_ROOTS } from './middleware/input-sanitization';
@@ -641,7 +642,7 @@ async function loadFullApplication(): Promise<void> {
       log(`❌ Failed to load full routes: ${routesError.message}`, 'error');
       // Fallback to minimal API routes
       app.get('/api/health', (req, res) => {
-        res.json({ status: 'ok', timestamp: new Date().toISOString() });
+        res.json({ status: 'ok', buildSha: BUILD_SHA, buildTime: BUILD_TIME, timestamp: new Date().toISOString() });
       });
       
       log('✅ Essential API routes loaded (minimal setup)');

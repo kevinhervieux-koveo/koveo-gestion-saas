@@ -129,6 +129,30 @@ npm run type-check      # Run TypeScript checks
 npm run format          # Format code with Prettier
 ```
 
+### Build Stamp and Deployment Verification
+
+Every production build writes a `dist/build-info.json` file (via `scripts/write-build-info.ts`, invoked automatically by `npm run build` and `npm run build:production`). The file contains the commit SHA and build timestamp:
+
+```json
+{
+  "buildSha": "a1b2c3d",
+  "buildTime": "2026-04-27T00:00:00.000Z"
+}
+```
+
+The stamp is surfaced on `GET /api/health`:
+
+```json
+{
+  "status": "healthy",
+  "buildSha": "a1b2c3d",
+  "buildTime": "2026-04-27T00:00:00.000Z",
+  ...
+}
+```
+
+To verify a deploy shipped the expected commit, compare `buildSha` before and after redeploying. If the deploy pipeline cannot run `git rev-parse`, set the `BUILD_SHA` and `BUILD_TIME` environment variables to inject the stamp without a file. The resolution order is: `dist/build-info.json` → `BUILD_SHA`/`BUILD_TIME` env vars → `git rev-parse --short HEAD` → `"unknown"` (blocked in production by the fail-fast check in `scripts/write-build-info.ts`).
+
 ### Database Migrations
 
 Schema changes are tracked as numbered SQL files under `migrations/`

@@ -227,6 +227,7 @@ Six more files were cleaned up in task #1482 (see section above).
 - `server/web-vitals-api.ts` — **LOW**: client-side metrics collection
 
 ### `tests/`
+- `tests/integration/api-health-build-stamp.test.ts` — **LOW**: test file (task #1539)
 - `tests/integration/api-health-bulk-import-staging.test.ts` — **LOW**: test file
 - `tests/integration/bulk-import-replace-file-large-memory.test.ts` — **LOW**: test file
 - `tests/integration/bulk-import-staging-janitor.test.ts` — **LOW**: test file
