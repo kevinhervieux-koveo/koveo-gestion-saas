@@ -394,6 +394,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
     financialYear: new Date().getFullYear().toString(),
     plannedMonth: '1',
     plannedDay: '1',
+    plannedEndDate: '',
     description: '',
   });
 
@@ -1116,6 +1117,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
       financialYear: number;
       plannedMonth: number;
       plannedDay: number;
+      plannedEndDate?: string;
       description?: string;
     }) => {
       debugLog('Creating quick project', { buildingId, projectData });
@@ -1125,6 +1127,15 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
       
       // Create the planned start date from year, month, and day
       const plannedStartDate = `${projectData.financialYear}-${String(projectData.plannedMonth).padStart(2, '0')}-${String(projectData.plannedDay).padStart(2, '0')}`;
+
+      // Default end date: start + 30 days if not provided
+      const plannedEndDate = projectData.plannedEndDate && projectData.plannedEndDate.length === 10
+        ? projectData.plannedEndDate
+        : (() => {
+            const d = new Date(`${plannedStartDate}T00:00:00`);
+            d.setDate(d.getDate() + 30);
+            return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+          })();
       
       const payload = {
         buildingId,
@@ -1137,6 +1148,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
         estimatedCost: projectData.totalBudget,
         financialYear: projectData.financialYear,
         plannedStartDate,
+        plannedEndDate,
         isQuickProject: true,
         origin: 'manual' as const,
         planningDescription: projectData.description || '',
@@ -1168,6 +1180,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
         financialYear: new Date().getFullYear().toString(),
         plannedMonth: (new Date().getMonth() + 1).toString(),
         plannedDay: new Date().getDate().toString(),
+        plannedEndDate: '',
         description: '',
       });
     },

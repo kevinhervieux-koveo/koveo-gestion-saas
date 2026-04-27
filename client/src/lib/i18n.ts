@@ -1654,6 +1654,8 @@ export interface Translations {
   ganttDiscardUnsaved: string;
   ganttResizeStart: string;
   ganttResizeEnd: string;
+  ganttDurationDays: string;
+  budgetPlannedEndDate: string;
   statusSubmission: string;
   statusPreWork: string;
   statusPostWork: string;
@@ -5522,6 +5524,8 @@ export const translations: Record<Language, Translations> = {
     ganttDiscardUnsaved: 'Discard unsaved changes?',
     ganttResizeStart: 'Drag to change start date',
     ganttResizeEnd: 'Drag to change end date',
+    ganttDurationDays: 'days',
+    budgetPlannedEndDate: 'Planned end date',
     statusSubmission: 'Submission',
     statusPreWork: 'Pre work',
     statusPostWork: 'Post work',
@@ -9615,6 +9619,8 @@ export const translations: Record<Language, Translations> = {
     ganttDiscardUnsaved: 'Abandonner les modifications non enregistrées?',
     ganttResizeStart: 'Glisser pour modifier la date de début',
     ganttResizeEnd: 'Glisser pour modifier la date de fin',
+    ganttDurationDays: 'jours',
+    budgetPlannedEndDate: 'Date de fin prévue',
     statusSubmission: 'Soumission',
     statusPreWork: 'Pré-travaux',
     statusPostWork: 'Post-travaux',

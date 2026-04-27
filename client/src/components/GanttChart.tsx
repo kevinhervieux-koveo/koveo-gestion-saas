@@ -220,6 +220,7 @@ export function GanttChart({
   const cancelLabel = t('ganttCancel');
   const resizeStartLabel = t('ganttResizeStart');
   const resizeEndLabel = t('ganttResizeEnd');
+  const durationDaysLabel = t('ganttDurationDays');
 
   const timelineRef = useRef<HTMLDivElement>(null);
 
@@ -235,6 +236,14 @@ export function GanttChart({
   const dragStartX = useRef<number | null>(null);
   const isDragging = useRef(false);
 
+  // Tracks which bar the user is hovering so a custom tooltip can be shown
+  // without the hover being intercepted by the click overlay.
+  const [hoveredRowId, setHoveredRowId] = useState<string | null>(null);
+
+  // Ref to the drag overlay div — used to refocus it after re-renders so
+  // keyboard arrow-key nudging is preserved across date updates.
+  const dragOverlayRef = useRef<HTMLDivElement>(null);
+
   // Reset drag offset when editing project changes
   useEffect(() => {
     setDragOffsetMs(0);
@@ -242,6 +251,15 @@ export function GanttChart({
     setDragActive(false);
     dragStartX.current = null;
     isDragging.current = false;
+  }, [editingProjectId]);
+
+  // Auto-focus the drag overlay whenever the editing project changes so
+  // the user can immediately nudge dates with arrow keys without needing
+  // to click the overlay first.
+  useEffect(() => {
+    if (editingProjectId && dragOverlayRef.current) {
+      dragOverlayRef.current.focus();
+    }
   }, [editingProjectId]);
 
   // Map of projectId → actual {y, height} from Recharts' rendered bar.
@@ -542,6 +560,25 @@ export function GanttChart({
       onDragEnd(editingProjectId, effective.startTs, effective.endTs);
     }
   }, [editingProjectId, editingDates, getEffectiveEditingDates, onDragEnd]);
+
+  // Keyboard nudging for the focused drag overlay. Arrow left/right moves the
+  // whole bar ±1 day; Shift+Arrow moves it ±1 week. The nudge is committed
+  // immediately via onDragEnd so the parent's editingDates stays in sync, and
+  // the overlay retains focus across the resulting re-render.
+  const handleKeyDown = useCallback((e: React.KeyboardEvent<HTMLDivElement>) => {
+    if (!editingProjectId || !editingDates || isSaving) return;
+    if (e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
+    e.preventDefault();
+    const nudgeMs = e.shiftKey ? 7 * DAY_MS : DAY_MS;
+    const delta = e.key === 'ArrowRight' ? nudgeMs : -nudgeMs;
+    const dur = editingDates.endTs - editingDates.startTs;
+    const tentativeStart = editingDates.startTs + delta;
+    const clampedStart = Math.max(domain[0], Math.min(tentativeStart, domain[1] - dur));
+    const clampedEnd = clampedStart + dur;
+    if (onDragEnd) {
+      onDragEnd(editingProjectId, clampedStart, clampedEnd);
+    }
+  }, [editingProjectId, editingDates, isSaving, domain, onDragEnd]);
 
   const editingRowIndex = useMemo(() => {
     if (!editingProjectId) return -1;
@@ -921,6 +958,8 @@ export function GanttChart({
                   key={`bar-click-${row.id}`}
                   data-testid={`gantt-bar-click-${row.id}`}
                   onClick={() => onStartEdit(row.id)}
+                  onMouseEnter={() => setHoveredRowId(row.id)}
+                  onMouseLeave={() => setHoveredRowId(prev => prev === row.id ? null : prev)}
                   style={{
                     position: 'absolute',
                     left: 0,
@@ -934,6 +973,44 @@ export function GanttChart({
                 />
               );
             })}
+
+            {/* Custom hover tooltip — shown when the user hovers a bar's click
+                overlay. Replaces the Recharts tooltip (which cannot fire through
+                the click overlay div) with a floating card that has
+                pointerEvents:none so it never interferes with clicks. */}
+            {(() => {
+              if (!hoveredRowId) return null;
+              const hRow = displayRows.find(r => r.id === hoveredRowId);
+              if (!hRow || !hRow.hasDates || hRow.startTs == null || hRow.endTs == null) return null;
+              const hLayout = barLayouts[hoveredRowId];
+              const hTop = hLayout?.y ?? 0;
+              const hLeft = tsToLeft((hRow.startTs + hRow.endTs) / 2);
+              return (
+                <div
+                  data-testid={`gantt-hover-tooltip-${hoveredRowId}`}
+                  style={{
+                    position: 'absolute',
+                    left: hLeft,
+                    top: hTop - 8,
+                    transform: 'translate(-50%, -100%)',
+                    pointerEvents: 'none',
+                    zIndex: 8,
+                  }}
+                >
+                  <div className="rounded-md border bg-background p-2 text-xs shadow-md" style={{ whiteSpace: 'nowrap' }}>
+                    <div className="font-medium">{hRow.name}</div>
+                    {hRow.status && (
+                      <div className="text-muted-foreground capitalize">
+                        {hRow.status.replace(/_/g, ' ')}
+                      </div>
+                    )}
+                    <div className="text-muted-foreground">
+                      {formatDate(hRow.startTs, locale)} — {formatDate(hRow.endTs, locale)}
+                    </div>
+                  </div>
+                </div>
+              );
+            })()}
 
             {/* Floating date chips during a drag/resize gesture.
                 - resize-left → start chip anchored to the left edge
@@ -963,6 +1040,12 @@ export function GanttChart({
               };
               const showStart = dragMode === 'resize-left' || dragMode === 'move';
               const showEnd = dragMode === 'resize-right' || dragMode === 'move';
+              const durDays = Math.max(1, Math.round(
+                (effectiveEditingDates.endTs - effectiveEditingDates.startTs) / DAY_MS
+              ));
+              const midLeft = tsToLeft(
+                (effectiveEditingDates.startTs + effectiveEditingDates.endTs) / 2
+              );
               return (
                 <>
                   {showStart && (
@@ -989,6 +1072,20 @@ export function GanttChart({
                       {formatDate(effectiveEditingDates.endTs, locale)}
                     </div>
                   )}
+                  {/* Duration chip — anchored below the bar centre so it does
+                      not overlap the start/end chips which sit above. */}
+                  <div
+                    data-testid={`gantt-drag-chip-duration-${editingProjectId}`}
+                    style={{
+                      ...chipBaseStyle,
+                      top: editingBarTop + editingBarHeight + 4,
+                      left: midLeft,
+                      transform: 'translateX(-50%)',
+                      background: '#1d4ed8',
+                    }}
+                  >
+                    {durDays} {durationDaysLabel}
+                  </div>
                 </>
               );
             })()}
@@ -997,12 +1094,19 @@ export function GanttChart({
                 edge handles resize start / end independently. */}
             {dragOverlayStyle && (
               <div
+                ref={dragOverlayRef}
                 data-testid={`gantt-drag-overlay-${editingProjectId}`}
-                style={dragOverlayStyle}
+                tabIndex={0}
+                aria-label={editLabel}
+                style={{
+                  ...dragOverlayStyle,
+                  outline: 'none',
+                } as React.CSSProperties}
                 onPointerDown={startDrag('move')}
                 onPointerMove={handlePointerMove}
                 onPointerUp={handlePointerUp}
                 onPointerCancel={handlePointerUp}
+                onKeyDown={handleKeyDown}
               >
                 <div
                   data-testid={`gantt-resize-left-${editingProjectId}`}

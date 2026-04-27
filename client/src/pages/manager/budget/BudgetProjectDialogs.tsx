@@ -30,6 +30,7 @@ export interface QuickProjectData {
   financialYear: string;
   plannedMonth: string;
   plannedDay: string;
+  plannedEndDate: string;
   description: string;
 }
 
@@ -44,6 +45,7 @@ export interface CreateProjectPayload {
   financialYear: number;
   plannedMonth: number;
   plannedDay: number;
+  plannedEndDate?: string;
   description: string;
 }
 
@@ -202,6 +204,17 @@ export function BudgetProjectDialogs({
                 </Select>
               </div>
             </div>
+
+            <div className='space-y-2'>
+              <Label htmlFor="quick-project-end-date">{t('budgetPlannedEndDate')}</Label>
+              <Input
+                id="quick-project-end-date"
+                type="date"
+                value={newQuickProject.plannedEndDate}
+                onChange={(e) => setNewQuickProject(prev => ({ ...prev, plannedEndDate: e.target.value }))}
+                data-testid="input-quick-project-end-date"
+              />
+            </div>
             
             <div className='flex gap-2 pt-4'>
               <Button 
@@ -221,6 +234,7 @@ export function BudgetProjectDialogs({
                     financialYear: parseInt(newQuickProject.financialYear),
                     plannedMonth: parseInt(newQuickProject.plannedMonth),
                     plannedDay: parseInt(newQuickProject.plannedDay),
+                    plannedEndDate: newQuickProject.plannedEndDate || undefined,
                     description: newQuickProject.description,
                   });
                 }}
@@ -247,6 +261,7 @@ export function BudgetProjectDialogs({
                     financialYear: new Date().getFullYear().toString(),
                     plannedMonth: (new Date().getMonth() + 1).toString(),
                     plannedDay: new Date().getDate().toString(),
+                    plannedEndDate: '',
                     description: '',
                   });
                 }}
