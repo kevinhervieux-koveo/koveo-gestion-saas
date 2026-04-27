@@ -1,0 +1,177 @@
+client:733 [vite] connecting...
+client:827 [vite] connected.
+document-tags:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+debug-log.ts:3 [bulk-import] runAll start {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+debug-log.ts:3 [bulk-import] runAll success {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking'}
+debug-log.ts:3 [bulk-import] run-all transition running→done {sessionId: '86642325-4c08-4c33-9e88-b3a081edb44e', step: 'linking', finishedAt: '2026-04-27T14:28:09.948Z', processed: 0, failed: 0, …}
+client:810 [vite] invalidate /src/hooks/use-language.tsx: Could not Fast Refresh ("useLanguage" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/hooks/use-language.tsx
+client:810 [vite] hot updated: /src/index.css
+client:810 [vite] hot updated: /src/pages/admin/document-tags.tsx
+client:810 [vite] hot updated: /src/index.css
+installHook.js:1 Error: useLanguage must be used within a LanguageProvider
+    at useLanguage (use-language.tsx:184:11)
+    at Sidebar (sidebar.tsx:38:27)
+    at Object.react_stack_bottom_frame (react-dom_client.js?v=1011393f:17424:20)
+    at renderWithHooks (react-dom_client.js?v=1011393f:4206:24)
+    at updateFunctionComponent (react-dom_client.js?v=1011393f:6619:21)
+    at beginWork (react-dom_client.js?v=1011393f:7654:20)
+    at runWithFiberInDEV (react-dom_client.js?v=1011393f:1485:72)
+    at performUnitOfWork (react-dom_client.js?v=1011393f:10868:98)
+    at workLoopSync (react-dom_client.js?v=1011393f:10728:43)
+    at renderRootSync (react-dom_client.js?v=1011393f:10711:13)
+
+The above error occurred in the <Sidebar> component.
+
+React will try to recreate this component tree from scratch using the error boundary you provided, AuthErrorBoundary.
+
+overrideMethod @ installHook.js:1
+defaultOnCaughtError @ react-dom_client.js?v=1011393f:6264
+logCaughtError @ react-dom_client.js?v=1011393f:6296
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+inst.componentDidCatch.update.callback @ react-dom_client.js?v=1011393f:6341
+callCallback @ react-dom_client.js?v=1011393f:4097
+commitCallbacks @ react-dom_client.js?v=1011393f:4109
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+commitClassCallbacks @ react-dom_client.js?v=1011393f:8543
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1011393f:9011
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=1011393f:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1011393f:9096
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=1011393f:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1011393f:8956
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=1011393f:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1011393f:9096
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=1011393f:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1011393f:8956
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=1011393f:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1011393f:8960
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=1011393f:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1011393f:8956
+recursivelyTraverseLayoutEffects @ react-dom_client.js?v=1011393f:9682
+commitLayoutEffectOnFiber @ react-dom_client.js?v=1011393f:9016
+flushLayoutEffects @ react-dom_client.js?v=1011393f:11174
+commitRoot @ react-dom_client.js?v=1011393f:11080
+commitRootWhenReady @ react-dom_client.js?v=1011393f:10512
+performWorkOnRoot @ react-dom_client.js?v=1011393f:10457
+performSyncWorkOnRoot @ react-dom_client.js?v=1011393f:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1011393f:11536
+flushSyncWork$1 @ react-dom_client.js?v=1011393f:10567
+scheduleRefresh @ react-dom_client.js?v=1011393f:372
+S.scheduleRefresh @ installHook.js:1
+(anonymous) @ @react-refresh:228
+performReactRefresh @ @react-refresh:217
+(anonymous) @ @react-refresh:608
+<Sidebar>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1011393f:250
+AuthenticatedLayout @ App.tsx:348
+react_stack_bottom_frame @ react-dom_client.js?v=1011393f:17424
+renderWithHooks @ react-dom_client.js?v=1011393f:4206
+updateFunctionComponent @ react-dom_client.js?v=1011393f:6619
+beginWork @ react-dom_client.js?v=1011393f:7654
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+performUnitOfWork @ react-dom_client.js?v=1011393f:10868
+workLoopSync @ react-dom_client.js?v=1011393f:10728
+renderRootSync @ react-dom_client.js?v=1011393f:10711
+performWorkOnRoot @ react-dom_client.js?v=1011393f:10359
+performSyncWorkOnRoot @ react-dom_client.js?v=1011393f:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1011393f:11536
+flushSyncWork$1 @ react-dom_client.js?v=1011393f:10567
+scheduleRefresh @ react-dom_client.js?v=1011393f:372
+S.scheduleRefresh @ installHook.js:1
+(anonymous) @ @react-refresh:228
+performReactRefresh @ @react-refresh:217
+(anonymous) @ @react-refresh:608
+<AuthenticatedLayout>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1011393f:250
+Router @ App.tsx:334
+react_stack_bottom_frame @ react-dom_client.js?v=1011393f:17424
+renderWithHooks @ react-dom_client.js?v=1011393f:4206
+updateFunctionComponent @ react-dom_client.js?v=1011393f:6619
+beginWork @ react-dom_client.js?v=1011393f:7654
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+performUnitOfWork @ react-dom_client.js?v=1011393f:10868
+workLoopSync @ react-dom_client.js?v=1011393f:10728
+renderRootSync @ react-dom_client.js?v=1011393f:10711
+performWorkOnRoot @ react-dom_client.js?v=1011393f:10359
+performSyncWorkOnRoot @ react-dom_client.js?v=1011393f:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1011393f:11536
+flushSyncWork$1 @ react-dom_client.js?v=1011393f:10567
+scheduleRefresh @ react-dom_client.js?v=1011393f:372
+S.scheduleRefresh @ installHook.js:1
+(anonymous) @ @react-refresh:228
+performReactRefresh @ @react-refresh:217
+(anonymous) @ @react-refresh:608
+[Violation] Forced reflow while executing JavaScript took 32ms
+client:810 [vite] hot updated: /src/App.tsx
+client:810 [vite] invalidate /src/contexts/HelpContext.tsx: Could not Fast Refresh ("findHelpForElement" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/contexts/HelpContext.tsx
+client:810 [vite] hot updated: /src/components/common/InstallPrompt.tsx
+client:810 [vite] hot updated: /src/components/help/HelpOverlay.tsx
+client:810 [vite] hot updated: /src/components/help/HelpHighlighter.tsx
+client:810 [vite] hot updated: /src/components/layout/sidebar.tsx
+client:810 [vite] hot updated: /src/components/layout/header.tsx
+client:810 [vite] hot updated: /src/components/ui/language-switcher.tsx
+client:810 [vite] hot updated: /src/components/dialogs/delete-confirmation-dialog.tsx
+client:810 [vite] hot updated: /src/pages/admin/document-tags.tsx
+client:810 [vite] invalidate /src/pages/admin/bulk-document-import.tsx: Could not Fast Refresh ("isItemReadyForNextStep" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/pages/admin/bulk-document-import.tsx
+client:810 [vite] invalidate /src/pages/admin/bulk-import-next-step-block.tsx: Could not Fast Refresh ("AUTO_STEPS" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/pages/admin/bulk-import-next-step-block.tsx
+client:810 [vite] hot updated: /src/components/common/DocumentInlineViewer.tsx
+client:810 [vite] hot updated: /src/components/documents/DocumentLinkPickerDialog.tsx
+client:810 [vite] hot updated: /src/components/documents/DocumentSequencePanel.tsx
+client:810 [vite] hot updated: /src/App.tsx
+client:810 [vite] hot updated: /src/components/help/HelpButton.tsx
+client:810 [vite] hot updated: /src/components/help/HelpOverlay.tsx
+client:810 [vite] hot updated: /src/components/help/HelpHighlighter.tsx
+client:810 [vite] hot updated: /src/App.tsx
+client:810 [vite] hot updated: /src/pages/admin/bulk-document-import.tsx
+client:810 [vite] hot updated: /src/pages/admin/document-tags.tsx
+client:810 [vite] hot updated: /src/index.css
+client:810 [vite] invalidate /src/pages/admin/bulk-document-import.tsx: Could not Fast Refresh ("isItemReadyForNextStep" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/pages/admin/bulk-document-import.tsx
+client:810 [vite] hot updated: /src/index.css
+client:810 [vite] hot updated: /src/App.tsx
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/document-link-families 400 (Bad Request)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ document-tags.tsx:232
+fn @ @tanstack_react-query.js?v=1011393f:1200
+run @ @tanstack_react-query.js?v=1011393f:491
+start @ @tanstack_react-query.js?v=1011393f:533
+execute @ @tanstack_react-query.js?v=1011393f:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=1011393f:2642
+(anonymous) @ @tanstack_react-query.js?v=1011393f:3356
+(anonymous) @ document-tags.tsx:290
+(anonymous) @ chunk-5X3D5XLD.js?v=1011393f:1506
+await in (anonymous)
+executeDispatch @ react-dom_client.js?v=1011393f:11736
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+processDispatchQueue @ react-dom_client.js?v=1011393f:11772
+(anonymous) @ react-dom_client.js?v=1011393f:12182
+batchedUpdates$1 @ react-dom_client.js?v=1011393f:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=1011393f:11877
+dispatchEvent @ react-dom_client.js?v=1011393f:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=1011393f:14773
+<form>
+exports.jsxDEV @ react_jsx-dev-runtime.js?v=1011393f:250
+(anonymous) @ document-tags.tsx:603
+react_stack_bottom_frame @ react-dom_client.js?v=1011393f:17424
+renderWithHooks @ react-dom_client.js?v=1011393f:4206
+updateFunctionComponent @ react-dom_client.js?v=1011393f:6619
+beginWork @ react-dom_client.js?v=1011393f:7654
+runWithFiberInDEV @ react-dom_client.js?v=1011393f:1485
+performUnitOfWork @ react-dom_client.js?v=1011393f:10868
+workLoopSync @ react-dom_client.js?v=1011393f:10728
+renderRootSync @ react-dom_client.js?v=1011393f:10711
+performWorkOnRoot @ react-dom_client.js?v=1011393f:10330
+performSyncWorkOnRoot @ react-dom_client.js?v=1011393f:11635
+flushSyncWorkAcrossRoots_impl @ react-dom_client.js?v=1011393f:11536
+processRootScheduleInMicrotask @ react-dom_client.js?v=1011393f:11558
+(anonymous) @ react-dom_client.js?v=1011393f:11649
