@@ -16,7 +16,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { StatusBadge, PriorityBadge } from '@/components/maintenance/StatusBadges';
-// import { useBuildingContext } from '@/hooks/use-building-context';
+import { useBuildingPermissions } from '@/hooks/use-building-context';
 import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
@@ -79,8 +79,7 @@ export function ProjectDetailsPanel({
   buildingId,
   organizationId,
 }: ProjectDetailsPanelProps) {
-  // Simplified placeholder - no context for now
-  const hasPermission = () => true;
+  const { hasPermission } = useBuildingPermissions();
   const { t } = useLanguage();
   const [activeTab, setActiveTab] = useState('overview');
 
@@ -179,7 +178,7 @@ export function ProjectDetailsPanel({
 
           {/* Quick Actions */}
           <div className="flex flex-wrap gap-2 pt-2">
-            {hasPermission() && onEdit && (
+            {hasPermission('canEditMaintenance') && onEdit && (
               <Button 
                 variant="outline" 
                 size="sm" 
@@ -191,7 +190,7 @@ export function ProjectDetailsPanel({
               </Button>
             )}
             
-            {hasPermission() && onUpdateStatus && (
+            {hasPermission('canEditMaintenance') && onUpdateStatus && (
               <Button 
                 variant="outline" 
                 size="sm" 

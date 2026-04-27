@@ -7,7 +7,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-// import { useBuildingContext } from '@/hooks/use-building-context';
+import { useBuildingContext } from '@/hooks/use-building-context';
 import { cn } from '@/lib/utils';
 import { logDebug } from '@/lib/logger';
 import { useLanguage } from '@/hooks/use-language';
@@ -39,12 +39,7 @@ export function ProjectsHeader({
   onBack,
 }: ProjectsHeaderProps) {
   const { t } = useLanguage();
-  // Simplified placeholder - no context for now
-  const building = null;
-  const availableBuildings = [];
-  const setBuildingId = () => {};
-  const hasPermission = (permission: string) => true;
-  // Permission checks (simplified for now)
+  const { building, availableBuildings, setBuildingId, hasPermission } = useBuildingContext();
   const canEdit = hasPermission('canEditMaintenance');
   const canCreate = hasPermission('canCreateProjects');
   const canViewReports = hasPermission('canViewReports');

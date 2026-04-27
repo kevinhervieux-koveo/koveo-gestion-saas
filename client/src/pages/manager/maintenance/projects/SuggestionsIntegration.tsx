@@ -24,7 +24,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-// import { useBuildingContext } from '@/hooks/use-building-context';
+import { useBuildingPermissions } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { translateProjectPriority, translateProjectType } from './projectEnumLabels';
@@ -80,8 +80,7 @@ export function SuggestionsIntegration({
   buildingId,
   organizationId,
 }: SuggestionsIntegrationProps) {
-  // Simplified placeholder - no context for now
-  const hasPermission = () => true;
+  const { hasPermission } = useBuildingPermissions();
   const { toast } = useToast();
   const { language, t } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
@@ -223,7 +222,7 @@ export function SuggestionsIntegration({
     return selectedSuggestions.length * defaultBudget;
   }, [selectedSuggestions.length, projectDefaults.defaultBudget]);
 
-  if (!hasPermission()) {
+  if (!hasPermission('canCreateProjects')) {
     return null;
   }
 

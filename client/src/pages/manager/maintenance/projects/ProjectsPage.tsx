@@ -92,7 +92,8 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     organizationId: contextOrganizationId,
     setBuildingId, 
     setOrganizationId,
-    building: contextBuilding
+    building: contextBuilding,
+    hasPermission,
   } = useBuildingContext();
 
   // Component initialization debug log
@@ -214,11 +215,10 @@ function ProjectsPageContent(props: ProjectsPageProps) {
   // State for suggestions integration
   const [selectedSuggestions, setSelectedSuggestions] = useState<EvaluationSuggestion[]>([]);
 
-  // Permissions (simplified for now - you may want to implement proper role-based permissions)
-  const canEdit = true; // hasPermission('canEditMaintenance');
-  const canCreate = true; // hasPermission('canCreateProjects');
-  const canManageDocuments = true; // hasPermission('canManageDocuments');
-  const canViewReports = true; // hasPermission('canViewReports');
+  const canEdit = hasPermission('canEditMaintenance');
+  const canCreate = hasPermission('canCreateProjects');
+  const canManageDocuments = hasPermission('canManageDocuments');
+  const canViewReports = hasPermission('canViewReports');
 
   // Project handlers
   const handleViewProject = useCallback((project: MaintenanceProject) => {
@@ -467,39 +467,41 @@ function ProjectsPageContent(props: ProjectsPageProps) {
               />
             */}
 
-            {/* Project Overview */}
-            <Collapsible 
-              open={projectOverviewExpanded} 
-              onOpenChange={(expanded) => {
-                setProjectOverviewExpanded(expanded);
-              }} 
-              className="space-y-4" 
-              data-testid="project-overview-section"
-            >
-              <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
-                <div className="flex items-center gap-2">
-                  <BarChart3 className="h-5 w-5 text-muted-foreground" />
-                  <h2 className="text-lg font-semibold">{t('projectOverview')}</h2>
+            {/* Project Overview — visible only to users who can view reports */}
+            {canViewReports && (
+              <Collapsible 
+                open={projectOverviewExpanded} 
+                onOpenChange={(expanded) => {
+                  setProjectOverviewExpanded(expanded);
+                }} 
+                className="space-y-4" 
+                data-testid="project-overview-section"
+              >
+                <div className="flex items-center justify-between p-4 bg-muted/50 rounded-lg border">
+                  <div className="flex items-center gap-2">
+                    <BarChart3 className="h-5 w-5 text-muted-foreground" />
+                    <h2 className="text-lg font-semibold">{t('projectOverview')}</h2>
+                  </div>
+                  <CollapsibleTrigger asChild>
+                    <Button variant="ghost" size="sm" data-testid="project-overview-toggle">
+                      {projectOverviewExpanded ? (
+                        <ChevronDown className="h-4 w-4" />
+                      ) : (
+                        <ChevronRight className="h-4 w-4" />
+                      )}
+                      <span className="sr-only">{t('toggleProjectOverview')}</span>
+                    </Button>
+                  </CollapsibleTrigger>
                 </div>
-                <CollapsibleTrigger asChild>
-                  <Button variant="ghost" size="sm" data-testid="project-overview-toggle">
-                    {projectOverviewExpanded ? (
-                      <ChevronDown className="h-4 w-4" />
-                    ) : (
-                      <ChevronRight className="h-4 w-4" />
-                    )}
-                    <span className="sr-only">{t('toggleProjectOverview')}</span>
-                  </Button>
-                </CollapsibleTrigger>
-              </div>
-              
-              <CollapsibleContent className="space-y-4">
-                <ProjectsOverview 
-                  buildingId={buildingId}
-                  organizationId={organizationId}
-                />
-              </CollapsibleContent>
-            </Collapsible>
+
+                <CollapsibleContent className="space-y-4">
+                  <ProjectsOverview 
+                    buildingId={buildingId}
+                    organizationId={organizationId}
+                  />
+                </CollapsibleContent>
+              </Collapsible>
+            )}
 
             {/* Projects Table */}
             <Collapsible 

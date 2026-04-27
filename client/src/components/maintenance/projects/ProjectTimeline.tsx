@@ -38,7 +38,8 @@ import { StatusBadge, PriorityBadge } from '@/components/maintenance/StatusBadge
 import { useBuildingContext } from '@/hooks/use-building-context';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
-import { MaintenanceProject } from '@shared/schemas/maintenance';
+import { MaintenanceProject, projectStatusEnum, projectTypeEnum } from '@shared/schemas/maintenance';
+import { translateProjectStatus, translateProjectType } from '@/pages/manager/maintenance/projects/projectEnumLabels';
 import { cn, parseDateOnly } from '@/lib/utils';
 import { useLanguage } from '@/hooks/use-language';
 import {
@@ -432,10 +433,11 @@ export function ProjectTimeline({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">All Status</SelectItem>
-                <SelectItem value="planned">Planned</SelectItem>
-                <SelectItem value="evaluation">Evaluation</SelectItem>
-                <SelectItem value="work">In Progress</SelectItem>
-                <SelectItem value="completed">Completed</SelectItem>
+                {projectStatusEnum.enumValues.map((status) => (
+                  <SelectItem key={status} value={status}>
+                    {translateProjectStatus(status, t)}
+                  </SelectItem>
+                ))}
               </SelectContent>
             </Select>
           </div>
@@ -446,11 +448,11 @@ export function ProjectTimeline({
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">All Types</SelectItem>
-              <SelectItem value="evaluation">Evaluation</SelectItem>
-              <SelectItem value="repair">Repair</SelectItem>
-              <SelectItem value="minor_rehab">Minor Rehab</SelectItem>
-              <SelectItem value="major_rehab">Major Rehab</SelectItem>
-              <SelectItem value="replacement">Replacement</SelectItem>
+              {projectTypeEnum.enumValues.map((type) => (
+                <SelectItem key={type} value={type}>
+                  {translateProjectType(type, t)}
+                </SelectItem>
+              ))}
             </SelectContent>
           </Select>
 

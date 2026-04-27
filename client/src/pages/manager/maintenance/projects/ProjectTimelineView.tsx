@@ -85,11 +85,6 @@ export function ProjectTimelineView({
   buildingId,
   organizationId,
 }: ProjectTimelineViewProps) {
-  // Task #1271: route through the real permission hook so the
-  // gated UI (status-update bar, etc.) is actually hidden for users
-  // without `canEditMaintenance`. The previous placeholder
-  // `() => true` left manager pages indistinguishable from admin pages.
-  const building = null;
   const { hasPermission } = useBuildingPermissions();
   const { t } = useLanguage();
   const [currentDate, setCurrentDate] = useState(new Date());
@@ -231,7 +226,7 @@ export function ProjectTimelineView({
       !event.isOverdue && event.date > now && event.date <= addDays(now, 7)
     );
     const activeProjects = filteredProjects.filter(project => 
-      project.status === 'work' || project.status === 'pre_work'
+      project.status === 'pre_work' || project.status === 'in_progress' || project.status === 'post_work'
     );
 
     return {
@@ -286,7 +281,7 @@ export function ProjectTimelineView({
   }
 
   // Handle no building selected state
-  if (!building) {
+  if (!buildingId) {
     return (
       <div className={cn('flex flex-col items-center justify-center p-8', className)}>
         <Building2 className="h-16 w-16 text-muted-foreground mb-4" />
