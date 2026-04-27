@@ -1,4 +1,3 @@
-// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -32,7 +31,8 @@ import {
   useProjectNotifications,
   useProjectNotificationMutations,
   useMarkStatusComplete,
-  type ProjectWorkflowState 
+  type ProjectWorkflowState,
+  type ProjectNotification,
 } from '@/hooks/useProjectWorkflow';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { useToast } from '@/hooks/use-toast';
@@ -301,7 +301,9 @@ export function PreWorkTab({ project, workflowState, onUpdate }: PreWorkTabProps
       // Create new notification
       createNotification.mutate({
         projectId: project.id,
-        notificationData: data,
+        // react-hook-form may widen the inferred type to Partial<T>; the zod
+        // resolver guarantees all required fields are present after validation.
+        notificationData: data as Omit<ProjectNotification, 'id' | 'projectId' | 'isSent' | 'createdAt' | 'updatedAt'>,
       }, {
         onSuccess: () => {
           notificationForm.reset();

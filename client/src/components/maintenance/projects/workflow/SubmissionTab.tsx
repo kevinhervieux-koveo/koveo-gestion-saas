@@ -1,4 +1,3 @@
-// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import { useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { Button } from '@/components/ui/button';
@@ -17,11 +16,11 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import { StandardDocumentAttachments, type AttachedFile } from '@/components/common/StandardDocumentAttachments';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, useReopenWorkflowStep, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
+import { useSubmissionVendors, useSubmissionVendorMutations, useMarkStatusComplete, useReopenWorkflowStep, type ProjectWorkflowState, type SubmissionVendorWithRelation } from '@/hooks/useProjectWorkflow';
 import { ReopenStepDialog } from './ReopenStepDialog';
 import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
-import { MaintenanceProject, type SubmissionVendor } from '@shared/schemas/maintenance';
+import { MaintenanceProject } from '@shared/schemas/maintenance';
 import { PaymentPlanForm } from './PaymentPlanForm';
 import { ElementManagementTab } from './ElementManagementTab';
 import { cn, formatStatus, parseDateOnly, parseDateOnlyLoose, safeCapitalize } from '@/lib/utils';
@@ -229,8 +228,8 @@ export interface SubmissionTabProps {
  * Displays vendor submissions, payment plans, and selection interface
  */
 export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete, onNavigateToTab }: SubmissionTabProps) {
-  const [editingPaymentPlan, setEditingPaymentPlan] = useState<SubmissionVendor | null>(null);
-  const [editingVendor, setEditingVendor] = useState<SubmissionVendor | null>(null);
+  const [editingPaymentPlan, setEditingPaymentPlan] = useState<SubmissionVendorWithRelation | null>(null);
+  const [editingVendor, setEditingVendor] = useState<SubmissionVendorWithRelation | null>(null);
   const [showSubmissionDialog, setShowSubmissionDialog] = useState(false);
   const [uploadedDocuments, setUploadedDocuments] = useState<AttachedFile[]>([]);
   const [uploadProgress, setUploadProgress] = useState<{ [key: string]: number }>({});
@@ -331,7 +330,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
   const hasPreferredVendor = submissionVendors.some(v => v.preferred);
 
 
-  const handleEditPaymentPlan = (vendor: SubmissionVendor) => {
+  const handleEditPaymentPlan = (vendor: SubmissionVendorWithRelation) => {
     setEditingPaymentPlan(vendor);
   };
 
@@ -354,7 +353,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     setEditingPaymentPlan(null);
   };
 
-  const handleEditVendor = (vendor: SubmissionVendor) => {
+  const handleEditVendor = (vendor: SubmissionVendorWithRelation) => {
     setEditingVendor(vendor);
 
     // Convert existing documents to AttachedFile format for editing
@@ -387,7 +386,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     
     let paymentType: 'unique' | 'recurrent' = 'unique';
     let totalAmount = vendor.price || '0';
-    let schedulePayment: string | undefined;
+    let schedulePayment: 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom' | undefined;
     let hasInitialPayment = false;
     let recurringPaymentsEqual = true;
     let initialPaymentAmount = '';
@@ -472,8 +471,8 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     }
 
     // Convert payment plan data from bills format to submission vendor format
-    let paymentPlanCosts: string[] = [];
-    let paymentPlanSchedule: string | undefined;
+    let paymentPlanCosts: number[] = [];
+    let paymentPlanSchedule: 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom' | undefined;
     let paymentPlanCustomDates: string[] = [];
     let paymentPlanStartDate: string | undefined;
 
@@ -551,7 +550,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
   // Handle deleting a vendor. Task #1154: pull display name from the
   // joined `vendor` object now that there's no top-level vendorName, with
   // a generic fallback for the rare ON-DELETE-SET-NULL case.
-  const handleDeleteVendor = (vendorToDelete: SubmissionVendor) => {
+  const handleDeleteVendor = (vendorToDelete: SubmissionVendorWithRelation) => {
     const vendorDisplayName = vendorToDelete.vendor?.name ?? 'this vendor';
     if (!window.confirm(`Are you sure you want to delete the submission from ${vendorDisplayName}? This action cannot be undone.`)) {
       return;
@@ -572,7 +571,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     });
   };
 
-  const handleTogglePreferred = (vendor: SubmissionVendor) => {
+  const handleTogglePreferred = (vendor: SubmissionVendorWithRelation) => {
     updatePreferredStatus.mutate({
       projectId: project.id,
       vendorId: vendor.id,
@@ -619,7 +618,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     }
 
     reopenStep(
-      { projectId: project.id, currentStatus: workflowState.currentStatus },
+      { projectId: project.id, targetStatus: workflowState.currentStatus },
       { 
         onSuccess: () => {
           toast({
@@ -673,7 +672,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
 
     // Convert payment plan data from bills format to submission vendor format
     let paymentPlanCosts: number[] = [];
-    let paymentPlanSchedule: string | undefined;
+    let paymentPlanSchedule: 'weekly' | 'monthly' | 'quarterly' | 'yearly' | 'custom' | undefined;
     let paymentPlanCustomDates: string[] = [];
     let paymentPlanStartDate: string | undefined;
 
@@ -712,7 +711,6 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     const vendorData = {
       vendorId: data.vendorId,
       availableDate: data.availableDate ? format(data.availableDate, 'yyyy-MM-dd') : undefined,
-      price: data.price?.toString(), // Keep original price behavior
       description: data.description || '',
       preferred: data.preferred || false,
       documents: uploadedDocuments.map(doc => ({
@@ -1075,7 +1073,6 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                     uploadProgress={uploadProgress}
                     uploadContext={{
                       type: 'maintenance',
-                      organizationId: project.organizationId,
                       buildingId: project.buildingId,
                       projectId: project.id,
                     }}
@@ -1736,10 +1733,10 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
           {editingPaymentPlan && (
             <PaymentPlanForm
               initialData={{
-                paymentPlanCosts: editingPaymentPlan.paymentPlanCosts,
-                paymentPlanSchedule: editingPaymentPlan.paymentPlanSchedule,
-                paymentPlanStartDate: editingPaymentPlan.paymentPlanStartDate,
-                paymentPlanCustomDates: editingPaymentPlan.paymentPlanCustomDates,
+                paymentPlanCosts: editingPaymentPlan.paymentPlanCosts?.map(Number) ?? undefined,
+                paymentPlanSchedule: editingPaymentPlan.paymentPlanSchedule ?? undefined,
+                paymentPlanStartDate: editingPaymentPlan.paymentPlanStartDate ?? undefined,
+                paymentPlanCustomDates: editingPaymentPlan.paymentPlanCustomDates ?? undefined,
               }}
               totalAmount={undefined}
               onSave={handleSavePaymentPlan}
@@ -2225,7 +2222,6 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
                     uploadProgress={editUploadProgress}
                     uploadContext={{
                       type: 'maintenance',
-                      organizationId: project.organizationId,
                       buildingId: project.buildingId,
                       projectId: project.id,
                     }}

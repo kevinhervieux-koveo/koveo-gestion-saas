@@ -50,6 +50,10 @@ args = "Type check"
 task = "workflow.run"
 args = "Full unit tests"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "Suppression lint check"
+
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
@@ -99,6 +103,17 @@ author = "agent"
 [[workflows.workflow.tasks]]
 task = "shell.exec"
 args = "bash scripts/run-unit-tests.sh full"
+
+[workflows.workflow.metadata]
+outputType = "console"
+
+[[workflows.workflow]]
+name = "Suppression lint check"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "bash scripts/check-ts-suppressions.sh"
 
 [workflows.workflow.metadata]
 outputType = "console"

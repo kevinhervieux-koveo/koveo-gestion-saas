@@ -1,4 +1,3 @@
-// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -12,9 +11,9 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import type { Translations } from '@/lib/i18n';
 import { apiRequest } from '@/lib/queryClient';
-import { BuildingElement, ProjectElement, ProjectWorkflowState } from '@shared/schemas/maintenance';
+import { BuildingElement, ProjectElement } from '@shared/schemas/maintenance';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
-import { useMarkStatusComplete } from '@/hooks/useProjectWorkflow';
+import { useMarkStatusComplete, type ProjectWorkflowState } from '@/hooks/useProjectWorkflow';
 import { cn, safeCapitalize } from '@/lib/utils';
 import {
   Settings,

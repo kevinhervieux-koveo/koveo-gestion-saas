@@ -44,11 +44,33 @@ export interface ProjectNotification {
   updatedAt: string;
 }
 
+/**
+ * Extends the base SubmissionVendor DB row with the joined vendor object that
+ * the API includes in every response. The base Drizzle select type only covers
+ * scalar columns; the relation is resolved server-side and returned alongside.
+ */
+export type SubmissionVendorWithRelation = SubmissionVendor & {
+  vendor: { id: string; name: string } | null;
+};
+
+/**
+ * Shape sent to the API for creating or updating a submission vendor.
+ * Uses `number[]` for `paymentPlanCosts` (matching the Zod insert schema)
+ * rather than the DB select type's `string[]` (Drizzle decimal columns).
+ */
+type SubmissionVendorPayload = Omit<
+  SubmissionVendor,
+  'id' | 'projectId' | 'createdAt' | 'updatedAt' | 'paymentPlanCosts' | 'price'
+> & { paymentPlanCosts?: number[]; price?: string | null };
+
+type SubmissionVendorUpdatePayload = Partial<SubmissionVendorPayload>;
+
 // Update types for specific status updates
 export interface PlannedTabUpdate {
   planningDescription?: string;
   planningStartDate?: string;
   estimatedCost?: number;
+  financialYear?: number;
   type?: string;
 }
 
@@ -513,7 +535,7 @@ export function useWorkflowTaskMutations() {
 export function useSubmissionVendors(projectId: string) {
   return useQuery({
     queryKey: ['/api/maintenance/projects', projectId, 'submission-vendors'],
-    queryFn: async (): Promise<SubmissionVendor[]> => {
+    queryFn: async (): Promise<SubmissionVendorWithRelation[]> => {
       if (!projectId) throw new Error('Project ID is required');
       
       const response = await apiRequest('GET', `/api/maintenance/projects/${projectId}/submission-vendors`);
@@ -543,7 +565,7 @@ export function useSubmissionVendorMutations() {
       vendorData 
     }: { 
       projectId: string; 
-      vendorData: Omit<SubmissionVendor, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>;
+      vendorData: SubmissionVendorPayload;
     }) => {
       const response = await apiRequest('POST', `/api/maintenance/projects/${projectId}/submission-vendors`, vendorData);
       if (!response.ok) {
@@ -579,7 +601,7 @@ export function useSubmissionVendorMutations() {
     }: { 
       projectId: string; 
       vendorId: string; 
-      updates: Partial<Omit<SubmissionVendor, 'id' | 'projectId' | 'createdAt' | 'updatedAt'>>;
+      updates: SubmissionVendorUpdatePayload;
     }) => {
       const response = await apiRequest('PATCH', `/api/maintenance/projects/${projectId}/submission-vendors/${vendorId}`, updates);
       if (!response.ok) {
