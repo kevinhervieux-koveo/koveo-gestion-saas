@@ -3293,9 +3293,19 @@ export function registerBulkImportRoutes(app: Express): void {
           return res.status(400).json({ error: 'No files uploaded' });
         }
 
+        // Parse the skipExisting flag from the multipart body.
+        // Default to true (skip committed-fingerprint duplicates) when
+        // the field is absent — matches the new UI checkbox default.
+        const rawSkipExisting = req.body?.skipExisting;
+        const skipExisting =
+          rawSkipExisting === undefined || rawSkipExisting === null
+            ? true
+            : String(rawSkipExisting) !== 'false';
+
         const dir = stagingDirFor(session.id);
         const created: schema.BulkImportItem[] = [];
         const failures: string[] = [];
+        let skippedExisting = 0;
 
         for (const file of files) {
           // Track what we still own on disk for this iteration so a
@@ -3359,6 +3369,36 @@ export function registerBulkImportRoutes(app: Express): void {
                 ),
               )
               .limit(1);
+
+            // When skipExisting is on and the file's hash is already committed
+            // in this org's fingerprint cache, discard the staged copy and
+            // count the file as skipped — no DB row is created.
+            if (skipExisting && dupe) {
+              logDebug('[bulk-import] upload file skipped (already in Koveo)', {
+                metadata: {
+                  sessionId: session.id,
+                  originalName: file.originalname,
+                  sha256: hash,
+                  branch: 'skip-existing',
+                },
+              });
+              // Only remove the staged copy when we just placed it there
+              // (isDup=false). When isDup=true the file at stagedPath
+              // belongs to an already-existing item row — leave it alone.
+              if (!isDup) {
+                try {
+                  if (fs.existsSync(stagedPath)) fs.unlinkSync(stagedPath);
+                } catch (rmErr) {
+                  logError(
+                    '[bulk-import] failed to remove skipped existing staged upload',
+                    rmErr as Error,
+                  );
+                }
+              }
+              pathToCleanup = null;
+              skippedExisting++;
+              continue;
+            }
 
             // Duplicate check wins; only test the exclusion store when there
             // is no committed fingerprint for this file in this org.
@@ -3524,9 +3564,9 @@ export function registerBulkImportRoutes(app: Express): void {
         });
 
         logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items ok', {
-          metadata: { sessionId, createdCount: enriched.length, status: 201, durationMs: Date.now() - t0 },
+          metadata: { sessionId, createdCount: enriched.length, skippedExisting, status: 201, durationMs: Date.now() - t0 },
         });
-        return res.status(201).json(enriched);
+        return res.status(201).json({ items: enriched, skippedExisting });
       } catch (err) {
         logError('[bulk-import] upload failed', err as Error);
         logDebug('[bulk-import] route exit POST /api/admin/bulk-import/sessions/:id/items status 500', {

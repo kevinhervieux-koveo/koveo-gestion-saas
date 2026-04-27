@@ -281,8 +281,8 @@ describeIfDb('Lite endpoint surfaces fiscal-year-aware periodHint — Task #1063
         contentType: 'application/pdf',
       });
     expect(res.status).toBe(201);
-    res.body.forEach((row: any) => trackedItems.add(row.id));
-    return res.body[0];
+    res.body.items.forEach((row: any) => trackedItems.add(row.id));
+    return res.body.items[0];
   }
 
   /** Persist a screening blob with the given periodHint directly so

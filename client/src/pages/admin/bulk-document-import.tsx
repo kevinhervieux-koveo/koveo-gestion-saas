@@ -1943,6 +1943,7 @@ export default function BulkDocumentImportPage() {
     queryKey: ['/api/admin/bulk-import/ai-status'],
   });
   const aiAvailable = aiStatus?.available ?? true;
+  const [skipExisting, setSkipExisting] = useState(true);
   const [aiBannerDismissed, setAiBannerDismissed] = useState(false);
   const [reassignPickerItemId, setReassignPickerItemId] = useState<string | null>(null);
   const [reassignBranch, setReassignBranch] = useState<BranchDestination>('building_documents');
@@ -2279,25 +2280,40 @@ export default function BulkDocumentImportPage() {
         });
       }
 
-      if (allowed.length === 0) return [];
+      if (allowed.length === 0) return { items: [], skippedExisting: 0 };
 
       const fd = new FormData();
       allowed.forEach((f) => fd.append('files', f));
+      fd.append('skipExisting', skipExisting ? 'true' : 'false');
       const res = await fetch(
         `/api/admin/bulk-import/sessions/${sessionId}/items`,
         { method: 'POST', body: fd, credentials: 'include' },
       );
       if (!res.ok) throw new Error('Upload failed');
-      return res.json();
+      const json = await res.json();
+      // Handle both new shape { items, skippedExisting } and legacy array
+      if (Array.isArray(json)) return { items: json, skippedExisting: 0 };
+      return { items: json.items ?? [], skippedExisting: json.skippedExisting ?? 0 };
     },
     onSuccess: (data) => {
-      const count = Array.isArray(data) ? data.length : 0;
-      debugLog('uploadFiles success', { sessionId, count });
-      if (!data || data.length === 0) return;
+      const items = data?.items ?? [];
+      const count = items.length;
+      const skipped = data?.skippedExisting ?? 0;
+      debugLog('uploadFiles success', { sessionId, count, skippedExisting: skipped });
+      if (count === 0 && skipped === 0) return;
       queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       });
-      toast({ title: isFr ? 'Téléversement réussi' : 'Files uploaded' });
+      if (count > 0) {
+        toast({ title: isFr ? 'Téléversement réussi' : 'Files uploaded' });
+      }
+      if (skipped > 0) {
+        toast({
+          title: isFr
+            ? `${skipped} fichier(s) déjà dans Koveo ignoré(s)`
+            : `${skipped} file(s) already in Koveo were skipped`,
+        });
+      }
     },
     onError: (err) => {
       debugLog('uploadFiles error', { sessionId, error: err instanceof Error ? err.message : String(err) });
@@ -4259,6 +4275,29 @@ export default function BulkDocumentImportPage() {
                       }}
                       data-testid="input-folder"
                     />
+                    <div className="flex items-start gap-3 rounded-md border p-3">
+                      <Checkbox
+                        id="skip-existing-checkbox"
+                        checked={skipExisting}
+                        onCheckedChange={(v) => setSkipExisting(v === true)}
+                        data-testid="checkbox-skip-existing"
+                      />
+                      <div className="space-y-1">
+                        <Label
+                          htmlFor="skip-existing-checkbox"
+                          className="cursor-pointer font-medium"
+                        >
+                          {isFr
+                            ? 'Importer uniquement les fichiers absents de Koveo'
+                            : 'Only import files not already in Koveo'}
+                        </Label>
+                        <p className="text-xs text-muted-foreground">
+                          {isFr
+                            ? 'Les fichiers déjà engagés dans Koveo pour cette organisation seront ignorés automatiquement.'
+                            : 'Files whose content is already committed in Koveo for this organization will be skipped automatically.'}
+                        </p>
+                      </div>
+                    </div>
                     <div className="flex flex-wrap gap-2">
                       <Button
                         onClick={() => fileInputRef.current?.click()}

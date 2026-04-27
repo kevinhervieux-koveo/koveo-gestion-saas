@@ -135,7 +135,7 @@ describe('Task #842 — mixed zip+pdf upload (request-level)', () => {
       .attach('files', ZIP_BODY, { filename: 'archive.zip', contentType: 'application/zip' });
 
     expect(res.status).toBe(201);
-    const items: { originalName?: string }[] = res.body;
+    const items: { originalName?: string }[] = res.body.items;
     expect(Array.isArray(items)).toBe(true);
     const hasZip = items.some(i => (i.originalName ?? '').toLowerCase().endsWith('.zip'));
     expect(hasZip).toBe(false);

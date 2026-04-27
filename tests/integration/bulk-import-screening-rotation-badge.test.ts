@@ -314,8 +314,8 @@ describeIfDb('Screening rotation badge — Task #785', () => {
         contentType: 'application/pdf',
       });
     expect(res.status).toBe(201);
-    res.body.forEach((row: any) => trackedItems.add(row.id));
-    return res.body[0];
+    res.body.items.forEach((row: any) => trackedItems.add(row.id));
+    return res.body.items[0];
   }
 
   // ---------------------------------------------------------------------------

@@ -576,11 +576,11 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
         contentType: 'image/png',
       });
     expect(upload.status).toBe(201);
-    expect(upload.body).toHaveLength(2);
-    upload.body.forEach((row: any) => trackedItems.add(row.id));
+    expect(upload.body.items).toHaveLength(2);
+    upload.body.items.forEach((row: any) => trackedItems.add(row.id));
 
-    const pdfItem = upload.body.find((r: any) => r.originalName === 'lease.pdf');
-    const pngItem = upload.body.find((r: any) => r.originalName === 'meter.png');
+    const pdfItem = upload.body.items.find((r: any) => r.originalName === 'lease.pdf');
+    const pngItem = upload.body.items.find((r: any) => r.originalName === 'meter.png');
     expect(pdfItem.contentHash).toBe(
       crypto.createHash('sha256').update(PDF_BODY).digest('hex'),
     );
@@ -624,7 +624,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
         contentType: 'application/pdf',
       });
     expect(upload.status).toBe(201);
-    const item = upload.body[0];
+    const item = upload.body.items[0];
     trackedItems.add(item.id);
 
     const patch = await request(app)
@@ -662,7 +662,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
         contentType: 'application/pdf',
       });
     expect(upload.status).toBe(201);
-    const item = upload.body[0];
+    const item = upload.body.items[0];
     trackedItems.add(item.id);
     const stagingDir = nodePath.join(stagingRoot, sid);
     expect(fs.existsSync(stagingDir)).toBe(true);
@@ -706,7 +706,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
         contentType: 'image/png',
       });
     expect(upload.status).toBe(201);
-    upload.body.forEach((row: any) => trackedItems.add(row.id));
+    upload.body.items.forEach((row: any) => trackedItems.add(row.id));
 
     // Task #1098 — wire a deterministic fake Anthropic client BEFORE
     // kicking off the loop so the test never depends on a live
@@ -775,14 +775,14 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
           .from(schema.bulkImportItems)
           .where(eq(schema.bulkImportItems.sessionId, sid));
         if (
-          finalRows.length === upload.body.length &&
+          finalRows.length === upload.body.items.length &&
           finalRows.every((r) => r.status !== 'pending' && r.status !== 'screening')
         ) {
           break;
         }
         await new Promise((r) => setTimeout(r, 100));
       }
-      expect(finalRows).toHaveLength(upload.body.length);
+      expect(finalRows).toHaveLength(upload.body.items.length);
       finalRows.forEach((row) => {
         expect(['screened']).toContain(row.status);
         expect(row.screening).toBeTruthy();
@@ -905,7 +905,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
           },
         );
       expect(upload.status).toBe(201);
-      upload.body.forEach((row: any) => trackedItems.add(row.id));
+      upload.body.items.forEach((row: any) => trackedItems.add(row.id));
     }
 
     // Slow fake Anthropic transport: every screen() takes ~500 ms so
@@ -1053,7 +1053,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
           contentType: 'application/pdf',
         },
       )
-      .then((res) => res.body.forEach((r: any) => trackedItems.add(r.id)));
+      .then((res) => res.body.items.forEach((r: any) => trackedItems.add(r.id)));
 
     const slowSpy = jest.fn().mockImplementation(async () => {
       await new Promise((resolve) => setTimeout(resolve, 250));
@@ -1167,7 +1167,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
           contentType: 'application/pdf',
         });
       expect(upload.status).toBe(201);
-      const item = upload.body[0];
+      const item = upload.body.items[0];
       trackedItems.add(item.id);
       await db
         .update(schema.bulkImportItems)
@@ -1287,7 +1287,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
         .attach('files', PDF_BODY, { filename: 'a.pdf', contentType: 'application/pdf' })
         .attach('files', PDF_BODY_B, { filename: 'b.pdf', contentType: 'application/pdf' });
       expect(upload.status).toBe(201);
-      const [a, b] = upload.body;
+      const [a, b] = upload.body.items;
       trackedItems.add(a.id);
       trackedItems.add(b.id);
       // Force one row to `screened` so we can prove preExcludeStatus
@@ -1324,7 +1324,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
         .attach('files', PDF_BODY, { filename: 'c.pdf', contentType: 'application/pdf' })
         .attach('files', PDF_BODY_B, { filename: 'd.pdf', contentType: 'application/pdf' });
       expect(upload.status).toBe(201);
-      const [a, b] = upload.body;
+      const [a, b] = upload.body.items;
       trackedItems.add(a.id);
       trackedItems.add(b.id);
       await db
@@ -1365,7 +1365,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
         .attach('files', PDF_BODY, { filename: 'e.pdf', contentType: 'application/pdf' })
         .attach('files', PDF_BODY_B, { filename: 'f.pdf', contentType: 'application/pdf' });
       expect(upload.status).toBe(201);
-      const [committed, duplicate] = upload.body;
+      const [committed, duplicate] = upload.body.items;
       trackedItems.add(committed.id);
       trackedItems.add(duplicate.id);
       await db
@@ -1403,7 +1403,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
         .set('x-test-user-id', ids.admin)
         .attach('files', PDF_BODY, { filename: 'g.pdf', contentType: 'application/pdf' });
       expect(upload.status).toBe(201);
-      const [item] = upload.body;
+      const [item] = upload.body.items;
       trackedItems.add(item.id);
 
       const res = await request(app)
@@ -1489,7 +1489,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
           contentType: 'application/pdf',
         });
       expect(uploadA.status).toBe(201);
-      const itemA = uploadA.body[0];
+      const itemA = uploadA.body.items[0];
       trackedItems.add(itemA.id);
       // Born clean, never seen before in this org.
       expect(itemA.status).toBe('pending');
@@ -1537,7 +1537,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
           contentType: 'application/pdf',
         });
       expect(uploadB.status).toBe(201);
-      const itemB = uploadB.body[0];
+      const itemB = uploadB.body.items[0];
       trackedItems.add(itemB.id);
 
       expect(itemB.status).toBe('rejected');
@@ -1577,7 +1577,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
           contentType: 'application/pdf',
         });
       expect(upload.status).toBe(201);
-      const item = upload.body[0];
+      const item = upload.body.items[0];
       trackedItems.add(item.id);
 
       // Sanity: the upload handler honored the persisted fingerprint.
@@ -1909,7 +1909,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
           { filename, contentType: 'application/pdf' },
         );
       expect(upload.status).toBe(201);
-      const item = upload.body[0] as schema.BulkImportItem;
+      const item = upload.body.items[0] as schema.BulkImportItem;
       trackedItems.add(item.id);
       await db
         .update(schema.bulkImportItems)
@@ -2102,7 +2102,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
           contentType: 'application/pdf',
         });
       expect(upload.status).toBe(201);
-      const item = upload.body[0];
+      const item = upload.body.items[0];
       trackedItems.add(item.id);
       await db
         .update(schema.bulkImportItems)
@@ -2219,7 +2219,7 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
           contentType: 'application/pdf',
         });
       expect(upload.status).toBe(201);
-      const item = upload.body[0];
+      const item = upload.body.items[0];
       expect(item.status).not.toBe('duplicate');
       trackedItems.add(item.id);
       return {
@@ -2382,6 +2382,168 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
           contentType: 'application/pdf',
         });
       expect(res.status).toBe(404);
+    });
+  });
+
+  /**
+   * Task #1377 — skipExisting flag on the upload route.
+   *
+   * Three scenarios:
+   *   (a) skipExisting=true skips a file whose hash is in the org's
+   *       committed fingerprint cache, removes the staged copy, and
+   *       reports skippedExisting > 0.
+   *   (b) skipExisting=true still creates a `rejected` row for a file
+   *       matching the exclusion store — exclusion store takes priority
+   *       over the skip-existing shortcut only when the fingerprint
+   *       cache has no match (unchanged behaviour).
+   *   (c) skipExisting=false preserves today's behaviour: a file whose
+   *       hash is in the fingerprint cache is still staged as a
+   *       `duplicate` row.
+   */
+  describe('POST …/items — skipExisting flag (Task #1377)', () => {
+    it('(a) skips a committed-fingerprint file, removes its staged copy, and reports skippedExisting', async () => {
+      const sid = await createSession();
+
+      // Use a unique body so we don't collide with fingerprints from
+      // other tests in this suite.
+      const uniqueSuffix = crypto.randomUUID();
+      const body = Buffer.concat([PDF_BODY, Buffer.from(`1377a-${uniqueSuffix}`)]);
+      const expectedHash = crypto.createHash('sha256').update(body).digest('hex');
+
+      // Seed a committed fingerprint for this org+hash.
+      await db.insert(schema.clientDocumentFingerprints).values({
+        organizationId: ids.org,
+        contentHash: expectedHash,
+        buildingId: ids.building,
+        sourceFileName: 'existing.pdf',
+      });
+
+      const upload = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+        .set('x-test-user-id', ids.admin)
+        .field('skipExisting', 'true')
+        .attach('files', body, {
+          filename: 'existing.pdf',
+          contentType: 'application/pdf',
+        });
+
+      expect(upload.status).toBe(201);
+      // No item row created.
+      expect(upload.body.items).toHaveLength(0);
+      // skippedExisting counter reports the skipped file.
+      expect(upload.body.skippedExisting).toBe(1);
+
+      // Verify no DB row was inserted.
+      const rows = await db
+        .select()
+        .from(schema.bulkImportItems)
+        .where(eq(schema.bulkImportItems.sessionId, sid));
+      expect(rows).toHaveLength(0);
+
+      // The staging directory for this session should have no file
+      // matching this hash (temp copy removed from disk).
+      const sessionDir = nodePath.join(stagingRoot, sid);
+      const matchingFiles = fs.existsSync(sessionDir)
+        ? fs.readdirSync(sessionDir).filter((f) => f.startsWith(expectedHash))
+        : [];
+      expect(matchingFiles).toHaveLength(0);
+
+      // Cleanup the seeded fingerprint.
+      await db
+        .delete(schema.clientDocumentFingerprints)
+        .where(
+          and(
+            eq(schema.clientDocumentFingerprints.organizationId, ids.org),
+            eq(schema.clientDocumentFingerprints.contentHash, expectedHash),
+          ),
+        );
+    });
+
+    it('(b) skipExisting=true still stages exclusion-store matches as rejected rows', async () => {
+      const sid = await createSession();
+
+      const uniqueSuffix = crypto.randomUUID();
+      const body = Buffer.concat([PDF_BODY, Buffer.from(`1377b-${uniqueSuffix}`)]);
+      const expectedHash = crypto.createHash('sha256').update(body).digest('hex');
+
+      // Seed the exclusion store only (no committed fingerprint).
+      await db.insert(schema.clientExcludedFingerprints).values({
+        organizationId: ids.org,
+        contentHash: expectedHash,
+        source: 'manual',
+      });
+
+      const upload = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+        .set('x-test-user-id', ids.admin)
+        .field('skipExisting', 'true')
+        .attach('files', body, {
+          filename: 'excluded.pdf',
+          contentType: 'application/pdf',
+        });
+
+      expect(upload.status).toBe(201);
+      // Item IS created — exclusion store wins and marks it rejected.
+      expect(upload.body.items).toHaveLength(1);
+      expect(upload.body.skippedExisting).toBe(0);
+      const item = upload.body.items[0];
+      trackedItems.add(item.id);
+      expect(item.status).toBe('rejected');
+      expect(item.preExcludeStatus).toBe('pending');
+      expect(item.excludeSource).toBe('prior_session');
+
+      // Cleanup the seeded exclusion fingerprint.
+      await db
+        .delete(schema.clientExcludedFingerprints)
+        .where(
+          and(
+            eq(schema.clientExcludedFingerprints.organizationId, ids.org),
+            eq(schema.clientExcludedFingerprints.contentHash, expectedHash),
+          ),
+        );
+    });
+
+    it('(c) skipExisting=false creates a duplicate row even when the hash is committed', async () => {
+      const sid = await createSession();
+
+      const uniqueSuffix = crypto.randomUUID();
+      const body = Buffer.concat([PDF_BODY, Buffer.from(`1377c-${uniqueSuffix}`)]);
+      const expectedHash = crypto.createHash('sha256').update(body).digest('hex');
+
+      // Seed a committed fingerprint.
+      await db.insert(schema.clientDocumentFingerprints).values({
+        organizationId: ids.org,
+        contentHash: expectedHash,
+        buildingId: ids.building,
+        sourceFileName: 'dup.pdf',
+      });
+
+      const upload = await request(app)
+        .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+        .set('x-test-user-id', ids.admin)
+        .field('skipExisting', 'false')
+        .attach('files', body, {
+          filename: 'dup.pdf',
+          contentType: 'application/pdf',
+        });
+
+      expect(upload.status).toBe(201);
+      // Row IS created with duplicate status (old behaviour preserved).
+      expect(upload.body.items).toHaveLength(1);
+      expect(upload.body.skippedExisting).toBe(0);
+      const item = upload.body.items[0];
+      trackedItems.add(item.id);
+      expect(item.status).toBe('duplicate');
+
+      // Cleanup.
+      await db
+        .delete(schema.clientDocumentFingerprints)
+        .where(
+          and(
+            eq(schema.clientDocumentFingerprints.organizationId, ids.org),
+            eq(schema.clientDocumentFingerprints.contentHash, expectedHash),
+          ),
+        );
     });
   });
 });
