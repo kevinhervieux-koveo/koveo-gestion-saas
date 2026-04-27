@@ -1,13 +1,13 @@
 // @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import { Express, Request, Response } from 'express';
-import { eq, and } from 'drizzle-orm';
+import { eq, and, inArray } from 'drizzle-orm';
 import { requireAuth } from '../auth/index';
 import { uploadInvoiceFile, handleUploadError } from '../middleware/fileUpload';
 import { aiService } from '../services/consolidated-ai-service';
 import { aiExtractionResponseSchema, insertInvoiceSchema } from '@shared/schema';
 import { storage } from '../storage';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
-import { assertBuildingWriteAccess } from '../utils/org-scope';
+import { assertBuildingWriteAccess, resolveOrgScope } from '../utils/org-scope';
 import { db } from '../db';
 import * as schema from '@shared/schema';
 
@@ -181,6 +181,17 @@ export function registerInvoiceRoutes(app: Express) {
   /**
    * GET /api/invoices
    * Get all invoices with role-based filtering.
+   *
+   * Org-scope (Task #1495 — mirrors GET /api/common-spaces in task #1472):
+   * - `?organizationId=` is validated as a UUID (400 INVALID_ORGANIZATION_ID)
+   *   and confirmed to be in the caller's accessible org set
+   *   (403 INSUFFICIENT_PERMISSIONS) before any data is returned.
+   * - When omitted, the scope falls back to every organization the caller
+   *   can access, so admins/managers no longer receive every invoice in the
+   *   database — only invoices whose building belongs to one of their orgs
+   *   are visible. (`buildingId` is intentionally NULL-safe: invoices with
+   *   no building are excluded from list responses to avoid leaking rows
+   *   that cannot be attributed to any organization.)
    */
   app.get('/api/invoices', requireAuth, async (req: any, res: Response) => {
     try {
@@ -188,15 +199,58 @@ export function registerInvoiceRoutes(app: Express) {
       const userRole = req.user.role;
       const { buildingId, residenceId } = req.query;
 
+      const orgScope = await resolveOrgScope(req, res);
+      if (!orgScope) return;
+
+      // Resolve the building IDs that belong to the caller's organization
+      // scope. Inactive buildings are excluded so deleted/archived
+      // organizations cannot keep surfacing rows. When the resolved set is
+      // empty (no orgs reachable), short-circuit with an empty payload
+      // instead of querying invoices.
+      let accessibleBuildingIds: string[] = [];
+      if (orgScope.orgIds.length > 0) {
+        const buildingRows = await db
+          .select({ id: schema.buildings.id })
+          .from(schema.buildings)
+          .where(
+            and(
+              inArray(schema.buildings.organizationId, orgScope.orgIds),
+              eq(schema.buildings.isActive, true),
+            ),
+          );
+        accessibleBuildingIds = buildingRows.map((r) => r.id);
+      }
+
+      if (accessibleBuildingIds.length === 0) {
+        return res.json({
+          success: true,
+          data: [],
+          count: 0,
+        });
+      }
+
+      // If the caller passed an explicit ?buildingId=, it must be inside the
+      // resolved org-scoped set. Returning 403 (rather than silently
+      // ignoring) matches the pattern used by /api/common-spaces.
+      const explicitBuildingId = buildingId as string | undefined;
+      if (explicitBuildingId && !accessibleBuildingIds.includes(explicitBuildingId)) {
+        return res.status(403).json({
+          error: 'Access denied to this building',
+          message: 'The specified building is not within your organization scope',
+          code: 'INSUFFICIENT_PERMISSIONS',
+        });
+      }
+
       const filters = {
-        buildingId: buildingId as string,
+        buildingId: explicitBuildingId,
+        buildingIds: explicitBuildingId ? undefined : accessibleBuildingIds,
         residenceId: residenceId as string,
         userId,
-        userRole
+        userRole,
       };
 
       const invoices = await storage.getInvoices(filters);
-      
+
       res.json({
         success: true,
         data: invoices,

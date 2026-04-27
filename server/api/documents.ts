@@ -26,6 +26,7 @@ import { logDebug, logInfo, logWarn, logError } from '../utils/logger';
 
 import { asyncHandler } from '../utils/async-handler';
 import { sendDbWriteError } from '../utils/rest-db-error';
+import { resolveOrgScope } from '../utils/org-scope';
 // Enhanced security configuration for file uploads
 const SECURITY_CONFIG = {
   MAX_FILE_SIZE: 10 * 1024 * 1024, // Reduced to 10MB for better security
@@ -1334,7 +1335,19 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       const user = req.user;
       const userRole = user.role;
       const userId = user.id;
-      
+
+      // Org-scope validation (Task #1495 — mirrors GET /api/common-spaces in
+      // task #1472). When the caller passes `?organizationId=`, validate the
+      // value is a UUID (400 INVALID_ORGANIZATION_ID) and that they actually
+      // have access to it (403 INSUFFICIENT_PERMISSIONS) before doing any of
+      // the heavy access-scope work below. The intersection with each user's
+      // accessible buildings/residences is still done by the existing
+      // role-based filter further down — this guard only stops malformed and
+      // out-of-scope organization queries from silently returning the
+      // caller's own data.
+      const orgScope = await resolveOrgScope(req, res);
+      if (!orgScope) return;
+
       // Enhanced user data logging
       logDocumentOperation('USER_VALIDATION', {
         userId,

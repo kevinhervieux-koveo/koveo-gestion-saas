@@ -4073,6 +4073,13 @@ export class OptimizedDatabaseStorage implements IStorage {
   // Invoice operations
   async getInvoices(filters?: {
     buildingId?: string;
+    /**
+     * Org-scope guard (Task #1495). When supplied, restricts invoices to
+     * those whose `buildingId` is in this set. Used by GET /api/invoices to
+     * prevent admins/managers from receiving invoices outside the resolved
+     * organization scope.
+     */
+    buildingIds?: string[];
     residenceId?: string;
     userId?: string;
     userRole?: string;
@@ -4083,6 +4090,16 @@ export class OptimizedDatabaseStorage implements IStorage {
       if (filters) {
         if (filters.buildingId) {
           conditions.push(eq(schema.invoices.buildingId, filters.buildingId));
+        } else if (filters.buildingIds) {
+          // Org-scope guard (Task #1495): restrict to in-scope buildings.
+          // Empty arrays are short-circuited by the caller so an empty
+          // `inArray` (which Drizzle would translate to `IN ()`) is never
+          // emitted here. Invoices without a buildingId are excluded so
+          // they cannot leak across organizations through the list endpoint.
+          if (filters.buildingIds.length === 0) {
+            return [];
+          }
+          conditions.push(inArray(schema.invoices.buildingId, filters.buildingIds));
         }
         if (filters.residenceId) {
           conditions.push(eq(schema.invoices.residenceId, filters.residenceId));

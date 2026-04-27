@@ -145,6 +145,13 @@ export interface IStorage {
   // Invoice operations
   getInvoices(_filters?: {
     buildingId?: string;
+    /**
+     * Org-scope guard (Task #1495). When supplied, restricts invoices to
+     * those whose `buildingId` is in this set. Callers compute the set from
+     * the resolved org scope so admins/managers never receive invoices from
+     * organizations outside their membership.
+     */
+    buildingIds?: string[];
     residenceId?: string;
     userId?: string;
     userRole?: string;
@@ -677,6 +684,7 @@ export class MemStorage implements IStorage {
   // Invoice operations
   async getInvoices(filters?: {
     buildingId?: string;
+    buildingIds?: string[];
     residenceId?: string;
     userId?: string;
     userRole?: string;
@@ -686,6 +694,12 @@ export class MemStorage implements IStorage {
     if (filters) {
       if (filters.buildingId) {
         invoices = invoices.filter(invoice => invoice.buildingId === filters.buildingId);
+      } else if (filters.buildingIds) {
+        // Org-scope guard (Task #1495): restrict to in-scope buildings only.
+        // Invoices with no buildingId are excluded so they cannot leak from
+        // an organization the caller cannot access.
+        const allowed = new Set(filters.buildingIds);
+        invoices = invoices.filter(invoice => invoice.buildingId !== null && invoice.buildingId !== undefined && allowed.has(invoice.buildingId));
       }
       if (filters.residenceId) {
         invoices = invoices.filter(invoice => invoice.residenceId === filters.residenceId);
@@ -1782,7 +1796,7 @@ class ProductionFallbackStorage implements IStorage {
     return [];
   }
 
-  async getInvoices(filters?: { buildingId?: string; residenceId?: string; userId?: string; userRole?: string }): Promise<Invoice[]> {
+  async getInvoices(filters?: { buildingId?: string; buildingIds?: string[]; residenceId?: string; userId?: string; userRole?: string }): Promise<Invoice[]> {
     return [];
   }
 
