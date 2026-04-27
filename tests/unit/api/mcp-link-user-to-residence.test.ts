@@ -104,7 +104,7 @@ describe('link_user_to_residence — role gating', () => {
 describe('link_user_to_residence — scope checks', () => {
   it('rejects when the target user is not in any MCP-scoped organization', async () => {
     // 1. getMcpOrgIds -> orgs
-    selectQueue.push([{ id: ORG_ID }]);
+    selectQueue.push([{ organizationId: ORG_ID }]);
     // 2. userOrganizations lookup -> empty
     selectQueue.push([]);
 
@@ -121,7 +121,7 @@ describe('link_user_to_residence — scope checks', () => {
   });
 
   it('rejects when the residence does not exist', async () => {
-    selectQueue.push([{ id: ORG_ID }]); // getMcpOrgIds
+    selectQueue.push([{ organizationId: ORG_ID }]); // getMcpOrgIds
     selectQueue.push([{ id: 'user-org-link' }]); // userOrg lookup OK
     selectQueue.push([]); // residence lookup empty
 
@@ -138,7 +138,7 @@ describe('link_user_to_residence — scope checks', () => {
   });
 
   it('rejects when the residence belongs to a building outside MCP scope', async () => {
-    selectQueue.push([{ id: ORG_ID }]); // getMcpOrgIds
+    selectQueue.push([{ organizationId: ORG_ID }]); // getMcpOrgIds
     selectQueue.push([{ id: 'user-org-link' }]); // userOrg lookup OK
     selectQueue.push([{ id: RESIDENCE_ID, buildingId: BUILDING_ID }]); // residence
     selectQueue.push([{ id: BUILDING_ID, organizationId: 'other-org' }]); // building outside scope
@@ -158,7 +158,7 @@ describe('link_user_to_residence — scope checks', () => {
 
 describe('link_user_to_residence — happy path', () => {
   it('inserts an active link with the provided startDate and relationshipType', async () => {
-    selectQueue.push([{ id: ORG_ID }]); // getMcpOrgIds
+    selectQueue.push([{ organizationId: ORG_ID }]); // getMcpOrgIds
     selectQueue.push([{ id: 'user-org-link' }]); // userOrg lookup
     selectQueue.push([{ id: RESIDENCE_ID, buildingId: BUILDING_ID }]); // residence
     selectQueue.push([{ id: BUILDING_ID, organizationId: ORG_ID }]); // building in scope
@@ -190,7 +190,7 @@ describe('link_user_to_residence — happy path', () => {
   });
 
   it("defaults startDate to today (YYYY-MM-DD) when the caller omits it", async () => {
-    selectQueue.push([{ id: ORG_ID }]);
+    selectQueue.push([{ organizationId: ORG_ID }]);
     selectQueue.push([{ id: 'user-org-link' }]);
     selectQueue.push([{ id: RESIDENCE_ID, buildingId: BUILDING_ID }]);
     selectQueue.push([{ id: BUILDING_ID, organizationId: ORG_ID }]);
@@ -215,14 +215,14 @@ describe('link_user_to_residence — happy path', () => {
 describe('link_user_to_residence — idempotency', () => {
   it('only performs one insert across two back-to-back calls with the same (userId, residenceId)', async () => {
     // First call — no existing link, should insert.
-    selectQueue.push([{ id: ORG_ID }]); // getMcpOrgIds
+    selectQueue.push([{ organizationId: ORG_ID }]); // getMcpOrgIds
     selectQueue.push([{ id: 'user-org-link' }]); // userOrg
     selectQueue.push([{ id: RESIDENCE_ID, buildingId: BUILDING_ID }]); // residence
     selectQueue.push([{ id: BUILDING_ID, organizationId: ORG_ID }]); // building
     selectQueue.push([]); // existing link lookup -> empty
 
     // Second call — the link now exists and should be returned as-is.
-    selectQueue.push([{ id: ORG_ID }]);
+    selectQueue.push([{ organizationId: ORG_ID }]);
     selectQueue.push([{ id: 'user-org-link' }]);
     selectQueue.push([{ id: RESIDENCE_ID, buildingId: BUILDING_ID }]);
     selectQueue.push([{ id: BUILDING_ID, organizationId: ORG_ID }]);
@@ -255,7 +255,7 @@ describe('link_user_to_residence — idempotency', () => {
   });
 
   it('returns the existing active link instead of inserting a duplicate', async () => {
-    selectQueue.push([{ id: ORG_ID }]);
+    selectQueue.push([{ organizationId: ORG_ID }]);
     selectQueue.push([{ id: 'user-org-link' }]);
     selectQueue.push([{ id: RESIDENCE_ID, buildingId: BUILDING_ID }]);
     selectQueue.push([{ id: BUILDING_ID, organizationId: ORG_ID }]);
