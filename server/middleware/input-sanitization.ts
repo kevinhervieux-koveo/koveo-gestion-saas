@@ -88,6 +88,65 @@ const mcpOAuthBypass: ReadonlyMap<string, ReadonlySet<string>> = new Map([
 ]);
 
 /**
+ * Method-aware allow-list for narrow free-text user-content endpoints.
+ *
+ * Each entry pins (path pattern, allowed HTTP methods). The middleware
+ * bypasses sanitization ONLY when the request matches both. Routes here
+ * fully validate their inputs with Zod schemas in the route handler and
+ * persist values through parameterized Drizzle queries, so the global
+ * LDAP/command/SQL/NoSQL probes produce only false positives on normal
+ * French punctuation in user-typed labels (parentheses, ampersands,
+ * accents, etc.).
+ *
+ * Auth and role checks are NOT bypassed — they run in the route handler
+ * after this middleware. The Zod validator in the handler still rejects
+ * empty / oversized / wrong-type fields.
+ *
+ * Keep the list narrow:
+ *  - one entry per resource that genuinely needs free-text punctuation,
+ *  - patterns must be anchored exact-shape regexes (with `[^/]+` for
+ *    `:param` segments) so a sibling lookalike like
+ *    `/api/document-link-families-evil` cannot inherit the bypass,
+ *  - method sets must contain only the verbs that actually accept the
+ *    free-text body (typically POST and PATCH).
+ *
+ * Current entries:
+ *  - POST  /api/document-link-families      Create a Link Family. The
+ *    `name` and `description` fields routinely contain `(`, `)`, `&`,
+ *    `,`, `;`, `*`, `/`, hyphens and accented French letters — Koveo's
+ *    own seeded families use them (e.g. "Financial documents linked in
+ *    chronological order (budgets, statements)"). See task #1407.
+ *  - PATCH /api/document-link-families/:id  Edit a Link Family — same
+ *    fields, same justification.
+ */
+interface FreeTextBypassRule {
+  pattern: RegExp;
+  methods: ReadonlySet<string>;
+  source: string; // for debugging / logs
+}
+const freeTextEndpointBypass: readonly FreeTextBypassRule[] = [
+  {
+    pattern: /^\/api\/document-link-families$/,
+    methods: new Set(['POST']),
+    source: 'POST /api/document-link-families',
+  },
+  {
+    pattern: /^\/api\/document-link-families\/[^/]+$/,
+    methods: new Set(['PATCH']),
+    source: 'PATCH /api/document-link-families/:id',
+  },
+];
+
+function matchesFreeTextEndpointBypass(path: string, method: string): boolean {
+  for (const rule of freeTextEndpointBypass) {
+    if (rule.methods.has(method) && rule.pattern.test(path)) {
+      return true;
+    }
+  }
+  return false;
+}
+
+/**
  * Method-aware allow-list for legacy routes that bypass sanitization
  * because they handle binary uploads, multipart bodies, financial JSON
  * with characters that trip the heuristic patterns, or have their own
@@ -553,7 +612,21 @@ export function sanitizeInputMiddleware(req: Request, res: Response, next: NextF
     if (mcpOAuthBypass.get(req.path)?.has(req.method)) {
       return next();
     }
-    
+
+    // Skip sanitization for narrow free-text user-content endpoints whose
+    // route handlers run their own Zod validation and persist values via
+    // parameterized Drizzle queries. The global LDAP/command/SQL/NoSQL
+    // probes produce only false positives on normal punctuation in user-
+    // typed labels (parentheses, ampersands, accented French letters,
+    // etc.) — see `freeTextEndpointBypass` for the full rationale and the
+    // pinned (path pattern, method) pairs. The bypass is exact-shape and
+    // method-restricted: a sibling lookalike like
+    // `/api/document-link-families-evil` or an unintended verb like GET
+    // on PATCH-only paths cannot inherit the bypass.
+    if (matchesFreeTextEndpointBypass(req.path, req.method)) {
+      return next();
+    }
+
     // Sanitize query parameters
     if (req.query) {
       req.query = sanitizeInput(req.query);
