@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -86,7 +86,25 @@ export default function AdminDocumentTags() {
   const { toast } = useToast();
 
   // ── View toggle ───────────────────────────────────────────────────────────
-  const [view, setView] = useState<'tags' | 'families'>('tags');
+  const VIEW_STORAGE_KEY = 'admin:document-tags:view';
+  const [view, setView] = useState<'tags' | 'families'>(() => {
+    if (typeof window === 'undefined') return 'tags';
+    try {
+      const saved = window.localStorage.getItem(VIEW_STORAGE_KEY);
+      return saved === 'families' ? 'families' : 'tags';
+    } catch {
+      return 'tags';
+    }
+  });
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    try {
+      window.localStorage.setItem(VIEW_STORAGE_KEY, view);
+    } catch {
+      // Ignore storage failures (e.g. private mode, quota).
+    }
+  }, [view]);
 
   // ── Tags ──────────────────────────────────────────────────────────────────
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
