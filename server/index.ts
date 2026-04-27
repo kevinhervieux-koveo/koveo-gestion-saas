@@ -4,7 +4,8 @@
  */
 import express from 'express';
 import path from 'path';
-import { createFastHealthCheck, createStatusCheck, createRootHandler, setFrontendReady, createStartupMiddleware, renderMaintenancePage, createMaintenanceEventsHandler } from './health-check';
+import { createFastHealthCheck, createStatusCheck, createRootHandler, setFrontendReady, isFrontendReady, createStartupMiddleware, renderMaintenancePage, createMaintenanceEventsHandler } from './health-check';
+import { ensureTriggerOnlyMigrations } from './ensure-trigger-migrations';
 import { createApiHealthHandler } from './api/health-handler';
 import { log } from './vite';
 import { registerRoutes, HEAVY_LAZY_MOUNTS } from './routes';
@@ -490,45 +491,50 @@ async function loadFullApplication(): Promise<void> {
         // install could come up missing the cross-org guard on
         // `demands.residence_id`. The SQL is written to be idempotent
         // (`CREATE OR REPLACE FUNCTION`, `DROP TRIGGER IF EXISTS`).
-        await ensureTriggerOnlyMigrations([
-          '0010_demands_residence_building_check.sql',
-          '0011_residences_demand_building_check.sql',
-          // Task #849: cleans up orphan building_elements.residence_id
-          // pointers and adds the missing FK to residences(id). The
-          // SQL guards itself with NOT EXISTS / IF NOT EXISTS so it
-          // is safe to re-run on every boot.
-          '0012_building_elements_residence_id_fk.sql',
-          // Task #844: cross-org guards on the secondary
-          // assignation_residence_id / assignation_building_id pair
-          // on `demands` (mirror of 0010/0011). Both files use
-          // CREATE OR REPLACE FUNCTION + DROP TRIGGER IF EXISTS so
-          // they are safe to re-apply on every boot.
-          '0012_demands_assignation_check.sql',
-          '0013_residences_demand_assignation_check.sql',
-          // Task #945: cross-org guard on `invitations.residence_id` /
-          // `invitations.building_id`. Same shape as the 0010 demands
-          // guard. CREATE OR REPLACE FUNCTION + DROP TRIGGER IF EXISTS
-          // so it is safe to re-apply on every boot.
-          '0014_invitations_residence_building_check.sql',
-          // Task #972: auto-fix legacy cross-org demand rows by NULLing
-          // `residence_id` on demands whose linked residence belongs to a
-          // different building than the demand's own `building_id`. The
-          // UPDATE is a no-op when the table is already clean, and the
-          // post-condition DO block raises check_violation if any
-          // cross-org rows remain — making this safe to re-run on every
-          // boot as a continuous drift guard.
-          '0015_fix_cross_org_demand_residence_ids.sql',
-          // Task #1271: promote residence_id to a real FK on the three
-          // tables that still carried a plain varchar/text column
-          // despite Drizzle modelling `.references()` on them. Each
-          // migration NULLs orphan pointers first (matching the shape
-          // of `0012_building_elements_residence_id_fk.sql`) and then
-          // adds the FK with ON DELETE SET NULL. NOT EXISTS / IF NOT
-          // EXISTS guards make them safe to re-apply on every boot.
-          '0020_documents_residence_id_fk.sql',
-          '0021_invoices_residence_id_fk.sql',
-          '0022_invitations_residence_id_fk.sql',
-        ]);
+        await ensureTriggerOnlyMigrations(
+          [
+            '0010_demands_residence_building_check.sql',
+            '0011_residences_demand_building_check.sql',
+            // Task #849: cleans up orphan building_elements.residence_id
+            // pointers and adds the missing FK to residences(id). The
+            // SQL guards itself with NOT EXISTS / IF NOT EXISTS so it
+            // is safe to re-run on every boot.
+            '0012_building_elements_residence_id_fk.sql',
+            // Task #844: cross-org guards on the secondary
+            // assignation_residence_id / assignation_building_id pair
+            // on `demands` (mirror of 0010/0011). Both files use
+            // CREATE OR REPLACE FUNCTION + DROP TRIGGER IF EXISTS so
+            // they are safe to re-apply on every boot.
+            '0012_demands_assignation_check.sql',
+            '0013_residences_demand_assignation_check.sql',
+            // Task #945: cross-org guard on `invitations.residence_id` /
+            // `invitations.building_id`. Same shape as the 0010 demands
+            // guard. CREATE OR REPLACE FUNCTION + DROP TRIGGER IF EXISTS
+            // so it is safe to re-apply on every boot.
+            '0014_invitations_residence_building_check.sql',
+            // Task #972: auto-fix legacy cross-org demand rows by NULLing
+            // `residence_id` on demands whose linked residence belongs to a
+            // different building than the demand's own `building_id`. The
+            // UPDATE is a no-op when the table is already clean, and the
+            // post-condition DO block raises check_violation if any
+            // cross-org rows remain — making this safe to re-run on every
+            // boot as a continuous drift guard.
+            '0015_fix_cross_org_demand_residence_ids.sql',
+            // Task #1271: promote residence_id to a real FK on the three
+            // tables that still carried a plain varchar/text column
+            // despite Drizzle modelling `.references()` on them. Each
+            // migration NULLs orphan pointers first (matching the shape
+            // of `0012_building_elements_residence_id_fk.sql`) and then
+            // adds the FK with ON DELETE SET NULL. NOT EXISTS / IF NOT
+            // EXISTS guards make them safe to re-apply on every boot.
+            '0020_documents_residence_id_fk.sql',
+            '0021_invoices_residence_id_fk.sql',
+            '0022_invitations_residence_id_fk.sql',
+          ],
+          {
+            logger: (msg, level) => log(msg, level === 'error' ? 'error' : 'express'),
+          },
+        );
 
         // Task #939: belt-and-braces post-migration verifier. Even
         // though `runMigrations` just ran successfully, an out-of-band
@@ -733,36 +739,22 @@ async function loadFullApplication(): Promise<void> {
       // In production, this is more serious but don't crash if health checks work
       log('⚠️ Health checks may still be available');
     }
-    // Continue - health checks still work
-  }
-}
 
-/**
- * Idempotently re-apply migrations that create DB objects Drizzle does
- * not model robustly (PL/pgSQL functions, triggers, and one-shot
- * cleanup-then-add-FK migrations like Task #849's
- * `0012_building_elements_residence_id_fk.sql`). Called after the
- * numbered migration runner so we still apply these even if the runner
- * auto-baselined them on a freshly-pushed DB.
- *
- * The referenced SQL files MUST be safe to execute repeatedly:
- *   - `CREATE OR REPLACE FUNCTION ...`
- *   - `DROP TRIGGER IF EXISTS ... ; CREATE TRIGGER ...`
- *   - `IF NOT EXISTS (SELECT 1 FROM pg_constraint ...) THEN ALTER TABLE ... ADD CONSTRAINT ...`
- */
-async function ensureTriggerOnlyMigrations(filenames: string[]): Promise<void> {
-  const { readFileSync } = await import('fs');
-  const { join, dirname } = await import('path');
-  const { fileURLToPath } = await import('url');
-  const { db } = await import('./db');
-  const { sql } = await import('drizzle-orm');
-
-  const here = dirname(fileURLToPath(import.meta.url));
-  for (const filename of filenames) {
-    const sqlPath = join(here, '..', 'migrations', filename);
-    const ddl = readFileSync(sqlPath, 'utf8');
-    log(`🔧 Ensuring trigger-only migration applied: ${filename}`);
-    await db.execute(sql.raw(ddl));
+    // Safety net: if a non-runner boot step failed and the frontend hasn't
+    // been marked ready yet, unblock it now so the maintenance page doesn't
+    // stay up forever. We skip this only for genuine numbered-runner migration
+    // failures (isMigrationError=true), where the live schema may be behind
+    // the deployed bundle. Everything else (trigger re-application failures,
+    // Vite setup errors, route registration errors) should not lock the site
+    // on the maintenance page indefinitely — the verifier endpoint and logs
+    // will surface the details.
+    if (!isFrontendReady() && !(error as any).isMigrationError) {
+      log(
+        '⚠️ Boot step failed after migration runner — marking frontend ready as safety net',
+        'error',
+      );
+      setFrontendReady(true);
+    }
   }
 }
 
