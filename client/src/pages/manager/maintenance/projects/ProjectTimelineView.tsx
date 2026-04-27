@@ -16,7 +16,7 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { StatusBadge, PriorityBadge } from '@/components/maintenance/StatusBadges';
-// import { useBuildingContext } from '@/hooks/use-building-context';
+import { useBuildingPermissions } from '@/hooks/use-building-context';
 import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
@@ -85,9 +85,12 @@ export function ProjectTimelineView({
   buildingId,
   organizationId,
 }: ProjectTimelineViewProps) {
-  // Simplified placeholder - no context for now
+  // Task #1271: route through the real permission hook so the
+  // gated UI (status-update bar, etc.) is actually hidden for users
+  // without `canEditMaintenance`. The previous placeholder
+  // `() => true` left manager pages indistinguishable from admin pages.
   const building = null;
-  const hasPermission = () => true;
+  const { hasPermission } = useBuildingPermissions();
   const { t } = useLanguage();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [timelineView, setTimelineView] = useState<TimelineView>('month');

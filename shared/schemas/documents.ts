@@ -22,6 +22,16 @@ import { organizations } from './core';
  * `migrations/0011_documents_residence_building_check.sql`). Drizzle
  * does not model that trigger, so `drizzle-kit push` will not drop
  * or alter it.
+ *
+ * `residence_id` FK (Task #1271)
+ * ------------------------------
+ * `documents.residence_id` has a real foreign key to `residences.id`
+ * with `ON DELETE SET NULL`, applied out-of-band by migration
+ * `migrations/0020_documents_residence_id_fk.sql`. Drizzle's
+ * `.references()` call here is descriptive only — `drizzle-kit push`
+ * is not the source of truth for that constraint. Orphan
+ * `residence_id` values are NULLed by the same migration before the
+ * FK is created so existing data stays valid.
  */
 export const documents = pgTable('documents', {
   id: text('id')

@@ -189,6 +189,13 @@ module.exports = async function globalSetup() {
     '0011_residences_demand_building_check.sql',
     '0012_demands_assignation_check.sql',
     '0013_residences_demand_assignation_check.sql',
+    // Task #1271: promote residence_id to a real FK on documents,
+    // invoices, and invitations. Each migration NULLs orphan pointers
+    // first and is wrapped in IF NOT EXISTS guards so it is safe to
+    // re-apply on every test run.
+    '0020_documents_residence_id_fk.sql',
+    '0021_invoices_residence_id_fk.sql',
+    '0022_invitations_residence_id_fk.sql',
   ]);
 };
 

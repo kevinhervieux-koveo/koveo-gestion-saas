@@ -121,6 +121,16 @@ export const userOrganizations = pgTable('user_organizations', {
 /**
  * Invitations table for managing user invitations to organizations.
  * Supports role-based invitations with expiration and security features.
+ *
+ * `residence_id` FK (Task #1271)
+ * ------------------------------
+ * `invitations.residence_id` has a real foreign key to `residences.id`
+ * with `ON DELETE SET NULL`, applied out-of-band by migration
+ * `migrations/0022_invitations_residence_id_fk.sql`. The column is
+ * declared without `.references()` here because Drizzle's pgTable
+ * builder is not the source of truth for that constraint, and the
+ * migration also NULLs orphan rows before adding the FK so existing
+ * data stays valid.
  */
 export const invitations = pgTable('invitations', {
   id: varchar('id')

@@ -85,6 +85,21 @@ jest.mock('../db', () => ({
   },
 }));
 
+// --- Task #1271: stub the org-scope helpers so the apply-ai-analysis route
+// passes the new write-access gate without us having to hand-mock the
+// buildings + rbac db chain in this AI-focused test. The helpers are
+// covered separately in tests/integration/bills-cross-org-write-denial.
+jest.mock('../utils/org-scope', () => ({
+  __esModule: true,
+  assertBuildingWriteAccess: jest.fn(async () => ({
+    ok: true,
+    buildingId: 'building-1',
+    organizationId: 'org-1',
+  })),
+  assertBillWriteAccess: jest.fn(async () => ({ ok: true })),
+  resolveOrgScope: jest.fn(async () => ({ explicit: false, orgIds: ['org-1'] })),
+}));
+
 // Imports after mocks
 import { aiService } from '../services/consolidated-ai-service';
 import { registerBillRoutes } from '../api/bills';

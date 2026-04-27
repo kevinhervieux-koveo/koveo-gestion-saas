@@ -518,6 +518,16 @@ async function loadFullApplication(): Promise<void> {
           // cross-org rows remain — making this safe to re-run on every
           // boot as a continuous drift guard.
           '0015_fix_cross_org_demand_residence_ids.sql',
+          // Task #1271: promote residence_id to a real FK on the three
+          // tables that still carried a plain varchar/text column
+          // despite Drizzle modelling `.references()` on them. Each
+          // migration NULLs orphan pointers first (matching the shape
+          // of `0012_building_elements_residence_id_fk.sql`) and then
+          // adds the FK with ON DELETE SET NULL. NOT EXISTS / IF NOT
+          // EXISTS guards make them safe to re-apply on every boot.
+          '0020_documents_residence_id_fk.sql',
+          '0021_invoices_residence_id_fk.sql',
+          '0022_invitations_residence_id_fk.sql',
         ]);
 
         // Task #939: belt-and-braces post-migration verifier. Even

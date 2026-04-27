@@ -7340,23 +7340,100 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       analysisId: z.string().describe("Analysis ID — must match the storage path (filePath) of a document registered in the documents table"),
     },
     async ({ role, analysisId }) => {
+      // Task #1271: mirror the org-scope check applied by `analyze_document`
+      // so this status probe cannot be used as an existence oracle for
+      // documents in another organization. Out-of-scope and missing
+      // documents must produce IDENTICAL not-found responses (down to
+      // the exact JSON body) — anything callers can use to distinguish
+      // the two states leaks information about which storage paths
+      // exist outside their org.
+      const notFoundResponse = {
+        content: [{
+          type: "text" as const,
+          text: JSON.stringify({
+            error: "not_found",
+            message: `No document found for analysisId '${analysisId}'. The analysisId must match a registered document's storage path.`,
+            analysisId,
+          }, null, 2),
+        }],
+      };
+
       const [doc] = await db
-        .select({ filePath: schema.documents.filePath })
+        .select({
+          filePath: schema.documents.filePath,
+          buildingId: schema.documents.buildingId,
+          residenceId: schema.documents.residenceId,
+          isVisibleToTenants: schema.documents.isVisibleToTenants,
+        })
         .from(schema.documents)
         .where(eq(schema.documents.filePath, analysisId))
         .limit(1);
 
       if (!doc) {
-        return {
-          content: [{
-            type: "text" as const,
-            text: JSON.stringify({
-              error: "not_found",
-              message: `No document found for analysisId '${analysisId}'. The analysisId must match a registered document's storage path.`,
-              analysisId,
-            }, null, 2),
-          }],
-        };
+        return notFoundResponse;
+      }
+
+      // Org-scope gate: documents pinned to a building must belong to a
+      // building inside the caller's MCP org set (matches
+      // `analyze_document`).
+      if (doc.buildingId) {
+        const orgIds = await getMcpOrgIds();
+        const [building] = await db
+          .select({ organizationId: schema.buildings.organizationId })
+          .from(schema.buildings)
+          .where(eq(schema.buildings.id, doc.buildingId))
+          .limit(1);
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return notFoundResponse;
+        }
+      }
+
+      // Tenant-scope gate: tenants must be assigned to the residence
+      // (or to the building when the document is building-wide), and
+      // the document must be flagged visible to tenants (mirrors the
+      // `analyze_document` checks above).
+      if (role === "tenant") {
+        if (!doc.isVisibleToTenants) {
+          return notFoundResponse;
+        }
+        const user = await getMcpUser("tenant");
+        if (!user) return notFoundResponse;
+
+        if (doc.residenceId) {
+          const tenantResidence = await db
+            .select({ id: schema.userResidences.id })
+            .from(schema.userResidences)
+            .where(
+              and(
+                eq(schema.userResidences.userId, user.id),
+                eq(schema.userResidences.residenceId, doc.residenceId),
+                eq(schema.userResidences.isActive, true)
+              )
+            )
+            .limit(1);
+          if (tenantResidence.length === 0) {
+            return notFoundResponse;
+          }
+        } else if (doc.buildingId) {
+          const tenantBuildingMembership = await db
+            .select({ id: schema.userResidences.id })
+            .from(schema.userResidences)
+            .innerJoin(
+              schema.residences,
+              eq(schema.userResidences.residenceId, schema.residences.id)
+            )
+            .where(
+              and(
+                eq(schema.userResidences.userId, user.id),
+                eq(schema.userResidences.isActive, true),
+                eq(schema.residences.buildingId, doc.buildingId)
+              )
+            )
+            .limit(1);
+          if (tenantBuildingMembership.length === 0) {
+            return notFoundResponse;
+          }
+        }
       }
 
       return {

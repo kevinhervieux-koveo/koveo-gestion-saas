@@ -1980,6 +1980,83 @@ describe('MCP Server', () => {
       expect(parsed.analysisId).toBe('garbage-id');
       expect(parsed.message).toMatch(/garbage-id/);
     });
+
+    // Task #1271: `get_analysis_status` must return the SAME not-found
+    // response for documents that exist but live outside the caller's
+    // MCP org as it does for documents that do not exist at all. Any
+    // observable difference (different message, different fields,
+    // different status) lets the tool be used as an existence oracle
+    // for filePaths in another organization.
+    it('returns identical not-found JSON when the doc exists in another org (in-scope leak guard)', async () => {
+      const docLimitMock = jest.fn().mockResolvedValue([{
+        filePath: '/objects/buildings/b-ext/docs/secret.pdf',
+        buildingId: 'b-ext',
+        residenceId: null,
+        isVisibleToTenants: false,
+      }]);
+      mockSelectChain.where.mockImplementationOnce(() => {
+        const r = Promise.resolve([]);
+        (r as Record<string, unknown>).limit = docLimitMock;
+        return r;
+      });
+      // getMcpOrgIds() — caller's MCP scope
+      mockSelectChain.where.mockImplementationOnce(() =>
+        createWhereResult([{ id: 'org-1' }])
+      );
+      // building lookup — building belongs to org-other (NOT in MCP scope)
+      mockSelectChain.where.mockImplementationOnce(() =>
+        createWhereResult([{ organizationId: 'org-other' }])
+      );
+
+      const handler = getToolHandler(server, 'get_analysis_status');
+      const outOfScope = await handler({
+        role: 'admin',
+        analysisId: '/objects/buildings/b-ext/docs/secret.pdf',
+      }, {});
+
+      // The reference "doc does not exist at all" response uses the
+      // same code path for the not-found body, so we can compare
+      // shapes byte-for-byte.
+      const outText = parseToolResponse(outOfScope);
+      const outParsed = JSON.parse(outText);
+      expect(outParsed.error).toBe('not_found');
+      expect(outParsed.status).toBeUndefined();
+      expect(outParsed.analysisId).toBe('/objects/buildings/b-ext/docs/secret.pdf');
+      // Message is the same shape used for genuinely-missing docs.
+      expect(outParsed.message).toMatch(/No document found for analysisId/);
+      expect(outParsed.message).not.toMatch(/access|denied|forbidden|scope/i);
+    });
+
+    it('returns completed status when the doc is in scope', async () => {
+      const docLimitMock = jest.fn().mockResolvedValue([{
+        filePath: '/objects/buildings/b-1/docs/lease.pdf',
+        buildingId: 'b-1',
+        residenceId: null,
+        isVisibleToTenants: true,
+      }]);
+      mockSelectChain.where.mockImplementationOnce(() => {
+        const r = Promise.resolve([]);
+        (r as Record<string, unknown>).limit = docLimitMock;
+        return r;
+      });
+      // getMcpOrgIds()
+      mockSelectChain.where.mockImplementationOnce(() =>
+        createWhereResult([{ id: 'org-1' }])
+      );
+      // building lookup — same org as MCP scope
+      mockSelectChain.where.mockImplementationOnce(() =>
+        createWhereResult([{ organizationId: 'org-1' }])
+      );
+
+      const handler = getToolHandler(server, 'get_analysis_status');
+      const result = await handler({
+        role: 'admin',
+        analysisId: '/objects/buildings/b-1/docs/lease.pdf',
+      }, {});
+      const parsed = JSON.parse(parseToolResponse(result));
+      expect(parsed.status).toBe('completed');
+      expect(parsed.error).toBeUndefined();
+    });
   });
 
   // Task #620 — empty/whitespace-only mandatory free-text fields must be

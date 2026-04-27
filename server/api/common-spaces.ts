@@ -106,9 +106,12 @@ const userIdSchema = z.object({
 
 /**
  * Helper function to get accessible building IDs for a user based on their role.
+ * Exported for unit-test coverage of the manager-without-userOrganizations
+ * deny path (Task #1271). Production callers continue to use it via the
+ * unexported `getAccessibleBuildingIds` alias.
  * @param user
  */
-async function getAccessibleBuildingIds(user: any): Promise<string[]> {
+export async function getAccessibleBuildingIds(user: any): Promise<string[]> {
   // Admin users have access to all buildings
   if (user.role === 'admin') {
     const allBuildings = await db
@@ -149,6 +152,19 @@ async function getAccessibleBuildingIds(user: any): Promise<string[]> {
         .where(and(inArray(buildings.organizationId, orgIds), eq(buildings.isActive, true)));
       return orgBuildings.map((b) => b.buildingId);
     }
+    // Task #1271 — Org-scope hardening: a manager with no
+    // `userOrganizations` membership row used to fall through to the
+    // residence-linked path below (denied) and was briefly widened
+    // to "every active building" while iterating Task #629. The MCP
+    // equivalent in `getMcpAccessibleBuildingIds` is clamped by the
+    // MCP-scoped org allowlist, but no analogous clamp exists here —
+    // returning every active building from the REST helper would
+    // silently grant cross-org read/write access to the half-dozen
+    // common-space endpoints that gate solely on this set. Deny
+    // instead. A misconfigured manager account that genuinely needs
+    // cross-org access should be fixed by adding a `userOrganizations`
+    // row, not by widening this helper.
+    return [];
   }
 
   // All users can also access buildings where they have residences

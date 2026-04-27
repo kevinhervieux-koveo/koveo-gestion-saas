@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
-// import { useBuildingContext } from '@/hooks/use-building-context';
+import { useBuildingPermissions } from '@/hooks/use-building-context';
 import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { cn } from '@/lib/utils';
@@ -61,8 +61,11 @@ interface ProjectMetrics {
  * Provides comprehensive project portfolio overview
  */
 export function ProjectsOverview({ className, buildingId, organizationId }: ProjectsOverviewProps) {
-  // Simplified placeholder - no context for now
-  const hasPermission = () => true;
+  // Task #1271: route through the real permission hook so the
+  // reports section is hidden for users without `canViewReports`. The
+  // previous placeholder `() => true` rendered the gated UI for every
+  // role, including tenants.
+  const { hasPermission } = useBuildingPermissions();
   const { t } = useLanguage();
 
   // Fetch projects metrics for current building

@@ -22,6 +22,7 @@ import {
 } from '../db/queries/buildings-queries';
 import { asyncHandler } from '../utils/async-handler';
 import { resolveOrgScope } from '../utils/org-scope';
+import { getUserAccessibleOrganizations } from '../rbac';
 
 // Note: an earlier `handleResidenceChanges` helper used to live here
 // and silently swallowed any failure it hit while writing residence
@@ -881,6 +882,35 @@ export function registerBuildingRoutes(app: Express): void {
           _error: 'Not found',
           message: 'Building not found',
         });
+      }
+
+      // Task #1271 — Org-scope hardening: a manager must belong to BOTH
+      // the building's current organization AND the destination
+      // organizationId in the request body. Without this guard a
+      // manager attached to org-A could PUT a building they happen to
+      // know the id of (any active building) and even reassign it to
+      // an organization they do not belong to. Admins with
+      // `canAccessAllOrganizations` continue to bypass via
+      // `getUserAccessibleOrganizations`.
+      if (currentUser.role === 'manager') {
+        const accessibleOrgIds = await getUserAccessibleOrganizations(currentUser.id);
+        const currentOrgId = existingBuilding[0].organizationId;
+        if (!currentOrgId || !accessibleOrgIds.includes(currentOrgId)) {
+          return res.status(403).json({
+            message: 'Access denied to this building',
+            code: 'INSUFFICIENT_PERMISSIONS',
+          });
+        }
+        if (
+          buildingData.organizationId &&
+          buildingData.organizationId !== currentOrgId &&
+          !accessibleOrgIds.includes(buildingData.organizationId)
+        ) {
+          return res.status(403).json({
+            message: 'Access denied to the destination organization',
+            code: 'INSUFFICIENT_PERMISSIONS',
+          });
+        }
       }
 
       // Check current number of active residences
