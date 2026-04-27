@@ -216,4 +216,36 @@ describe('MCP resend_invitation tool', () => {
     expect(updateCalls.length).toBe(0);
     expect(sendInvitationEmailMock).not.toHaveBeenCalled();
   });
+
+  // Task #1276: building-existence guard, symmetric to the residence guard
+  // already covered by the integration suite. An invitation pointing at a
+  // hard-deleted building must NOT be flipped back to pending and the email
+  // must NOT be sent.
+  it('returns "Building not found" and does not mutate or email when buildingId is dangling', async () => {
+    const DANGLING_BUILDING_ID = 'dangling-building-id';
+    selectQueue.push([
+      {
+        id: INVITATION_ID,
+        email: 'invitee@example.com',
+        organizationId: ORG_ID,
+        invitedByUserId: SEED_ADMIN_ID,
+        role: 'tenant',
+        token: 'token-abc',
+        residenceId: null,
+        buildingId: DANGLING_BUILDING_ID,
+        status: 'pending',
+      },
+    ]); // invitation lookup
+    selectQueue.push([{ id: ORG_ID }]); // getMcpOrgIds
+    selectQueue.push([{ id: SEED_ADMIN_ID, role: 'admin' }]); // lookupMcpUser('admin')
+    selectQueue.push([]); // building lookup -> empty (dangling)
+
+    const handler = registeredTools.get('resend_invitation');
+    const result = await handler!({ role: 'admin', invitationId: INVITATION_ID });
+
+    expect(result.content[0].text).toMatch(/Building not found/i);
+    expect(result.content[0].text).toContain(DANGLING_BUILDING_ID);
+    expect(updateCalls.length).toBe(0);
+    expect(sendInvitationEmailMock).not.toHaveBeenCalled();
+  });
 });

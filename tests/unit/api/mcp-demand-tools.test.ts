@@ -10,7 +10,7 @@
  * already used by `mcp-link-user-to-residence.test.ts`.
  */
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { DEMAND_DESCRIPTION_MAX } from '../../../shared/schemas/operations';
+import { DEMAND_COMMENT_TEXT_MAX, DEMAND_DESCRIPTION_MAX } from '../../../shared/schemas/operations';
 
 type ToolHandler = (args: Record<string, unknown>) => Promise<{ content: Array<{ text: string }> }>;
 const registeredTools = new Map<string, ToolHandler>();
@@ -445,6 +445,65 @@ describe('MCP create_demand_comment tool', () => {
     });
     expect(result.content[0].text).toContain('Invalid comment data');
     expect(insertCalls.length).toBe(0);
+  });
+
+  // Task #1276: the MCP `create_demand_comment` tool must enforce the same
+  // DEMAND_COMMENT_TEXT_MAX cap as the inner insert schema, so oversized
+  // comments cannot bypass MCP-layer validation and slip into the DB.
+  // The two assertions below sit immediately on either side of the cap:
+  // 1000 chars is accepted; 1001 chars is rejected by the registered Zod
+  // schema (the same surface the real MCP SDK validates against).
+  describe('commentText length cap (DEMAND_COMMENT_TEXT_MAX)', () => {
+    it('the registered MCP schema accepts a comment of exactly 1000 characters', () => {
+      const schema = registeredSchemas.get('create_demand_comment');
+      expect(schema).toBeDefined();
+      const commentTextSchema = (schema as {
+        commentText: { safeParse: (v: unknown) => { success: boolean } };
+      }).commentText;
+      const exactly1000 = 'x'.repeat(DEMAND_COMMENT_TEXT_MAX);
+      expect(exactly1000.length).toBe(1000);
+      expect(commentTextSchema.safeParse(exactly1000).success).toBe(true);
+    });
+
+    it('the registered MCP schema rejects a comment of 1001 characters', () => {
+      const schema = registeredSchemas.get('create_demand_comment');
+      expect(schema).toBeDefined();
+      const commentTextSchema = (schema as {
+        commentText: {
+          safeParse: (v: unknown) => {
+            success: boolean;
+            error?: { issues: Array<{ message: string }> };
+          };
+        };
+      }).commentText;
+      const one_too_many = 'x'.repeat(DEMAND_COMMENT_TEXT_MAX + 1);
+      expect(one_too_many.length).toBe(1001);
+      const parsed = commentTextSchema.safeParse(one_too_many);
+      expect(parsed.success).toBe(false);
+      // The error message references the cap so callers can surface it.
+      expect(parsed.error?.issues[0]?.message).toMatch(/1000/);
+    });
+
+    it('the inner insertDemandCommentSchema also rejects 1001-character bodies (defence in depth)', async () => {
+      // Even if a future change drops the MCP-layer Zod cap, the inner
+      // safeParse against insertDemandCommentSchema must still bounce
+      // oversized bodies before they reach the DB. This guards the
+      // shared schema's .max() invariant.
+      selectQueue.push([{ id: ORG_ID }]);
+      selectQueue.push([demandRow({ submitterId: SEED_TENANT_ID })]);
+      selectQueue.push([buildingRow()]);
+      selectQueue.push([{ id: SEED_TENANT_ID, role: 'tenant' }]);
+
+      const handler = registeredTools.get('create_demand_comment');
+      const result = await handler!({
+        role: 'tenant',
+        demandId: DEMAND_ID,
+        commentText: 'x'.repeat(DEMAND_COMMENT_TEXT_MAX + 1),
+      });
+      expect(result.content[0].text).toContain('Invalid comment data');
+      expect(result.content[0].text).toMatch(/1000/);
+      expect(insertCalls.length).toBe(0);
+    });
   });
 });
 

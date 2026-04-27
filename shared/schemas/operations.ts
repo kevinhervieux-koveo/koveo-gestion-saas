@@ -529,6 +529,20 @@ export const insertNotificationSchema = z.object({
 
 export const DEMAND_DESCRIPTION_MAX = 5000;
 
+/**
+ * Maximum length (in characters) of a demand comment body.
+ *
+ * Single source of truth shared by:
+ *   - the Drizzle insert schema below (`insertDemandCommentSchema.commentText`),
+ *     which is what POST /api/demands/:id/comments validates against, and
+ *   - the MCP `create_demand_comment` tool's Zod parameter schema in
+ *     `server/mcp/server.ts`, so MCP-layer callers cannot bypass the cap by
+ *     calling the tool directly with an oversized body.
+ *
+ * If you change this value, update both call-sites in lock-step.
+ */
+export const DEMAND_COMMENT_TEXT_MAX = 1000;
+
 export const insertDemandSchema = z.object({
   submitterId: z.string().uuid().optional(),
   type: z.enum(['complaint', 'information', 'maintenance', 'other']),
@@ -554,7 +568,7 @@ export const insertDemandCommentSchema = z.object({
   commentText: z
     .string()
     .min(1, 'Comment content is required')
-    .max(1000, 'Comment must not exceed 1000 characters'),
+    .max(DEMAND_COMMENT_TEXT_MAX, 'Comment must not exceed 1000 characters'),
   commentType: z.string().optional(),
   isInternal: z.boolean().default(false),
   // Optional single-file attachment (mirrors insertDemandSchema).

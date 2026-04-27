@@ -3613,6 +3613,26 @@ export function registerUserRoutes(app: Express): void {
         }
       }
 
+      // Building-existence guard (task #1276). Symmetric to the
+      // residence guard above: `invitations.buildingId` has no DB-level
+      // FK, so a hard-deleted building can leave the invitation
+      // pointing at a building that no longer exists. Resending would
+      // email a token that, on acceptance, would fail to hydrate the
+      // building link. Refuse to resurrect the row.
+      if (invitation.buildingId) {
+        const [buildingRow] = await db
+          .select({ id: schema.buildings.id })
+          .from(schema.buildings)
+          .where(eq(schema.buildings.id, invitation.buildingId))
+          .limit(1);
+        if (!buildingRow) {
+          return res.status(422).json({
+            message: `Building not found: ${invitation.buildingId} (cannot resend invitation pointing at a deleted building)`,
+            code: 'INVITATION_BUILDING_MISSING',
+          });
+        }
+      }
+
       // Update invitation with new expiry
       const newExpiresAt = new Date();
       newExpiresAt.setDate(newExpiresAt.getDate() + 7); // Extend by 7 days
