@@ -35,7 +35,12 @@ jest.mock('@/hooks/use-language', () => ({
   useLanguage: () => ({
     language: 'en',
     t: (key: string) => key,
-    tp: (_key: string, count: number) => String(count),
+    tp: (key: string, count: number) => {
+      if (key === 'bulkImportCommitted') {
+        return count === 1 ? `${count} document committed.` : `${count} documents committed.`;
+      }
+      return String(count);
+    },
     setLanguage: jest.fn(),
   }),
 }));
@@ -381,7 +386,7 @@ describe('BulkDocumentImportPage — excluded file visibility (Task #804)', () =
 
     renderPage();
 
-    const countLine = await screen.findByText(/1 document\(s\) committed\./, undefined, { timeout: 4000 });
+    const countLine = await screen.findByText(/1 document committed\./, undefined, { timeout: 4000 });
     expect(countLine).toBeInTheDocument();
   });
 });

@@ -1660,3 +1660,105 @@ describe('POST /api/admin/bulk-import/items/:id/set-sorting-decision (Task #817)
     }
   });
 });
+
+// ---------------------------------------------------------------------------
+// Task #1321 — Build a 3-file merge group from the card, remove a file, then
+// rebuild it back to 3. The draft endpoint is the exact path the card uses:
+// the UI calls it on every change so it shows up as incremental draft saves.
+// ---------------------------------------------------------------------------
+describe('3-file merge-group card editing (Task #1321)', () => {
+  const app = buildApp();
+
+  beforeEach(() => {
+    itemStore.clear();
+    stagedFiles.clear();
+    insertedItems = [];
+    deletedItemIds = [];
+    jest.clearAllMocks();
+
+    seed('mg-lead', {
+      stagedPath: '/staging/mg-lead.pdf',
+      contentHash: 'hash-mg-lead',
+      sortingDecision: { decision: 'keep', decisionState: 'pending' },
+    });
+    seed('mg-sib1', {
+      stagedPath: '/staging/mg-sib1.pdf',
+      contentHash: 'hash-mg-sib1',
+      status: 'sorted',
+    });
+    seed('mg-sib2', {
+      stagedPath: '/staging/mg-sib2.pdf',
+      contentHash: 'hash-mg-sib2',
+      status: 'sorted',
+    });
+    stagePdf('/staging/mg-lead.pdf', 2);
+    stagePdf('/staging/mg-sib1.pdf', 1);
+    stagePdf('/staging/mg-sib2.pdf', 1);
+  });
+
+  it('builds a 3-file draft merge group, removes one file, then rebuilds to 3', async () => {
+    // Step 1: admin uses "Add file" twice to build a 3-file group (draft save).
+    const buildRes = await request(app)
+      .post(ROUTE('mg-lead'))
+      .send({ action: 'manual', draft: true, decision: 'merge', mergeWithItemIds: ['mg-sib1', 'mg-sib2'] })
+      .expect(200);
+
+    const afterBuild = (itemStore.get('mg-lead')!.sortingDecision ?? {}) as Record<string, unknown>;
+    expect(afterBuild.decision).toBe('merge');
+    expect(afterBuild.draft).toBe(true);
+    expect(afterBuild.mergeWithItemIds).toEqual(['mg-sib1', 'mg-sib2']);
+    expect(buildRes.body.item.sortingDecision.mergeWithItemIds).toEqual(['mg-sib1', 'mg-sib2']);
+    // Draft should not commit PDF ops — no files rewritten, no rows inserted.
+    expect(insertedItems).toHaveLength(0);
+    expect(itemStore.get('mg-lead')!.contentHash).toBe('hash-mg-lead');
+
+    // Step 2: admin removes mg-sib1 from the group via the "Remove from group"
+    // button (card fires another draft save with sib1 filtered out).
+    const removeRes = await request(app)
+      .post(ROUTE('mg-lead'))
+      .send({ action: 'manual', draft: true, decision: 'merge', mergeWithItemIds: ['mg-sib2'] })
+      .expect(200);
+
+    const afterRemove = (itemStore.get('mg-lead')!.sortingDecision ?? {}) as Record<string, unknown>;
+    expect(afterRemove.decision).toBe('merge');
+    expect(afterRemove.mergeWithItemIds).toEqual(['mg-sib2']);
+    expect(removeRes.body.item.sortingDecision.mergeWithItemIds).toEqual(['mg-sib2']);
+    // Still draft — no committed PDF ops.
+    expect(itemStore.get('mg-lead')!.contentHash).toBe('hash-mg-lead');
+
+    // Step 3: admin adds mg-sib1 back to rebuild the 3-file group.
+    const rebuildRes = await request(app)
+      .post(ROUTE('mg-lead'))
+      .send({ action: 'manual', draft: true, decision: 'merge', mergeWithItemIds: ['mg-sib2', 'mg-sib1'] })
+      .expect(200);
+
+    const afterRebuild = (itemStore.get('mg-lead')!.sortingDecision ?? {}) as Record<string, unknown>;
+    expect(afterRebuild.decision).toBe('merge');
+    expect(afterRebuild.mergeWithItemIds).toHaveLength(2);
+    expect(afterRebuild.mergeWithItemIds).toContain('mg-sib2');
+    expect(afterRebuild.mergeWithItemIds).toContain('mg-sib1');
+    expect(rebuildRes.body.item.sortingDecision.mergeWithItemIds).toHaveLength(2);
+    expect(itemStore.get('mg-lead')!.contentHash).toBe('hash-mg-lead');
+  });
+
+  it('confirms a 3-file merge group and merges all three PDFs', async () => {
+    // Confirm directly (non-draft) mirrors what happens when admin presses Confirm.
+    const res = await request(app)
+      .post(ROUTE('mg-lead'))
+      .send({ action: 'manual', decision: 'merge', mergeWithItemIds: ['mg-sib1', 'mg-sib2'] })
+      .expect(200);
+
+    expect(res.body.id).toBe('mg-lead');
+    expect(res.body.sortingDecision.mergeWithItemIds).toEqual(['mg-sib1', 'mg-sib2']);
+    expect(res.body.sortingDecision.decisionState).toBe('accepted');
+
+    // All 3 pages (2+1+1) must be present in the merged file.
+    const mergedBuf = stagedFiles.get(res.body.stagedPath as string)!;
+    expect(mergedBuf).toBeDefined();
+    expect(mergedBuf[0]).toBe(4);
+
+    // Both siblings excluded.
+    expect(itemStore.get('mg-sib1')!.status).toBe('rejected');
+    expect(itemStore.get('mg-sib2')!.status).toBe('rejected');
+  });
+});
