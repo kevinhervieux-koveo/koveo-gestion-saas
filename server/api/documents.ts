@@ -203,7 +203,20 @@ async function resolveDocumentContext(params: {
     if (!building) {
       throw new Error('Building not found');
     }
-    
+
+    if (residenceId) {
+      const residence = await storage.getResidence(residenceId);
+      if (!residence) {
+        throw new Error('Residence not found');
+      }
+      if (residence.buildingId !== buildingId) {
+        throw Object.assign(
+          new Error('Residence does not belong to the specified building'),
+          { code: 'RESIDENCE_BUILDING_MISMATCH' as const },
+        );
+      }
+    }
+
     return {
       buildingId,
       organizationId: building.organizationId,
@@ -1833,6 +1846,23 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       const userRole = user.role;
       const userId = user.id;
       const { documentType, buildingId, residenceId, textContent, type, ...otherData } = req.body;
+
+      // When both buildingId and residenceId are provided directly, verify they are consistent.
+      if (buildingId && residenceId) {
+        const residence = await storage.getResidence(residenceId);
+        if (!residence) {
+          return res.status(404).json({
+            message: 'Residence not found',
+            code: 'RESIDENCE_NOT_FOUND',
+          });
+        }
+        if (residence.buildingId !== buildingId) {
+          return res.status(422).json({
+            message: 'Residence does not belong to the specified building',
+            code: 'RESIDENCE_BUILDING_MISMATCH',
+          });
+        }
+      }
       
       // Enhanced request analysis
       logDocumentOperation('UPLOAD_REQUEST_ANALYSIS', {

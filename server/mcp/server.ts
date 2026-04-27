@@ -6812,6 +6812,32 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           return { content: [{ type: "text" as const, text: "User with this email already exists" }] };
         }
 
+      // Validate that residenceId (if provided) belongs to the target
+      // organization, preventing cross-org residence injection.
+      if (residenceId && residenceId.trim().length > 0) {
+        const [residenceRow] = await db
+          .select({ buildingId: schema.residences.buildingId })
+          .from(schema.residences)
+          .where(eq(schema.residences.id, residenceId.trim()))
+          .limit(1);
+        if (!residenceRow) {
+          return { content: [{ type: "text" as const, text: "Residence not found" }] };
+        }
+        const [residenceBuildingRow] = await db
+          .select({ organizationId: schema.buildings.organizationId })
+          .from(schema.buildings)
+          .where(eq(schema.buildings.id, residenceRow.buildingId))
+          .limit(1);
+        if (!residenceBuildingRow || residenceBuildingRow.organizationId !== organizationId) {
+          return {
+            content: [{
+              type: "text" as const,
+              text: "Access denied: residence does not belong to the specified organization",
+            }],
+          };
+        }
+      }
+
       // Soft-replace any existing pending invitations for the same
       // (organization, email, residence) tuple so the caller always gets a
       // fresh token while preserving the prior invitation row + audit trail.

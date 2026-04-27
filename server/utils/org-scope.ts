@@ -139,9 +139,12 @@ export async function assertBuildingWriteAccess(
   }
   const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
   if (!accessibleOrgIds.includes(orgId)) {
-    res.status(403).json({
-      message: 'Access denied to this building',
-      code: 'INSUFFICIENT_PERMISSIONS',
+    // Return 404 (not 403) to avoid confirming the building exists to callers
+    // outside its organization — consistent with the 404-style existence-oracle
+    // policy used on all cross-org read paths.
+    res.status(404).json({
+      message: 'Building not found',
+      code: 'NOT_FOUND',
     });
     return { ok: false };
   }

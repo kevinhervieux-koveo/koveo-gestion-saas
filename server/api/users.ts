@@ -32,6 +32,7 @@ import { asyncHandler } from '../utils/async-handler';
 import { buildContentDisposition } from '../utils/content-disposition';
 import { sendDbWriteError } from '../utils/rest-db-error';
 import { resolveOrgScope } from '../utils/org-scope';
+import { getUserAccessibleOrganizations } from '../rbac';
 /**
  * Helper function to get the correct base URL from REPLIT_DOMAINS.
  * REPLIT_DOMAINS can contain multiple domains separated by commas.
@@ -2894,6 +2895,31 @@ export function registerUserRoutes(app: Express): void {
         }
       }
 
+      // Validate that the residenceId belongs to the target organization (if provided).
+      // This prevents a caller from linking an invitation to a residence from
+      // a foreign organization by supplying an out-of-scope residenceId while
+      // providing an in-scope organizationId.
+      if (residenceId) {
+        const residence = await storage.getResidence(residenceId);
+        if (!residence) {
+          return res.status(400).json({
+            message: 'Residence not found',
+            code: 'RESIDENCE_NOT_FOUND',
+          });
+        }
+        const residenceBuilding = await storage.getBuilding(residence.buildingId);
+        if (!residenceBuilding || residenceBuilding.organizationId !== organizationId) {
+          logWarn('[SECURITY] Invitation creation rejected: residenceId does not belong to target organization', {
+            userId: currentUser.id,
+            metadata: { residenceId, organizationId },
+          });
+          return res.status(422).json({
+            message: 'Residence does not belong to the specified organization',
+            code: 'RESIDENCE_ORGANIZATION_MISMATCH',
+          });
+        }
+      }
+
       // Check if user already exists
       const existingUser = await storage.getUserByEmail(email);
       if (existingUser) {
@@ -3054,21 +3080,17 @@ export function registerUserRoutes(app: Express): void {
         });
       }
 
-      let invitations;
-      if (currentUser.role === 'admin') {
-        // Admin can see all invitations
-        invitations = await db
-          .select()
-          .from(schema.invitations)
-          .orderBy(schema.invitations.createdAt);
-      } else {
-        // Managers can only see invitations they sent
-        invitations = await db
-          .select()
-          .from(schema.invitations)
-          .where(eq(schema.invitations.invitedByUserId, currentUser.id))
-          .orderBy(schema.invitations.createdAt);
-      }
+      // Scope the query to organizations the caller can access.
+      // `getUserAccessibleOrganizations` returns all org IDs for admins who
+      // have global access, and the specific org IDs for managers. This
+      // prevents a caller from reading invitations belonging to orgs they
+      // don't manage (flat-list org-scope hardening, task #1306).
+      const accessibleOrgIds = await getUserAccessibleOrganizations(currentUser.id);
+      const invitations = await db
+        .select()
+        .from(schema.invitations)
+        .where(inArray(schema.invitations.organizationId, accessibleOrgIds))
+        .orderBy(schema.invitations.createdAt);
 
       res.json(invitations);
     }, { errorMessage: 'Failed to fetch invitations', errorLogPrefix: '❌ Error fetching invitations', extraErrorFields: { error: 'Internal server error' } }));

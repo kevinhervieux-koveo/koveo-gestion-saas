@@ -1,11 +1,15 @@
 // @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import { Express, Request, Response } from 'express';
+import { eq, and } from 'drizzle-orm';
 import { requireAuth } from '../auth/index';
 import { uploadInvoiceFile, handleUploadError } from '../middleware/fileUpload';
 import { aiService } from '../services/consolidated-ai-service';
 import { aiExtractionResponseSchema, insertInvoiceSchema } from '@shared/schema';
 import { storage } from '../storage';
 import rateLimit, { ipKeyGenerator } from 'express-rate-limit';
+import { assertBuildingWriteAccess } from '../utils/org-scope';
+import { db } from '../db';
+import * as schema from '@shared/schema';
 
 /**
  * Invoice management API routes.
@@ -239,6 +243,8 @@ export function registerInvoiceRoutes(app: Express) {
   /**
    * POST /api/invoices
    * Create a new invoice.
+   * Org-scope: buildingId must belong to the caller's organization.
+   * Residence-scope: residenceId (if supplied) must belong to the same building.
    */
   app.post('/api/invoices', requireAuth, async (req: any, res: Response) => {
     try {
@@ -264,6 +270,37 @@ export function registerInvoiceRoutes(app: Express) {
       };
       
       const validatedData = insertInvoiceSchema.parse(invoiceData);
+
+      // Org-scope guard: verify the caller can write to this building.
+      if (validatedData.buildingId) {
+        const buildingAccess = await assertBuildingWriteAccess(res, userId, validatedData.buildingId);
+        if (!buildingAccess.ok) return;
+
+        // Residence-scope guard: residenceId must belong to the invoice's building.
+        if (validatedData.residenceId) {
+          const residenceRows = await db
+            .select({ buildingId: schema.residences.buildingId })
+            .from(schema.residences)
+            .where(eq(schema.residences.id, validatedData.residenceId))
+            .limit(1);
+
+          if (residenceRows.length === 0) {
+            return res.status(404).json({
+              error: 'Residence not found',
+              message: 'The specified residence does not exist',
+              code: 'RESIDENCE_NOT_FOUND',
+            });
+          }
+
+          if (residenceRows[0].buildingId !== validatedData.buildingId) {
+            return res.status(422).json({
+              error: 'Residence does not belong to the specified building',
+              message: 'The residenceId must be a unit within the invoice\'s building',
+              code: 'RESIDENCE_BUILDING_MISMATCH',
+            });
+          }
+        }
+      }
 
       const invoice = await storage.createInvoice(validatedData);
 
@@ -292,6 +329,7 @@ export function registerInvoiceRoutes(app: Express) {
   /**
    * PUT /api/invoices/:id
    * Update an existing invoice.
+   * Org-scope: the invoice's building must belong to the caller's organization.
    */
   app.put('/api/invoices/:id', requireAuth, async (req: any, res: Response) => {
     try {
@@ -316,8 +354,46 @@ export function registerInvoiceRoutes(app: Express) {
         });
       }
 
+      // Org-scope guard on the existing invoice's building.
+      if (existingInvoice.buildingId) {
+        const buildingAccess = await assertBuildingWriteAccess(res, userId, existingInvoice.buildingId);
+        if (!buildingAccess.ok) return;
+      }
+
       // Validate request body (partial update)
       const updateData = insertInvoiceSchema.partial().parse(req.body);
+
+      // If the update reassigns the invoice to a different building, verify access to that target building too.
+      if (updateData.buildingId && updateData.buildingId !== existingInvoice.buildingId) {
+        const targetBuildingAccess = await assertBuildingWriteAccess(res, userId, updateData.buildingId);
+        if (!targetBuildingAccess.ok) return;
+      }
+
+      // If the update supplies a residenceId, verify it belongs to the invoice's building.
+      const effectiveBuildingId = updateData.buildingId ?? existingInvoice.buildingId;
+      if (updateData.residenceId && effectiveBuildingId) {
+        const residenceRows = await db
+          .select({ buildingId: schema.residences.buildingId })
+          .from(schema.residences)
+          .where(eq(schema.residences.id, updateData.residenceId))
+          .limit(1);
+
+        if (residenceRows.length === 0) {
+          return res.status(404).json({
+            error: 'Residence not found',
+            message: 'The specified residence does not exist',
+            code: 'RESIDENCE_NOT_FOUND',
+          });
+        }
+
+        if (residenceRows[0].buildingId !== effectiveBuildingId) {
+          return res.status(422).json({
+            error: 'Residence does not belong to the specified building',
+            message: 'The residenceId must be a unit within the invoice\'s building',
+            code: 'RESIDENCE_BUILDING_MISMATCH',
+          });
+        }
+      }
 
       const updatedInvoice = await storage.updateInvoice(id, updateData);
 
@@ -353,6 +429,7 @@ export function registerInvoiceRoutes(app: Express) {
   /**
    * DELETE /api/invoices/:id
    * Delete an invoice.
+   * Org-scope: the invoice's building must belong to the caller's organization.
    */
   app.delete('/api/invoices/:id', requireAuth, async (req: any, res: Response) => {
     try {
@@ -375,6 +452,12 @@ export function registerInvoiceRoutes(app: Express) {
           error: 'Insufficient permissions',
           message: 'You can only delete your own invoices'
         });
+      }
+
+      // Org-scope guard on the existing invoice's building.
+      if (existingInvoice.buildingId) {
+        const buildingAccess = await assertBuildingWriteAccess(res, userId, existingInvoice.buildingId);
+        if (!buildingAccess.ok) return;
       }
 
       const deleted = await storage.deleteInvoice(id);

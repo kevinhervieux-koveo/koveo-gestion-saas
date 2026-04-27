@@ -435,8 +435,8 @@ describe('Task #1271 — Bills cross-org write denial', () => {
       status: 'draft',
     });
 
-    expect(response.status).toBe(403);
-    expect(response.body.code).toBe('INSUFFICIENT_PERMISSIONS');
+    expect(response.status).toBe(404);
+    expect(response.body.code).toBe('NOT_FOUND');
   });
 
   // PATCH /api/bills/:id — manager hitting a bill that lives in another
@@ -447,8 +447,8 @@ describe('Task #1271 — Bills cross-org write denial', () => {
     const response = await agent.patch(`/api/bills/${BETA_BILL}`).send({
       title: 'Hijack',
     });
-    expect(response.status).toBe(403);
-    expect(response.body.code).toBe('INSUFFICIENT_PERMISSIONS');
+    expect(response.status).toBe(404);
+    expect(response.body.code).toBe('NOT_FOUND');
   });
 
   // PUT /api/bills/:id — same contract as PATCH, but exercises the
@@ -464,15 +464,15 @@ describe('Task #1271 — Bills cross-org write denial', () => {
       startDate: '2026-01-01',
       status: 'draft',
     });
-    expect(response.status).toBe(403);
-    expect(response.body.code).toBe('INSUFFICIENT_PERMISSIONS');
+    expect(response.status).toBe(404);
+    expect(response.body.code).toBe('NOT_FOUND');
   });
 
   // DELETE /api/bills/:id — same contract.
   it('rejects DELETE /api/bills/:id for a bill in a different organization', async () => {
     const response = await agent.delete(`/api/bills/${BETA_BILL}`);
-    expect(response.status).toBe(403);
-    expect(response.body.code).toBe('INSUFFICIENT_PERMISSIONS');
+    expect(response.status).toBe(404);
+    expect(response.body.code).toBe('NOT_FOUND');
   });
 
   // POST /api/bills/:id/generate-future — recurrence-driven write that
@@ -480,8 +480,8 @@ describe('Task #1271 — Bills cross-org write denial', () => {
   // org membership.
   it('rejects POST /api/bills/:id/generate-future for a bill in a different organization', async () => {
     const response = await agent.post(`/api/bills/${BETA_BILL}/generate-future`).send({});
-    expect(response.status).toBe(403);
-    expect(response.body.code).toBe('INSUFFICIENT_PERMISSIONS');
+    expect(response.status).toBe(404);
+    expect(response.body.code).toBe('NOT_FOUND');
   });
 
   // POST /api/bills/:id/apply-ai-analysis — same.
@@ -489,23 +489,23 @@ describe('Task #1271 — Bills cross-org write denial', () => {
     const response = await agent
       .post(`/api/bills/${BETA_BILL}/apply-ai-analysis`)
       .send({ analysisData: {} });
-    expect(response.status).toBe(403);
-    expect(response.body.code).toBe('INSUFFICIENT_PERMISSIONS');
+    expect(response.status).toBe(404);
+    expect(response.body.code).toBe('NOT_FOUND');
   });
 
   // POST /api/bills/:id/generate-next-year — same.
   it('rejects POST /api/bills/:id/generate-next-year for a bill in a different organization', async () => {
     const response = await agent.post(`/api/bills/${BETA_BILL}/generate-next-year`).send({});
-    expect(response.status).toBe(403);
-    expect(response.body.code).toBe('INSUFFICIENT_PERMISSIONS');
+    expect(response.status).toBe(404);
+    expect(response.body.code).toBe('NOT_FOUND');
   });
 
   // DELETE /api/bills/:id/attachment — exercises the file-detach path
   // through the bill-loaded variant of the helper.
   it('rejects DELETE /api/bills/:id/attachment for a bill in a different organization', async () => {
     const response = await agent.delete(`/api/bills/${BETA_BILL}/attachment`);
-    expect(response.status).toBe(403);
-    expect(response.body.code).toBe('INSUFFICIENT_PERMISSIONS');
+    expect(response.status).toBe(404);
+    expect(response.body.code).toBe('NOT_FOUND');
   });
 
   // POST /api/bills/from-template — exercises the building-only variant
@@ -521,8 +521,8 @@ describe('Task #1271 — Bills cross-org write denial', () => {
       startDate: '2026-01-01',
       status: 'draft',
     });
-    expect(response.status).toBe(403);
-    expect(response.body.code).toBe('INSUFFICIENT_PERMISSIONS');
+    expect(response.status).toBe(404);
+    expect(response.body.code).toBe('NOT_FOUND');
   });
 
   // POST /api/bills/auto-generate — body says sourceTemplateId, but
@@ -532,8 +532,8 @@ describe('Task #1271 — Bills cross-org write denial', () => {
     const response = await agent.post('/api/bills/auto-generate').send({
       sourceTemplateId: BETA_BILL,
     });
-    expect(response.status).toBe(403);
-    expect(response.body.code).toBe('INSUFFICIENT_PERMISSIONS');
+    expect(response.status).toBe(404);
+    expect(response.body.code).toBe('NOT_FOUND');
   });
 
   // POST /api/bills/bulk-generate — guards the organizationId field,
@@ -542,8 +542,8 @@ describe('Task #1271 — Bills cross-org write denial', () => {
     const response = await agent.post('/api/bills/bulk-generate').send({
       organizationId: ORG_BETA,
     });
-    expect(response.status).toBe(403);
-    expect(response.body.code).toBe('INSUFFICIENT_PERMISSIONS');
+    expect(response.status).toBe(404);
+    expect(response.body.code).toBe('NOT_FOUND');
   });
 
   // POST /api/bills/bulk-generate — without an explicit organizationId
@@ -564,8 +564,8 @@ describe('Task #1271 — Bills cross-org write denial', () => {
       organizationId: ORG_ALPHA,
       buildingIds: [ALPHA_BUILDING, BETA_BUILDING],
     });
-    expect(response.status).toBe(403);
-    expect(response.body.code).toBe('INSUFFICIENT_PERMISSIONS');
+    expect(response.status).toBe(404);
+    expect(response.body.code).toBe('NOT_FOUND');
   });
 
   // POST /api/bills/bulk-generate — happy path: alpha manager,

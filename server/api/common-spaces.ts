@@ -4,7 +4,7 @@ import { db } from '../db';
 import { requireAuth, requireRole } from '../auth';
 import { z } from 'zod';
 import * as schema from '@shared/schema';
-import { resolveOrgScope } from '../utils/org-scope';
+import { resolveOrgScope, assertBuildingWriteAccess } from '../utils/org-scope';
 import {
   getUserBookingHours,
   checkUserTimeLimit,
@@ -339,11 +339,13 @@ export function registerCommonSpacesRoutes(app: Express): void {
         });
       }
 
+      // Return 404 (not 403) to avoid leaking space existence to callers
+      // outside its organisation.
       const accessibleBuildingIds = await getAccessibleBuildingIds(user);
       if (!accessibleBuildingIds.includes(space[0].buildingId)) {
-        return res.status(403).json({
-          message: 'Access denied to this common space',
-          code: 'INSUFFICIENT_PERMISSIONS',
+        return res.status(404).json({
+          message: 'Common space not found',
+          code: 'NOT_FOUND',
         });
       }
 
@@ -473,12 +475,13 @@ export function registerCommonSpacesRoutes(app: Express): void {
         });
       }
 
-      // Check user access to building
+      // Check user access to building — return 404 (not 403) to avoid
+      // leaking whether the space exists to callers outside its org.
       const accessibleBuildingIds = await getAccessibleBuildingIds(user);
       if (!accessibleBuildingIds.includes(commonSpace.buildingId)) {
-        return res.status(403).json({
-          message: 'Access denied to this common space',
-          code: 'INSUFFICIENT_PERMISSIONS',
+        return res.status(404).json({
+          message: 'Common space not found',
+          code: 'NOT_FOUND',
         });
       }
 
@@ -615,12 +618,13 @@ export function registerCommonSpacesRoutes(app: Express): void {
 
       const commonSpace = space[0];
 
-      // Check user access to building
+      // Check user access to building — return 404 (not 403) to avoid
+      // leaking whether the space exists to callers outside its org.
       const accessibleBuildingIds = await getAccessibleBuildingIds(user);
       if (!accessibleBuildingIds.includes(commonSpace.buildingId)) {
-        return res.status(403).json({
-          message: 'Access denied to this common space',
-          code: 'INSUFFICIENT_PERMISSIONS',
+        return res.status(404).json({
+          message: 'Common space not found',
+          code: 'NOT_FOUND',
         });
       }
 
@@ -883,13 +887,9 @@ export function registerCommonSpacesRoutes(app: Express): void {
           });
         }
 
-        const accessibleBuildingIds = await getAccessibleBuildingIds(user);
-        if (!accessibleBuildingIds.includes(space[0].buildingId)) {
-          return res.status(403).json({
-            message: 'Access denied to this common space',
-            code: 'INSUFFICIENT_PERMISSIONS',
-          });
-        }
+        // Org-scope guard: manager must belong to this space's organisation.
+        const spaceAccess = await assertBuildingWriteAccess(res, user.id, space[0].buildingId);
+        if (!spaceAccess.ok) return;
 
         // Calculate stats for last year
         const oneYearAgo = new Date();
@@ -1052,13 +1052,9 @@ export function registerCommonSpacesRoutes(app: Express): void {
           });
         }
 
-        const accessibleBuildingIds = await getAccessibleBuildingIds(user);
-        if (!accessibleBuildingIds.includes(space[0].buildingId)) {
-          return res.status(403).json({
-            message: 'Access denied to this common space',
-            code: 'INSUFFICIENT_PERMISSIONS',
-          });
-        }
+        // Org-scope guard: manager must belong to this space's organisation.
+        const restrictionBuildingAccess = await assertBuildingWriteAccess(res, user.id, space[0].buildingId);
+        if (!restrictionBuildingAccess.ok) return;
 
         // Check if restriction already exists
         const existingRestriction = await db
@@ -1137,16 +1133,12 @@ export function registerCommonSpacesRoutes(app: Express): void {
         const { name, description, building_id, is_reservable, capacity, opening_hours, weekly_hours, available_days, default_time_limit_type, default_time_limit_hours } =
           validationResult.data;
 
-        // Check if user has access to this building
-        const accessibleBuildingIds = await getAccessibleBuildingIds(user);
-        if (!accessibleBuildingIds.includes(building_id)) {
-          return res.status(403).json({
-            message: 'Access denied. You can only create spaces in buildings you manage.',
-            code: 'INSUFFICIENT_PERMISSIONS',
-          });
-        }
+        // Org-scope guard: building must belong to the caller's organisation.
+        // assertBuildingWriteAccess also verifies the building exists and is active.
+        const createBuildingAccess = await assertBuildingWriteAccess(res, user.id, building_id);
+        if (!createBuildingAccess.ok) return;
 
-        // Verify building exists and is active
+        // Fetch building name for the success response
         const building = await db
           .select({ id: buildings.id, name: buildings.name })
           .from(buildings)
@@ -1280,13 +1272,14 @@ export function registerCommonSpacesRoutes(app: Express): void {
           });
         }
 
-        // Check if user has access to this building
-        const accessibleBuildingIds = await getAccessibleBuildingIds(user);
-        if (!accessibleBuildingIds.includes(existingSpace[0].buildingId)) {
-          return res.status(403).json({
-            message: 'Access denied. You can only update spaces in buildings you manage.',
-            code: 'INSUFFICIENT_PERMISSIONS',
-          });
+        // Org-scope guard: the space's building must belong to the caller's organisation.
+        const updateBuildingAccess = await assertBuildingWriteAccess(res, user.id, existingSpace[0].buildingId);
+        if (!updateBuildingAccess.ok) return;
+
+        // If the update reassigns the space to a different building, verify access to that target building too.
+        if (building_id && building_id !== existingSpace[0].buildingId) {
+          const targetBuildingAccess = await assertBuildingWriteAccess(res, user.id, building_id);
+          if (!targetBuildingAccess.ok) return;
         }
 
         // Update the common space
@@ -1387,14 +1380,9 @@ export function registerCommonSpacesRoutes(app: Express): void {
           });
         }
 
-        // Check if user has access to this building
-        const accessibleBuildingIds = await getAccessibleBuildingIds(user);
-        if (!accessibleBuildingIds.includes(space[0].buildingId)) {
-          return res.status(403).json({
-            message: 'Access denied. You can only delete spaces in buildings you manage.',
-            code: 'INSUFFICIENT_PERMISSIONS',
-          });
-        }
+        // Org-scope guard: manager must belong to this space's organisation.
+        const deleteBuildingAccess = await assertBuildingWriteAccess(res, user.id, space[0].buildingId);
+        if (!deleteBuildingAccess.ok) return;
 
         // Check if there are any confirmed future bookings
         const futureBookings = await db
@@ -1515,13 +1503,9 @@ export function registerCommonSpacesRoutes(app: Express): void {
             });
           }
 
-          const accessibleBuildingIds = await getAccessibleBuildingIds(user);
-          if (!accessibleBuildingIds.includes(space[0].buildingId)) {
-            return res.status(403).json({
-              message: 'Access denied to this common space',
-              code: 'INSUFFICIENT_PERMISSIONS',
-            });
-          }
+          // Org-scope guard: manager must belong to this space's organisation.
+          const timeLimitBuildingAccess = await assertBuildingWriteAccess(res, user.id, space[0].buildingId);
+          if (!timeLimitBuildingAccess.ok) return;
         }
 
         // Check if a time limit already exists

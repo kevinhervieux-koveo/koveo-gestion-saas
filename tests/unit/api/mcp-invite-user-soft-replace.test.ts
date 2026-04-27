@@ -151,6 +151,9 @@ describe('MCP invite_user — duplicate invite returns 409-style conflict (task 
     selectQueue.push([{ id: ORG_ID }]); // getMcpOrgIds
     selectQueue.push([{ id: SEED_MANAGER_ID, role: 'manager' }]); // lookupMcpUser
     selectQueue.push([]); // existing-user check -> none
+    // Residence-org scope check (task #1306) — two new selects before dedup
+    selectQueue.push([{ buildingId: 'building-1' }]); // residence lookup
+    selectQueue.push([{ organizationId: ORG_ID }]); // building org lookup
     selectQueue.push([]); // existing pending invitation lookup -> none
     selectQueue.push([{ id: ORG_ID, name: 'MCP Org 1' }]); // organization lookup
     selectQueue.push([
@@ -211,6 +214,9 @@ describe('MCP invite_user — duplicate invite returns 409-style conflict (task 
     selectQueue.push([{ id: ORG_ID }]); // getMcpOrgIds
     selectQueue.push([{ id: SEED_MANAGER_ID, role: 'manager' }]); // lookupMcpUser
     selectQueue.push([]); // existing-user check -> none
+    // Residence-org scope check (task #1306) — two new selects before dedup
+    selectQueue.push([{ buildingId: 'building-1' }]); // residence lookup
+    selectQueue.push([{ organizationId: ORG_ID }]); // building org lookup
     selectQueue.push([{ id: PRIOR_INVITATION_ID }]); // existing pending invitation -> prior row
     // Org lookup / inviter lookup queued in case the handler reaches them
     // (it must not — assertions below confirm).
