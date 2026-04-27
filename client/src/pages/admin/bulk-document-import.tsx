@@ -2328,6 +2328,7 @@ export default function BulkDocumentImportPage() {
     return () => document.removeEventListener('keydown', onKeyDown);
   }, [currentStep, goToNextAiNamedSortingRow]);
 
+
   /**
    * Track consecutive errored polls of the lite status endpoint so we
    * can warn the admin when the counter has frozen because the server
@@ -3480,6 +3481,117 @@ export default function BulkDocumentImportPage() {
     },
   });
 
+  // ---------------------------------------------------------------------------
+  // Task #1410 — Alt+K paired shortcut: accept the currently-focused
+  // AI-named pending row and auto-advance to the next match.
+  //
+  // Task #1405 lets admins press Alt+J to jump focus to the next pending
+  // row whose rename input still equals the AI suggestion verbatim. To
+  // turn that into a true "scan & approve" loop they still had to mouse
+  // over to the row's Accept button. Alt+K closes the loop: while focus
+  // sits inside one of the AI-named rename inputs (which is exactly where
+  // Alt+J leaves it), one keystroke commits the AI suggestion via the
+  // same `setSortingDecision` mutation the per-row Accept button fires,
+  // then jumps focus to the next still-AI-named row.
+  //
+  // No-op rules (so a stray Alt+K never silently overrides the admin):
+  //   - Focus must sit on one of the AI-named rename inputs. Anything
+  //     else (a different input, a button, the body) is ignored.
+  //   - The rename value must still equal the AI suggestion verbatim;
+  //     the moment the admin types anything different the row drops out
+  //     of `aiNamedSortingTargets` and Alt+K becomes a no-op.
+  //   - Already-in-flight `setSortingDecision` mutations short-circuit
+  //     so a double-tap can't fire two POSTs against the same row.
+  //
+  // The hook lives next to `setSortingDecision` (instead of next to the
+  // Alt+J handler higher up) because it depends on the mutation, which
+  // is declared further down the function body.
+  // ---------------------------------------------------------------------------
+  const acceptFocusedAiNamedSortingRow = useCallback(() => {
+    if (currentStep !== 'sorting') return;
+    if (setSortingDecision.isPending) return;
+    if (typeof document === 'undefined') return;
+    const focused = document.activeElement as HTMLElement | null;
+    if (!focused) return;
+    const focusedTestId = focused.getAttribute('data-testid');
+    if (!focusedTestId) return;
+    const matchIdx = aiNamedSortingTargets.findIndex(
+      (t) => t.testId === focusedTestId,
+    );
+    if (matchIdx === -1) return;
+    const target = aiNamedSortingTargets[matchIdx];
+    const item = items.find((i) => i.id === target.itemId);
+    if (!item) return;
+    cancelAutoSave(item.id);
+    // Mirror the per-row Accept button so any inline slice/merge
+    // overrides the admin staged elsewhere on the row are committed
+    // alongside the AI-named rename, instead of being discarded.
+    const inlineSlice = inlineSlicePage.get(item.id);
+    const inlineMerge = inlineMergeOrder.get(item.id);
+    if (inlineSlice !== undefined) {
+      setSortingDecision.mutate({
+        itemId: item.id,
+        action: 'manual',
+        decision: 'split',
+        splitAtPage: inlineSlice,
+      });
+    } else if (inlineMerge !== undefined) {
+      setSortingDecision.mutate({
+        itemId: item.id,
+        action: 'manual',
+        decision: 'merge',
+        mergeWithItemIds: inlineMerge.slice(1),
+      });
+    } else {
+      setSortingDecision.mutate({ itemId: item.id, action: 'accept' });
+    }
+    // Auto-advance to the next still-AI-named row. We compute the next
+    // target from the pre-mutation list (skipping the just-accepted
+    // item) so the focus jump is synchronous and doesn't have to wait
+    // for the lite-poll refetch to drop the row from the targets memo.
+    const remaining = aiNamedSortingTargets.filter(
+      (t) => t.itemId !== item.id,
+    );
+    if (remaining.length === 0) {
+      aiNamedSortingCursorRef.current = -1;
+      return;
+    }
+    const nextTarget = remaining[matchIdx % remaining.length];
+    aiNamedSortingCursorRef.current = aiNamedSortingTargets.indexOf(nextTarget);
+    const nextEl = document.querySelector<HTMLInputElement>(
+      `[data-testid="${nextTarget.testId}"]`,
+    );
+    if (!nextEl) return;
+    if (typeof nextEl.scrollIntoView === 'function') {
+      nextEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    nextEl.focus({ preventScroll: true });
+    try {
+      nextEl.select();
+    } catch {
+      /* select() not supported on every input type — ignore. */
+    }
+  }, [
+    currentStep,
+    items,
+    aiNamedSortingTargets,
+    inlineSlicePage,
+    inlineMergeOrder,
+    setSortingDecision,
+  ]);
+
+  useEffect(() => {
+    if (currentStep !== 'sorting') return;
+    function onKeyDown(e: KeyboardEvent) {
+      if (!e.altKey || e.metaKey || e.ctrlKey || e.shiftKey) return;
+      if (e.key !== 'k' && e.key !== 'K') return;
+      e.preventDefault();
+      acceptFocusedAiNamedSortingRow();
+    }
+    document.addEventListener('keydown', onKeyDown);
+    return () => document.removeEventListener('keydown', onKeyDown);
+  }, [currentStep, acceptFocusedAiNamedSortingRow]);
+
   /**
    * Persist an admin override for `screening.periodHint` on a single
    * Sorting row (Task #997). The server re-runs sorting for the target
@@ -4253,7 +4365,7 @@ export default function BulkDocumentImportPage() {
         // `sorting` (keep/merge/split) gets the "Aiguillage" copy, and
         // step `branching` (destination bucket) gets the "Tri" copy.
         sorting:
-          "Les fichiers contenant plusieurs documents sont scindés au besoin en documents distincts. Astuce : utilisez « Suggestion suivante » (Alt+J) pour aller à la prochaine ligne en attente dont le nom correspond encore à la suggestion de l'IA.",
+          "Les fichiers contenant plusieurs documents sont scindés au besoin en documents distincts. Astuce : utilisez « Suggestion suivante » (Alt+J) pour aller à la prochaine ligne en attente dont le nom correspond encore à la suggestion de l'IA, puis Alt+K pour accepter la ligne actuellement ciblée et passer à la suivante.",
         branching:
           'Chaque document conservé est automatiquement classé dans une catégorie (facture, contrat, procès-verbal, etc.).',
         identification:
@@ -4273,7 +4385,7 @@ export default function BulkDocumentImportPage() {
         // `sorting` (keep/merge/split) gets the "Branching" copy, and
         // step `branching` (destination bucket) gets the "Sorting" copy.
         sorting:
-          'Files that contain several documents are split into the right number of separate documents when needed. Tip: use "Next AI suggestion" (Alt+J) to jump to the next pending row whose rename still matches the AI suggestion.',
+          'Files that contain several documents are split into the right number of separate documents when needed. Tip: use "Next AI suggestion" (Alt+J) to jump to the next pending row whose rename still matches the AI suggestion, then Alt+K to accept the currently focused row and advance to the next match.',
         branching:
           'Each kept document is automatically classified into a category (e.g. invoice, contract, minutes).',
         identification:
@@ -4817,8 +4929,8 @@ export default function BulkDocumentImportPage() {
                           data-testid="button-next-ai-named-sorting"
                           title={
                             isFr
-                              ? "Aller à la prochaine ligne en attente dont le nom correspond encore à la suggestion de l'IA (raccourci : Alt+J)."
-                              : 'Jump to the next pending row whose rename still matches the AI suggestion (shortcut: Alt+J).'
+                              ? "Aller à la prochaine ligne en attente dont le nom correspond encore à la suggestion de l'IA (raccourci : Alt+J). Une fois ciblée, appuyez sur Alt+K pour accepter cette ligne et passer à la suivante."
+                              : 'Jump to the next pending row whose rename still matches the AI suggestion (shortcut: Alt+J). Once focused, press Alt+K to accept that row and advance to the next match.'
                           }
                         >
                           <Sparkles className="mr-2 h-4 w-4" />

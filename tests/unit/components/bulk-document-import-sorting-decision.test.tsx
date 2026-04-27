@@ -2286,4 +2286,161 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
     expect(button.getAttribute('title')).toContain('Alt+J');
     expect(button.getAttribute('title')).toContain('IA');
   });
+
+  // ---------------------------------------------------------------------------
+  // Task #1410 — Alt+K paired shortcut: accept the currently-focused
+  // AI-named pending row and auto-advance to the next match.
+  //
+  // Task #1405 added Alt+J ("Next AI suggestion") to jump focus to the
+  // next pending row whose rename input still equals the AI suggestion
+  // verbatim. Task #1410 closes the loop with Alt+K so admins can
+  // "scan & approve" by keyboard alone — one keystroke commits the
+  // currently focused AI-named row via the same `setSortingDecision`
+  // mutation as the per-row Accept button, then jumps to the next
+  // still-AI-named row. These tests guard the contract: the happy path
+  // (POST + advance) and the no-op when the input has been edited away
+  // from the AI value.
+  // ---------------------------------------------------------------------------
+
+  it('Alt+K accepts the focused AI-named pending row and auto-advances to the next match (Task #1410)', async () => {
+    const ITEM_AI_K_A = 'item-1410-accept-a';
+    const ITEM_AI_K_B = 'item-1410-accept-b';
+    items.push(
+      {
+        id: ITEM_AI_K_A,
+        originalName: 'scan-accept-A.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'pending',
+        sortingDecision: 'keep',
+        sortingMergeWithItemId: null,
+        sortingMergeWithItemIds: null,
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: 'Standalone',
+        sortingConfidence: 0.9,
+        branchSuggestedFinalFileName: 'AI Accept A',
+      },
+      {
+        id: ITEM_AI_K_B,
+        originalName: 'scan-accept-B.pdf',
+        status: 'sorted',
+        sortingDecisionState: 'pending',
+        sortingDecision: 'keep',
+        sortingMergeWithItemId: null,
+        sortingMergeWithItemIds: null,
+        sortingSplitAtPage: null,
+        sortingManualOverride: false,
+        sortingReason: 'Standalone',
+        sortingConfidence: 0.9,
+        branchSuggestedFinalFileName: 'AI Accept B',
+      },
+    );
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_AI_K_A}`, undefined, { timeout: 4000 });
+    await screen.findByTestId(`item-preview-trigger-${ITEM_AI_K_B}`);
+
+    const inputA = screen.getByTestId(
+      `branching-rename-${ITEM_AI_K_A}`,
+    ) as HTMLInputElement;
+    const inputB = screen.getByTestId(
+      `branching-rename-${ITEM_AI_K_B}`,
+    ) as HTMLInputElement;
+
+    // Focus the first AI-named row's rename input — exactly the state
+    // Alt+J leaves the page in. Alt+K should then commit that row.
+    await act(async () => {
+      inputA.focus();
+    });
+    expect(document.activeElement).toBe(inputA);
+
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'k', altKey: true });
+    });
+
+    // Mirror the per-row Accept button: a plain `action: 'accept'`
+    // POST against the focused row's set-sorting-decision endpoint.
+    await waitFor(() => {
+      const calls = fetchMock.mock.calls.filter((call) => {
+        const url = typeof call[0] === 'string' ? call[0] : (call[0] as URL).toString();
+        return url.endsWith(`/items/${ITEM_AI_K_A}/set-sorting-decision`);
+      });
+      expect(calls).toHaveLength(1);
+      const init = calls[0][1] as RequestInit;
+      expect((init.method || 'GET').toUpperCase()).toBe('POST');
+      const body = JSON.parse(init.body as string);
+      expect(body.action).toBe('accept');
+    });
+
+    // Auto-advance: focus jumps to the next still-AI-named row so a
+    // follow-up Alt+K continues the scan loop without an extra Alt+J.
+    await waitFor(() => {
+      expect(document.activeElement).toBe(inputB);
+    });
+  });
+
+  it('Alt+K is a no-op when the focused row\'s rename input has been edited away from the AI value (Task #1410)', async () => {
+    const ITEM_AI_K_EDITED = 'item-1410-edited';
+    items.push({
+      id: ITEM_AI_K_EDITED,
+      originalName: 'scan-edited.pdf',
+      status: 'sorted',
+      sortingDecisionState: 'pending',
+      sortingDecision: 'keep',
+      sortingMergeWithItemId: null,
+      sortingMergeWithItemIds: null,
+      sortingSplitAtPage: null,
+      sortingManualOverride: false,
+      sortingReason: 'Standalone',
+      sortingConfidence: 0.9,
+      branchSuggestedFinalFileName: 'AI Edited Name',
+    });
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_AI_K_EDITED}`, undefined, { timeout: 4000 });
+
+    // Use findByTestId so the rename input becomes available even if the
+    // initial render still shows the loading spinner under heavy parallel
+    // jest workers (the preview trigger renders before the rename input
+    // in some interleavings).
+    const input = (await screen.findByTestId(
+      `branching-rename-${ITEM_AI_K_EDITED}`,
+      undefined,
+      { timeout: 4000 },
+    )) as HTMLInputElement;
+
+    // Type something different from the AI suggestion. The row drops
+    // out of `aiNamedSortingTargets`, which Alt+K must respect — a
+    // stray keystroke must never silently commit the admin's edit.
+    await act(async () => {
+      fireEvent.change(input, { target: { value: 'Custom override' } });
+    });
+    await act(async () => {
+      input.focus();
+    });
+    expect(document.activeElement).toBe(input);
+
+    // Snapshot the call count for this row's endpoint before pressing
+    // Alt+K so we can assert no new POST was issued by the shortcut.
+    const beforeCalls = fetchMock.mock.calls.filter((call) => {
+      const url = typeof call[0] === 'string' ? call[0] : (call[0] as URL).toString();
+      return url.endsWith(`/items/${ITEM_AI_K_EDITED}/set-sorting-decision`);
+    }).length;
+
+    await act(async () => {
+      fireEvent.keyDown(document.body, { key: 'k', altKey: true });
+    });
+
+    // Give any spurious mutation a chance to fire before asserting.
+    await new Promise((resolve) => setTimeout(resolve, 50));
+
+    const afterCalls = fetchMock.mock.calls.filter((call) => {
+      const url = typeof call[0] === 'string' ? call[0] : (call[0] as URL).toString();
+      return url.endsWith(`/items/${ITEM_AI_K_EDITED}/set-sorting-decision`);
+    }).length;
+    expect(afterCalls).toBe(beforeCalls);
+
+    // Focus stays put — no advance because there's no eligible target.
+    expect(document.activeElement).toBe(input);
+  });
 });
