@@ -4145,6 +4145,8 @@ export interface Translations {
   dtSuggestedProsPlaceholder: string;
   dtPageTitle: string;
   dtPageSubtitle: string;
+  dtViewToggleTags: string;
+  dtViewToggleFamilies: string;
   dtSectionHeading: string;
   dtCreateButton: string;
   dtSystemCardTitle: string;
@@ -8388,6 +8390,8 @@ export const translations: Record<Language, Translations> = {
     dtSuggestedProsPlaceholder: 'Notary, Lawyer',
     dtPageTitle: 'Document Tags',
     dtPageSubtitle: 'Manage Koveo and custom tags',
+    dtViewToggleTags: 'Tags',
+    dtViewToggleFamilies: 'Link Families',
     dtSectionHeading: 'Tags',
     dtCreateButton: 'New tag',
     dtSystemCardTitle: 'Koveo Tags (system)',
@@ -12636,6 +12640,8 @@ export const translations: Record<Language, Translations> = {
     dtSuggestedProsPlaceholder: 'Notaire, Avocat',
     dtPageTitle: 'Étiquettes de documents',
     dtPageSubtitle: 'Gestion des étiquettes Koveo et personnalisées',
+    dtViewToggleTags: 'Étiquettes',
+    dtViewToggleFamilies: 'Familles de liens',
     dtSectionHeading: 'Étiquettes',
     dtCreateButton: 'Nouvelle étiquette',
     dtSystemCardTitle: 'Étiquettes Koveo (système)',

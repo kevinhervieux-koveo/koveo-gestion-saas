@@ -40,6 +40,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Tag as TagIcon, Plus, Pencil, Trash2, Lock, Link2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
@@ -83,6 +84,9 @@ type FamilyFormValues = z.infer<typeof familyFormSchema>;
 export default function AdminDocumentTags() {
   const { t } = useLanguage();
   const { toast } = useToast();
+
+  // ── View toggle ───────────────────────────────────────────────────────────
+  const [view, setView] = useState<'tags' | 'families'>('tags');
 
   // ── Tags ──────────────────────────────────────────────────────────────────
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
@@ -282,9 +286,26 @@ export default function AdminDocumentTags() {
   return (
     <div className="flex-1">
       <Header title={t('dtPageTitle')} subtitle={t('dtPageSubtitle')} />
-      <div className="container mx-auto px-4 py-6 space-y-10">
+      <div className="container mx-auto px-4 py-6 space-y-6">
+
+        {/* ── View toggle ─────────────────────────────────────────────────── */}
+        <Tabs
+          value={view}
+          onValueChange={(value) => setView(value as 'tags' | 'families')}
+          data-testid="toggle-tags-families-view"
+        >
+          <TabsList>
+            <TabsTrigger value="tags" data-testid="toggle-view-tags">
+              {t('dtViewToggleTags') || 'Tags'}
+            </TabsTrigger>
+            <TabsTrigger value="families" data-testid="toggle-view-families">
+              {t('dtViewToggleFamilies') || 'Link Families'}
+            </TabsTrigger>
+          </TabsList>
+        </Tabs>
 
         {/* ── Document Tags ───────────────────────────────────────────────── */}
+        {view === 'tags' && (
         <section className="space-y-4">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -343,8 +364,10 @@ export default function AdminDocumentTags() {
             </CardContent>
           </Card>
         </section>
+        )}
 
         {/* ── Link Families ───────────────────────────────────────────────── */}
+        {view === 'families' && (
         <section className="space-y-4" data-testid="section-link-families">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
@@ -392,6 +415,7 @@ export default function AdminDocumentTags() {
             </CardContent>
           </Card>
         </section>
+        )}
 
         {/* ── Tag create / edit dialog ────────────────────────────────────── */}
         <Dialog open={tagDialogOpen} onOpenChange={setTagDialogOpen}>
