@@ -9,6 +9,7 @@ import { requireAuth, requireSuperAdmin } from './auth/index';
 import { secureErrorHandler, notFoundHandler } from './middleware/error-security';
 import { enforceDemoSecurity } from './middleware/demo-security';
 import { logDebug, logInfo, logWarn, logError } from './utils/logger';
+import { fixLatin1MisdecodeFilename } from './utils/filenameNormalization';
 
 // NOTE: MCP modules are intentionally NOT imported at the top level. They
 // are pulled in via the lazy-mount trampoline (see `lazyMount` calls below)
@@ -315,10 +316,12 @@ export async function registerRoutes(app: Express) {
         });
       }
 
-      // Generate file info including original names
+      // Generate file info including original names.
+      // Apply Latin-1 mis-decode fix so accented filenames (e.g.
+      // "Procès-verbal été 2024.pdf") round-trip correctly (Task #1470).
       const uploadedFiles = files.map(file => ({
         url: `/uploads/demands/${file.filename}`,
-        originalName: file.originalname,
+        originalName: fixLatin1MisdecodeFilename(file.originalname),
         size: file.size
       }));
 

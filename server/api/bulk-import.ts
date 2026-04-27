@@ -3704,12 +3704,17 @@ export function registerBulkImportRoutes(app: Express): void {
             // resulting hex digest matches what the previous
             // `sha256(file.buffer)` path produced for the same bytes.
             const hash = await sha256File(file.path);
-            const stagedPath = path.join(dir, `${hash}_${file.originalname}`);
+            // Fix Latin-1 mis-decode early so the storage path, DB record,
+            // and download headers all use the correctly-encoded name
+            // (Task #1470). Computing correctedName here means stagedPath
+            // already reflects the UTF-8 name, not the mis-decoded one.
+            const correctedName = fixLatin1MisdecodeFilename(file.originalname);
+            const stagedPath = path.join(dir, `${hash}_${correctedName}`);
             const isDup = fs.existsSync(stagedPath);
             logDebug('[bulk-import] upload file staged', {
               metadata: {
                 sessionId: session.id,
-                originalName: file.originalname,
+                originalName: correctedName,
                 sha256: hash,
                 stagedPath,
                 branch: isDup ? 'dedup-skipped' : 'renamed',
@@ -3737,11 +3742,6 @@ export function registerBulkImportRoutes(app: Express): void {
               fs.renameSync(file.path, stagedPath);
               pathToCleanup = stagedPath;
             }
-
-            // Fix Latin-1 mis-decode: multer may decode UTF-8 filename bytes as
-            // Latin-1, turning é (0xC3 0xA9) into the two-char sequence "Ã©".
-            // Re-interpret as UTF-8 so accented names round-trip correctly.
-            const correctedName = fixLatin1MisdecodeFilename(file.originalname);
 
             // Task #1373 — Sanitise the optional per-file relativePath
             // before persisting it to `originalPath`. We only accept a
