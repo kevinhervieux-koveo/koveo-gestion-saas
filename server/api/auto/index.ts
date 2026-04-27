@@ -50,6 +50,14 @@ export const AUTO_ROUTE_MODULES: Record<string, AutoRouteEntry> = {
   //     lazy: { matcher: '/api/admin/bulk-import' },
   //   },
 
+  // Resident maintenance request creation endpoint (task #1277). Lazy
+  // because residents only post a handful of requests; loading the module
+  // on first hit keeps server boot light.
+  maintenanceRequests: {
+    load: () => import('./maintenance-requests'),
+    lazy: { matcher: '/api/maintenance-requests' },
+  },
+
   // Post-deploy migration verifier (task #939). Eager so a curl against
   // /api/admin/migration-status responds the moment the server is up,
   // without waiting for a first lazy-mount hit.
