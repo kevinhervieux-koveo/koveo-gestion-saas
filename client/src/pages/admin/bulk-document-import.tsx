@@ -2109,6 +2109,7 @@ export default function BulkDocumentImportPage() {
     // the most recent poll cycle errored out (Task #1234).
     errorUpdatedAt: liteErrorUpdatedAt,
     dataUpdatedAt: liteDataUpdatedAt,
+    refetch: refetchLite,
   } = useQuery<SessionPayloadLite>({
     queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
     enabled: !!sessionId,
@@ -2211,6 +2212,9 @@ export default function BulkDocumentImportPage() {
     if (liteDataUpdatedAt && liteDataUpdatedAt > lastSeenLiteDataAtRef.current) {
       lastSeenLiteDataAtRef.current = liteDataUpdatedAt;
       setConsecutiveLitePollErrors(0);
+      // Task #1372 — A recovered poll resets the linking stale-data banner
+      // dismiss flag so the banner can re-appear if the connection drops again.
+      setLinkingStaleDataDismissed(false);
     }
   }, [liteDataUpdatedAt]);
   const litePollInterrupted =
@@ -2449,6 +2453,19 @@ export default function BulkDocumentImportPage() {
   });
 
   /**
+   * Task #1372 — Optimistic link overrides keyed by itemId.  Moved here
+   * (before runAll and resetStep) so the setters are in scope for both
+   * mutations' onSuccess callbacks.  Applied on top of the server-persisted
+   * values so the UI reflects drops immediately without waiting for a query
+   * invalidation round-trip.  Cleared on successful mutation, after a
+   * run-all linking re-run completes, after resetStep('linking') succeeds,
+   * or rolled back on error.
+   */
+  const [linkingOverrides, setLinkingOverrides] = useState<
+    Map<string, { beforeItemId: string | null; afterItemId: string | null }>
+  >(new Map());
+
+  /**
    * Auto-trigger the server-side "run-all" loop for the current AI step
    * (Task #592). The endpoint is idempotent — calling it twice while a
    * loop is in flight is a no-op — so re-renders/remounts are safe. We
@@ -2505,6 +2522,12 @@ export default function BulkDocumentImportPage() {
       // loop, but this keeps the client and server in agreement.
       triggeredAutoRunRef.current.delete(`${sessionId}:${step}`);
       setPendingResetStep(null);
+      // Task #1372 — After a linking reset, the server replaces the chain
+      // topology with fresh AI pointers.  Any optimistic overrides still in
+      // memory would paint a stale chain on top of the new server state.
+      if (step === 'linking') {
+        setLinkingOverrides(new Map());
+      }
       void queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       });
@@ -2772,7 +2795,14 @@ export default function BulkDocumentImportPage() {
         total: currentProgress?.total ?? null,
       });
     }
-    if (!prev.finishedAt && next.finishedAt) {
+    // Task #1372 — Detect run-all completion when finishedAt advances to any
+    // new non-null value.  Using `!prev.finishedAt && next.finishedAt` alone
+    // would miss re-runs where the previous run's finishedAt (T1) is still
+    // stored and the server sets a new finishedAt (T2) without the poll ever
+    // capturing the intermediate null (because the reset and completion happen
+    // between two polls).  Comparing by value handles both the initial-run
+    // and re-run cases.
+    if (next.finishedAt && prev.finishedAt !== next.finishedAt) {
       debugLog('run-all transition running→done', {
         sessionId,
         step: currentStep,
@@ -2781,9 +2811,16 @@ export default function BulkDocumentImportPage() {
         failed: currentProgress?.failed ?? null,
         total: currentProgress?.total ?? null,
       });
+      // Task #1372 — When the linking AI step finishes a re-run the server
+      // has replaced the chain topology with new pointers.  Clear any
+      // optimistic overrides so the UI renders server truth instead of a
+      // stale chain from a previous run.
+      if (currentStep === 'linking') {
+        setLinkingOverrides(new Map());
+      }
     }
     runAllTransitionRef.current = next;
-  }, [currentStep, currentProgress?.startedAt, currentProgress?.finishedAt, sessionId]);
+  }, [currentStep, currentProgress?.startedAt, currentProgress?.finishedAt, sessionId, setLinkingOverrides]);
 
   /**
    * Toggle the exclusion of a single staged item (Task #717).
@@ -3691,15 +3728,18 @@ export default function BulkDocumentImportPage() {
   // Task #1233 — Linking step drag-and-drop state
   // ---------------------------------------------------------------------------
 
+  // linkingOverrides / setLinkingOverrides are declared earlier in the
+  // component (before runAll / resetStep) so those mutations' onSuccess
+  // callbacks can call setLinkingOverrides.  See Task #1372.
+
   /**
-   * Optimistic link overrides keyed by itemId.  Applied on top of the
-   * server-persisted values so the UI reflects drops immediately without
-   * waiting for a query invalidation round-trip.  Cleared on successful
-   * mutation (the refetch takes over) or rolled back on error.
+   * Task #1372 — When the lite poll fails while on the linking step, a
+   * non-blocking banner warns the admin that the chain view may be stale.
+   * This flag tracks whether the admin has dismissed that banner.  It resets
+   * whenever a successful poll lands (liteDataUpdatedAt advances) so the
+   * warning re-appears if the connection drops again after recovering.
    */
-  const [linkingOverrides, setLinkingOverrides] = useState<
-    Map<string, { beforeItemId: string | null; afterItemId: string | null }>
-  >(new Map());
+  const [linkingStaleDataDismissed, setLinkingStaleDataDismissed] = useState(false);
 
   /** ID of the item currently being dragged (linking step only). */
   const [linkingDragId, setLinkingDragId] = useState<string | null>(null);
@@ -3792,6 +3832,24 @@ export default function BulkDocumentImportPage() {
   }
 
   /**
+   * Task #1372 — Map of every item's server-persisted before/after pointers,
+   * without optimistic overrides.  Passed into the change computers so the
+   * stale-neighbor sweep can find invisible items whose persisted pointers
+   * still reference chain members being mutated, and emit nulling corrections
+   * for them.  Built from the current items snapshot; recalculated on each
+   * render (items is already a reference from the lite-poll cache).
+   */
+  const persistedPointerMap = new Map(
+    items.map((it) => [
+      it.id,
+      {
+        before: it.linkingBeforeItemId,
+        after: it.linkingAfterItemId,
+      },
+    ]),
+  );
+
+  /**
    * Apply computed changes optimistically and fire the persistence mutation.
    * Each entry in `changes` replaces that item's before/after values.
    */
@@ -3821,7 +3879,7 @@ export default function BulkDocumentImportPage() {
    * regardless of where in the chain the drag starts or ends.
    */
   function handleLinkingDrop(dragId: string, targetId: string, position: 'before' | 'after') {
-    const changes = computeLinkingDropChanges(dragId, targetId, position, getLinkingEffective);
+    const changes = computeLinkingDropChanges(dragId, targetId, position, getLinkingEffective, persistedPointerMap);
     if (changes.length === 0) return;
     applyLinkingChanges(changes);
   }
@@ -3831,7 +3889,7 @@ export default function BulkDocumentImportPage() {
    * (before = null, after = null) and reconnecting its former neighbors.
    */
   function handleLinkingMakeStandalone(dragId: string) {
-    const changes = computeLinkingMakeStandaloneChanges(dragId, getLinkingEffective);
+    const changes = computeLinkingMakeStandaloneChanges(dragId, getLinkingEffective, persistedPointerMap);
     if (changes.length === 0) return;
     applyLinkingChanges(changes);
   }
@@ -3842,7 +3900,7 @@ export default function BulkDocumentImportPage() {
    * button in the chain header.
    */
   function handleLinkingBreakGroup(itemIds: string[]) {
-    const changes = computeLinkingBreakGroupChanges(itemIds, getLinkingEffective);
+    const changes = computeLinkingBreakGroupChanges(itemIds, getLinkingEffective, persistedPointerMap);
     if (changes.length === 0) return;
     applyLinkingChanges(changes);
     const count = changes.length;
@@ -6008,6 +6066,41 @@ export default function BulkDocumentImportPage() {
                           className="sr-only"
                         >
                           {linkingAnnouncement}
+                        </div>
+                      )}
+
+                      {/* Task #1372 — Stale-data banner: shown on the linking step when
+                          the lite poll has been failing, warning the admin that the
+                          chain view may not reflect the latest server state.  Non-
+                          blocking — the admin can still act, but is nudged to retry. */}
+                      {currentStep === 'linking' && litePollInterrupted && !linkingStaleDataDismissed && (
+                        <div
+                          className="mb-3 flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-sm text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200"
+                          data-testid="linking-stale-data-banner"
+                          role="status"
+                        >
+                          <AlertTriangle className="h-4 w-4 shrink-0" aria-hidden="true" />
+                          <span className="flex-1">
+                            {isFr
+                              ? 'La vue des chaînes peut être désynchronisée — rechargez pour voir les dernières données.'
+                              : 'The chain view may be out of date — reload to see the latest data.'}
+                          </span>
+                          <button
+                            type="button"
+                            className="flex items-center gap-1 rounded px-2 py-0.5 text-xs font-medium underline-offset-2 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                            onClick={() => void refetchLite()}
+                          >
+                            <RefreshCw className="h-3 w-3" aria-hidden="true" />
+                            {isFr ? 'Réessayer' : 'Retry'}
+                          </button>
+                          <button
+                            type="button"
+                            aria-label={isFr ? 'Masquer l\'avertissement' : 'Dismiss warning'}
+                            className="ml-1 rounded p-0.5 hover:opacity-70 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-amber-500"
+                            onClick={() => setLinkingStaleDataDismissed(true)}
+                          >
+                            ×
+                          </button>
                         </div>
                       )}
 

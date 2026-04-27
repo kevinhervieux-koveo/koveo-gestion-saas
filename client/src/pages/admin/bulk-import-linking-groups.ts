@@ -190,6 +190,59 @@ function sequenceToChanges(
 }
 
 /**
+ * Stale-neighbor sweep (Task #1372).
+ *
+ * After computing the primary changes for a linking action, this helper
+ * scans every item in `persistedPointerMap` that is NOT already covered by
+ * `changes`.  If such an item has a persisted before/after pointer that
+ * references an item in `changes`, and the changed item's proposed new
+ * pointer no longer points back to this item, a correction entry is added
+ * to `changes` so the server's bidirectional guard never sees a half-update.
+ *
+ * This is the root-cause fix for the "Bidirectional inconsistency" toast:
+ * when the UI renders a stale chain (missing members that the server still
+ * has chained) the primary change set only covers visible nodes; this sweep
+ * catches the invisible neighbors and emits null-outs for their dangling
+ * pointers.
+ */
+function sweepStaleNeighbors(
+  changes: Map<string, { beforeItemId: string | null; afterItemId: string | null }>,
+  persistedPointerMap: Map<string, LinkingEffective>,
+  /** Optional: ids added by the sweep are recorded here so callers can
+   *  bypass getEffective-based dedup for invisible items. */
+  sweepIds?: Set<string>,
+): void {
+  for (const [id, persisted] of persistedPointerMap) {
+    if (changes.has(id)) continue;
+
+    let corrBefore = persisted.before;
+    let corrAfter = persisted.after;
+    let needsCorrection = false;
+
+    if (persisted.before !== null && changes.has(persisted.before)) {
+      const changedNeighbor = changes.get(persisted.before)!;
+      if (changedNeighbor.afterItemId !== id) {
+        corrBefore = null;
+        needsCorrection = true;
+      }
+    }
+
+    if (persisted.after !== null && changes.has(persisted.after)) {
+      const changedNeighbor = changes.get(persisted.after)!;
+      if (changedNeighbor.beforeItemId !== id) {
+        corrAfter = null;
+        needsCorrection = true;
+      }
+    }
+
+    if (needsCorrection) {
+      changes.set(id, { beforeItemId: corrBefore, afterItemId: corrAfter });
+      sweepIds?.add(id);
+    }
+  }
+}
+
+/**
  * Pure computation behind `handleLinkingDrop`.
  *
  * Given a `dragId` being dropped onto `targetId` at `position`
@@ -204,12 +257,18 @@ function sequenceToChanges(
  * `dragId` into the target chain at the requested position, then
  * regenerate consistent before/after pairs for every member of both
  * chains.  Pure: no React state and no network calls.
+ *
+ * `persistedPointerMap` (Task #1372): when provided, a stale-neighbor
+ * sweep is run after the primary changes are computed, ensuring that any
+ * item outside the visible chains whose persisted pointer still references
+ * a mutated item also receives a nulling correction.
  */
 export function computeLinkingDropChanges(
   dragId: string,
   targetId: string,
   position: 'before' | 'after',
   getEffective: (id: string) => LinkingEffective,
+  persistedPointerMap?: Map<string, LinkingEffective>,
 ): LinkingChange[] {
   if (dragId === targetId) return [];
 
@@ -240,8 +299,24 @@ export function computeLinkingDropChanges(
     sequenceToChanges(srcWithoutDrag, changes);
   }
 
+  // Task #1372: track ids added by the sweep so the output filter can bypass
+  // getEffective() for invisible items (their effective fallback is null/null,
+  // which would incorrectly match a {before:null,after:null} correction and
+  // cause the correction to be silently dropped).
+  const sweepIds = new Set<string>();
+  if (persistedPointerMap) {
+    sweepStaleNeighbors(changes, persistedPointerMap, sweepIds);
+  }
+
   const out: LinkingChange[] = [];
   for (const [id, v] of changes) {
+    // Sweep-added corrections are always emitted: the persisted server state
+    // has a non-null pointer that must be nulled.  We cannot use getEffective
+    // here because invisible items return the null/null fallback.
+    if (sweepIds.has(id)) {
+      out.push({ itemId: id, beforeItemId: v.beforeItemId, afterItemId: v.afterItemId });
+      continue;
+    }
     const eff = getEffective(id);
     if (eff.before !== v.beforeItemId || eff.after !== v.afterItemId) {
       out.push({ itemId: id, beforeItemId: v.beforeItemId, afterItemId: v.afterItemId });
@@ -257,10 +332,15 @@ export function computeLinkingDropChanges(
  * before/after to null) and reconnects its former neighbors so the
  * remaining chain stays consistent.  Returns an empty array when the
  * item is already standalone.
+ *
+ * `persistedPointerMap` (Task #1372): when provided, a stale-neighbor
+ * sweep nulls out dangling pointers on items outside the visible chain
+ * that still reference `dragId` in their persisted state.
  */
 export function computeLinkingMakeStandaloneChanges(
   dragId: string,
   getEffective: (id: string) => LinkingEffective,
+  persistedPointerMap?: Map<string, LinkingEffective>,
 ): LinkingChange[] {
   const eff = getEffective(dragId);
   if (!eff.before && !eff.after) return [];
@@ -284,6 +364,10 @@ export function computeLinkingMakeStandaloneChanges(
   }
   set(dragId, null, null);
 
+  if (persistedPointerMap) {
+    sweepStaleNeighbors(changes, persistedPointerMap);
+  }
+
   return Array.from(changes.entries()).map(([itemId, v]) => ({ itemId, ...v }));
 }
 
@@ -295,16 +379,42 @@ export function computeLinkingMakeStandaloneChanges(
  * standalone (both pointers null) are skipped so the persisted batch
  * contains only real diffs.  Returns an empty array when no item in
  * `itemIds` is currently linked.
+ *
+ * `persistedPointerMap` (Task #1372): when provided, a stale-neighbor
+ * sweep scans every item in the map that is NOT in `itemIds`.  If such
+ * an item's persisted before/after still points into the break set, a
+ * correction entry (nulling that pointer) is added so the server's
+ * bidirectional guard never rejects the batch due to a stale invisible
+ * neighbor.  This is the direct fix for the "Bidirectional inconsistency"
+ * toast reported in Task #1372.
  */
 export function computeLinkingBreakGroupChanges(
   itemIds: string[],
   getEffective: (id: string) => LinkingEffective,
+  persistedPointerMap?: Map<string, LinkingEffective>,
 ): LinkingChange[] {
-  const out: LinkingChange[] = [];
+  const breakSet = new Set(itemIds);
+
+  const changesMap = new Map<string, { beforeItemId: string | null; afterItemId: string | null }>();
   for (const id of itemIds) {
     const eff = getEffective(id);
     if (eff.before === null && eff.after === null) continue;
-    out.push({ itemId: id, beforeItemId: null, afterItemId: null });
+    changesMap.set(id, { beforeItemId: null, afterItemId: null });
   }
-  return out;
+
+  if (persistedPointerMap) {
+    for (const [id, persisted] of persistedPointerMap) {
+      if (breakSet.has(id)) continue;
+
+      const staleBefore = persisted.before !== null && breakSet.has(persisted.before);
+      const staleAfter = persisted.after !== null && breakSet.has(persisted.after);
+      if (!staleBefore && !staleAfter) continue;
+
+      const corrBefore = staleBefore ? null : persisted.before;
+      const corrAfter = staleAfter ? null : persisted.after;
+      changesMap.set(id, { beforeItemId: corrBefore, afterItemId: corrAfter });
+    }
+  }
+
+  return Array.from(changesMap.entries()).map(([itemId, v]) => ({ itemId, ...v }));
 }
