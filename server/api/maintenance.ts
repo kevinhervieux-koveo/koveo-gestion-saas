@@ -52,7 +52,7 @@ import {
 } from '@shared/schemas/maintenance';
 import { buildings, organizations, userOrganizations, userBuildings, residences, users } from '@shared/schema';
 import { sendDbWriteError } from '../utils/rest-db-error';
-import { queryDeleteBlockers } from '../mcp/server';
+import { queryAllDeleteBlockerCounts } from '../mcp/server';
 import { isFinancialYearCoveredForBuilding, buildFyValidationError } from './project-fy-validator';
 import { documents } from '@shared/schemas/documents';
 import { workflowService } from '../services/workflow-service';
@@ -3568,7 +3568,8 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
       // Task #1341 — surface FK constraint violations as the shared
       // structured envelope so the frontend can render the actual blocking
       // rows (project_steps, project_elements) instead of a generic toast.
-      const blockers = await queryDeleteBlockers(error, 'maintenance_projects', req.params.id);
+      const isFK = (error as { code?: unknown } | null)?.code === '23503';
+      const blockers = isFK ? await queryAllDeleteBlockerCounts('maintenance_projects', req.params.id) : null;
       return sendDbWriteError(res, error, 'project', 'delete', {
         logPrefix: '[MAINTENANCE API] project delete failed',
         blockers,

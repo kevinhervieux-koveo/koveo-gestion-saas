@@ -26,28 +26,18 @@ import { logError } from './logger';
 
 type WriteAction = 'create' | 'update' | 'delete';
 
-/**
- * Structured blocker entry surfaced on FK-violation delete envelopes so
- * frontends can render an explicit "these N records must be removed first"
- * list instead of a generic toast. Populated by `queryDeleteBlockers` in
- * `server/mcp/server.ts` (Task #1341).
- */
-export interface FkBlocker {
-  id: string;
-  label?: string;
-}
-
 interface SendDbWriteErrorOptions {
   /** Optional log prefix; the full error is always logged before sanitization. */
   logPrefix?: string;
   /** Extra fields merged into the response body (e.g. legacy `error_id`). */
   extraFields?: Record<string, unknown>;
   /**
-   * Optional structured FK blockers to merge into the response envelope when
-   * the underlying error is a delete-FK violation. Ignored for any other error
-   * shape so non-FK errors keep their existing payload contract.
+   * Optional structured FK blocker count map to merge into the response
+   * envelope when the underlying error is a delete-FK violation. Keys are
+   * DB table names, values are row counts > 0. Built by
+   * `queryAllDeleteBlockerCounts` in `server/mcp/server.ts` (Task #1471).
    */
-  blockers?: FkBlocker[] | null;
+  blockers?: Record<string, number> | null;
 }
 
 interface ParsedEnvelope {
@@ -57,8 +47,8 @@ interface ParsedEnvelope {
   message?: string;
   pgCode?: string;
   blocking_entity?: string;
+  blocking_entities?: Record<string, number>;
   referenced_entity?: string;
-  blockers?: FkBlocker[];
 }
 
 /**
@@ -110,7 +100,7 @@ export function sendDbWriteError(
     err instanceof Error ? err : new Error(String(err)),
   );
 
-  const blockers = options.blockers && options.blockers.length > 0 ? options.blockers : null;
+  const blockers = options.blockers && Object.keys(options.blockers).length > 0 ? options.blockers : null;
   const envelope = buildWriteErrorResponse(err, entityLabel, action, blockers);
   const text = envelope.content[0]?.text ?? '';
 

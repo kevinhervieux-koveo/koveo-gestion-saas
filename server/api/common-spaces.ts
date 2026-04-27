@@ -6,7 +6,7 @@ import { z } from 'zod';
 import * as schema from '@shared/schema';
 import { resolveOrgScope, assertBuildingWriteAccess } from '../utils/org-scope';
 import { sendDbWriteError } from '../utils/rest-db-error';
-import { queryDeleteBlockers } from '../mcp/server';
+import { queryAllDeleteBlockerCounts } from '../mcp/server';
 import {
   getUserBookingHours,
   checkUserTimeLimit,
@@ -1428,8 +1428,9 @@ export function registerCommonSpacesRoutes(app: Express): void {
         const rawSpaceId = typeof (req.params as { spaceId?: unknown }).spaceId === 'string'
           ? (req.params as { spaceId: string }).spaceId
           : '';
-        const blockers = rawSpaceId
-          ? await queryDeleteBlockers(error, 'common_spaces', rawSpaceId)
+        const isFK = (error as { code?: unknown } | null)?.code === '23503';
+        const blockers = (rawSpaceId && isFK)
+          ? await queryAllDeleteBlockerCounts('common_spaces', rawSpaceId)
           : null;
         return sendDbWriteError(res, error, 'common space', 'delete', {
           logPrefix: '[COMMON SPACES API] delete failed',

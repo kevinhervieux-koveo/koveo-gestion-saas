@@ -484,7 +484,7 @@ export function buildWriteErrorResponse(
   e: unknown,
   entityLabel: string,
   action: 'create' | 'update' | 'delete' = 'create',
-  blockers?: Array<{ id: string; label?: string }> | null,
+  blockers?: Record<string, number> | null,
 ): { content: Array<{ type: 'text'; text: string }> } {
   const code = (e as { code?: unknown } | null)?.code;
   if (code === '23503') {
@@ -502,8 +502,19 @@ export function buildWriteErrorResponse(
       : 'related_record';
     const humanLabel = relatedEntity.replace(/_/g, ' ');
     if (action === 'delete') {
-      const blockerCount = blockers && blockers.length > 0 ? blockers.length : null;
-      const countPhrase = blockerCount !== null ? blockerCount : '1 or more';
+      // Build a human-readable entity→count map from the blocker counts.
+      const blockingEntities: Record<string, number> | null = blockers && Object.keys(blockers).length > 0
+        ? Object.fromEntries(
+            Object.entries(blockers).map(([tbl, cnt]) => [
+              FK_TABLE_TO_ENTITY[tbl] ?? tbl.replace(/_/g, ' '),
+              cnt,
+            ])
+          )
+        : null;
+      const totalCount = blockingEntities
+        ? Object.values(blockingEntities).reduce((a, b) => a + b, 0)
+        : null;
+      const countPhrase = totalCount !== null ? totalCount : '1 or more';
       const message = relatedTable
         ? `Cannot delete ${entityLabel}: ${countPhrase} ${humanLabel}(s) still reference it. Remove them first.`
         : `Cannot delete ${entityLabel}: other records still reference it. Remove them first.`;
@@ -514,8 +525,8 @@ export function buildWriteErrorResponse(
         blocking_entity: relatedEntity,
         message,
       };
-      if (blockers && blockers.length > 0) {
-        payload.blockers = blockers;
+      if (blockingEntities) {
+        payload.blocking_entities = blockingEntities;
       }
       return {
         content: [{
@@ -576,61 +587,69 @@ export function buildWriteErrorResponse(
       }],
     };
   }
+  const devBlock =
+    process.env.NODE_ENV !== 'production'
+      ? {
+          _devError: {
+            message: (e as { message?: unknown } | null)?.message ?? String(e),
+            code: (e as { code?: unknown } | null)?.code,
+            detail: (e as { detail?: unknown } | null)?.detail,
+          },
+        }
+      : {};
   return {
     content: [{
       type: 'text' as const,
-      text: `Failed to ${action} ${entityLabel} — please retry`,
+      text: JSON.stringify({
+        status: 'error',
+        retryable: true,
+        message: `Failed to ${action} ${entityLabel} — please retry`,
+        ...devBlock,
+      }, null, 2),
     }],
   };
 }
 
 /**
- * Query the database for up to `limit` records in the blocking table after a
- * delete FK violation. Used by delete handlers to populate the `blockers` field
- * of `buildWriteErrorResponse` with actual record IDs and labels so callers can
- * see exactly which rows prevent the delete.
+ * Query the database for row counts across ALL blocking entity classes for a
+ * given entity before or after a delete attempt. Used by delete handlers to
+ * build a structured blocker map that tells the caller exactly which entity
+ * classes (and how many rows of each) still reference the entity being deleted.
+ *
+ * Unlike the former single-table approach (which relied on parsing a single FK
+ * constraint from the PostgreSQL 23503 error detail), this function queries
+ * every entry in `FK_BLOCKER_COLUMN_HINTS[entityTable]` unconditionally so
+ * that ALL blocking entity classes are represented — not only the one that
+ * happened to trigger the error first.
  *
  * `entityTable` must be one of the keys in `FK_BLOCKER_COLUMN_HINTS`.
- * `blockingTable` is parsed from the PostgreSQL error detail string.
  * Only table/column names from our own `FK_BLOCKER_COLUMN_HINTS` are ever
  * interpolated into the query — they are never derived from user input.
  *
- * Returns `null` if the error is not a FK violation, if the blocking table
- * is unknown, or if the follow-up query fails (the failure is logged but does
- * not propagate — the original error response still reaches the caller).
+ * Returns a `Record<string, number>` whose keys are DB table names and whose
+ * values are row counts > 0. Returns `null` if there are no hints for
+ * `entityTable` or if every count query fails (failures are logged individually
+ * and do not propagate — the original error response still reaches the caller).
  */
-export async function queryDeleteBlockers(
-  e: unknown,
+export async function queryAllDeleteBlockerCounts(
   entityTable: string,
   entityId: string,
-  limitCount = 5,
-): Promise<Array<{ id: string; label?: string }> | null> {
-  const code = (e as { code?: unknown } | null)?.code;
-  if (code !== '23503') return null;
-  const detail = (e as { detail?: unknown } | null)?.detail;
-  if (typeof detail !== 'string') return null;
-  const match = detail.match(/referenced from table "([^"]+)"/);
-  if (!match) return null;
-  const blockingTable = match[1];
+): Promise<Record<string, number> | null> {
   const hints = FK_BLOCKER_COLUMN_HINTS[entityTable];
   if (!hints) return null;
-  const hint = hints[blockingTable];
-  if (!hint) return null;
-  try {
-    const rows = await db.execute(
-      sql`SELECT id${hint.labelCol !== 'id' ? sql`, ${sql.raw(hint.labelCol)} AS label` : sql``}
-          FROM ${sql.raw(blockingTable)}
-          WHERE ${sql.raw(hint.filterCol)} = ${entityId}
-          LIMIT ${sql.raw(String(limitCount))}`
-    );
-    return (rows.rows as Array<{ id: string; label?: string }>).map((r) => ({
-      id: r.id,
-      ...(hint.labelCol !== 'id' && r.label !== undefined ? { label: String(r.label) } : {}),
-    }));
-  } catch (qErr) {
-    console.error('[mcp:queryDeleteBlockers] follow-up query failed', qErr);
-    return null;
+  const counts: Record<string, number> = {};
+  for (const [blockingTable, hint] of Object.entries(hints)) {
+    try {
+      const result = await db.execute(
+        sql`SELECT COUNT(*) AS cnt FROM ${sql.raw(blockingTable)} WHERE ${sql.raw(hint.filterCol)} = ${entityId}`
+      );
+      const cnt = Number((result.rows[0] as { cnt: string | number } | undefined)?.cnt ?? 0);
+      if (cnt > 0) counts[blockingTable] = cnt;
+    } catch (qErr) {
+      console.error('[mcp:queryAllDeleteBlockerCounts] count query failed for', blockingTable, qErr);
+    }
   }
+  return Object.keys(counts).length > 0 ? counts : null;
 }
 
 /**
@@ -1061,12 +1080,17 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     // arbitrary tenant data even without an org filter.
     { role: roleParam },
     async ({ role }) => {
-      const orgIds = await getOrgIds();
-      const orgs = await db
-        .select()
-        .from(schema.organizations)
-        .where(and(inArray(schema.organizations.id, orgIds), eq(schema.organizations.isActive, true)));
-      return { content: [{ type: "text" as const, text: JSON.stringify(orgs, null, 2) }] };
+      try {
+        const orgIds = await getOrgIds();
+        const orgs = await db
+          .select()
+          .from(schema.organizations)
+          .where(and(inArray(schema.organizations.id, orgIds), eq(schema.organizations.isActive, true)));
+        return { content: [{ type: "text" as const, text: JSON.stringify(orgs, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_organizations]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
+      }
     }
   );
 
@@ -1075,12 +1099,17 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Get details of a specific organization",
     { role: roleParam, organizationId: z.string().describe("Organization ID") },
     async ({ role, organizationId }) => {
-      const orgIds = await getOrgIds();
-      if (!orgIds.includes(organizationId)) {
-        return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
+      try {
+        const orgIds = await getOrgIds();
+        if (!orgIds.includes(organizationId)) {
+          return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
+        }
+        const [org] = await db.select().from(schema.organizations).where(eq(schema.organizations.id, organizationId));
+        return { content: [{ type: "text" as const, text: org ? JSON.stringify(org, null, 2) : "Organization not found" }] };
+      } catch (e) {
+        console.error("[mcp:get_organization]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const [org] = await db.select().from(schema.organizations).where(eq(schema.organizations.id, organizationId));
-      return { content: [{ type: "text" as const, text: org ? JSON.stringify(org, null, 2) : "Organization not found" }] };
     }
   );
 
@@ -1089,15 +1118,20 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "List buildings in an organization",
     { role: roleParam, organizationId: z.string().describe("Organization ID") },
     async ({ role, organizationId }) => {
-      const orgIds = await getOrgIds();
-      if (!orgIds.includes(organizationId)) {
-        return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
+      try {
+        const orgIds = await getOrgIds();
+        if (!orgIds.includes(organizationId)) {
+          return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
+        }
+        const buildings = await db
+          .select()
+          .from(schema.buildings)
+          .where(and(eq(schema.buildings.organizationId, organizationId), eq(schema.buildings.isActive, true)));
+        return { content: [{ type: "text" as const, text: JSON.stringify(buildings, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_buildings]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const buildings = await db
-        .select()
-        .from(schema.buildings)
-        .where(and(eq(schema.buildings.organizationId, organizationId), eq(schema.buildings.isActive, true)));
-      return { content: [{ type: "text" as const, text: JSON.stringify(buildings, null, 2) }] };
     }
   );
 
@@ -1106,12 +1140,17 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Get details of a specific building",
     { role: roleParam, buildingId: z.string().describe("Building ID") },
     async ({ role, buildingId }) => {
-      const orgIds = await getOrgIds();
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+      try {
+        const orgIds = await getOrgIds();
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+        }
+        return { content: [{ type: "text" as const, text: JSON.stringify(building, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:get_building]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      return { content: [{ type: "text" as const, text: JSON.stringify(building, null, 2) }] };
     }
   );
 
@@ -1121,10 +1160,10 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     {
       role: roleParam,
       organizationId: z.string().describe("Organization ID"),
-      name: z.string().describe("Building name"),
-      address: z.string().describe("Street address"),
-      city: z.string().describe("City"),
-      postalCode: z.string().describe("Postal code"),
+      name: z.string().trim().min(1, 'Building name is required').describe("Building name"),
+      address: z.string().trim().min(1, 'Address is required').describe("Street address"),
+      city: z.string().trim().min(1, 'City is required').describe("City"),
+      postalCode: z.string().trim().min(1, 'Postal code is required').describe("Postal code"),
       buildingType: z.enum(["apartment", "condo", "rental"]).describe("Building type"),
       totalUnits: z.number().int().min(1, "Total units must be at least 1").describe("Total number of units"),
       province: z.string().length(2).optional().describe("Province code (defaults to QC)"),
@@ -1510,41 +1549,46 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "List residences in a building",
     { role: roleParam, buildingId: z.string().describe("Building ID") },
     async ({ role, buildingId }) => {
-      const orgIds = await getOrgIds();
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+      try {
+        const orgIds = await getOrgIds();
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+        }
+        let residences;
+        if (role === "tenant") {
+          const user = await getMcpUser("tenant");
+          if (!user) return { content: [{ type: "text" as const, text: "MCP tenant user not found" }] };
+          // Per the canonical "current tenancy" rule on `userResidences`
+          // (see shared/schemas/property.ts, Task #144), reads MUST filter
+          // on `userResidences.isActive = true`. The MCP `list_residences`
+          // tenant branch now applies the strict rule like all other
+          // read paths — seed data inserts default `isActive: true`, and
+          // the end-residency write contract keeps the flag aligned.
+          residences = await db
+            .select({ r: schema.residences })
+            .from(schema.residences)
+            .innerJoin(schema.userResidences, eq(schema.residences.id, schema.userResidences.residenceId))
+            .where(
+              and(
+                eq(schema.residences.buildingId, buildingId),
+                eq(schema.userResidences.userId, user.id),
+                eq(schema.userResidences.isActive, true),
+                eq(schema.residences.isActive, true)
+              )
+            );
+          residences = residences.map((r: { r: typeof schema.residences.$inferSelect }) => r.r);
+        } else {
+          residences = await db
+            .select()
+            .from(schema.residences)
+            .where(and(eq(schema.residences.buildingId, buildingId), eq(schema.residences.isActive, true)));
+        }
+        return { content: [{ type: "text" as const, text: JSON.stringify(residences, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_residences]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      let residences;
-      if (role === "tenant") {
-        const user = await getMcpUser("tenant");
-        if (!user) return { content: [{ type: "text" as const, text: "MCP tenant user not found" }] };
-        // Per the canonical "current tenancy" rule on `userResidences`
-        // (see shared/schemas/property.ts, Task #144), reads MUST filter
-        // on `userResidences.isActive = true`. The MCP `list_residences`
-        // tenant branch now applies the strict rule like all other
-        // read paths — seed data inserts default `isActive: true`, and
-        // the end-residency write contract keeps the flag aligned.
-        residences = await db
-          .select({ r: schema.residences })
-          .from(schema.residences)
-          .innerJoin(schema.userResidences, eq(schema.residences.id, schema.userResidences.residenceId))
-          .where(
-            and(
-              eq(schema.residences.buildingId, buildingId),
-              eq(schema.userResidences.userId, user.id),
-              eq(schema.userResidences.isActive, true),
-              eq(schema.residences.isActive, true)
-            )
-          );
-        residences = residences.map((r: { r: typeof schema.residences.$inferSelect }) => r.r);
-      } else {
-        residences = await db
-          .select()
-          .from(schema.residences)
-          .where(and(eq(schema.residences.buildingId, buildingId), eq(schema.residences.isActive, true)));
-      }
-      return { content: [{ type: "text" as const, text: JSON.stringify(residences, null, 2) }] };
     }
   );
 
@@ -1553,37 +1597,42 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Get details of a specific residence",
     { role: roleParam, residenceId: z.string().describe("Residence ID") },
     async ({ role, residenceId }) => {
-      const orgIds = await getOrgIds();
-      const [residence] = await db.select().from(schema.residences).where(eq(schema.residences.id, residenceId));
-      if (!residence) return { content: [{ type: "text" as const, text: "Residence not found" }] };
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, residence.buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Access denied" }] };
-      }
-      // Tenant scope guard: a tenant may only read a residence they are
-      // actually linked to via `userResidences`. Without this check, the
-      // org-scope check above lets any tenant read any residence in the
-      // MCP sandbox by ID. Per Task #144, the link must be currently
-      // active (`userResidences.isActive = true`).
-      if (role === "tenant") {
-        const user = await getMcpUser("tenant");
-        if (!user) return { content: [{ type: "text" as const, text: "MCP tenant user not found" }] };
-        const [link] = await db
-          .select({ id: schema.userResidences.id })
-          .from(schema.userResidences)
-          .where(
-            and(
-              eq(schema.userResidences.userId, user.id),
-              eq(schema.userResidences.residenceId, residenceId),
-              eq(schema.userResidences.isActive, true)
-            )
-          )
-          .limit(1);
-        if (!link) {
+      try {
+        const orgIds = await getOrgIds();
+        const [residence] = await db.select().from(schema.residences).where(eq(schema.residences.id, residenceId));
+        if (!residence) return { content: [{ type: "text" as const, text: "Residence not found" }] };
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, residence.buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
           return { content: [{ type: "text" as const, text: "Access denied" }] };
         }
+        // Tenant scope guard: a tenant may only read a residence they are
+        // actually linked to via `userResidences`. Without this check, the
+        // org-scope check above lets any tenant read any residence in the
+        // MCP sandbox by ID. Per Task #144, the link must be currently
+        // active (`userResidences.isActive = true`).
+        if (role === "tenant") {
+          const user = await getMcpUser("tenant");
+          if (!user) return { content: [{ type: "text" as const, text: "MCP tenant user not found" }] };
+          const [link] = await db
+            .select({ id: schema.userResidences.id })
+            .from(schema.userResidences)
+            .where(
+              and(
+                eq(schema.userResidences.userId, user.id),
+                eq(schema.userResidences.residenceId, residenceId),
+                eq(schema.userResidences.isActive, true)
+              )
+            )
+            .limit(1);
+          if (!link) {
+            return { content: [{ type: "text" as const, text: "Access denied" }] };
+          }
+        }
+        return { content: [{ type: "text" as const, text: JSON.stringify(residence, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:get_residence]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      return { content: [{ type: "text" as const, text: JSON.stringify(residence, null, 2) }] };
     }
   );
 
@@ -1593,7 +1642,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     {
       role: roleParam,
       buildingId: z.string().describe("Building ID"),
-      unitNumber: z.string().describe("Unit number"),
+      unitNumber: z.string().trim().min(1, 'Unit number is required').describe("Unit number"),
       floor: z.number().int().optional().describe("Floor number"),
       bedrooms: z.number().int().min(0, "Bedrooms must not be negative").optional().describe("Number of bedrooms"),
       bathrooms: z.number().min(0, "Bathrooms must not be negative").optional().describe("Number of bathrooms"),
@@ -1896,34 +1945,39 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot list users" }] };
       }
-      const orgIds = await getOrgIds();
-      if (!orgIds.includes(organizationId)) {
-        return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
+      try {
+        const orgIds = await getOrgIds();
+        if (!orgIds.includes(organizationId)) {
+          return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
+        }
+        const userOrgs = await db
+          .select({
+            userId: schema.userOrganizations.userId,
+            organizationId: schema.userOrganizations.organizationId,
+          })
+          .from(schema.userOrganizations)
+          .where(
+            and(eq(schema.userOrganizations.organizationId, organizationId), eq(schema.userOrganizations.isActive, true))
+          );
+        const userIds = [...new Set(userOrgs.map((uo) => uo.userId))];
+        if (userIds.length === 0) return { content: [{ type: "text" as const, text: "[]" }] };
+        const users = await db
+          .select({
+            id: schema.users.id,
+            email: schema.users.email,
+            firstName: schema.users.firstName,
+            lastName: schema.users.lastName,
+            role: schema.users.role,
+            isActive: schema.users.isActive,
+            language: schema.users.language,
+          })
+          .from(schema.users)
+          .where(inArray(schema.users.id, userIds));
+        return { content: [{ type: "text" as const, text: JSON.stringify(users, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_users]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const userOrgs = await db
-        .select({
-          userId: schema.userOrganizations.userId,
-          organizationId: schema.userOrganizations.organizationId,
-        })
-        .from(schema.userOrganizations)
-        .where(
-          and(eq(schema.userOrganizations.organizationId, organizationId), eq(schema.userOrganizations.isActive, true))
-        );
-      const userIds = [...new Set(userOrgs.map((uo) => uo.userId))];
-      if (userIds.length === 0) return { content: [{ type: "text" as const, text: "[]" }] };
-      const users = await db
-        .select({
-          id: schema.users.id,
-          email: schema.users.email,
-          firstName: schema.users.firstName,
-          lastName: schema.users.lastName,
-          role: schema.users.role,
-          isActive: schema.users.isActive,
-          language: schema.users.language,
-        })
-        .from(schema.users)
-        .where(inArray(schema.users.id, userIds));
-      return { content: [{ type: "text" as const, text: JSON.stringify(users, null, 2) }] };
     }
   );
 
@@ -1935,30 +1989,35 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view user details" }] };
       }
-      const orgIds = await getOrgIds();
-      const userOrg = await db
-        .select()
-        .from(schema.userOrganizations)
-        .where(and(eq(schema.userOrganizations.userId, userId), inArray(schema.userOrganizations.organizationId, orgIds)))
-        .limit(1);
-      if (userOrg.length === 0) {
-        return { content: [{ type: "text" as const, text: "User not found in MCP organizations" }] };
+      try {
+        const orgIds = await getOrgIds();
+        const userOrg = await db
+          .select()
+          .from(schema.userOrganizations)
+          .where(and(eq(schema.userOrganizations.userId, userId), inArray(schema.userOrganizations.organizationId, orgIds)))
+          .limit(1);
+        if (userOrg.length === 0) {
+          return { content: [{ type: "text" as const, text: "User not found in MCP organizations" }] };
+        }
+        const [user] = await db
+          .select({
+            id: schema.users.id,
+            email: schema.users.email,
+            firstName: schema.users.firstName,
+            lastName: schema.users.lastName,
+            role: schema.users.role,
+            isActive: schema.users.isActive,
+            language: schema.users.language,
+            phone: schema.users.phone,
+            createdAt: schema.users.createdAt,
+          })
+          .from(schema.users)
+          .where(eq(schema.users.id, userId));
+        return { content: [{ type: "text" as const, text: user ? JSON.stringify(user, null, 2) : "User not found" }] };
+      } catch (e) {
+        console.error("[mcp:get_user]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const [user] = await db
-        .select({
-          id: schema.users.id,
-          email: schema.users.email,
-          firstName: schema.users.firstName,
-          lastName: schema.users.lastName,
-          role: schema.users.role,
-          isActive: schema.users.isActive,
-          language: schema.users.language,
-          phone: schema.users.phone,
-          createdAt: schema.users.createdAt,
-        })
-        .from(schema.users)
-        .where(eq(schema.users.id, userId));
-      return { content: [{ type: "text" as const, text: user ? JSON.stringify(user, null, 2) : "User not found" }] };
     }
   );
 
@@ -2024,7 +2083,6 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             status: schema.bills.status,
             filePath: schema.bills.filePath,
             fileName: schema.bills.fileName,
-            originalFileName: schema.bills.originalFileName,
             fileSize: schema.bills.fileSize,
             isAiAnalyzed: schema.bills.isAiAnalyzed,
             isAutoGenerated: schema.bills.isAutoGenerated,
@@ -2082,7 +2140,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     {
       role: roleParam,
       buildingId: z.string().describe("Building ID"),
-      title: z.string().describe("Bill title"),
+      title: z.string().trim().min(1, 'Bill title is required').describe("Bill title"),
       category: z.enum([
         "administration", "cleaning", "construction", "consulting", "equipment_rental",
         "insurance", "landscaping", "legal_services", "maintenance", "professional_services",
@@ -2188,30 +2246,35 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       status: z.enum(["submitted", "acknowledged", "in_progress", "completed", "cancelled"]).optional().describe("Filter by status"),
     },
     async ({ role, buildingId, status }) => {
-      const orgIds = await getOrgIds();
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+      try {
+        const orgIds = await getOrgIds();
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+        }
+        const residenceIds = (
+          await db.select({ id: schema.residences.id }).from(schema.residences).where(eq(schema.residences.buildingId, buildingId))
+        ).map((r) => r.id);
+        if (residenceIds.length === 0) return { content: [{ type: "text" as const, text: "[]" }] };
+
+        const conditions: SQL[] = [inArray(schema.maintenanceRequests.residenceId, residenceIds)];
+        if (status) conditions.push(eq(schema.maintenanceRequests.status, status));
+
+        if (role === "tenant") {
+          const user = await getMcpUser("tenant");
+          if (user) conditions.push(eq(schema.maintenanceRequests.submittedBy, user.id));
+        }
+
+        const requests = await db
+          .select()
+          .from(schema.maintenanceRequests)
+          .where(and(...conditions))
+          .orderBy(desc(schema.maintenanceRequests.createdAt));
+        return { content: [{ type: "text" as const, text: JSON.stringify(requests, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_maintenance_requests]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const residenceIds = (
-        await db.select({ id: schema.residences.id }).from(schema.residences).where(eq(schema.residences.buildingId, buildingId))
-      ).map((r) => r.id);
-      if (residenceIds.length === 0) return { content: [{ type: "text" as const, text: "[]" }] };
-
-      const conditions: SQL[] = [inArray(schema.maintenanceRequests.residenceId, residenceIds)];
-      if (status) conditions.push(eq(schema.maintenanceRequests.status, status));
-
-      if (role === "tenant") {
-        const user = await getMcpUser("tenant");
-        if (user) conditions.push(eq(schema.maintenanceRequests.submittedBy, user.id));
-      }
-
-      const requests = await db
-        .select()
-        .from(schema.maintenanceRequests)
-        .where(and(...conditions))
-        .orderBy(desc(schema.maintenanceRequests.createdAt));
-      return { content: [{ type: "text" as const, text: JSON.stringify(requests, null, 2) }] };
     }
   );
 
@@ -2220,22 +2283,27 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Get details of a specific maintenance request",
     { role: roleParam, requestId: z.string().describe("Maintenance request ID") },
     async ({ role, requestId }) => {
-      const orgIds = await getOrgIds();
-      const [request] = await db.select().from(schema.maintenanceRequests).where(eq(schema.maintenanceRequests.id, requestId));
-      if (!request) return { content: [{ type: "text" as const, text: "Request not found" }] };
-      const [residence] = await db.select().from(schema.residences).where(eq(schema.residences.id, request.residenceId));
-      if (!residence) return { content: [{ type: "text" as const, text: "Residence not found" }] };
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, residence.buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Access denied" }] };
-      }
-      if (role === "tenant") {
-        const user = await getMcpUser("tenant");
-        if (!user || request.submittedBy !== user.id) {
-          return { content: [{ type: "text" as const, text: "Access denied: tenants can only view their own requests" }] };
+      try {
+        const orgIds = await getOrgIds();
+        const [request] = await db.select().from(schema.maintenanceRequests).where(eq(schema.maintenanceRequests.id, requestId));
+        if (!request) return { content: [{ type: "text" as const, text: "Request not found" }] };
+        const [residence] = await db.select().from(schema.residences).where(eq(schema.residences.id, request.residenceId));
+        if (!residence) return { content: [{ type: "text" as const, text: "Residence not found" }] };
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, residence.buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return { content: [{ type: "text" as const, text: "Access denied" }] };
         }
+        if (role === "tenant") {
+          const user = await getMcpUser("tenant");
+          if (!user || request.submittedBy !== user.id) {
+            return { content: [{ type: "text" as const, text: "Access denied: tenants can only view their own requests" }] };
+          }
+        }
+        return { content: [{ type: "text" as const, text: JSON.stringify(request, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:get_maintenance_request]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      return { content: [{ type: "text" as const, text: JSON.stringify(request, null, 2) }] };
     }
   );
 
@@ -2377,23 +2445,28 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       status: z.enum(["draft", "submitted", "under_review", "approved", "in_progress", "completed", "rejected", "cancelled"]).optional().describe("Filter by status"),
     },
     async ({ role, buildingId, status }) => {
-      const orgIds = await getOrgIds();
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+      try {
+        const orgIds = await getOrgIds();
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+        }
+        const conditions: SQL[] = [eq(schema.demands.buildingId, buildingId)];
+        if (status) conditions.push(eq(schema.demands.status, status));
+        if (role === "tenant") {
+          const user = await getMcpUser("tenant");
+          if (user) conditions.push(eq(schema.demands.submitterId, user.id));
+        }
+        const demandsList = await db
+          .select()
+          .from(schema.demands)
+          .where(and(...conditions))
+          .orderBy(desc(schema.demands.createdAt));
+        return { content: [{ type: "text" as const, text: JSON.stringify(demandsList, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_demands]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const conditions: SQL[] = [eq(schema.demands.buildingId, buildingId)];
-      if (status) conditions.push(eq(schema.demands.status, status));
-      if (role === "tenant") {
-        const user = await getMcpUser("tenant");
-        if (user) conditions.push(eq(schema.demands.submitterId, user.id));
-      }
-      const demandsList = await db
-        .select()
-        .from(schema.demands)
-        .where(and(...conditions))
-        .orderBy(desc(schema.demands.createdAt));
-      return { content: [{ type: "text" as const, text: JSON.stringify(demandsList, null, 2) }] };
     }
   );
 
@@ -2402,20 +2475,25 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Get details of a specific demand",
     { role: roleParam, demandId: z.string().describe("Demand ID") },
     async ({ role, demandId }) => {
-      const orgIds = await getOrgIds();
-      const [demand] = await db.select().from(schema.demands).where(eq(schema.demands.id, demandId));
-      if (!demand) return { content: [{ type: "text" as const, text: "Demand not found" }] };
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, demand.buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Access denied" }] };
-      }
-      if (role === "tenant") {
-        const user = await getMcpUser("tenant");
-        if (!user || demand.submitterId !== user.id) {
-          return { content: [{ type: "text" as const, text: "Access denied: tenants can only view their own demands" }] };
+      try {
+        const orgIds = await getOrgIds();
+        const [demand] = await db.select().from(schema.demands).where(eq(schema.demands.id, demandId));
+        if (!demand) return { content: [{ type: "text" as const, text: "Demand not found" }] };
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, demand.buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return { content: [{ type: "text" as const, text: "Access denied" }] };
         }
+        if (role === "tenant") {
+          const user = await getMcpUser("tenant");
+          if (!user || demand.submitterId !== user.id) {
+            return { content: [{ type: "text" as const, text: "Access denied: tenants can only view their own demands" }] };
+          }
+        }
+        return { content: [{ type: "text" as const, text: JSON.stringify(demand, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:get_demand]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      return { content: [{ type: "text" as const, text: JSON.stringify(demand, null, 2) }] };
     }
   );
 
@@ -2507,17 +2585,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         return { content: [{ type: "text" as const, text: JSON.stringify(demand, null, 2) }] };
       } catch (e) {
         console.error("[mcp:create_demand]", e);
-        const response = buildWriteErrorResponse(e, 'demand', 'create');
-        // Task #622: surface raw driver error in non-production so developers
-        // can see the actual DB failure (FK violation detail, etc.) instead of
-        // only the friendly wrapper. Production responses are unchanged.
-        if (process.env.NODE_ENV !== 'production') {
-          const rawMessage = (e as { message?: unknown } | null)?.message;
-          if (typeof rawMessage === 'string' && rawMessage.length > 0) {
-            response.content.push({ type: "text" as const, text: `[dev] ${rawMessage}` });
-          }
-        }
-        return response;
+        return buildWriteErrorResponse(e, 'demand', 'create');
       }
     }
   );
@@ -2584,41 +2652,46 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "List comments on a demand, joined with author info. Tenants only see comments on their own demands and never see internal (manager-only) comments.",
     { role: roleParam, demandId: z.string().describe("Demand ID") },
     async ({ role, demandId }) => {
-      const orgIds = await getOrgIds();
-      const [demand] = await db.select().from(schema.demands).where(eq(schema.demands.id, demandId));
-      if (!demand) return { content: [{ type: "text" as const, text: "Demand not found" }] };
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, demand.buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Access denied" }] };
-      }
-      if (role === "tenant") {
-        const user = await getMcpUser("tenant");
-        if (!user || demand.submitterId !== user.id) {
-          return { content: [{ type: "text" as const, text: "Access denied: tenants can only view comments on their own demands" }] };
+      try {
+        const orgIds = await getOrgIds();
+        const [demand] = await db.select().from(schema.demands).where(eq(schema.demands.id, demandId));
+        if (!demand) return { content: [{ type: "text" as const, text: "Demand not found" }] };
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, demand.buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return { content: [{ type: "text" as const, text: "Access denied" }] };
         }
+        if (role === "tenant") {
+          const user = await getMcpUser("tenant");
+          if (!user || demand.submitterId !== user.id) {
+            return { content: [{ type: "text" as const, text: "Access denied: tenants can only view comments on their own demands" }] };
+          }
+        }
+        const comments = await db
+          .select({
+            id: schema.demandComments.id,
+            demandId: schema.demandComments.demandId,
+            commentText: schema.demandComments.commentText,
+            commentType: schema.demandComments.commentType,
+            isInternal: schema.demandComments.isInternal,
+            commenterId: schema.demandComments.commenterId,
+            createdAt: schema.demandComments.createdAt,
+            author: {
+              id: schema.users.id,
+              firstName: schema.users.firstName,
+              lastName: schema.users.lastName,
+              email: schema.users.email,
+            },
+          })
+          .from(schema.demandComments)
+          .innerJoin(schema.users, eq(schema.demandComments.commenterId, schema.users.id))
+          .where(eq(schema.demandComments.demandId, demandId))
+          .orderBy(asc(schema.demandComments.createdAt));
+        const visible = role === "tenant" ? comments.filter((c) => !c.isInternal) : comments;
+        return { content: [{ type: "text" as const, text: JSON.stringify(visible, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_demand_comments]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const comments = await db
-        .select({
-          id: schema.demandComments.id,
-          demandId: schema.demandComments.demandId,
-          commentText: schema.demandComments.commentText,
-          commentType: schema.demandComments.commentType,
-          isInternal: schema.demandComments.isInternal,
-          commenterId: schema.demandComments.commenterId,
-          createdAt: schema.demandComments.createdAt,
-          author: {
-            id: schema.users.id,
-            firstName: schema.users.firstName,
-            lastName: schema.users.lastName,
-            email: schema.users.email,
-          },
-        })
-        .from(schema.demandComments)
-        .innerJoin(schema.users, eq(schema.demandComments.commenterId, schema.users.id))
-        .where(eq(schema.demandComments.demandId, demandId))
-        .orderBy(asc(schema.demandComments.createdAt));
-      const visible = role === "tenant" ? comments.filter((c) => !c.isInternal) : comments;
-      return { content: [{ type: "text" as const, text: JSON.stringify(visible, null, 2) }] };
     }
   );
 
@@ -2726,13 +2799,18 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "List common spaces in a building",
     { role: roleParam, buildingId: z.string().describe("Building ID") },
     async ({ role, buildingId }) => {
-      const orgIds = await getOrgIds();
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+      try {
+        const orgIds = await getOrgIds();
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+        }
+        const spaces = await db.select().from(schema.commonSpaces).where(eq(schema.commonSpaces.buildingId, buildingId));
+        return { content: [{ type: "text" as const, text: JSON.stringify(spaces, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_common_spaces]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const spaces = await db.select().from(schema.commonSpaces).where(eq(schema.commonSpaces.buildingId, buildingId));
-      return { content: [{ type: "text" as const, text: JSON.stringify(spaces, null, 2) }] };
     }
   );
 
@@ -2884,10 +2962,15 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Get details of a specific common space",
     { role: roleParam, spaceId: z.string().describe("Common space ID") },
     async ({ role, spaceId }) => {
-      const auth = await authorizeSpaceAccess(role, spaceId);
-      if (!auth.ok) return auth.response;
-      const [space] = await db.select().from(schema.commonSpaces).where(eq(schema.commonSpaces.id, spaceId));
-      return { content: [{ type: "text" as const, text: JSON.stringify(space, null, 2) }] };
+      try {
+        const auth = await authorizeSpaceAccess(role, spaceId);
+        if (!auth.ok) return auth.response;
+        const [space] = await db.select().from(schema.commonSpaces).where(eq(schema.commonSpaces.id, spaceId));
+        return { content: [{ type: "text" as const, text: JSON.stringify(space, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:get_common_space]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
+      }
     }
   );
 
@@ -2901,43 +2984,48 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       endDate: z.string().optional().describe("ISO datetime; only bookings ending at or before this are returned"),
     },
     async ({ role, spaceId, startDate, endDate }) => {
-      const auth = await authorizeSpaceAccess(role, spaceId);
-      if (!auth.ok) return auth.response;
-      const conditions = [eq(schema.bookings.commonSpaceId, spaceId)];
-      if (startDate) {
-        const d = new Date(startDate);
-        if (isNaN(d.getTime())) {
-          return { content: [{ type: "text" as const, text: "Invalid startDate: expected ISO datetime string" }] };
+      try {
+        const auth = await authorizeSpaceAccess(role, spaceId);
+        if (!auth.ok) return auth.response;
+        const conditions = [eq(schema.bookings.commonSpaceId, spaceId)];
+        if (startDate) {
+          const d = new Date(startDate);
+          if (isNaN(d.getTime())) {
+            return { content: [{ type: "text" as const, text: "Invalid startDate: expected ISO datetime string" }] };
+          }
+          conditions.push(gte(schema.bookings.startTime, d));
         }
-        conditions.push(gte(schema.bookings.startTime, d));
-      }
-      if (endDate) {
-        const d = new Date(endDate);
-        if (isNaN(d.getTime())) {
-          return { content: [{ type: "text" as const, text: "Invalid endDate: expected ISO datetime string" }] };
+        if (endDate) {
+          const d = new Date(endDate);
+          if (isNaN(d.getTime())) {
+            return { content: [{ type: "text" as const, text: "Invalid endDate: expected ISO datetime string" }] };
+          }
+          conditions.push(lte(schema.bookings.endTime, d));
         }
-        conditions.push(lte(schema.bookings.endTime, d));
+        if (role === "tenant" && auth.userId) {
+          conditions.push(eq(schema.bookings.userId, auth.userId));
+        }
+        const rows = await db
+          .select({
+            id: schema.bookings.id,
+            commonSpaceId: schema.bookings.commonSpaceId,
+            userId: schema.bookings.userId,
+            userName: sql<string>`CONCAT(${schema.users.firstName}, ' ', ${schema.users.lastName})`,
+            userEmail: schema.users.email,
+            startTime: schema.bookings.startTime,
+            endTime: schema.bookings.endTime,
+            status: schema.bookings.status,
+            createdAt: schema.bookings.createdAt,
+          })
+          .from(schema.bookings)
+          .innerJoin(schema.users, eq(schema.bookings.userId, schema.users.id))
+          .where(and(...conditions))
+          .orderBy(asc(schema.bookings.startTime));
+        return { content: [{ type: "text" as const, text: JSON.stringify(rows, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_common_space_bookings]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      if (role === "tenant" && auth.userId) {
-        conditions.push(eq(schema.bookings.userId, auth.userId));
-      }
-      const rows = await db
-        .select({
-          id: schema.bookings.id,
-          commonSpaceId: schema.bookings.commonSpaceId,
-          userId: schema.bookings.userId,
-          userName: sql<string>`CONCAT(${schema.users.firstName}, ' ', ${schema.users.lastName})`,
-          userEmail: schema.users.email,
-          startTime: schema.bookings.startTime,
-          endTime: schema.bookings.endTime,
-          status: schema.bookings.status,
-          createdAt: schema.bookings.createdAt,
-        })
-        .from(schema.bookings)
-        .innerJoin(schema.users, eq(schema.bookings.userId, schema.users.id))
-        .where(and(...conditions))
-        .orderBy(asc(schema.bookings.startTime));
-      return { content: [{ type: "text" as const, text: JSON.stringify(rows, null, 2) }] };
     }
   );
 
@@ -2946,37 +3034,42 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "List the current MCP user's bookings (any status) across MCP-scoped common spaces. For tenants, only buildings where the user still has an active userResidences link are included.",
     { role: roleParam },
     async ({ role }) => {
-      const user = await getMcpUser(role);
-      if (!user) return { content: [{ type: "text" as const, text: "MCP user not found" }] };
-      // Restrict to buildings the MCP-acting user can actually see
-      // (mirrors REST getAccessibleBuildingIds, role-aware, and already
-      // clamped to MCP-scoped orgs).
-      const accessibleBuildingIds = await getMcpAccessibleBuildingIds(role);
-      if (!accessibleBuildingIds || accessibleBuildingIds.length === 0) {
-        return { content: [{ type: "text" as const, text: JSON.stringify([], null, 2) }] };
+      try {
+        const user = await getMcpUser(role);
+        if (!user) return { content: [{ type: "text" as const, text: "MCP user not found" }] };
+        // Restrict to buildings the MCP-acting user can actually see
+        // (mirrors REST getAccessibleBuildingIds, role-aware, and already
+        // clamped to MCP-scoped orgs).
+        const accessibleBuildingIds = await getMcpAccessibleBuildingIds(role);
+        if (!accessibleBuildingIds || accessibleBuildingIds.length === 0) {
+          return { content: [{ type: "text" as const, text: JSON.stringify([], null, 2) }] };
+        }
+        const conditions = [
+          eq(schema.bookings.userId, user.id),
+          inArray(schema.commonSpaces.buildingId, accessibleBuildingIds),
+        ];
+        const rows = await db
+          .select({
+            id: schema.bookings.id,
+            commonSpaceId: schema.bookings.commonSpaceId,
+            commonSpaceName: schema.commonSpaces.name,
+            buildingId: schema.commonSpaces.buildingId,
+            buildingName: schema.buildings.name,
+            startTime: schema.bookings.startTime,
+            endTime: schema.bookings.endTime,
+            status: schema.bookings.status,
+            createdAt: schema.bookings.createdAt,
+          })
+          .from(schema.bookings)
+          .innerJoin(schema.commonSpaces, eq(schema.bookings.commonSpaceId, schema.commonSpaces.id))
+          .innerJoin(schema.buildings, eq(schema.commonSpaces.buildingId, schema.buildings.id))
+          .where(and(...conditions))
+          .orderBy(desc(schema.bookings.startTime));
+        return { content: [{ type: "text" as const, text: JSON.stringify(rows, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_my_common_space_bookings]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const conditions = [
-        eq(schema.bookings.userId, user.id),
-        inArray(schema.commonSpaces.buildingId, accessibleBuildingIds),
-      ];
-      const rows = await db
-        .select({
-          id: schema.bookings.id,
-          commonSpaceId: schema.bookings.commonSpaceId,
-          commonSpaceName: schema.commonSpaces.name,
-          buildingId: schema.commonSpaces.buildingId,
-          buildingName: schema.buildings.name,
-          startTime: schema.bookings.startTime,
-          endTime: schema.bookings.endTime,
-          status: schema.bookings.status,
-          createdAt: schema.bookings.createdAt,
-        })
-        .from(schema.bookings)
-        .innerJoin(schema.commonSpaces, eq(schema.bookings.commonSpaceId, schema.commonSpaces.id))
-        .innerJoin(schema.buildings, eq(schema.commonSpaces.buildingId, schema.buildings.id))
-        .where(and(...conditions))
-        .orderBy(desc(schema.bookings.startTime));
-      return { content: [{ type: "text" as const, text: JSON.stringify(rows, null, 2) }] };
     }
   );
 
@@ -2989,6 +3082,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       date: z.string().describe("Target date (YYYY-MM-DD) interpreted in America/Montreal"),
     },
     async ({ role, spaceId, date }) => {
+      try {
       const auth = await authorizeSpaceAccess(role, spaceId);
       if (!auth.ok) return auth.response;
       const space = auth.space;
@@ -3095,6 +3189,10 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           },
         ],
       };
+      } catch (e) {
+        console.error("[mcp:get_common_space_availability]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
+      }
     }
   );
 
@@ -3212,7 +3310,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     {
       role: roleParam,
       buildingId: z.string().describe("Building ID"),
-      name: z.string().describe("Common space name"),
+      name: z.string().trim().min(1, 'Common space name is required').describe("Common space name"),
       description: z.string().optional().describe("Optional description"),
       isReservable: z.boolean().default(true).describe("Whether the space accepts bookings"),
       capacity: z.number().int().positive().optional().describe("Maximum capacity"),
@@ -3367,7 +3465,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         return { content: [{ type: "text" as const, text: JSON.stringify({ deleted, message: "Common space deleted" }, null, 2) }] };
       } catch (e) {
         console.error("[mcp:delete_common_space]", e);
-        const blockers = await queryDeleteBlockers(e, 'common_spaces', spaceId);
+        const blockers = await queryAllDeleteBlockerCounts('common_spaces', spaceId);
         return buildWriteErrorResponse(e, 'common space', 'delete', blockers);
       }
     }
@@ -3438,26 +3536,31 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view booking restrictions" }] };
       }
-      const auth = await authorizeSpaceAccess(role, spaceId);
-      if (!auth.ok) return auth.response;
-      const rows = await db
-        .select({
-          id: schema.userBookingRestrictions.id,
-          userId: schema.userBookingRestrictions.userId,
-          commonSpaceId: schema.userBookingRestrictions.commonSpaceId,
-          isBlocked: schema.userBookingRestrictions.isBlocked,
-          reason: schema.userBookingRestrictions.reason,
-          createdAt: schema.userBookingRestrictions.createdAt,
-          updatedAt: schema.userBookingRestrictions.updatedAt,
-          firstName: schema.users.firstName,
-          lastName: schema.users.lastName,
-          email: schema.users.email,
-        })
-        .from(schema.userBookingRestrictions)
-        .innerJoin(schema.users, eq(schema.users.id, schema.userBookingRestrictions.userId))
-        .where(eq(schema.userBookingRestrictions.commonSpaceId, spaceId))
-        .orderBy(schema.users.lastName, schema.users.firstName);
-      return { content: [{ type: "text" as const, text: JSON.stringify(rows, null, 2) }] };
+      try {
+        const auth = await authorizeSpaceAccess(role, spaceId);
+        if (!auth.ok) return auth.response;
+        const rows = await db
+          .select({
+            id: schema.userBookingRestrictions.id,
+            userId: schema.userBookingRestrictions.userId,
+            commonSpaceId: schema.userBookingRestrictions.commonSpaceId,
+            isBlocked: schema.userBookingRestrictions.isBlocked,
+            reason: schema.userBookingRestrictions.reason,
+            createdAt: schema.userBookingRestrictions.createdAt,
+            updatedAt: schema.userBookingRestrictions.updatedAt,
+            firstName: schema.users.firstName,
+            lastName: schema.users.lastName,
+            email: schema.users.email,
+          })
+          .from(schema.userBookingRestrictions)
+          .innerJoin(schema.users, eq(schema.users.id, schema.userBookingRestrictions.userId))
+          .where(eq(schema.userBookingRestrictions.commonSpaceId, spaceId))
+          .orderBy(schema.users.lastName, schema.users.firstName);
+        return { content: [{ type: "text" as const, text: JSON.stringify(rows, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_user_booking_restrictions]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
+      }
     }
   );
 
@@ -3567,61 +3670,66 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (!userId && !spaceId) {
         return { content: [{ type: "text" as const, text: "At least one of userId or spaceId is required" }] };
       }
-      // Clamp by accessible buildings so a manager cannot enumerate
-      // limits attached to spaces in buildings outside their scope.
-      const accessible = await getMcpAccessibleBuildingIds(role);
-      if (!accessible) {
-        return { content: [{ type: "text" as const, text: `MCP ${role} user not found` }] };
-      }
-      if (spaceId) {
-        const auth = await authorizeSpaceAccess(role, spaceId);
-        if (!auth.ok) return auth.response;
-      } else if (userId) {
-        // userId-only query would otherwise expose this user's GLOBAL
-        // (NULL-space) limits to any caller that knows the userId.
-        // Require the target user to share scope with the caller.
-        if (!(await targetUserInScope(role, userId))) {
-          return { content: [{ type: "text" as const, text: "Access denied: target user is not in your MCP scope" }] };
+      try {
+        // Clamp by accessible buildings so a manager cannot enumerate
+        // limits attached to spaces in buildings outside their scope.
+        const accessible = await getMcpAccessibleBuildingIds(role);
+        if (!accessible) {
+          return { content: [{ type: "text" as const, text: `MCP ${role} user not found` }] };
         }
+        if (spaceId) {
+          const auth = await authorizeSpaceAccess(role, spaceId);
+          if (!auth.ok) return auth.response;
+        } else if (userId) {
+          // userId-only query would otherwise expose this user's GLOBAL
+          // (NULL-space) limits to any caller that knows the userId.
+          // Require the target user to share scope with the caller.
+          if (!(await targetUserInScope(role, userId))) {
+            return { content: [{ type: "text" as const, text: "Access denied: target user is not in your MCP scope" }] };
+          }
+        }
+        const conditions: SQL[] = [];
+        if (userId) conditions.push(eq(schema.userTimeLimits.userId, userId));
+        if (spaceId) {
+          conditions.push(eq(schema.userTimeLimits.commonSpaceId, spaceId));
+        } else {
+          // No spaceId filter: only return rows that are either global
+          // (NULL space) or attached to a space inside an accessible
+          // building. The userId-only path is already scope-clamped by
+          // the targetUserInScope check above; the spaceId-attached rows
+          // are clamped here.
+          const accessSql = accessible.length > 0
+            ? or(
+                isNull(schema.userTimeLimits.commonSpaceId),
+                inArray(schema.commonSpaces.buildingId, accessible)
+              )
+            : isNull(schema.userTimeLimits.commonSpaceId);
+          if (accessSql) conditions.push(accessSql);
+        }
+        const rows = await db
+          .select({
+            id: schema.userTimeLimits.id,
+            userId: schema.userTimeLimits.userId,
+            commonSpaceId: schema.userTimeLimits.commonSpaceId,
+            spaceName: schema.commonSpaces.name,
+            limitType: schema.userTimeLimits.limitType,
+            limitHours: schema.userTimeLimits.limitHours,
+            createdAt: schema.userTimeLimits.createdAt,
+            updatedAt: schema.userTimeLimits.updatedAt,
+            firstName: schema.users.firstName,
+            lastName: schema.users.lastName,
+            email: schema.users.email,
+          })
+          .from(schema.userTimeLimits)
+          .leftJoin(schema.commonSpaces, eq(schema.commonSpaces.id, schema.userTimeLimits.commonSpaceId))
+          .innerJoin(schema.users, eq(schema.users.id, schema.userTimeLimits.userId))
+          .where(and(...conditions))
+          .orderBy(schema.userTimeLimits.userId, schema.userTimeLimits.limitType, schema.userTimeLimits.commonSpaceId);
+        return { content: [{ type: "text" as const, text: JSON.stringify(rows, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_user_time_limits]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const conditions: SQL[] = [];
-      if (userId) conditions.push(eq(schema.userTimeLimits.userId, userId));
-      if (spaceId) {
-        conditions.push(eq(schema.userTimeLimits.commonSpaceId, spaceId));
-      } else {
-        // No spaceId filter: only return rows that are either global
-        // (NULL space) or attached to a space inside an accessible
-        // building. The userId-only path is already scope-clamped by
-        // the targetUserInScope check above; the spaceId-attached rows
-        // are clamped here.
-        const accessSql = accessible.length > 0
-          ? or(
-              isNull(schema.userTimeLimits.commonSpaceId),
-              inArray(schema.commonSpaces.buildingId, accessible)
-            )
-          : isNull(schema.userTimeLimits.commonSpaceId);
-        if (accessSql) conditions.push(accessSql);
-      }
-      const rows = await db
-        .select({
-          id: schema.userTimeLimits.id,
-          userId: schema.userTimeLimits.userId,
-          commonSpaceId: schema.userTimeLimits.commonSpaceId,
-          spaceName: schema.commonSpaces.name,
-          limitType: schema.userTimeLimits.limitType,
-          limitHours: schema.userTimeLimits.limitHours,
-          createdAt: schema.userTimeLimits.createdAt,
-          updatedAt: schema.userTimeLimits.updatedAt,
-          firstName: schema.users.firstName,
-          lastName: schema.users.lastName,
-          email: schema.users.email,
-        })
-        .from(schema.userTimeLimits)
-        .leftJoin(schema.commonSpaces, eq(schema.commonSpaces.id, schema.userTimeLimits.commonSpaceId))
-        .innerJoin(schema.users, eq(schema.users.id, schema.userTimeLimits.userId))
-        .where(and(...conditions))
-        .orderBy(schema.userTimeLimits.userId, schema.userTimeLimits.limitType, schema.userTimeLimits.commonSpaceId);
-      return { content: [{ type: "text" as const, text: JSON.stringify(rows, null, 2) }] };
     }
   );
 
@@ -3757,30 +3865,35 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "List general communications for an organization",
     { role: roleParam, organizationId: z.string().describe("Organization ID") },
     async ({ role, organizationId }) => {
-      const orgIds = await getOrgIds();
-      if (!orgIds.includes(organizationId)) {
-        return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
+      try {
+        const orgIds = await getOrgIds();
+        if (!orgIds.includes(organizationId)) {
+          return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
+        }
+        const conditions: SQL[] = [eq(schema.generalCommunications.organizationId, organizationId)];
+        // Admins see every communication. Other roles only see communications
+        // whose recipientRoles is NULL (broadcast to everyone) or whose array
+        // explicitly contains their role.
+        if (role !== "admin") {
+          // Treat NULL OR an empty array as "broadcast to everyone".
+          // Otherwise the caller's role must be present in the array.
+          const recipientFilter = or(
+            isNull(schema.generalCommunications.recipientRoles),
+            sql`cardinality(${schema.generalCommunications.recipientRoles}) = 0`,
+            sql`${role} = ANY(${schema.generalCommunications.recipientRoles})`
+          );
+          if (recipientFilter) conditions.push(recipientFilter);
+        }
+        const comms = await db
+          .select()
+          .from(schema.generalCommunications)
+          .where(and(...conditions))
+          .orderBy(desc(schema.generalCommunications.createdAt));
+        return { content: [{ type: "text" as const, text: JSON.stringify(comms, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_communications]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const conditions: SQL[] = [eq(schema.generalCommunications.organizationId, organizationId)];
-      // Admins see every communication. Other roles only see communications
-      // whose recipientRoles is NULL (broadcast to everyone) or whose array
-      // explicitly contains their role.
-      if (role !== "admin") {
-        // Treat NULL OR an empty array as "broadcast to everyone".
-        // Otherwise the caller's role must be present in the array.
-        const recipientFilter = or(
-          isNull(schema.generalCommunications.recipientRoles),
-          sql`cardinality(${schema.generalCommunications.recipientRoles}) = 0`,
-          sql`${role} = ANY(${schema.generalCommunications.recipientRoles})`
-        );
-        if (recipientFilter) conditions.push(recipientFilter);
-      }
-      const comms = await db
-        .select()
-        .from(schema.generalCommunications)
-        .where(and(...conditions))
-        .orderBy(desc(schema.generalCommunications.createdAt));
-      return { content: [{ type: "text" as const, text: JSON.stringify(comms, null, 2) }] };
     }
   );
 
@@ -3835,32 +3948,37 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (!buildingId && !residenceId) {
         return { content: [{ type: "text" as const, text: "Please provide buildingId or residenceId" }] };
       }
-      const orgIds = await getOrgIds();
-      if (buildingId) {
-        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
-        if (!building || !orgIds.includes(building.organizationId)) {
-          return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+      try {
+        const orgIds = await getOrgIds();
+        if (buildingId) {
+          const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
+          if (!building || !orgIds.includes(building.organizationId)) {
+            return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+          }
         }
+        if (residenceId && !buildingId) {
+          const [residence] = await db.select().from(schema.residences).where(eq(schema.residences.id, residenceId));
+          if (!residence) {
+            return { content: [{ type: "text" as const, text: "Residence not found" }] };
+          }
+          const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, residence.buildingId));
+          if (!building || !orgIds.includes(building.organizationId)) {
+            return { content: [{ type: "text" as const, text: "Access denied: residence not in MCP scope" }] };
+          }
+        }
+        const conditions: SQL[] = [];
+        if (buildingId) conditions.push(eq(schema.documents.buildingId, buildingId));
+        if (residenceId) conditions.push(eq(schema.documents.residenceId, residenceId));
+        const docs = await db
+          .select()
+          .from(schema.documents)
+          .where(and(...conditions))
+          .orderBy(desc(schema.documents.createdAt));
+        return { content: [{ type: "text" as const, text: JSON.stringify(docs, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_documents]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      if (residenceId && !buildingId) {
-        const [residence] = await db.select().from(schema.residences).where(eq(schema.residences.id, residenceId));
-        if (!residence) {
-          return { content: [{ type: "text" as const, text: "Residence not found" }] };
-        }
-        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, residence.buildingId));
-        if (!building || !orgIds.includes(building.organizationId)) {
-          return { content: [{ type: "text" as const, text: "Access denied: residence not in MCP scope" }] };
-        }
-      }
-      const conditions: SQL[] = [];
-      if (buildingId) conditions.push(eq(schema.documents.buildingId, buildingId));
-      if (residenceId) conditions.push(eq(schema.documents.residenceId, residenceId));
-      const docs = await db
-        .select()
-        .from(schema.documents)
-        .where(and(...conditions))
-        .orderBy(desc(schema.documents.createdAt));
-      return { content: [{ type: "text" as const, text: JSON.stringify(docs, null, 2) }] };
     }
   );
 
@@ -3873,18 +3991,23 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       year: z.number().int().optional().describe("Filter by year"),
     },
     async ({ role, buildingId, year }) => {
-      const orgIds = await getOrgIds();
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+      try {
+        const orgIds = await getOrgIds();
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+        }
+        const conditions: SQL[] = [eq(schema.budgets.buildingId, buildingId)];
+        if (year) conditions.push(eq(schema.budgets.year, year));
+        const budgetList = await db
+          .select()
+          .from(schema.budgets)
+          .where(and(...conditions));
+        return { content: [{ type: "text" as const, text: JSON.stringify(budgetList, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_budgets]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const conditions: SQL[] = [eq(schema.budgets.buildingId, buildingId)];
-      if (year) conditions.push(eq(schema.budgets.year, year));
-      const budgetList = await db
-        .select()
-        .from(schema.budgets)
-        .where(and(...conditions));
-      return { content: [{ type: "text" as const, text: JSON.stringify(budgetList, null, 2) }] };
     }
   );
 
@@ -3896,18 +4019,23 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       buildingId: z.string().describe("Building ID"),
     },
     async ({ role, buildingId }) => {
-      const orgIds = await getOrgIds();
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+      try {
+        const orgIds = await getOrgIds();
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
+        }
+        const invoiceList = await db
+          .select()
+          .from(schema.invoices)
+          .where(eq(schema.invoices.buildingId, buildingId))
+          .orderBy(desc(schema.invoices.createdAt))
+          .limit(50);
+        return { content: [{ type: "text" as const, text: JSON.stringify(invoiceList, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_invoices]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const invoiceList = await db
-        .select()
-        .from(schema.invoices)
-        .where(eq(schema.invoices.buildingId, buildingId))
-        .orderBy(desc(schema.invoices.createdAt))
-        .limit(50);
-      return { content: [{ type: "text" as const, text: JSON.stringify(invoiceList, null, 2) }] };
     }
   );
 
@@ -3916,16 +4044,21 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "List meetings for an organization",
     { role: roleParam, organizationId: z.string().describe("Organization ID") },
     async ({ role, organizationId }) => {
-      const orgIds = await getOrgIds();
-      if (!orgIds.includes(organizationId)) {
-        return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
+      try {
+        const orgIds = await getOrgIds();
+        if (!orgIds.includes(organizationId)) {
+          return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
+        }
+        const meetingList = await db
+          .select()
+          .from(schema.meetings)
+          .where(eq(schema.meetings.organizationId, organizationId))
+          .orderBy(desc(schema.meetings.scheduledDate));
+        return { content: [{ type: "text" as const, text: JSON.stringify(meetingList, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_meetings]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const meetingList = await db
-        .select()
-        .from(schema.meetings)
-        .where(eq(schema.meetings.organizationId, organizationId))
-        .orderBy(desc(schema.meetings.scheduledDate));
-      return { content: [{ type: "text" as const, text: JSON.stringify(meetingList, null, 2) }] };
     }
   );
 
@@ -3937,7 +4070,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       organizationId: z.string().describe("Organization ID"),
       title: z.string().trim().min(1, 'Title is required').max(200, 'Title must be 200 characters or fewer').describe("Meeting title"),
       description: z.string().trim().min(1, 'Description must not be blank').max(5000, 'Description must be 5000 characters or fewer').optional().describe("Meeting description"),
-      location: z.string().describe("Meeting location"),
+      location: z.string().trim().min(1, 'Location is required').describe("Meeting location"),
       scheduledDate: z.string().describe("Scheduled date/time (ISO 8601)"),
       duration: z.number().int().min(1, "Duration must be at least 1 minute").describe("Duration in minutes"),
     },
@@ -4001,29 +4134,34 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view inventory elements" }] };
       }
-      const orgIds = await getOrgIds();
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
-      }
-      const conditions: SQL[] = [eq(schema.buildingElements.buildingId, buildingId)];
-      if (condition) conditions.push(eq(schema.buildingElements.currentCondition, condition));
-      if (category) {
-        const matchingCodes = await db
-          .select({ code: schema.uniformatCodes.code })
-          .from(schema.uniformatCodes)
-          .where(sql`lower(${schema.uniformatCodes.category}) = lower(${category})`);
-        if (matchingCodes.length === 0) {
-          return { content: [{ type: "text" as const, text: "[]" }] };
+      try {
+        const orgIds = await getOrgIds();
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
         }
-        conditions.push(inArray(schema.buildingElements.uniformatCode, matchingCodes.map((c) => c.code)));
+        const conditions: SQL[] = [eq(schema.buildingElements.buildingId, buildingId)];
+        if (condition) conditions.push(eq(schema.buildingElements.currentCondition, condition));
+        if (category) {
+          const matchingCodes = await db
+            .select({ code: schema.uniformatCodes.code })
+            .from(schema.uniformatCodes)
+            .where(sql`lower(${schema.uniformatCodes.category}) = lower(${category})`);
+          if (matchingCodes.length === 0) {
+            return { content: [{ type: "text" as const, text: "[]" }] };
+          }
+          conditions.push(inArray(schema.buildingElements.uniformatCode, matchingCodes.map((c) => c.code)));
+        }
+        const elements = await db
+          .select()
+          .from(schema.buildingElements)
+          .where(and(...conditions))
+          .orderBy(desc(schema.buildingElements.createdAt));
+        return { content: [{ type: "text" as const, text: JSON.stringify(elements, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_inventory_elements]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const elements = await db
-        .select()
-        .from(schema.buildingElements)
-        .where(and(...conditions))
-        .orderBy(desc(schema.buildingElements.createdAt));
-      return { content: [{ type: "text" as const, text: JSON.stringify(elements, null, 2) }] };
     }
   );
 
@@ -4035,14 +4173,19 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view inventory elements" }] };
       }
-      const orgIds = await getOrgIds();
-      const [element] = await db.select().from(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
-      if (!element) return { content: [{ type: "text" as const, text: "Inventory element not found" }] };
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, element.buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Access denied" }] };
+      try {
+        const orgIds = await getOrgIds();
+        const [element] = await db.select().from(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
+        if (!element) return { content: [{ type: "text" as const, text: "Inventory element not found" }] };
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, element.buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return { content: [{ type: "text" as const, text: "Access denied" }] };
+        }
+        return { content: [{ type: "text" as const, text: JSON.stringify(element, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:get_inventory_element]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      return { content: [{ type: "text" as const, text: JSON.stringify(element, null, 2) }] };
     }
   );
 
@@ -4052,8 +4195,8 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     {
       role: roleParam,
       buildingId: z.string().describe("Building ID"),
-      uniformatCode: z.string().describe("UNIFORMAT II classification code (e.g. 'B2010')"),
-      name: z.string().describe("Element name"),
+      uniformatCode: z.string().trim().min(1, 'UNIFORMAT II code is required').describe("UNIFORMAT II classification code (e.g. 'B2010')"),
+      name: z.string().trim().min(1, 'Element name is required').describe("Element name"),
       currentCondition: z.enum(["excellent", "good", "fair", "poor", "critical"]).describe("Current condition"),
       description: z.string().optional().describe("Element description"),
       residenceId: z.string().optional().describe("Optional residence ID; omit for building-wide elements"),
@@ -4239,7 +4382,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         };
       } catch (e) {
         console.error("[mcp:delete_inventory_element]", e);
-        const blockers = await queryDeleteBlockers(e, 'building_elements', elementId);
+        const blockers = await queryAllDeleteBlockerCounts('building_elements', elementId);
         return buildWriteErrorResponse(e, 'inventory element', 'delete', blockers);
       }
     }
@@ -4263,27 +4406,32 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (!query && level === undefined && !category) {
         return { content: [{ type: "text" as const, text: "Please provide at least one of: query, level, or category." }] };
       }
-      const { UNIFORMAT_CATALOG } = await import("@shared/data/uniformat-catalog");
-      let results = UNIFORMAT_CATALOG;
-      if (query && query.trim().length > 0) {
-        const searchLower = query.toLowerCase();
-        results = results.filter((item) =>
-          item.code.toLowerCase().includes(searchLower) ||
-          item.nameFr.toLowerCase().includes(searchLower) ||
-          item.nameEn.toLowerCase().includes(searchLower) ||
-          (item.descriptionFr && item.descriptionFr.toLowerCase().includes(searchLower)) ||
-          (item.descriptionEn && item.descriptionEn.toLowerCase().includes(searchLower)) ||
-          (item.synonymsEn && item.synonymsEn.some((s) => s.toLowerCase().includes(searchLower))) ||
-          (item.synonymsFr && item.synonymsFr.some((s) => s.toLowerCase().includes(searchLower)))
-        );
+      try {
+        const { UNIFORMAT_CATALOG } = await import("@shared/data/uniformat-catalog");
+        let results = UNIFORMAT_CATALOG;
+        if (query && query.trim().length > 0) {
+          const searchLower = query.toLowerCase();
+          results = results.filter((item) =>
+            item.code.toLowerCase().includes(searchLower) ||
+            item.nameFr.toLowerCase().includes(searchLower) ||
+            item.nameEn.toLowerCase().includes(searchLower) ||
+            (item.descriptionFr && item.descriptionFr.toLowerCase().includes(searchLower)) ||
+            (item.descriptionEn && item.descriptionEn.toLowerCase().includes(searchLower)) ||
+            (item.synonymsEn && item.synonymsEn.some((s) => s.toLowerCase().includes(searchLower))) ||
+            (item.synonymsFr && item.synonymsFr.some((s) => s.toLowerCase().includes(searchLower)))
+          );
+        }
+        if (level) results = results.filter((item) => item.level === level);
+        if (category) {
+          const cLower = category.toLowerCase();
+          results = results.filter((item) => item.category.toLowerCase().includes(cLower));
+        }
+        results = results.slice(0, 50);
+        return { content: [{ type: "text" as const, text: JSON.stringify(results, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:search_uniformat_codes]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      if (level) results = results.filter((item) => item.level === level);
-      if (category) {
-        const cLower = category.toLowerCase();
-        results = results.filter((item) => item.category.toLowerCase().includes(cLower));
-      }
-      results = results.slice(0, 50);
-      return { content: [{ type: "text" as const, text: JSON.stringify(results, null, 2) }] };
     }
   );
 
@@ -4295,19 +4443,24 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view inventory element history" }] };
       }
-      const orgIds = await getOrgIds();
-      const [element] = await db.select().from(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
-      if (!element) return { content: [{ type: "text" as const, text: "Inventory element not found" }] };
-      const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, element.buildingId));
-      if (!building || !orgIds.includes(building.organizationId)) {
-        return { content: [{ type: "text" as const, text: "Access denied" }] };
+      try {
+        const orgIds = await getOrgIds();
+        const [element] = await db.select().from(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
+        if (!element) return { content: [{ type: "text" as const, text: "Inventory element not found" }] };
+        const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, element.buildingId));
+        if (!building || !orgIds.includes(building.organizationId)) {
+          return { content: [{ type: "text" as const, text: "Access denied" }] };
+        }
+        const history = await db
+          .select()
+          .from(schema.elementHistory)
+          .where(eq(schema.elementHistory.elementId, elementId))
+          .orderBy(desc(schema.elementHistory.eventDate));
+        return { content: [{ type: "text" as const, text: JSON.stringify(history, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_element_history]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
       }
-      const history = await db
-        .select()
-        .from(schema.elementHistory)
-        .where(eq(schema.elementHistory.elementId, elementId))
-        .orderBy(desc(schema.elementHistory.eventDate));
-      return { content: [{ type: "text" as const, text: JSON.stringify(history, null, 2) }] };
     }
   );
 
@@ -4329,27 +4482,32 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view post-work element updates" }] };
       }
-      const scope = await loadMcpScopedProject(projectId);
-      if (!scope.ok) return scope.response;
-      const updates = await db
-        .select({
-          id: schema.elementProjectUpdates.id,
-          projectId: schema.elementProjectUpdates.projectId,
-          elementId: schema.elementProjectUpdates.elementId,
-          updateStatus: schema.elementProjectUpdates.updateStatus,
-          actualCost: schema.elementProjectUpdates.actualCost,
-          notes: schema.elementProjectUpdates.notes,
-          createdAt: schema.elementProjectUpdates.createdAt,
-          updatedAt: schema.elementProjectUpdates.updatedAt,
-          elementName: schema.buildingElements.name,
-          uniformatCode: schema.buildingElements.uniformatCode,
-          elementDescription: schema.buildingElements.description,
-        })
-        .from(schema.elementProjectUpdates)
-        .innerJoin(schema.buildingElements, eq(schema.elementProjectUpdates.elementId, schema.buildingElements.id))
-        .where(eq(schema.elementProjectUpdates.projectId, projectId))
-        .orderBy(asc(schema.buildingElements.name));
-      return { content: [{ type: "text" as const, text: JSON.stringify(updates, null, 2) }] };
+      try {
+        const scope = await loadMcpScopedProject(projectId);
+        if (!scope.ok) return scope.response;
+        const updates = await db
+          .select({
+            id: schema.elementProjectUpdates.id,
+            projectId: schema.elementProjectUpdates.projectId,
+            elementId: schema.elementProjectUpdates.elementId,
+            updateStatus: schema.elementProjectUpdates.updateStatus,
+            actualCost: schema.elementProjectUpdates.actualCost,
+            notes: schema.elementProjectUpdates.notes,
+            createdAt: schema.elementProjectUpdates.createdAt,
+            updatedAt: schema.elementProjectUpdates.updatedAt,
+            elementName: schema.buildingElements.name,
+            uniformatCode: schema.buildingElements.uniformatCode,
+            elementDescription: schema.buildingElements.description,
+          })
+          .from(schema.elementProjectUpdates)
+          .innerJoin(schema.buildingElements, eq(schema.elementProjectUpdates.elementId, schema.buildingElements.id))
+          .where(eq(schema.elementProjectUpdates.projectId, projectId))
+          .orderBy(asc(schema.buildingElements.name));
+        return { content: [{ type: "text" as const, text: JSON.stringify(updates, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:list_element_project_updates]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
+      }
     }
   );
 
@@ -5330,6 +5488,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Get information about the MCP setup including available organizations, users, and roles",
     { role: roleParam },
     async ({ role }) => {
+      try {
       const orgIds = await getOrgIds();
       const orgs = await db
         .select({ id: schema.organizations.id, name: schema.organizations.name })
@@ -5476,6 +5635,10 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         },
       };
       return { content: [{ type: "text" as const, text: JSON.stringify(info, null, 2) }] };
+      } catch (e) {
+        console.error("[mcp:get_mcp_info]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
+      }
     }
   );
 
@@ -6149,7 +6312,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         // server console so operators can debug, but never interpolate it
         // into the MCP response — see task #239.
         console.error("[mcp:delete_building]", e);
-        const blockers = await queryDeleteBlockers(e, 'buildings', buildingId);
+        const blockers = await queryAllDeleteBlockerCounts('buildings', buildingId);
         return buildWriteErrorResponse(e, 'building', 'delete', blockers);
       }
     }
@@ -6263,7 +6426,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         // server console so operators can debug, but never interpolate it
         // into the MCP response — see task #239.
         console.error("[mcp:delete_residence]", e);
-        const blockers = await queryDeleteBlockers(e, 'residences', residenceId);
+        const blockers = await queryAllDeleteBlockerCounts('residences', residenceId);
         return buildWriteErrorResponse(e, 'residence', 'delete', blockers);
       }
     }
@@ -6322,7 +6485,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         // server console so operators can debug, but never interpolate it
         // into the MCP response — see task #239.
         console.error("[mcp:delete_bill]", e);
-        const blockers = await queryDeleteBlockers(e, 'bills', billId);
+        const blockers = await queryAllDeleteBlockerCounts('bills', billId);
         return buildWriteErrorResponse(e, 'bill', 'delete', blockers);
       }
     }
@@ -6425,7 +6588,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         // server console so operators can debug, but never interpolate it
         // into the MCP response — see task #239.
         console.error("[mcp:delete_project]", e);
-        const blockers = await queryDeleteBlockers(e, 'maintenance_projects', projectId);
+        const blockers = await queryAllDeleteBlockerCounts('maintenance_projects', projectId);
         return buildWriteErrorResponse(e, 'project', 'delete', blockers);
       }
     }
@@ -7179,7 +7342,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           }],
         };
       }
-
+      try {
       const orgIds = await getOrgIds();
       if (orgIds.length === 0) {
         return { content: [{ type: "text" as const, text: JSON.stringify(emptyPage, null, 2) }] };
@@ -7265,6 +7428,10 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       return {
         content: [{ type: "text" as const, text: JSON.stringify(page, null, 2) }],
       };
+      } catch (e) {
+        console.error("[mcp:list_pending_invitations]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
+      }
     },
   );
 
@@ -7611,7 +7778,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           }],
         };
       }
-
+      try {
       const orgIds = await getOrgIds();
       if (orgIds.length === 0) {
         return { content: [{ type: "text" as const, text: JSON.stringify(emptyPage, null, 2) }] };
@@ -7710,6 +7877,10 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       return {
         content: [{ type: "text" as const, text: JSON.stringify(page, null, 2) }],
       };
+      } catch (e) {
+        console.error("[mcp:get_invitation_history]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
+      }
     },
   );
 
@@ -7721,6 +7892,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       analysisId: z.string().describe("Analysis ID — must match the storage path (filePath) of a document registered in the documents table"),
     },
     async ({ role, analysisId }) => {
+      try {
       // Task #1271: mirror the org-scope check applied by `analyze_document`
       // so this status probe cannot be used as an existence oracle for
       // documents in another organization. Out-of-scope and missing
@@ -7827,6 +7999,10 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
           }, null, 2),
         }],
       };
+      } catch (e) {
+        console.error("[mcp:get_analysis_status]", e);
+        return { content: [{ type: "text" as const, text: JSON.stringify({ error: "Internal server error" }) }] };
+      }
     }
   );
 

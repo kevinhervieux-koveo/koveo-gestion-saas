@@ -733,10 +733,11 @@ describe('MCP demand attachment handling', () => {
         type: 'complaint',
         description: 'This call is expected to fail at the INSERT.',
       });
-      // Two content items: the friendly envelope + the [dev] raw message.
-      expect(result.content).toHaveLength(2);
-      expect(result.content[0].text).toContain('Failed to create demand');
-      expect(result.content[1].text).toBe('[dev] insert blew up');
+      // Single content item: JSON envelope with _devError in dev mode.
+      expect(result.content).toHaveLength(1);
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.message).toContain('Failed to create demand');
+      expect(parsed._devError.message).toBe('insert blew up');
     } finally {
       process.env.NODE_ENV = original;
     }

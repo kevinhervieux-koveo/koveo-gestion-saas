@@ -1855,8 +1855,9 @@ export function registerBillRoutes(app: import('../utils/lazy-mount').RouteRegis
       // Task #1341 — when the failure is an FK violation, query the
       // actual blocking rows so the frontend can render a list of
       // records that must be removed first.
-      const { queryDeleteBlockers } = await import('../mcp/server');
-      const blockers = await queryDeleteBlockers(_error, 'bills', req.params.id);
+      const { queryAllDeleteBlockerCounts } = await import('../mcp/server');
+      const isFK = (_error as { code?: unknown } | null)?.code === '23503';
+      const blockers = isFK ? await queryAllDeleteBlockerCounts('bills', req.params.id) : null;
       return sendDbWriteError(res, _error, 'bill', 'delete', {
         logPrefix: '[BILLS API] delete failed',
         blockers,

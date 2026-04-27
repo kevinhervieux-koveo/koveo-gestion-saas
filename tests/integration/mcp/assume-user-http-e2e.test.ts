@@ -91,6 +91,7 @@ describeIfDb('MCP assume_user / restore_acting_user over HTTP — E2E (Task #642
   let buildingId: string;
   let residenceId: string;
   let orgWasPreExisting = false;
+  let adminOrgLinkId: string | null = null;
   const createdTokenHashes: string[] = [];
 
   const ORIG_ASSUME_FLAG = process.env.MCP_ASSUME_USER;
@@ -164,6 +165,17 @@ describeIfDb('MCP assume_user / restore_acting_user over HTTP — E2E (Task #642
         isActive: true,
       });
     }
+
+    // Link the admin user to the MCP-1 org so getAdminOrgIds() returns
+    // this org when the admin role path is used (Task #1471).
+    adminOrgLinkId = crypto.randomUUID();
+    await db.insert(schema.userOrganizations).values({
+      id: adminOrgLinkId,
+      userId: adminUserId,
+      organizationId: orgId,
+      organizationRole: 'admin',
+      isActive: true,
+    });
 
     buildingId = crypto.randomUUID();
     await db.insert(schema.buildings).values({
@@ -273,6 +285,9 @@ describeIfDb('MCP assume_user / restore_acting_user over HTTP — E2E (Task #642
         .where(inArray(schema.userResidences.userId, [tenantUserId]));
       await db.delete(schema.residences).where(eq(schema.residences.id, residenceId));
       await db.delete(schema.buildings).where(eq(schema.buildings.id, buildingId));
+      if (adminOrgLinkId) {
+        await db.delete(schema.userOrganizations).where(eq(schema.userOrganizations.id, adminOrgLinkId));
+      }
       // Only drop the MCP-1 org if WE created it; otherwise leave the
       // pre-existing seed/test org alone.
       if (!orgWasPreExisting) {

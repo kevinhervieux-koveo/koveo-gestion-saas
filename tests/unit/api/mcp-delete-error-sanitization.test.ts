@@ -92,22 +92,25 @@ describe('buildDeleteErrorResponse', () => {
   });
 
   describe('non-FK errors', () => {
-    it('returns the generic fallback string and never echoes the original error message', () => {
+    it('returns the generic fallback and never echoes the original error message in the friendly message', () => {
       const err = new Error('boom with secret SQL: DELETE FROM users WHERE password = $1');
 
       const result = buildDeleteErrorResponse(err, 'building');
       const text = result.content[0].text;
+      const parsed = JSON.parse(text);
 
-      expect(text).toBe('Failed to delete building — please retry');
-      expect(text).not.toContain('boom');
-      expect(text).not.toContain('secret');
-      assertNoSqlLeak(text);
+      expect(parsed.message).toContain('Failed to delete building');
+      // The friendly caller-facing message must never contain raw driver content.
+      expect(parsed.message).not.toContain('boom');
+      expect(parsed.message).not.toContain('secret');
+      assertNoSqlLeak(parsed.message);
     });
 
     it('returns the generic fallback for null/undefined errors without throwing', () => {
       for (const candidate of [null, undefined, 'just a string', 42]) {
         const result = buildDeleteErrorResponse(candidate, 'bill');
-        expect(result.content[0].text).toBe('Failed to delete bill — please retry');
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed.message).toContain('Failed to delete bill');
       }
     });
 
@@ -186,11 +189,13 @@ describe("buildWriteErrorResponse(action='delete')", () => {
 
     const result = buildWriteErrorResponse(err, 'demand', 'delete');
     const text = result.content[0].text;
+    const parsed = JSON.parse(text);
 
-    expect(text).toBe('Failed to delete demand — please retry');
-    expect(text).not.toContain('boom');
-    expect(text).not.toContain('secret');
-    assertNoSqlLeak(text);
+    expect(parsed.message).toContain('Failed to delete demand');
+    // The friendly caller-facing message must never contain raw driver content.
+    expect(parsed.message).not.toContain('boom');
+    expect(parsed.message).not.toContain('secret');
+    assertNoSqlLeak(parsed.message);
   });
 
   it("does NOT confuse a create-style FK detail with the delete pattern (no blocking_entity, generic message)", () => {
@@ -208,5 +213,51 @@ describe("buildWriteErrorResponse(action='delete')", () => {
     expect(parsed.blocking_entity).toBe('related_record');
     expect(parsed.message).toContain('Cannot delete bill');
     expect(parsed.message).toContain('other records');
+  });
+
+  it('emits blocking_entities map with total row count in message when blocker counts are provided (Task #1471)', () => {
+    // Simulate a delete that failed with FK and then queryAllDeleteBlockerCounts
+    // returned counts for multiple blocking tables.
+    const fkError = Object.assign(new Error('FK violation'), {
+      code: '23503',
+      detail: 'Key (id)=(abc) is still referenced from table "residences".',
+    });
+    const blockerCounts: Record<string, number> = {
+      residences: 3,
+      bills: 2,
+    };
+
+    const result = buildWriteErrorResponse(fkError, 'building', 'delete', blockerCounts);
+    const text = result.content[0].text;
+    const parsed = JSON.parse(text);
+
+    expect(parsed.status).toBe('fk_violation');
+    expect(parsed.code).toBe('FK_VIOLATION');
+    expect(parsed.blocking_entity).toBe('residence');
+    expect(parsed.blocking_entities).toBeDefined();
+    expect(typeof parsed.blocking_entities).toBe('object');
+    // Count map uses human-readable entity names.
+    expect(parsed.blocking_entities.residence).toBe(3);
+    expect(parsed.blocking_entities.bill).toBe(2);
+    // Message uses total count.
+    expect(parsed.message).toContain('5 residence(s)');
+    // No SQL leakage.
+    assertNoSqlLeak(text);
+    expect(text).not.toContain('abc');
+  });
+
+  it('omits blocking_entities when blocker counts are null (Task #1471)', () => {
+    const fkError = Object.assign(new Error('FK violation'), {
+      code: '23503',
+      detail: 'Key (id)=(abc) is still referenced from table "residences".',
+    });
+
+    const result = buildWriteErrorResponse(fkError, 'building', 'delete', null);
+    const parsed = JSON.parse(result.content[0].text);
+
+    expect(parsed.status).toBe('fk_violation');
+    expect(parsed.blocking_entity).toBe('residence');
+    expect(parsed.blocking_entities).toBeUndefined();
+    expect(parsed.message).toContain('1 or more');
   });
 });

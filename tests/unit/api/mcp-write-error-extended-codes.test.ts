@@ -159,26 +159,30 @@ describe('buildWriteErrorResponse — extended PostgreSQL SQLSTATE catalog', () 
   });
 
   describe('unknown / unmapped errors', () => {
-    it('returns the plain-string fallback for unrecognised SQLSTATEs', () => {
+    it('returns the JSON fallback envelope for unrecognised SQLSTATEs', () => {
       const result = buildWriteErrorResponse(pg('99999'), 'document', 'delete');
-      expect(result.content[0].text).toBe('Failed to delete document — please retry');
-      assertNoLeak(result.content[0].text);
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.message).toContain('Failed to delete document');
+      assertNoLeak(parsed.message);
     });
 
-    it('returns the plain-string fallback for non-pg errors', () => {
+    it('returns the JSON fallback envelope for non-pg errors', () => {
       const result = buildWriteErrorResponse(
         new Error('boom: top-secret leaked-token-xyz'),
         'document',
         'create',
       );
-      expect(result.content[0].text).toBe('Failed to create document — please retry');
-      assertNoLeak(result.content[0].text);
+      const parsed = JSON.parse(result.content[0].text);
+      expect(parsed.message).toContain('Failed to create document');
+      // The friendly caller-facing message must not contain raw driver content.
+      assertNoLeak(parsed.message);
     });
 
-    it('returns the plain-string fallback for null / undefined errors', () => {
+    it('returns the JSON fallback envelope for null / undefined errors', () => {
       for (const e of [null, undefined]) {
         const result = buildWriteErrorResponse(e, 'bill', 'update');
-        expect(result.content[0].text).toBe('Failed to update bill — please retry');
+        const parsed = JSON.parse(result.content[0].text);
+        expect(parsed.message).toContain('Failed to update bill');
       }
     });
   });

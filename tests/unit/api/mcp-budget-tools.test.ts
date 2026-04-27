@@ -430,9 +430,11 @@ describe('MCP budget tools — Task #527 mocked unit tests', () => {
         {},
       );
       const text = textOf(result);
+      const parsed = JSON.parse(text);
       // No SQLSTATE on the error → friendly fallback envelope.
-      expect(text).toMatch(/Failed to update budget settings/i);
-      expect(text).not.toMatch(/Internal server error/); // raw payload not leaked
+      expect(parsed.message).toMatch(/Failed to update budget settings/i);
+      // The friendly caller-facing message must not contain raw driver content.
+      expect(parsed.message).not.toMatch(/Internal server error/);
       errSpy.mockRestore();
     });
   });

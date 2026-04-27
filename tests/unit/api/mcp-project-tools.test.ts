@@ -1032,16 +1032,16 @@ describe('MCP project tools — Task #315 mocked unit tests', () => {
         {},
       );
       const text = textOf(result);
+      const parsed = JSON.parse(text);
       // No SQLSTATE → buildWriteErrorResponse falls back to the
       // generic "Failed to update project — please retry" sentence.
-      // The important regression guard is: the raw "Cannot reopen
-      // to ... Allowed targets: ..." sentence must NOT leak (the AI
-      // assistant should never be coached on which non-allowed
-      // targets it tried), and the response must be the sanitized
-      // fallback message.
-      expect(text).toMatch(/Failed to update project/i);
-      expect(text).not.toMatch(/Cannot reopen to/);
-      expect(text).not.toMatch(/Allowed targets:/);
+      // The important regression guard is: the caller-facing message
+      // must not coach the AI on which non-allowed targets it tried.
+      // (_devError may contain the raw message in non-production but
+      // the top-level `message` field must always be clean.)
+      expect(parsed.message).toMatch(/Failed to update project/i);
+      expect(parsed.message).not.toMatch(/Cannot reopen to/);
+      expect(parsed.message).not.toMatch(/Allowed targets:/);
       // No DB write should have happened from the MCP handler itself
       // — the throw bubbled out of workflowService before any
       // caller-managed transaction could have been started.
