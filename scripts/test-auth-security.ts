@@ -61,7 +61,6 @@ class AuthSecurityTester {
       await this.runRBACTests();
       await this.runAuthSystemTests();
       await this.runCriticalAuthTests();
-      await this.runDemoUserSecurityTests();
     }
 
     this.generateReport();
@@ -101,7 +100,9 @@ class AuthSecurityTester {
       this.log('info', '🧪 Running authentication unit tests...');
       
       const configFlag = this.options.useSelectiveMocking ? '--config=jest.config.auth.cjs' : '';
-      const cmd = `npx jest ${configFlag} tests/integration/user-registration.test.ts tests/integration/user-deletion.test.ts --passWithNoTests=false --maxWorkers=1 --forceExit`;
+      // The user-deletion integration suite was retired; the current
+      // user-lifecycle integration suites are the ones listed below.
+      const cmd = `npx jest ${configFlag} tests/integration/user-registration.test.ts tests/integration/user-residences-end-residency.test.ts tests/integration/user-serializer-http.test.ts --passWithNoTests=false --maxWorkers=1 --forceExit`;
       
       if (this.options.verbose) {
         this.log('info', `Command: ${cmd}`);
@@ -268,37 +269,6 @@ class AuthSecurityTester {
         name: 'Security Header Tests',
         passed: false,
         message: 'Security header tests failed',
-        details: error.stdout || error.message,
-        required: false,
-      });
-    }
-  }
-
-  private async runDemoUserSecurityTests(): Promise<void> {
-    try {
-      this.log('info', '👤 Running demo user security tests...');
-      
-      const configFlag = this.options.useSelectiveMocking ? '--config=jest.config.auth.cjs' : '';
-      const cmd = `npx jest ${configFlag} tests/security/comprehensive-demo-user-security.test.ts --passWithNoTests=false --maxWorkers=1 --forceExit`;
-      
-      if (this.options.verbose) {
-        this.log('info', `Command: ${cmd}`);
-      }
-      
-      const { stdout, stderr } = await execAsync(cmd);
-      
-      this.results.push({
-        name: 'Demo User Security Tests',
-        passed: true,
-        message: 'Demo user security tests passed',
-        details: this.options.verbose ? stdout : '',
-        required: false,
-      });
-    } catch (error: any) {
-      this.results.push({
-        name: 'Demo User Security Tests',
-        passed: false,
-        message: 'Demo user security tests failed',
         details: error.stdout || error.message,
         required: false,
       });

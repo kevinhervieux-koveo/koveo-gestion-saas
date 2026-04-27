@@ -1051,28 +1051,19 @@ async function analyzeRedundancy(): Promise<RedundancyAnalysisResult> {
   try {
     console.warn('🔄 Analyzing code redundancy patterns...');
 
-    // Run redundancy analysis tests to extract metrics
-    let redundancyOutput = '';
-    try {
-      redundancyOutput = execFileSync('npx', [
-        'jest',
-        'tests/code-analysis/ui-component-redundancy.test.ts',
-        '--verbose',
-        '--silent'
-      ], { encoding: 'utf-8', stdio: 'pipe' });
-    } catch (error) {
-      redundancyOutput = error.stdout || 'TEST_COMPLETED';
-    }
-
-    // Extract metrics from test output
-    const totalComponents =
-      extractNumberFromOutput(redundancyOutput, /Total Components.*?(\d+)/i) || 85;
-    const redundancyPercentage = extractNumberFromOutput(redundancyOutput, /(\d+)%\)/i) || 67;
+    // The Jest suite this previously parsed metrics from (the
+    // ui-component-redundancy suite under the now-removed code-analysis
+    // tests tree) is gone. The block below previously fell back to
+    // these same hard-coded defaults whenever the test failed or
+    // produced unparseable output, so dropping the dead invocation
+    // does not change the report shape — it just stops the script
+    // from spawning Jest against a missing file every time
+    // `npm run quality:full` is executed.
+    const totalComponents = 85;
+    const redundancyPercentage = 67;
     const componentsWithRedundancy = Math.round(totalComponents * (redundancyPercentage / 100));
-    const highPriorityComponents =
-      extractNumberFromOutput(redundancyOutput, /High-Priority.*?(\d+)/i) || 42;
-    const averageComplexity =
-      extractNumberFromOutput(redundancyOutput, /avg complexity.*?(\d+)/i) || 18;
+    const highPriorityComponents = 42;
+    const averageComplexity = 18;
     const extractionOpportunities = 15; // Fixed value for now
 
     // Generate sample data for duplicate patterns
@@ -1137,23 +1128,6 @@ async function analyzeRedundancy(): Promise<RedundancyAnalysisResult> {
       refactoringSuggestions: [],
     };
   }
-}
-
-/**
- * Extracts numeric value from test output using regex.
- * @param output
- * @param regex
- * @returns Extracted number or null if not found.
- */
-/**
- * ExtractNumberFromOutput function.
- * @param output
- * @param regex
- * @returns Function result.
- */
-function extractNumberFromOutput(output: string, regex: RegExp): number | null {
-  const match = output.match(regex);
-  return match ? parseInt(match[1]) : null;
 }
 
 /**

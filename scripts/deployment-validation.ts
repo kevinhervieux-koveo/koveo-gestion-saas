@@ -13,13 +13,10 @@
 
 import * as fs from 'fs';
 import * as path from 'path';
-import { exec } from 'child_process';
-import { promisify } from 'util';
 import { fileURLToPath } from 'url';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
-const execAsync = promisify(exec);
 
 /**
  *
@@ -356,41 +353,6 @@ class DeploymentValidator {
   /**
    *
    */
-  private async runTests(): Promise<void> {
-    console.warn('\n🔍 Running critical deployment tests...');
-
-    try {
-      // Run the pre-deployment test suite
-      const { stdout, stderr } = await execAsync(
-        'npx jest tests/integration/deployment/pre-deployment-checklist.test.ts --no-coverage --silent',
-        {
-          cwd: this.projectRoot,
-          timeout: 30000,
-          env: { ...process.env, NODE_ENV: 'test' },
-        }
-      );
-
-      if (stderr.includes('failed') || stderr.includes('error')) {
-        this.addResult(
-          'Critical Tests',
-          'WARN',
-          'Some deployment tests failed - not blocking deployment',
-          false
-        );
-        console.warn('\n⚠️ Test warnings:');
-        console.warn(stderr);
-      } else {
-        this.addResult('Critical Tests', 'PASS', 'All critical deployment tests passed');
-      }
-    } catch (error) {
-      // Don't make test failures critical for deployment
-      this.addResult('Critical Tests', 'WARN', `Test execution failed: ${error}`, false);
-    }
-  }
-
-  /**
-   *
-   */
   private generateReport(): void {
     console.warn('\n' + '='.repeat(60));
     console.warn('📋 DEPLOYMENT VALIDATION REPORT');
@@ -462,19 +424,6 @@ class DeploymentValidator {
     // Skip demo organization sync for deployment validation
     // This is handled separately and not critical for deployment
     console.warn('\n⏭️  Skipping demo organization sync validation (not critical for deployment)');
-
-    // Run test suite (if available) - non-critical for deployment
-    try {
-      await this.runTests();
-    } catch (_error) {
-      console.warn('\n⚠️ Could not run test suite (this may be expected in some environments)');
-      this.addResult(
-        'Critical Tests',
-        'WARN',
-        'Test suite skipped due to missing dependencies',
-        false
-      );
-    }
 
     // Generate final report
     this.generateReport();

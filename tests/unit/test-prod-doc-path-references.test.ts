@@ -90,14 +90,6 @@ interface AllowedRef {
  * why the referenced path legitimately does not exist (defensive
  * existence-check probe, historical migration marker, planned future
  * file, etc.). Pruning tests below ensure entries do not silently rot.
- *
- * NOTE: Several entries below tag references in maintenance scripts
- * that were originally added for test/source files that have since
- * been removed. These are documented honestly as stale-but-tolerated
- * so the guard can ship green now; follow-up work can prune them by
- * either fixing the underlying script or deleting the dead reference,
- * at which point the orphan-pruning test below will require the
- * allow-list entry to be removed.
  */
 const ALLOWED_MISSING_REFERENCES: AllowedRef[] = [
   {
@@ -114,36 +106,6 @@ const ALLOWED_MISSING_REFERENCES: AllowedRef[] = [
     filePath: 'server/jobs/ssl_renewal_job.ts',
     justification:
       'Defensive existence probe: scripts/validation-suite.ts:129 calls `existsSync()` on this path before reporting on SSL management. The file is intentionally optional (deployments without SSL automation skip the check), so the missing path is not a bug.',
-  },
-  {
-    filePath: 'tests/integration/deployment/pre-deployment-checklist.test.ts',
-    justification:
-      'Stale Jest invocation in scripts/deployment-validation.ts:365 — the named test suite was removed but the runner script was never updated. Tolerated here so the new guard can ship; follow-up work should either delete the invocation or restore the suite, after which this entry will be flagged by the orphan-pruning test below.',
-  },
-  {
-    filePath: 'tests/code-analysis/redundancy-detection.test.ts',
-    justification:
-      'Stale Jest invocation in scripts/run-redundancy-analysis.ts:31 — the entire `tests/code-analysis/` tree was removed but the runner script was never updated. Tolerated so the guard can ship; follow-up work should delete the invocation, after which the orphan-pruning test will require this entry to be removed.',
-  },
-  {
-    filePath: 'tests/code-analysis/ui-component-redundancy.test.ts',
-    justification:
-      'Stale Jest invocation in scripts/run-redundancy-analysis.ts:32 and scripts/run-quality-check.ts:1059 — the entire `tests/code-analysis/` tree was removed but the runner scripts were never updated. Tolerated so the guard can ship; follow-up work should delete the invocations.',
-  },
-  {
-    filePath: 'tests/code-analysis/style-consolidation.test.ts',
-    justification:
-      'Stale Jest invocation in scripts/run-redundancy-analysis.ts:33 — the entire `tests/code-analysis/` tree was removed but the runner script was never updated. Tolerated so the guard can ship; follow-up work should delete the invocation.',
-  },
-  {
-    filePath: 'tests/integration/user-deletion.test.ts',
-    justification:
-      'Stale Jest invocation in scripts/test-auth-security.ts:104 — the named suite was removed (current user-related integration tests are tests/integration/user-registration.test.ts, user-residences-end-residency.test.ts, user-serializer-http.test.ts) but the auth-security runner script was never updated. Tolerated so the guard can ship; follow-up work should delete or repoint the invocation.',
-  },
-  {
-    filePath: 'tests/security/comprehensive-demo-user-security.test.ts',
-    justification:
-      'Stale Jest invocation in scripts/test-auth-security.ts:282 — the named suite was removed but the auth-security runner script was never updated. Tolerated so the guard can ship; follow-up work should delete or repoint the invocation.',
   },
 ];
 
