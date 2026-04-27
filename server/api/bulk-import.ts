@@ -6587,16 +6587,14 @@ export function registerBulkImportRoutes(app: Express): void {
         }
 
         // Build the fresh session-wide sibling context the sorting
-        // analyzer expects (id + name + screening blob).
+        // analyzer expects (id + name + screening blob). Routed through
+        // `buildSessionItemsForStep` so this re-sort path can't drift
+        // from the run-all path's shape (Task #1252 / #1270).
         const sessionRows = await db
           .select()
           .from(schema.bulkImportItems)
           .where(eq(schema.bulkImportItems.sessionId, refreshedItem.sessionId));
-        const sessionItems = sessionRows.map((s) => ({
-          id: s.id,
-          name: s.originalName,
-          screening: s.screening as Record<string, unknown> | null,
-        }));
+        const sessionItems = buildSessionItemsForStep(sessionRows, 'sorting');
 
         // Re-run sorting on the target item (the AI now sees the new period).
         const updatedTarget = await processItemForStep(
@@ -6994,14 +6992,18 @@ export function registerBulkImportRoutes(app: Express): void {
           // second click can't slip past the gate above.
           inFlightPerItemRetry.add(itemKey);
 
-          const sessionItems = await db
+          // Project the columns `buildSessionItemsForStep` needs and
+          // route through that helper so the per-item retry path can't
+          // drift from the run-all path's shape (Task #1252 / #1270).
+          const sessionRows = await db
             .select({
               id: schema.bulkImportItems.id,
-              name: schema.bulkImportItems.originalName,
+              originalName: schema.bulkImportItems.originalName,
               screening: schema.bulkImportItems.screening,
             })
             .from(schema.bulkImportItems)
             .where(eq(schema.bulkImportItems.sessionId, item.sessionId));
+          const sessionItems = buildSessionItemsForStep(sessionRows, step);
 
           // For the branching retry, fetch the session's building
           // residences so the AI can suggest a concrete residenceId.
@@ -7071,11 +7073,7 @@ export function registerBulkImportRoutes(app: Express): void {
                 processItemForStep(
                   step,
                   item,
-                  sessionItems.map((s) => ({
-                    id: s.id,
-                    name: s.name,
-                    screening: s.screening as Record<string, unknown> | null,
-                  })),
+                  sessionItems,
                   residences,
                   fiscalYearStartMonth,
                   identifyOrganizationId,
