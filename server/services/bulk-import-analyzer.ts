@@ -158,6 +158,23 @@ export interface SiblingContext {
   periodHint?: string | null;
 }
 
+/**
+ * Build the soft "Source folder hint" line that every analyzer prompt
+ * includes when an admin uploaded the file via the **Choose folder**
+ * button (Task #1373). The folder portion is normalised to use ` / `
+ * as the visible separator and the prompt explicitly tells Claude to
+ * treat it as a tiebreaker — not as ground truth — because folders can
+ * still contain misfiled documents. Returns an empty string when there
+ * is no folder context (regular **Choose files** upload), so callers
+ * can drop it into a template literal unconditionally.
+ */
+export function buildFolderHintLine(folderHint?: string | null): string {
+  if (!folderHint) return '';
+  const trimmed = folderHint.trim();
+  if (!trimmed) return '';
+  return `Source folder hint: "${trimmed}" — this is where the admin filed the document; it usually but not always reflects the correct bucket and period. Treat it as a tiebreaker, not as ground truth.`;
+}
+
 export type BranchDestination =
   | 'building_documents'
   | 'residence_documents'
@@ -1039,11 +1056,21 @@ export const bulkImportAnalyzer = {
     buffer?: Buffer | null;
     itemId?: string;
     sessionId?: string;
+    /**
+     * Parent-folder portion of the bulk-import item's `originalPath`,
+     * normalised with ` / ` separators (Task #1373). When the admin
+     * uploaded via **Choose folder**, this is e.g. `2024 bills / January`
+     * and is emitted as a soft hint so Claude can use the folder as a
+     * tiebreaker for `bucketGuess` / `periodHint`. Empty / null for
+     * uploads that came in via **Choose files** (no folder context).
+     */
+    folderHint?: string | null;
   }): Promise<ScreeningResult> {
+    const folderHintLine = buildFolderHintLine(input.folderHint);
     const prompt = `Analyze this uploaded document for a property-management bulk import.
 Filename: ${input.originalName}
 MIME: ${input.mimeType ?? 'unknown'}
-Size: ${input.fileSize ?? 'unknown'} bytes
+Size: ${input.fileSize ?? 'unknown'} bytes${folderHintLine ? `\n${folderHintLine}` : ''}
 Return JSON with keys:
 - isComplete (bool): whether the document appears complete (not cut off)
 - isMultiDocument (bool): whether multiple separate documents are stitched together
@@ -1100,6 +1127,8 @@ Return JSON with keys:
     mimeType?: string | null;
     itemId?: string;
     sessionId?: string;
+    /** Source folder hint for the current item (Task #1373). See `screen()`. */
+    folderHint?: string | null;
   }): Promise<MergeOrSplitResult> {
     const siblingLines = input.siblings
       .map((s) => {
@@ -1120,12 +1149,14 @@ Return JSON with keys:
     const multiDocLine = input.isMultiDocument
       ? 'Screening flagged this file as isMultiDocument=true (it appears to contain multiple separate documents stitched together).'
       : '';
+    const folderHintLine = buildFolderHintLine(input.folderHint);
 
     const prompt = `You are branching scanned documents into keep/merge/split decisions.
 
 Current document: "${input.originalName}"
 ${myQaLine}
 ${multiDocLine}
+${folderHintLine}
 
 Other staged docs in this session:
 ${siblingLines || '  (none)'}
@@ -1175,6 +1206,8 @@ Return JSON: { decision: 'keep'|'merge'|'split', reason: string, mergeWithItemId
     residences?: Array<{ id: string; unitNumber: string }>;
     itemId?: string;
     sessionId?: string;
+    /** Source folder hint for the current item (Task #1373). See `screen()`. */
+    folderHint?: string | null;
   }): Promise<BranchResult> {
     const residenceLines = (input.residences ?? [])
       .map((r) => `  - id="${r.id}" unit="${r.unitNumber}"`)
@@ -1185,9 +1218,10 @@ Return JSON: { decision: 'keep'|'merge'|'split', reason: string, mergeWithItemId
     const residenceJsonNote = input.residences && input.residences.length > 0
       ? ', residenceId?: string (exact id from the list above, only when branch=residence_documents), residenceConfidence?: number (0..1 for the residence pick), residenceReason?: string (one sentence why), residenceFallbackReason?: string (set when you cannot confidently pick a residence)'
       : '';
+    const folderHintLine = buildFolderHintLine(input.folderHint);
     const prompt = `Choose the best destination for this document inside a property-management app.
 Filename: ${input.originalName}
-Description: ${input.description ?? ''}
+Description: ${input.description ?? ''}${folderHintLine ? `\n${folderHintLine}` : ''}
 ${residenceSection}
 Destinations: building_documents | residence_documents | demand | bill | maintenance | other
 Sub-categories per destination:
@@ -1295,10 +1329,13 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
      * which is why generic English fallbacks like "insurance" never match.
      */
     availableTags?: { name: string }[] | null;
+    /** Source folder hint for the current item (Task #1373). See `screen()`. */
+    folderHint?: string | null;
   }): Promise<IdentificationResult> {
     const periodHintLine = input.periodHintDate
       ? `Screening suggested effective date: ${input.periodHintDate.toISOString().slice(0, 10)} — keep this date unless the document content clearly indicates a different effective date.`
       : '';
+    const folderHintLine = buildFolderHintLine(input.folderHint);
     // Constrain the AI's tag picks to the org's actual catalogue when we
     // know it. Without this list Claude returns generic English names
     // ("insurance", "contract") that never match the French Quebec
@@ -1310,7 +1347,7 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
         : '';
     const prompt = `Extract metadata for a document being filed under "${input.branch ?? 'building_documents'}".
 Filename: ${input.originalName}
-Description: ${input.description ?? ''}${periodHintLine ? `\n${periodHintLine}` : ''}${tagCatalogueLine ? `\n${tagCatalogueLine}` : ''}
+Description: ${input.description ?? ''}${periodHintLine ? `\n${periodHintLine}` : ''}${folderHintLine ? `\n${folderHintLine}` : ''}${tagCatalogueLine ? `\n${tagCatalogueLine}` : ''}
 Return JSON: { name: string, description: string, tags: string[],
 effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.${
       tagCatalogueLine
@@ -1364,10 +1401,13 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.${
     mimeType?: string | null;
     itemId?: string;
     sessionId?: string;
+    /** Source folder hint for the current item (Task #1373). See `screen()`. */
+    folderHint?: string | null;
   }): Promise<LinkSuggestion> {
+    const folderHintLine = buildFolderHintLine(input.folderHint);
     const prompt = `Find related documents for "${input.originalName}" from the candidates: ${JSON.stringify(
       input.candidates,
-    )}. Return JSON: { beforeItemId?: string, afterItemId?: string,
+    )}.${folderHintLine ? `\n${folderHintLine}` : ''} Return JSON: { beforeItemId?: string, afterItemId?: string,
 relatedItemIds: string[], reason: string, confidence: number }.`;
     const { data: raw, fallbackReason, retryCount, degraded } = await callClaudeJson<Partial<LinkSuggestion>>(
       prompt,

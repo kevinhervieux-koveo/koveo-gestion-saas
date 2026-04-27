@@ -544,6 +544,36 @@ function sha256File(filePath: string): Promise<string> {
   });
 }
 
+/**
+ * Extract the parent-folder portion of a bulk-import item's
+ * `originalPath` so it can be passed to every analyzer call as a soft
+ * AI hint (Task #1373). When the admin uploaded via **Choose folder**,
+ * `originalPath` looks like `2024 bills/January/feb-statement.pdf` and
+ * we want to surface `2024 bills / January` to Claude. When the admin
+ * uploaded via **Choose files** (or there is no folder portion at all),
+ * `originalPath` equals `originalName` and this returns `null`, which
+ * the analyzer treats as "no hint" and omits the prompt line entirely.
+ *
+ * Separators are normalised to ` / ` so the prompt reads naturally
+ * regardless of the OS that produced the path. Both `/` and `\` are
+ * accepted as input separators because `webkitRelativePath` always uses
+ * `/` but tests and historical data may carry the Windows form.
+ */
+export function deriveFolderHintFromOriginalPath(
+  originalPath: string | null | undefined,
+): string | null {
+  if (!originalPath) return null;
+  const trimmed = originalPath.trim();
+  if (!trimmed) return null;
+  // Use a non-anchored split so any depth of folder is captured. We
+  // pop the basename (last segment) and rejoin the rest with ` / `.
+  const segments = trimmed.split(/[\\/]+/).filter((s) => s.length > 0);
+  if (segments.length <= 1) return null;
+  segments.pop();
+  const joined = segments.join(' / ').trim();
+  return joined.length > 0 ? joined : null;
+}
+
 const ZIP_MIMES = new Set([
   'application/zip',
   'application/x-zip-compressed',
@@ -1655,6 +1685,12 @@ async function processItemForStep(
    */
   availableTags?: { id: string; name: string; scope: string | null }[] | null,
 ): Promise<schema.BulkImportItem> {
+  // Task #1373 — derive the parent-folder portion of the item's
+  // originalPath ONCE up front and forward it to every analyzer call as
+  // a soft hint. `null` for files uploaded via Choose files (no folder
+  // context) so the analyzer skips the hint line entirely and the call
+  // shape is byte-identical to the pre-task behaviour.
+  const folderHint = deriveFolderHintFromOriginalPath(item.originalPath);
   logDebug('[bulk-import] processItemForStep dispatch', {
     metadata: {
       step,
@@ -1663,6 +1699,7 @@ async function processItemForStep(
       mime: item.mimeType,
       sizeBytes: item.fileSize,
       siblingCount: sessionItems.length - 1,
+      folderHint,
     },
   });
   if (step === 'screening') {
@@ -1673,6 +1710,7 @@ async function processItemForStep(
       stagedPath: item.stagedPath,
       itemId: item.id,
       sessionId: item.sessionId,
+      folderHint,
     });
     logPerFileAiFailure(step, item, result.fallbackReason);
 
@@ -1793,6 +1831,7 @@ async function processItemForStep(
       mimeType: item.mimeType,
       itemId: item.id,
       sessionId: item.sessionId,
+      folderHint,
     });
     logPerFileAiFailure(step, item, result.fallbackReason);
     const sortingDecisionWithState: Record<string, unknown> = {
@@ -1833,6 +1872,7 @@ async function processItemForStep(
       residences,
       itemId: item.id,
       sessionId: item.sessionId,
+      folderHint,
     });
     logPerFileAiFailure(step, item, result.fallbackReason);
     // Preserve any existing residenceManualOverride the admin may have
@@ -1913,6 +1953,7 @@ async function processItemForStep(
       sessionId: item.sessionId,
       periodHintDate,
       availableTags: scopedAvailableTags,
+      folderHint,
     });
     logPerFileAiFailure(step, item, result.fallbackReason);
 
@@ -1990,6 +2031,7 @@ async function processItemForStep(
       mimeType: item.mimeType,
       itemId: item.id,
       sessionId: item.sessionId,
+      folderHint,
     });
     logPerFileAiFailure(step, item, result.fallbackReason);
     const [updated] = await db
@@ -2560,6 +2602,10 @@ export function registerBulkImportRoutes(app: Express): void {
         .select({
           id: schema.bulkImportItems.id,
           originalName: schema.bulkImportItems.originalName,
+          // Task #1373 — Surface originalPath in the lite payload so the
+          // wizard can render the parent-folder portion in each item's
+          // expanded details panel without making a second round-trip.
+          originalPath: schema.bulkImportItems.originalPath,
           mimeType: schema.bulkImportItems.mimeType,
           status: schema.bulkImportItems.status,
           preExcludeStatus: schema.bulkImportItems.preExcludeStatus,
@@ -2850,6 +2896,11 @@ export function registerBulkImportRoutes(app: Express): void {
         return {
           id: r.id,
           originalName: r.originalName,
+          // Task #1373 — surface the relative path (folder + filename)
+          // captured from the Choose-folder upload so the wizard can
+          // render the parent-folder portion in the per-item details
+          // panel. Equals `originalName` for Choose-files uploads.
+          originalPath: r.originalPath,
           mimeType: r.mimeType,
           status: r.status,
           preExcludeStatus: r.preExcludeStatus,
@@ -3302,12 +3353,36 @@ export function registerBulkImportRoutes(app: Express): void {
             ? true
             : String(rawSkipExisting) !== 'false';
 
+        // Task #1373 — When the admin uploaded via the wizard's
+        // **Choose folder** button, the client appends a `relativePaths`
+        // text field per file (parallel to the files array) carrying the
+        // browser's `webkitRelativePath`, e.g. `2024 bills/January/foo.pdf`.
+        // Multer presents this as either a single string (one file) or
+        // an array (multiple files); we normalise to an array of equal
+        // length, sanitise each entry, and persist to `originalPath` so
+        // every analyzer can later use the parent folder as a soft hint.
+        // **Choose files** uploads omit the field entirely, in which
+        // case `originalPath` falls back to the file's basename — that's
+        // the pre-task behaviour and `deriveFolderHintFromOriginalPath`
+        // will treat it as "no hint".
+        const rawRelativePaths = (req.body as { relativePaths?: unknown } | undefined)?.relativePaths;
+        const relativePaths: (string | null)[] = (() => {
+          if (typeof rawRelativePaths === 'string') {
+            return files.length === 1 ? [rawRelativePaths] : [];
+          }
+          if (Array.isArray(rawRelativePaths)) {
+            return rawRelativePaths.map((v) => (typeof v === 'string' ? v : null));
+          }
+          return [];
+        })();
+
         const dir = stagingDirFor(session.id);
         const created: schema.BulkImportItem[] = [];
         const failures: string[] = [];
         let skippedExisting = 0;
 
-        for (const file of files) {
+        for (let fileIdx = 0; fileIdx < files.length; fileIdx++) {
+          const file = files[fileIdx];
           // Track what we still own on disk for this iteration so a
           // failure at any step can clean up exactly the artifact this
           // file produced (temp file before rename, staged file after)
@@ -3357,6 +3432,34 @@ export function registerBulkImportRoutes(app: Express): void {
             // Latin-1, turning é (0xC3 0xA9) into the two-char sequence "Ã©".
             // Re-interpret as UTF-8 so accented names round-trip correctly.
             const correctedName = fixLatin1MisdecodeFilename(file.originalname);
+
+            // Task #1373 — Sanitise the optional per-file relativePath
+            // before persisting it to `originalPath`. We only accept a
+            // path that (a) is non-empty after trim, (b) does not start
+            // with a separator (no absolute paths), (c) contains no
+            // `..` segments (no parent traversal — purely cosmetic, but
+            // matches what we'd accept from a trusted source), and
+            // (d) ends with the file's own basename so the folder
+            // portion truly describes where this file lived. Anything
+            // else falls back to the basename, identical to the
+            // pre-task behaviour.
+            const candidatePath = (() => {
+              const raw = relativePaths[fileIdx];
+              if (typeof raw !== 'string') return null;
+              const trimmed = raw.trim();
+              if (!trimmed) return null;
+              if (trimmed.startsWith('/') || trimmed.startsWith('\\')) return null;
+              const segments = trimmed.split(/[\\/]+/).filter((s) => s.length > 0);
+              if (segments.length === 0) return null;
+              if (segments.some((s) => s === '..')) return null;
+              const basename = segments[segments.length - 1];
+              if (basename !== file.originalname && basename !== correctedName) return null;
+              // Apply the same Latin-1 fix to every segment so accented
+              // folder names round-trip the same way the filename does.
+              const fixed = segments.map(fixLatin1MisdecodeFilename).join('/');
+              return fixed;
+            })();
+            const originalPathToPersist = candidatePath ?? correctedName;
 
             // Dedup against this organization's fingerprint cache.
             const [dupe] = await db
@@ -3419,7 +3522,7 @@ export function registerBulkImportRoutes(app: Express): void {
               .insert(schema.bulkImportItems)
               .values({
                 sessionId: session.id,
-                originalPath: correctedName,
+                originalPath: originalPathToPersist,
                 originalName: correctedName,
                 stagedPath,
                 contentHash: hash,
@@ -3727,10 +3830,14 @@ export function registerBulkImportRoutes(app: Express): void {
             tempPathToCleanup = null;
           }
 
+          // Task #1373 — Preserve the existing row's originalPath so
+          // the folder lineage from the original Choose-folder upload
+          // is not lost when the admin uploads a corrected version of
+          // the same file. We still refresh originalName from the new
+          // upload because that's the actual file the admin chose.
           const [updated] = await db
             .update(schema.bulkImportItems)
             .set({
-              originalPath: correctedName,
               originalName: correctedName,
               stagedPath: resolvedNew,
               contentHash: hash,

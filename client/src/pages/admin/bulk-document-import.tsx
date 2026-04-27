@@ -255,6 +255,14 @@ function computeMergeGroup(
 export interface BulkImportItemLite {
   id: string;
   originalName: string;
+  /**
+   * Task #1373 — Folder-relative path captured at upload time when the
+   * admin used the **Choose folder** button (e.g. `2024 bills/January/foo.pdf`).
+   * For **Choose files** uploads this equals the basename. The wizard
+   * derives the parent-folder portion from this field and renders it
+   * read-only in the per-item details panel.
+   */
+  originalPath: string | null;
   mimeType: string | null;
   status: BulkImportItem['status'];
   preExcludeStatus: BulkImportItem['status'] | null;
@@ -2301,7 +2309,26 @@ export default function BulkDocumentImportPage() {
       if (allowed.length === 0) return { items: [], skippedExisting: 0 };
 
       const fd = new FormData();
-      allowed.forEach((f) => fd.append('files', f));
+      allowed.forEach((f) => {
+        fd.append('files', f);
+        // Task #1373 — When the admin uploaded via **Choose folder**,
+        // the browser sets `webkitRelativePath` on each File to the
+        // folder-relative path (e.g. `2024 bills/January/foo.pdf`). We
+        // append a parallel `relativePaths` text field per file so the
+        // server can persist it to `originalPath` and forward the
+        // parent folder as a soft AI hint to all 5 analyzer prompts.
+        // We always append (even when empty) so the server-side array
+        // stays index-aligned with the files array; the server treats
+        // empty strings as "no folder context" (the Choose-files case).
+        const rel =
+          typeof (f as File & { webkitRelativePath?: string }).webkitRelativePath ===
+            'string' &&
+          (f as File & { webkitRelativePath?: string }).webkitRelativePath !== '' &&
+          (f as File & { webkitRelativePath?: string }).webkitRelativePath !== f.name
+            ? (f as File & { webkitRelativePath?: string }).webkitRelativePath!
+            : '';
+        fd.append('relativePaths', rel);
+      });
       fd.append('skipExisting', skipExisting ? 'true' : 'false');
       const res = await fetch(
         `/api/admin/bulk-import/sessions/${sessionId}/items`,
@@ -8362,6 +8389,38 @@ export default function BulkDocumentImportPage() {
                                 className="border-t bg-muted/30 px-3 py-3"
                                 data-testid={`item-detail-panel-${item.id}`}
                               >
+                                {/*
+                                  Task #1373 — When the admin uploaded
+                                  via Choose folder, surface the parent
+                                  folder portion of `originalPath` as a
+                                  read-only line so they can verify what
+                                  the AI received as a soft hint. We
+                                  reuse the same path normalisation as
+                                  the server (` / ` separator). Hidden
+                                  for Choose-files uploads where
+                                  originalPath equals the basename.
+                                */}
+                                {(() => {
+                                  const op = item.originalPath ?? '';
+                                  const segments = op
+                                    .split(/[\\/]+/)
+                                    .filter((s) => s.length > 0);
+                                  if (segments.length <= 1) return null;
+                                  segments.pop();
+                                  const folder = segments.join(' / ');
+                                  if (!folder) return null;
+                                  return (
+                                    <div
+                                      className="mb-2 text-xs text-muted-foreground"
+                                      data-testid={`item-folder-hint-${item.id}`}
+                                    >
+                                      <span className="font-medium">
+                                        {isFr ? 'Dossier source' : 'Source folder'}:
+                                      </span>{' '}
+                                      <span className="font-mono">{folder}</span>
+                                    </div>
+                                  );
+                                })()}
                                 <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
                                   {isFr ? 'Analyse de l’IA' : 'AI analysis'}
                                 </div>

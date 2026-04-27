@@ -2279,3 +2279,142 @@ describe('bulkImportAnalyzer text-only PDF degradation (Task #1217)', () => {
     expect(cachedPayload).toHaveProperty('degraded', 'pdf_text_only');
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────
+// Task #1373 — Folder-path soft hint
+// ─────────────────────────────────────────────────────────────────────────
+// Each analyzer entry point accepts an optional `folderHint` param. When
+// non-empty, the analyzer must append a single "Source folder hint:" line
+// to the prompt that explicitly tells Claude to treat the folder as a
+// tiebreaker (not ground truth). When omitted / empty, the analyzer must
+// emit a prompt byte-identical to its pre-task behaviour so non-folder
+// uploads keep producing the exact same AI answers as before.
+describe('bulkImportAnalyzer folder hint (Task #1373)', () => {
+  let promptCalls: string[];
+
+  beforeEach(() => {
+    promptCalls = [];
+    cacheMockStore.clear();
+    getCachedMock.mockClear();
+    setCachedMock.mockClear();
+    const create = jest.fn((args: Record<string, unknown>) => {
+      // Capture the user message text portion from the request so the
+      // assertions below can match against it. Anthropic's SDK shape is
+      // `{ messages: [{ role, content: [{ type: 'text', text }] }] }`.
+      const messages = (args.messages as Array<Record<string, unknown>>) ?? [];
+      const first = messages[0];
+      const content = (first?.content as Array<Record<string, unknown>>) ?? [];
+      for (const block of content) {
+        if (block.type === 'text' && typeof block.text === 'string') {
+          promptCalls.push(block.text);
+        }
+      }
+      // Return a minimal valid screening JSON so downstream parsing
+      // succeeds for every analyzer under test.
+      return Promise.resolve({
+        content: [
+          {
+            type: 'text',
+            text: JSON.stringify({
+              isComplete: true,
+              isMultiDocument: false,
+              pageOrderHint: null,
+              rotationDegrees: 0,
+              suggestedFilename: 'doc.pdf',
+              description: 'desc',
+              decision: 'keep',
+              branch: 'building_documents',
+              subCategory: 'other',
+              name: 'Doc',
+              tags: [],
+              metadata: {},
+              relatedItemIds: [],
+              reason: '',
+              confidence: 0.7,
+            }),
+          },
+        ],
+      });
+    });
+    bulkImportAnalyzer.__setClientForTests({
+      messages: { create },
+    } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0]);
+  });
+
+  afterEach(() => {
+    bulkImportAnalyzer.__setClientForTests(null);
+  });
+
+  it("omits the 'Source folder hint:' line when folderHint is null/empty", async () => {
+    await bulkImportAnalyzer.screen({
+      originalName: 'invoice.pdf',
+      mimeType: 'application/pdf',
+      folderHint: null,
+    });
+    expect(promptCalls.length).toBeGreaterThan(0);
+    expect(promptCalls.join('\n')).not.toMatch(/Source folder hint/);
+  });
+
+  it("includes a normalised 'Source folder hint:' line on screen() when present", async () => {
+    await bulkImportAnalyzer.screen({
+      originalName: 'invoice.pdf',
+      mimeType: 'application/pdf',
+      folderHint: '2024 bills / January',
+    });
+    const joined = promptCalls.join('\n');
+    expect(joined).toMatch(/Source folder hint: "2024 bills \/ January"/);
+    // The wording must explicitly downgrade the hint to a tiebreaker so
+    // Claude cannot treat the folder as ground truth — that's the whole
+    // point of "soft" hint.
+    expect(joined).toMatch(/tiebreaker/);
+    expect(joined).toMatch(/not as ground truth/);
+  });
+
+  it('threads folderHint into suggestMergeOrSplit, suggestBranch, identify, and suggestLinks', async () => {
+    const folderHint = '2024 bills / February';
+
+    promptCalls.length = 0;
+    await bulkImportAnalyzer.suggestMergeOrSplit({
+      originalName: 'a.pdf',
+      siblings: [],
+      mimeType: 'application/pdf',
+      folderHint,
+    });
+    expect(promptCalls.join('\n')).toMatch(/Source folder hint: "2024 bills \/ February"/);
+
+    promptCalls.length = 0;
+    await bulkImportAnalyzer.suggestBranch({
+      originalName: 'a.pdf',
+      mimeType: 'application/pdf',
+      folderHint,
+    });
+    expect(promptCalls.join('\n')).toMatch(/Source folder hint: "2024 bills \/ February"/);
+
+    promptCalls.length = 0;
+    await bulkImportAnalyzer.identify({
+      originalName: 'a.pdf',
+      branch: 'building_documents',
+      mimeType: 'application/pdf',
+      folderHint,
+    });
+    expect(promptCalls.join('\n')).toMatch(/Source folder hint: "2024 bills \/ February"/);
+
+    promptCalls.length = 0;
+    await bulkImportAnalyzer.suggestLinks({
+      originalName: 'a.pdf',
+      candidates: [],
+      mimeType: 'application/pdf',
+      folderHint,
+    });
+    expect(promptCalls.join('\n')).toMatch(/Source folder hint: "2024 bills \/ February"/);
+  });
+
+  it('omits the hint when folderHint is whitespace-only', async () => {
+    await bulkImportAnalyzer.screen({
+      originalName: 'x.pdf',
+      mimeType: 'application/pdf',
+      folderHint: '   \n  ',
+    });
+    expect(promptCalls.join('\n')).not.toMatch(/Source folder hint/);
+  });
+});

@@ -614,6 +614,136 @@ describeIfDb('bulk-import REST endpoints — Task #456', () => {
     expect(empty.status).toBe(400);
   });
 
+  // Task #1373 — Folder-path soft hint plumbing
+  // ──────────────────────────────────────────
+  // When the wizard's Choose-folder button is used, the client appends a
+  // parallel `relativePaths` text field per file. The server must persist
+  // that path verbatim into `bulkImportItems.originalPath`, fall back to
+  // the basename for files uploaded without a relativePath, and reject any
+  // path that would escape the file (absolute, contains "..", or whose
+  // basename does not match the file's own basename) so a malicious form
+  // body can never poison the row.
+  it('persists relativePaths to originalPath for folder uploads, falls back to basename otherwise, and rejects unsafe paths', async () => {
+    const sid = await createSession();
+
+    const upload = await request(app)
+      .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+      .set('x-test-user-id', ids.admin)
+      // file 0: well-formed folder upload — keep verbatim
+      .attach('files', PDF_BODY, {
+        filename: 'jan-statement.pdf',
+        contentType: 'application/pdf',
+      })
+      .field('relativePaths', '2024 bills/January/jan-statement.pdf')
+      // file 1: empty relativePath — must fall back to basename
+      .attach('files', PNG_BODY, {
+        filename: 'meter.png',
+        contentType: 'image/png',
+      })
+      .field('relativePaths', '')
+      // file 2: malicious absolute path — must fall back to basename
+      .attach('files', Buffer.from('%PDF-1.4 a'), {
+        filename: 'absolute.pdf',
+        contentType: 'application/pdf',
+      })
+      .field('relativePaths', '/etc/passwd/absolute.pdf')
+      // file 3: parent traversal — must fall back to basename
+      .attach('files', Buffer.from('%PDF-1.4 b'), {
+        filename: 'parent.pdf',
+        contentType: 'application/pdf',
+      })
+      .field('relativePaths', '../../parent.pdf')
+      // file 4: basename mismatch — must fall back to basename
+      .attach('files', Buffer.from('%PDF-1.4 c'), {
+        filename: 'mismatch.pdf',
+        contentType: 'application/pdf',
+      })
+      .field('relativePaths', '2024/something-else.pdf');
+
+    expect(upload.status).toBe(201);
+    expect(upload.body).toHaveLength(5);
+    upload.body.forEach((row: any) => trackedItems.add(row.id));
+
+    const byName = new Map<string, any>(
+      upload.body.map((r: any) => [r.originalName, r] as const),
+    );
+    expect(byName.get('jan-statement.pdf').originalPath).toBe(
+      '2024 bills/January/jan-statement.pdf',
+    );
+    expect(byName.get('meter.png').originalPath).toBe('meter.png');
+    expect(byName.get('absolute.pdf').originalPath).toBe('absolute.pdf');
+    expect(byName.get('parent.pdf').originalPath).toBe('parent.pdf');
+    expect(byName.get('mismatch.pdf').originalPath).toBe('mismatch.pdf');
+
+    // The /lite payload must surface the same originalPath so the wizard
+    // can render the parent-folder portion in the per-item details panel
+    // without making a second round-trip.
+    const lite = await request(app)
+      .get(`/api/admin/bulk-import/sessions/${sid}/lite`)
+      .set('x-test-user-id', ids.admin);
+    expect(lite.status).toBe(200);
+    const liteByName = new Map<string, any>(
+      lite.body.items.map((i: any) => [i.originalName, i] as const),
+    );
+    expect(liteByName.get('jan-statement.pdf').originalPath).toBe(
+      '2024 bills/January/jan-statement.pdf',
+    );
+    expect(liteByName.get('meter.png').originalPath).toBe('meter.png');
+  });
+
+  it('falls back to basename when the client omits the relativePaths field entirely', async () => {
+    // Mirrors the **Choose files** (non-folder) upload path: the client
+    // sends no `relativePaths` field at all, so `originalPath` must be
+    // the file's basename — the pre-task behaviour. The companion
+    // `deriveFolderHintFromOriginalPath` unit test pins that this
+    // shape produces a null folder hint, so the analyzer prompt is
+    // unchanged versus the pre-task baseline.
+    const sid = await createSession();
+    const upload = await request(app)
+      .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+      .set('x-test-user-id', ids.admin)
+      .attach('files', PDF_BODY, {
+        filename: 'no-folder.pdf',
+        contentType: 'application/pdf',
+      });
+
+    expect(upload.status).toBe(201);
+    expect(upload.body).toHaveLength(1);
+    upload.body.forEach((row: any) => trackedItems.add(row.id));
+    expect(upload.body[0].originalPath).toBe('no-folder.pdf');
+  });
+
+  it('preserves originalPath through the replace-file route so folder lineage is not lost', async () => {
+    const sid = await createSession();
+    const upload = await request(app)
+      .post(`/api/admin/bulk-import/sessions/${sid}/items`)
+      .set('x-test-user-id', ids.admin)
+      .attach('files', PDF_BODY, {
+        filename: 'lease.pdf',
+        contentType: 'application/pdf',
+      })
+      .field('relativePaths', 'leases/2024/lease.pdf');
+    expect(upload.status).toBe(201);
+    const item = upload.body[0];
+    trackedItems.add(item.id);
+    expect(item.originalPath).toBe('leases/2024/lease.pdf');
+
+    const replacement = Buffer.from('%PDF-1.4 replacement body');
+    const replaced = await request(app)
+      .post(`/api/admin/bulk-import/items/${item.id}/replace-file`)
+      .set('x-test-user-id', ids.admin)
+      .attach('files', replacement, {
+        filename: 'lease.pdf',
+        contentType: 'application/pdf',
+      });
+    expect(replaced.status).toBe(200);
+    // Even though the admin uploaded a fresh file (no relativePath on the
+    // replace endpoint at all), the row's originalPath must keep the
+    // folder lineage from the original Choose-folder upload.
+    expect(replaced.body.originalPath).toBe('leases/2024/lease.pdf');
+    expect(replaced.body.originalName).toBe('lease.pdf');
+  });
+
   it('patches a single item decision and persists it', async () => {
     const sid = await createSession();
     const upload = await request(app)
