@@ -471,7 +471,15 @@ export function requireRole(allowedRoles: string[]) {
       });
     }
 
-    if (!allowedRoles.includes(req.user.role)) {
+    // super_admin is the top of the role hierarchy and implicitly satisfies
+    // every role check (admin, manager, etc). Without this, every endpoint
+    // gated with requireRole(['admin']) would 403 super_admin users — the
+    // opposite of what "super" admin means. Explicit allowlists that already
+    // include 'super_admin' are unaffected.
+    const isAuthorized =
+      req.user.role === 'super_admin' || allowedRoles.includes(req.user.role);
+
+    if (!isAuthorized) {
       return res.status(403).json({
         message: 'Insufficient permissions',
         code: 'INSUFFICIENT_PERMISSIONS',
