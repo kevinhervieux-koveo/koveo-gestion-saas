@@ -46,7 +46,6 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Header } from '@/components/layout/header';
 import type { DocumentTag } from '@/components/document-tags/TagPicker';
 import { useLanguage } from '@/hooks/use-language';
-import { useAuth } from '@/hooks/use-auth';
 
 // ─── Tag form schema ──────────────────────────────────────────────────────────
 
@@ -84,8 +83,6 @@ type FamilyFormValues = z.infer<typeof familyFormSchema>;
 export default function AdminDocumentTags() {
   const { t } = useLanguage();
   const { toast } = useToast();
-  const { user } = useAuth();
-  const isAdmin = user?.role === 'admin';
 
   // ── Tags ──────────────────────────────────────────────────────────────────
   const [tagDialogOpen, setTagDialogOpen] = useState(false);
@@ -148,7 +145,7 @@ export default function AdminDocumentTags() {
         .map((s) => s.trim())
         .filter(Boolean),
     };
-    if (!editingTag && isAdmin) {
+    if (!editingTag) {
       payload.isSystem = values.isSystem ?? false;
     }
     try {
@@ -262,7 +259,7 @@ export default function AdminDocumentTags() {
       name: values.name,
       description: values.description || null,
     };
-    if (!editingFamily && isAdmin) {
+    if (!editingFamily) {
       payload.isSystem = values.isSystem ?? false;
     }
     if (editingFamily) {
@@ -375,9 +372,8 @@ export default function AdminDocumentTags() {
               <FamiliesTable
                 families={systemFamilies}
                 isLoading={familiesLoading}
-                readOnly={!isAdmin}
-                onEdit={isAdmin ? openEditFamily : undefined}
-                onDelete={isAdmin ? removeFamily : undefined}
+                onEdit={openEditFamily}
+                onDelete={removeFamily}
               />
             </CardContent>
           </Card>
@@ -506,7 +502,7 @@ export default function AdminDocumentTags() {
                     </FormItem>
                   )}
                 />
-                {isAdmin && !editingTag && (
+                {!editingTag && (
                   <FormField
                     control={tagForm.control}
                     name="isSystem"
@@ -595,7 +591,7 @@ export default function AdminDocumentTags() {
                     </FormItem>
                   )}
                 />
-                {isAdmin && !editingFamily && (
+                {!editingFamily && (
                   <FormField
                     control={familyForm.control}
                     name="isSystem"
