@@ -18,6 +18,18 @@ import {
   DialogTitle,
 } from '@/components/ui/dialog';
 import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
+import {
   Form,
   FormControl,
   FormField,
@@ -190,10 +202,19 @@ export default function AdminDocumentTags() {
     }
   };
 
-  const removeTag = async (tag: DocumentTag) => {
-    if (!window.confirm(t('dtDeleteConfirm', { name: tag.name }))) return;
+  type PendingDelete =
+    | { kind: 'tag'; id: string; name: string }
+    | { kind: 'family'; id: string; name: string };
+
+  const [pendingDelete, setPendingDelete] = useState<PendingDelete | null>(null);
+
+  const removeTag = (tag: DocumentTag) => {
+    setPendingDelete({ kind: 'tag', id: tag.id, name: tag.name });
+  };
+
+  const performDeleteTag = async (id: string) => {
     try {
-      await apiRequest('DELETE', `/api/document-tags/${tag.id}`);
+      await apiRequest('DELETE', `/api/document-tags/${id}`);
       toast({ title: t('dtToastDeletedTitle') });
       queryClient.invalidateQueries({ queryKey: ['/api/document-tags'] });
     } catch (e: any) {
@@ -316,9 +337,22 @@ export default function AdminDocumentTags() {
   };
 
   const removeFamily = (family: LinkFamily) => {
-    const name = family.name;
-    if (!window.confirm(t('lfDeleteConfirm', { name }) || `Delete family "${name}"?`)) return;
-    deleteFamilyMutation.mutate(family.id);
+    setPendingDelete({ kind: 'family', id: family.id, name: family.name });
+  };
+
+  const performDeleteFamily = (id: string) => {
+    deleteFamilyMutation.mutate(id);
+  };
+
+  const confirmPendingDelete = async () => {
+    if (!pendingDelete) return;
+    const item = pendingDelete;
+    setPendingDelete(null);
+    if (item.kind === 'tag') {
+      await performDeleteTag(item.id);
+    } else {
+      performDeleteFamily(item.id);
+    }
   };
 
   const families = familyData?.families ?? [];
@@ -772,6 +806,45 @@ export default function AdminDocumentTags() {
             </Form>
           </DialogContent>
         </Dialog>
+
+        {/* ── Delete confirmation dialog ──────────────────────────────────── */}
+        <AlertDialog
+          open={pendingDelete !== null}
+          onOpenChange={(open) => {
+            if (!open) setPendingDelete(null);
+          }}
+        >
+          <AlertDialogContent data-testid="dialog-confirm-delete">
+            <AlertDialogHeader>
+              <AlertDialogTitle>{t('delete')}</AlertDialogTitle>
+              <AlertDialogDescription data-testid="text-confirm-delete-message">
+                {pendingDelete
+                  ? pendingDelete.kind === 'family'
+                    ? t('lfDeleteConfirm', { name: pendingDelete.name }) ||
+                      `Delete family "${pendingDelete.name}"?`
+                    : t('dtDeleteConfirm', { name: pendingDelete.name })
+                  : ''}
+              </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+              <AlertDialogCancel data-testid="button-cancel-delete">
+                {t('dtCancelButton')}
+              </AlertDialogCancel>
+              <AlertDialogAction
+                className={cn(
+                  buttonVariants({ variant: 'destructive' }),
+                )}
+                onClick={(e) => {
+                  e.preventDefault();
+                  void confirmPendingDelete();
+                }}
+                data-testid="button-confirm-delete"
+              >
+                {t('delete')}
+              </AlertDialogAction>
+            </AlertDialogFooter>
+          </AlertDialogContent>
+        </AlertDialog>
       </div>
     </div>
   );

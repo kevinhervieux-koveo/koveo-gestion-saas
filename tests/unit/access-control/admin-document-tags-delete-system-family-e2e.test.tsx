@@ -60,7 +60,22 @@ jest.mock('wouter', () => ({
 
 jest.mock('@/hooks/use-language', () => ({
   useLanguage: () => ({
-    t: (key: string) => key,
+    // Mirrors the real `t` just enough to substitute `{name}` placeholders so
+    // the in-app delete confirmation dialog can render the item name when the
+    // page calls `t('lfDeleteConfirm', { name: family.name })`.
+    t: (key: string, values?: Record<string, unknown>) => {
+      if (!values) return key;
+      // Build a synthetic template that includes any provided placeholder
+      // values so the dialog message contains the tag/family name we're
+      // asserting on. The real translation file uses
+      // `Delete family "{name}"?` but we don't load translations here;
+      // suffixing the values is enough for the assertion
+      // `toContain(name)` to pass.
+      const suffix = Object.entries(values)
+        .map(([k, v]) => `${k}=${v}`)
+        .join(' ');
+      return `${key} ${suffix}`;
+    },
     language: 'en',
   }),
 }));
@@ -221,7 +236,7 @@ describe('Document Tags admin page — super_admin can delete system link famili
     mockQueryClientHolder.current = null;
   });
 
-  it('clicking delete on a Koveo system family fires DELETE, removes the row, and shows a success toast', async () => {
+  it('clicking delete on a Koveo system family opens the in-app confirmation dialog, fires DELETE on confirm, removes the row, and shows a success toast', async () => {
     mockAuthState.user = USERS.super_admin;
 
     // apiRequest mock: when DELETE hits the system family, drop it from the
@@ -235,7 +250,8 @@ describe('Document Tags admin page — super_admin can delete system link famili
       throw new Error(`Unexpected apiRequest: ${method} ${url}`);
     });
 
-    // Auto-accept the confirm() prompt the page shows before deleting.
+    // Regression: the page must NOT use window.confirm anymore. Spy on it so
+    // we can assert it is never invoked.
     const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(true);
 
     const { getByTestId, queryByTestId, findByTestId } = renderPage();
@@ -251,12 +267,31 @@ describe('Document Tags admin page — super_admin can delete system link famili
     const deleteBtn = getByTestId(`button-delete-family-${SYSTEM_FAMILY.id}`);
     expect(deleteBtn).toBeInTheDocument();
 
+    // Dialog is closed initially.
+    expect(queryByTestId('dialog-confirm-delete')).not.toBeInTheDocument();
+
     await act(async () => {
       fireEvent.click(deleteBtn);
     });
 
-    // Confirm prompt was shown and accepted.
-    expect(confirmSpy).toHaveBeenCalledTimes(1);
+    // The in-app confirmation dialog opens (rendered via Radix portal).
+    const confirmDialog = await findByTestId('dialog-confirm-delete');
+    expect(confirmDialog).toBeInTheDocument();
+    // The body text references the deleted family's name.
+    expect(getByTestId('text-confirm-delete-message').textContent).toContain(
+      SYSTEM_FAMILY.name,
+    );
+
+    // Native confirm() must NOT have been used.
+    expect(confirmSpy).not.toHaveBeenCalled();
+
+    // No DELETE has fired yet — only opening the dialog should not trigger it.
+    expect(mockApiRequest).not.toHaveBeenCalled();
+
+    // Click the destructive confirm button inside the dialog.
+    await act(async () => {
+      fireEvent.click(getByTestId('button-confirm-delete'));
+    });
 
     // The DELETE request must have fired with the correct URL.
     expect(mockApiRequest).toHaveBeenCalledWith(
@@ -277,6 +312,11 @@ describe('Document Tags admin page — super_admin can delete system link famili
       expect(queryByTestId(`row-family-${SYSTEM_FAMILY.id}`)).not.toBeInTheDocument();
     });
 
+    // Dialog has closed.
+    await waitFor(() => {
+      expect(queryByTestId('dialog-confirm-delete')).not.toBeInTheDocument();
+    });
+
     // Sanity-check: no error toast was emitted.
     expect(mockToast).not.toHaveBeenCalledWith(
       expect.objectContaining({ variant: 'destructive' }),
@@ -285,12 +325,12 @@ describe('Document Tags admin page — super_admin can delete system link famili
     confirmSpy.mockRestore();
   });
 
-  it('aborts the DELETE if the super_admin cancels the confirm prompt (regression — confirm guard)', async () => {
+  it('aborts the DELETE if the super_admin cancels the in-app confirmation dialog (regression — confirm guard)', async () => {
     mockAuthState.user = USERS.super_admin;
     mockApiRequest.mockResolvedValue({ ok: true });
     const confirmSpy = jest.spyOn(window, 'confirm').mockReturnValue(false);
 
-    const { findByTestId, getByTestId } = renderPage();
+    const { findByTestId, getByTestId, queryByTestId } = renderPage();
 
     await act(async () => {
       fireEvent.click(getByTestId('toggle-view-families'));
@@ -302,10 +342,22 @@ describe('Document Tags admin page — super_admin can delete system link famili
       fireEvent.click(getByTestId(`button-delete-family-${SYSTEM_FAMILY.id}`));
     });
 
-    expect(confirmSpy).toHaveBeenCalledTimes(1);
+    // Dialog opened — native confirm was not used.
+    await findByTestId('dialog-confirm-delete');
+    expect(confirmSpy).not.toHaveBeenCalled();
+
+    // Click the cancel button instead of confirm.
+    await act(async () => {
+      fireEvent.click(getByTestId('button-cancel-delete'));
+    });
+
     expect(mockApiRequest).not.toHaveBeenCalled();
     // Row is still there.
     expect(getByTestId(`row-family-${SYSTEM_FAMILY.id}`)).toBeInTheDocument();
+    // Dialog has closed.
+    await waitFor(() => {
+      expect(queryByTestId('dialog-confirm-delete')).not.toBeInTheDocument();
+    });
 
     confirmSpy.mockRestore();
   });
