@@ -28,10 +28,11 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { ClipboardList, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-react';
+import { useLanguage } from '@/hooks/use-language';
 
 export const route: AutoPageRoute = {
   path: '/admin/impersonation-log',
-  role: 'super_admin',
+  role: 'admin',
 };
 
 type ImpersonationUser = {
@@ -61,10 +62,10 @@ type ApiResponse = {
   };
 };
 
-function formatDate(iso: string | null): string {
+function formatDate(iso: string | null, locale: string): string {
   if (!iso) return '—';
   const d = new Date(iso);
-  return d.toLocaleString('en-CA', {
+  return d.toLocaleString(locale === 'fr' ? 'fr-CA' : 'en-CA', {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -99,6 +100,7 @@ function ActionBadge({ action }: { action: string }) {
 
 export default function AdminImpersonationLogPage() {
   const { user } = useAuth();
+  const { t, language } = useLanguage();
   const [page, setPage] = useState(1);
 
   const { data, isLoading, isError } = useQuery<ApiResponse>({
@@ -123,8 +125,8 @@ export default function AdminImpersonationLogPage() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
       <Header
-        title="Impersonation Audit Log"
-        subtitle="All MCP assume_user and restore_acting_user events, newest first"
+        title={t('impLogTitle')}
+        subtitle={t('impLogSubtitle')}
       />
 
       <div className="flex-1 overflow-auto p-6">
@@ -132,8 +134,7 @@ export default function AdminImpersonationLogPage() {
           <Alert className="border-amber-200 bg-amber-50 dark:border-amber-800 dark:bg-amber-950">
             <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" />
             <AlertDescription className="text-amber-800 dark:text-amber-200">
-              This log covers impersonation sessions initiated through the MCP assistant interface.
-              Rows are written before session state is mutated, so failed attempts also appear here.
+              {t('impLogDisclaimer')}
             </AlertDescription>
           </Alert>
 
@@ -147,7 +148,7 @@ export default function AdminImpersonationLogPage() {
 
           {isError && (
             <Alert variant="destructive">
-              <AlertDescription>Failed to load impersonation log. Please try again.</AlertDescription>
+              <AlertDescription>{t('impLogError')}</AlertDescription>
             </Alert>
           )}
 
@@ -157,12 +158,12 @@ export default function AdminImpersonationLogPage() {
                 <Table>
                   <TableHeader>
                     <TableRow>
-                      <TableHead className="w-[160px]">Timestamp</TableHead>
-                      <TableHead className="w-[80px]">Action</TableHead>
-                      <TableHead>Performed By</TableHead>
-                      <TableHead>Assumed User</TableHead>
-                      <TableHead className="hidden lg:table-cell">IP Address</TableHead>
-                      <TableHead className="hidden xl:table-cell">Outcome</TableHead>
+                      <TableHead className="w-[160px]">{t('impLogTimestamp')}</TableHead>
+                      <TableHead className="w-[80px]">{t('impLogAction')}</TableHead>
+                      <TableHead>{t('impLogPerformedBy')}</TableHead>
+                      <TableHead>{t('impLogAssumedUser')}</TableHead>
+                      <TableHead className="hidden lg:table-cell">{t('impLogIpAddress')}</TableHead>
+                      <TableHead className="hidden xl:table-cell">{t('impLogOutcome')}</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -170,14 +171,14 @@ export default function AdminImpersonationLogPage() {
                       <TableRow>
                         <TableCell colSpan={6} className="text-center text-muted-foreground py-10">
                           <ClipboardList className="mx-auto h-8 w-8 mb-2 opacity-30" />
-                          No impersonation events recorded yet.
+                          {t('impLogEmpty')}
                         </TableCell>
                       </TableRow>
                     )}
                     {rows.map((row) => (
                       <TableRow key={row.id}>
                         <TableCell className="text-xs text-muted-foreground whitespace-nowrap">
-                          {formatDate(row.createdAt)}
+                          {formatDate(row.createdAt, language)}
                         </TableCell>
                         <TableCell>
                           <ActionBadge action={row.action} />
@@ -201,7 +202,10 @@ export default function AdminImpersonationLogPage() {
               {pagination && pagination.totalPages > 1 && (
                 <div className="flex items-center justify-between text-sm text-muted-foreground">
                   <span>
-                    Page {pagination.page} of {pagination.totalPages} &mdash; {pagination.total} total events
+                    {t('impLogPaginationLabel')
+                      .replace('{page}', String(pagination.page))
+                      .replace('{totalPages}', String(pagination.totalPages))
+                      .replace('{total}', String(pagination.total))}
                   </span>
                   <div className="flex gap-2">
                     <Button
@@ -211,7 +215,7 @@ export default function AdminImpersonationLogPage() {
                       onClick={() => setPage((p) => Math.max(1, p - 1))}
                     >
                       <ChevronLeft className="h-4 w-4 mr-1" />
-                      Previous
+                      {t('previous')}
                     </Button>
                     <Button
                       variant="outline"
@@ -219,7 +223,7 @@ export default function AdminImpersonationLogPage() {
                       disabled={page >= pagination.totalPages}
                       onClick={() => setPage((p) => p + 1)}
                     >
-                      Next
+                      {t('next')}
                       <ChevronRight className="h-4 w-4 ml-1" />
                     </Button>
                   </div>

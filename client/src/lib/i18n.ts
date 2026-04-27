@@ -3988,6 +3988,8 @@ export interface Translations {
   etConfirmBulkDelete: string;
   etElementsDeletedTitle: string;
   etElementsDeletedDescPrefix: string;
+  etElementsDeletedDescSuffix: string;
+  etElementsSelectedSuffix: string;
   etElementsDeletedDesc_one: string;
   etElementsDeletedDesc_other: string;
   etPartiallyCompletedTitle: string;
@@ -4423,6 +4425,81 @@ export interface Translations {
   dmNoReportsFound: string;
   dmUploadFirstDocument: string;
   dmUploadedBy: string;
+  permPageSubtitle: string;
+  permSystemPermissions: string;
+  permActivePermissions: string;
+  permRoleHierarchy: string;
+  permCategories: string;
+  permUserOverrides: string;
+  permRoleBasedOnly: string;
+  permCustomPermissions: string;
+  permTabUsers: string;
+  permTabAll: string;
+  permUserSpecificHeader: string;
+  permSearchPlaceholderUsers: string;
+  permFilterByRole: string;
+  permAllRoles: string;
+  permAllUsers: string;
+  permActiveOnly: string;
+  permInactiveOnly: string;
+  permAllTypes: string;
+  permHasGranted: string;
+  permHasRevoked: string;
+  permResetFilters: string;
+  permFiltersActive: string;
+  permRolePermsLabel: string;
+  permTotalLabel: string;
+  permManageBtn: string;
+  permViewDetails: string;
+  permManageUserTitle: string;
+  permGrantPlaceholder: string;
+  permAllPermissionsTitle: string;
+  permIdHeader: string;
+  permDisplayNameHeader: string;
+  permResourceTypeHeader: string;
+  permRolesHeader: string;
+  permGrantedStatus: string;
+  permRevokedStatus: string;
+  permAllCategories: string;
+  permAllActions: string;
+  permSortByName: string;
+  permSortByResource: string;
+  permSortByAction: string;
+  permSortByDate: string;
+  permStatusFilter: string;
+  permUserStatusFilter: string;
+  permNone: string;
+  permShowingUsers: string;
+  permShowingPerms: string;
+  impLogTitle: string;
+  impLogSubtitle: string;
+  impLogDisclaimer: string;
+  impLogTimestamp: string;
+  impLogAction: string;
+  impLogPerformedBy: string;
+  impLogAssumedUser: string;
+  impLogIpAddress: string;
+  impLogOutcome: string;
+  impLogEmpty: string;
+  impLogError: string;
+  impLogPaginationLabel: string;
+  orgCardCreate: string;
+  orgCardNoOrgs: string;
+  orgCardCreateFirst: string;
+  orgCardOrganizations: string;
+  orgCardTypeLabel: string;
+  orgCardStatusLabel: string;
+  orgCardAddressLabel: string;
+  orgCardPhoneLabel: string;
+  orgCardEmailLabel: string;
+  orgCardWebsiteLabel: string;
+  orgCardRegistrationLabel: string;
+  orgCardActive: string;
+  orgCardInactive: string;
+  orgCardView: string;
+  orgCardEdit: string;
+  orgCardDelete: string;
+  orgCardClose: string;
 }
 
 /**
@@ -8424,6 +8501,8 @@ export const translations: Record<Language, Translations> = {
     etConfirmBulkDelete: 'Are you sure you want to delete the selected elements? This action cannot be undone.',
     etElementsDeletedTitle: 'Elements deleted',
     etElementsDeletedDescPrefix: 'Successfully deleted',
+    etElementsDeletedDescSuffix: 'element(s).',
+    etElementsSelectedSuffix: 'element(s) selected',
     etElementsDeletedDesc_one: 'Successfully deleted {count} element.',
     etElementsDeletedDesc_other: 'Successfully deleted {count} elements.',
     etPartiallyCompletedTitle: 'Partially completed',
@@ -8853,6 +8932,81 @@ export const translations: Record<Language, Translations> = {
     dmNoReportsFound: 'No reports found',
     dmUploadFirstDocument: 'Upload First Document',
     dmUploadedBy: 'by {name}',
+    permPageSubtitle: 'Manage role-based access control and user permissions',
+    permSystemPermissions: 'System Permissions',
+    permActivePermissions: 'Active permissions',
+    permRoleHierarchy: 'Role Hierarchy',
+    permCategories: 'Permission categories',
+    permUserOverrides: 'User Overrides',
+    permRoleBasedOnly: 'Role-based only',
+    permCustomPermissions: 'Custom permissions',
+    permTabUsers: 'User Permissions',
+    permTabAll: 'All Permissions',
+    permUserSpecificHeader: 'User-Specific Permissions',
+    permSearchPlaceholderUsers: 'Search users by name or email...',
+    permFilterByRole: 'Filter by role',
+    permAllRoles: 'All Roles',
+    permAllUsers: 'All Users',
+    permActiveOnly: 'Active Only',
+    permInactiveOnly: 'Inactive Only',
+    permAllTypes: 'All Permission Types',
+    permHasGranted: 'Has Granted Permissions',
+    permHasRevoked: 'Has Revoked Permissions',
+    permResetFilters: 'Reset Filters',
+    permFiltersActive: 'Filters active',
+    permRolePermsLabel: 'Role Permissions',
+    permTotalLabel: 'Total Permissions',
+    permManageBtn: 'Manage Permissions',
+    permViewDetails: 'View Details',
+    permManageUserTitle: 'Manage User Permissions',
+    permGrantPlaceholder: 'Grant a new permission...',
+    permAllPermissionsTitle: 'All Permissions',
+    permIdHeader: 'Permission ID',
+    permDisplayNameHeader: 'Display Name',
+    permResourceTypeHeader: 'Resource Type',
+    permRolesHeader: 'Roles',
+    permGrantedStatus: 'Granted',
+    permRevokedStatus: 'Revoked',
+    permAllCategories: 'All Categories',
+    permAllActions: 'All Actions',
+    permSortByName: 'Sort by Name',
+    permSortByResource: 'Sort by Resource',
+    permSortByAction: 'Sort by Action',
+    permSortByDate: 'Sort by Date',
+    permStatusFilter: 'Permission status',
+    permUserStatusFilter: 'User status',
+    permNone: 'None',
+    permShowingUsers: 'Showing {count} of {total} users',
+    permShowingPerms: 'Showing {count} of {total} permissions',
+    impLogTitle: 'Impersonation Audit Log',
+    impLogSubtitle: 'All MCP assume_user and restore_acting_user events, newest first',
+    impLogDisclaimer: 'This log covers impersonation sessions initiated through the MCP assistant interface. Rows are written before session state is mutated, so failed attempts also appear here.',
+    impLogTimestamp: 'Timestamp',
+    impLogAction: 'Action',
+    impLogPerformedBy: 'Performed By',
+    impLogAssumedUser: 'Assumed User',
+    impLogIpAddress: 'IP Address',
+    impLogOutcome: 'Outcome',
+    impLogEmpty: 'No impersonation events recorded yet.',
+    impLogError: 'Failed to load impersonation log. Please try again.',
+    impLogPaginationLabel: 'Page {page} of {totalPages} — {total} total events',
+    orgCardCreate: 'Create',
+    orgCardNoOrgs: 'No organizations found',
+    orgCardCreateFirst: 'Create First Organization',
+    orgCardOrganizations: 'Organizations',
+    orgCardTypeLabel: 'Type',
+    orgCardStatusLabel: 'Status',
+    orgCardAddressLabel: 'Address',
+    orgCardPhoneLabel: 'Phone',
+    orgCardEmailLabel: 'Email',
+    orgCardWebsiteLabel: 'Website',
+    orgCardRegistrationLabel: 'Registration Number',
+    orgCardActive: 'Active',
+    orgCardInactive: 'Inactive',
+    orgCardView: 'View',
+    orgCardEdit: 'Edit',
+    orgCardDelete: 'Delete',
+    orgCardClose: 'Close',
   },
   fr: {
 
@@ -9715,7 +9869,7 @@ export const translations: Record<Language, Translations> = {
     enterReasonDeletion: 'Entrer la raison de la suppression...',
     deleting: 'Suppression...',
     page: 'Page',
-    of: 'de',
+    of: 'sur',
     filtered: 'Filtré',
     onThisPage: 'Sur cette page',
     confirmEmail: 'Confirmer le courriel',
@@ -12859,6 +13013,8 @@ export const translations: Record<Language, Translations> = {
     etConfirmBulkDelete: 'Voulez-vous vraiment supprimer les éléments sélectionnés? Cette action est irréversible.',
     etElementsDeletedTitle: 'Éléments supprimés',
     etElementsDeletedDescPrefix: 'Suppression réussie de',
+    etElementsDeletedDescSuffix: 'élément(s).',
+    etElementsSelectedSuffix: 'élément(s) sélectionné(s)',
     etElementsDeletedDesc_one: 'Suppression réussie de {count} élément.',
     etElementsDeletedDesc_other: 'Suppression réussie de {count} éléments.',
     etPartiallyCompletedTitle: 'Partiellement complété',
@@ -13288,6 +13444,81 @@ export const translations: Record<Language, Translations> = {
     dmNoReportsFound: 'Aucun rapport trouvé',
     dmUploadFirstDocument: 'Téléverser le premier document',
     dmUploadedBy: 'par {name}',
+    permPageSubtitle: 'Gérer le contrôle d\'accès basé sur les rôles et les permissions utilisateurs',
+    permSystemPermissions: 'Permissions système',
+    permActivePermissions: 'Permissions actives',
+    permRoleHierarchy: 'Hiérarchie des rôles',
+    permCategories: 'Catégories de permissions',
+    permUserOverrides: 'Remplacements utilisateurs',
+    permRoleBasedOnly: 'Basé sur le rôle uniquement',
+    permCustomPermissions: 'Permissions personnalisées',
+    permTabUsers: 'Permissions utilisateur',
+    permTabAll: 'Toutes les permissions',
+    permUserSpecificHeader: 'Permissions spécifiques à l\'utilisateur',
+    permSearchPlaceholderUsers: 'Rechercher des utilisateurs par nom ou courriel...',
+    permFilterByRole: 'Filtrer par rôle',
+    permAllRoles: 'Tous les rôles',
+    permAllUsers: 'Tous les utilisateurs',
+    permActiveOnly: 'Actifs uniquement',
+    permInactiveOnly: 'Inactifs uniquement',
+    permAllTypes: 'Tous les types de permissions',
+    permHasGranted: 'A des permissions accordées',
+    permHasRevoked: 'A des permissions révoquées',
+    permResetFilters: 'Réinitialiser les filtres',
+    permFiltersActive: 'Filtres actifs',
+    permRolePermsLabel: 'Permissions de rôle',
+    permTotalLabel: 'Total des permissions',
+    permManageBtn: 'Gérer les permissions',
+    permViewDetails: 'Voir les détails',
+    permManageUserTitle: 'Gérer les permissions utilisateur',
+    permGrantPlaceholder: 'Accorder une nouvelle permission...',
+    permAllPermissionsTitle: 'Toutes les permissions',
+    permIdHeader: 'ID de permission',
+    permDisplayNameHeader: 'Nom d\'affichage',
+    permResourceTypeHeader: 'Type de ressource',
+    permRolesHeader: 'Rôles',
+    permGrantedStatus: 'Accordé',
+    permRevokedStatus: 'Révoqué',
+    permAllCategories: 'Toutes les catégories',
+    permAllActions: 'Toutes les actions',
+    permSortByName: 'Trier par nom',
+    permSortByResource: 'Trier par ressource',
+    permSortByAction: 'Trier par action',
+    permSortByDate: 'Trier par date',
+    permStatusFilter: 'Statut de permission',
+    permUserStatusFilter: 'Statut de l\'utilisateur',
+    permNone: 'Aucun',
+    permShowingUsers: 'Affichage de {count} sur {total} utilisateurs',
+    permShowingPerms: 'Affichage de {count} sur {total} permissions',
+    impLogTitle: 'Journal d\'audit d\'usurpation',
+    impLogSubtitle: 'Tous les événements MCP assume_user et restore_acting_user, du plus récent au plus ancien',
+    impLogDisclaimer: 'Ce journal couvre les sessions d\'usurpation initiées via l\'interface de l\'assistant MCP. Les lignes sont écrites avant la mutation de l\'état de la session, donc les tentatives échouées apparaissent également ici.',
+    impLogTimestamp: 'Horodatage',
+    impLogAction: 'Action',
+    impLogPerformedBy: 'Effectué par',
+    impLogAssumedUser: 'Utilisateur usurpé',
+    impLogIpAddress: 'Adresse IP',
+    impLogOutcome: 'Résultat',
+    impLogEmpty: 'Aucun événement d\'usurpation enregistré.',
+    impLogError: 'Échec du chargement du journal d\'usurpation. Veuillez réessayer.',
+    impLogPaginationLabel: 'Page {page} sur {totalPages} — {total} événements au total',
+    orgCardCreate: 'Créer',
+    orgCardNoOrgs: 'Aucune organisation trouvée',
+    orgCardCreateFirst: 'Créer la première organisation',
+    orgCardOrganizations: 'Organisations',
+    orgCardTypeLabel: 'Type',
+    orgCardStatusLabel: 'Statut',
+    orgCardAddressLabel: 'Adresse',
+    orgCardPhoneLabel: 'Téléphone',
+    orgCardEmailLabel: 'Courriel',
+    orgCardWebsiteLabel: 'Site web',
+    orgCardRegistrationLabel: 'Numéro d\'immatriculation',
+    orgCardActive: 'Actif',
+    orgCardInactive: 'Inactif',
+    orgCardView: 'Voir',
+    orgCardEdit: 'Modifier',
+    orgCardDelete: 'Supprimer',
+    orgCardClose: 'Fermer',
   }
 };
 

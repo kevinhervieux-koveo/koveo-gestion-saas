@@ -1620,7 +1620,7 @@ export default function UserManagement() {
                     </div>
 
                     <h3 className='text-lg font-semibold'>
-                      {t('users')} ({filteredTotal} of {totalUsers} {t('users').toLowerCase()})
+                      {t('users')} ({filteredTotal} {t('of')} {totalUsers} {t('users').toLowerCase()})
                     </h3>
 
                     {/* User Table */}
@@ -1640,7 +1640,7 @@ export default function UserManagement() {
                     {totalPages > 1 && (
                       <div className='flex justify-between items-center mt-4'>
                         <div className='text-sm text-gray-600'>
-                          Page {currentPage} of {totalPages} - Showing {users.length} {t('users').toLowerCase()} ({totalUsers} total)
+                          {t('page')} {currentPage} {t('of')} {totalPages} - {t('showing')} {users.length} {t('users').toLowerCase()} ({totalUsers} {t('total').toLowerCase()})
                         </div>
                         <div className='flex gap-2'>
                           <Button

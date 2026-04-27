@@ -44,6 +44,7 @@ import {
   buildPermissionsMatrixView,
   coerceRolePermissionIds,
 } from './permissions-data';
+import { enumLabels } from '@/lib/i18n/enumLabels';
 
 // Permissions config reference for display purposes
 const permissionsConfig = {
@@ -110,7 +111,7 @@ interface User {
  * Shows actual permissions being used in the platform and provides management capabilities.
  */
 export default function Permissions() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   const [activeTab, setActiveTab] = useState('users');
   const [searchQuery, setSearchQuery] = useState('');
@@ -340,8 +341,8 @@ export default function Permissions() {
     return (
       <div className='flex-1 flex flex-col overflow-hidden'>
         <Header
-          title='RBAC Permissions'
-          subtitle='Manage role-based access control and user permissions'
+          title={t('rbacPermissions')}
+          subtitle={t('permPageSubtitle')}
         />
         <div
           className='flex-1 flex justify-center items-center'
@@ -356,8 +357,8 @@ export default function Permissions() {
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
       <Header
-        title='RBAC Permissions'
-        subtitle='Manage role-based access control and user permissions'
+        title={t('rbacPermissions')}
+        subtitle={t('permPageSubtitle')}
       />
 
       <div className='flex-1 overflow-auto p-6'>
@@ -371,9 +372,9 @@ export default function Permissions() {
               <CardContent className='p-6'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-sm font-medium text-gray-600'>System Permissions</p>
+                    <p className='text-sm font-medium text-gray-600'>{t('permSystemPermissions')}</p>
                     <p className='text-2xl font-bold text-koveo-navy'>{permissions?.length || 0}</p>
-                    <p className='text-xs text-gray-500 mt-1'>Active permissions</p>
+                    <p className='text-xs text-gray-500 mt-1'>{t('permActivePermissions')}</p>
                   </div>
                   <Shield className='h-8 w-8 text-koveo-navy' />
                 </div>
@@ -387,7 +388,7 @@ export default function Permissions() {
               <CardContent className='p-6'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-sm font-medium text-gray-600'>Role Hierarchy</p>
+                    <p className='text-sm font-medium text-gray-600'>{t('permRoleHierarchy')}</p>
                     <p className='text-2xl font-bold text-koveo-navy'>{roles.length}</p>
                     <p className='text-xs text-gray-500 mt-1'>
                       {t('adminManagerResidentTenant')}
@@ -405,9 +406,9 @@ export default function Permissions() {
               <CardContent className='p-6'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-sm font-medium text-gray-600'>Permission Matrix</p>
+                    <p className='text-sm font-medium text-gray-600'>{t('permCategories')}</p>
                     <p className='text-2xl font-bold text-koveo-navy'>12</p>
-                    <p className='text-xs text-gray-500 mt-1'>Permission categories</p>
+                    <p className='text-xs text-gray-500 mt-1'>{t('permCategories')}</p>
                   </div>
                   <Settings className='h-8 w-8 text-koveo-navy' />
                 </div>
@@ -421,12 +422,12 @@ export default function Permissions() {
               <CardContent className='p-6'>
                 <div className='flex items-center justify-between'>
                   <div>
-                    <p className='text-sm font-medium text-gray-600'>User Overrides</p>
+                    <p className='text-sm font-medium text-gray-600'>{t('permUserOverrides')}</p>
                     <p className='text-2xl font-bold text-koveo-navy'>
                       {userPermissions?.length || 0}
                     </p>
                     <p className='text-xs text-gray-500 mt-1'>
-                      {userPermissions?.length === 0 ? 'Role-based only' : 'Custom permissions'}
+                      {userPermissions?.length === 0 ? t('permRoleBasedOnly') : t('permCustomPermissions')}
                     </p>
                   </div>
                   <Shield className='h-8 w-8 text-koveo-navy' />
@@ -438,8 +439,8 @@ export default function Permissions() {
           {/* Main Content Tabs */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className='w-full'>
             <TabsList className='grid w-full grid-cols-2'>
-              <TabsTrigger value='users'>User Permissions</TabsTrigger>
-              <TabsTrigger value='permissions'>All Permissions</TabsTrigger>
+              <TabsTrigger value='users'>{t('permTabUsers')}</TabsTrigger>
+              <TabsTrigger value='permissions'>{t('permTabAll')}</TabsTrigger>
             </TabsList>
 
             {/* User Permissions Tab */}
@@ -448,7 +449,7 @@ export default function Permissions() {
                 <CardHeader>
                   <CardTitle className='flex items-center gap-2'>
                     <Shield className='h-5 w-5' />
-                    User-Specific Permissions
+                    {t('permUserSpecificHeader')}
                   </CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -460,7 +461,7 @@ export default function Permissions() {
                         <div className='relative'>
                           <Search className='absolute left-3 top-3 h-4 w-4 text-gray-400' />
                           <Input
-                            placeholder='Search users by name or email...'
+                            placeholder={t('permSearchPlaceholderUsers')}
                             value={searchQuery}
                             onChange={(e) => handleSearchChange(e.target.value)}
                             className='pl-10'
@@ -470,13 +471,13 @@ export default function Permissions() {
                       </div>
                       <Select value={filterRole} onValueChange={handleRoleChange}>
                         <SelectTrigger className='w-40' data-testid='select-role-filter'>
-                          <SelectValue placeholder='Filter by role' />
+                          <SelectValue placeholder={t('permFilterByRole')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value='all'>All Roles</SelectItem>
+                          <SelectItem value='all'>{t('permAllRoles')}</SelectItem>
                           {roles.map((role) => (
                             <SelectItem key={role} value={role}>
-                              {role.charAt(0).toUpperCase() + role.slice(1)}
+                              {enumLabels.role(role, language)}
                             </SelectItem>
                           ))}
                         </SelectContent>
@@ -487,12 +488,12 @@ export default function Permissions() {
                     <div className='flex gap-4 items-center'>
                       <Select value={filterUserStatus} onValueChange={setFilterUserStatus}>
                         <SelectTrigger className='w-40' data-testid='select-user-status-filter'>
-                          <SelectValue placeholder='User status' />
+                          <SelectValue placeholder={t('permUserStatusFilter')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value='all'>All Users</SelectItem>
-                          <SelectItem value='active'>Active Only</SelectItem>
-                          <SelectItem value='inactive'>Inactive Only</SelectItem>
+                          <SelectItem value='all'>{t('permAllUsers')}</SelectItem>
+                          <SelectItem value='active'>{t('permActiveOnly')}</SelectItem>
+                          <SelectItem value='inactive'>{t('permInactiveOnly')}</SelectItem>
                         </SelectContent>
                       </Select>
 
@@ -504,12 +505,12 @@ export default function Permissions() {
                           className='w-48'
                           data-testid='select-permission-status-filter'
                         >
-                          <SelectValue placeholder='Permission status' />
+                          <SelectValue placeholder={t('permStatusFilter')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value='all'>All Permission Types</SelectItem>
-                          <SelectItem value='granted'>Has Granted Permissions</SelectItem>
-                          <SelectItem value='revoked'>Has Revoked Permissions</SelectItem>
+                          <SelectItem value='all'>{t('permAllTypes')}</SelectItem>
+                          <SelectItem value='granted'>{t('permHasGranted')}</SelectItem>
+                          <SelectItem value='revoked'>{t('permHasRevoked')}</SelectItem>
                         </SelectContent>
                       </Select>
 
@@ -521,14 +522,14 @@ export default function Permissions() {
                         data-testid='button-reset-user-filters'
                       >
                         <X className='h-4 w-4' />
-                        Reset Filters
+                        {t('permResetFilters')}
                       </Button>
                     </div>
 
                     {/* Filter summary */}
                     <div className='flex items-center gap-4 text-sm text-gray-600'>
                       <span>
-                        Showing {filteredUsers.length} of {users.length} users
+                        {t('permShowingUsers').replace('{count}', String(filteredUsers.length)).replace('{total}', String(users.length))}
                       </span>
                       {(searchQuery ||
                         filterRole !== 'all' ||
@@ -536,7 +537,7 @@ export default function Permissions() {
                         filterPermissionStatus !== 'all') && (
                         <div className='flex items-center gap-2'>
                           <Filter className='h-4 w-4' />
-                          <span>Filters active</span>
+                          <span>{t('permFiltersActive')}</span>
                         </div>
                       )}
                     </div>
@@ -579,10 +580,10 @@ export default function Permissions() {
                                 </div>
                                 <div className='flex items-center gap-2'>
                                   <Badge variant='outline' className='capitalize font-medium'>
-                                    {user.role}
+                                    {enumLabels.role(user.role, language)}
                                   </Badge>
                                   <Badge variant={user.isActive ? 'default' : 'secondary'}>
-                                    {user.isActive ? 'Active' : 'Inactive'}
+                                    {user.isActive ? t('active') : t('inactive')}
                                   </Badge>
                                 </div>
                               </div>
@@ -593,19 +594,19 @@ export default function Permissions() {
                                   <p className='text-2xl font-bold text-koveo-navy'>
                                     {rolePermissionsCount}
                                   </p>
-                                  <p className='text-xs text-gray-600'>Role Permissions</p>
+                                  <p className='text-xs text-gray-600'>{t('permRolePermsLabel')}</p>
                                 </div>
                                 <div className='text-center'>
                                   <p className='text-2xl font-bold text-blue-600'>
                                     {userSpecificPermissions.length}
                                   </p>
-                                  <p className='text-xs text-gray-600'>User Overrides</p>
+                                  <p className='text-xs text-gray-600'>{t('permUserOverrides')}</p>
                                 </div>
                                 <div className='text-center'>
                                   <p className='text-2xl font-bold text-green-600'>
                                     {totalPermissions}
                                   </p>
-                                  <p className='text-xs text-gray-600'>Total Permissions</p>
+                                  <p className='text-xs text-gray-600'>{t('permTotalLabel')}</p>
                                 </div>
                               </div>
 
@@ -614,7 +615,7 @@ export default function Permissions() {
                                 <div className='space-y-2'>
                                   <h5 className='font-medium text-gray-900 flex items-center gap-2'>
                                     <Settings className='h-4 w-4' />
-                                    User-Specific Permissions ({userSpecificPermissions.length})
+                                    {t('permUserSpecificHeader')} ({userSpecificPermissions.length})
                                   </h5>
                                   <div className='grid grid-cols-1 md:grid-cols-2 gap-2'>
                                     {userSpecificPermissions.map((up) => (
@@ -639,7 +640,7 @@ export default function Permissions() {
                                             variant={up.granted ? 'default' : 'destructive'}
                                             className='text-xs'
                                           >
-                                            {up.granted ? 'Granted' : 'Revoked'}
+                                            {up.granted ? t('permGrantedStatus') : t('permRevokedStatus')}
                                           </Badge>
                                         </div>
                                       </div>
@@ -672,7 +673,7 @@ export default function Permissions() {
                                   }
                                 >
                                   <Edit className='h-4 w-4 mr-2' />
-                                  {editingUser === user.id ? 'Cancel' : 'Manage Permissions'}
+                                  {editingUser === user.id ? t('cancel') : t('permManageBtn')}
                                 </Button>
                                 <Button
                                   variant='ghost'
@@ -686,7 +687,7 @@ export default function Permissions() {
                                   }}
                                 >
                                   <Users className='h-4 w-4 mr-2' />
-                                  View Details
+                                  {t('permViewDetails')}
                                 </Button>
                               </div>
 
@@ -694,7 +695,7 @@ export default function Permissions() {
                               {editingUser === user.id && (
                                 <div className='mt-4 p-4 bg-blue-50 rounded-lg border border-blue-200'>
                                   <h6 className='font-medium text-blue-900 mb-3'>
-                                    Manage User Permissions
+                                    {t('permManageUserTitle')}
                                   </h6>
                                   <div className='space-y-3'>
                                     <Select
@@ -707,7 +708,7 @@ export default function Permissions() {
                                       }}
                                     >
                                       <SelectTrigger>
-                                        <SelectValue placeholder='Grant a new permission...' />
+                                        <SelectValue placeholder={t('permGrantPlaceholder')} />
                                       </SelectTrigger>
                                       <SelectContent>
                                         {permissions
@@ -730,7 +731,7 @@ export default function Permissions() {
                                         size='sm'
                                         onClick={() => setEditingUser(null)}
                                       >
-                                        Cancel
+                                        {t('cancel')}
                                       </Button>
                                       <Button variant='ghost' size='sm' disabled>
                                         <Badge variant='secondary'>Future: Bulk Actions</Badge>
@@ -760,11 +761,11 @@ export default function Permissions() {
                             onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
                             disabled={currentPage === 1}
                           >
-                            Previous
+                            {t('previous')}
                           </Button>
 
                           <div className='flex items-center gap-2'>
-                            <span className='text-sm text-gray-600'>Page</span>
+                            <span className='text-sm text-gray-600'>{t('page')}</span>
                             <Input
                               type='number'
                               min='1'
@@ -786,7 +787,7 @@ export default function Permissions() {
                               }}
                               className='w-16 text-center'
                             />
-                            <span className='text-sm text-gray-600'>of {totalPages}</span>
+                            <span className='text-sm text-gray-600'>{t('of')} {totalPages}</span>
                           </div>
 
                           <Button
@@ -795,12 +796,11 @@ export default function Permissions() {
                             onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                             disabled={currentPage === totalPages}
                           >
-                            Next
+                            {t('next')}
                           </Button>
 
                           <div className='text-sm text-gray-600'>
-                            Showing {startIndex + 1}-{Math.min(endIndex, totalUsers)} of{' '}
-                            {totalUsers} users
+                            {t('permShowingUsers').replace('{count}', `${startIndex + 1}-${Math.min(endIndex, totalUsers)}`).replace('{total}', String(totalUsers))}
                           </div>
                         </div>
                       )}
@@ -816,7 +816,7 @@ export default function Permissions() {
                 <CardHeader>
                   <CardTitle className='flex items-center gap-2'>
                     <Shield className='h-5 w-5' />
-                    All Permissions
+                    {t('permAllPermissionsTitle')}
                   </CardTitle>
                   <p className='text-sm text-gray-600'>
                     {t('completeSystemPermissionsTableWithDetailed')}
@@ -841,10 +841,10 @@ export default function Permissions() {
                       </div>
                       <Select value={selectedCategory} onValueChange={setSelectedCategory}>
                         <SelectTrigger className='w-48' data-testid='select-category-filter'>
-                          <SelectValue placeholder='Filter by category' />
+                          <SelectValue placeholder={t('permAllCategories')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value='all'>All Categories</SelectItem>
+                          <SelectItem value='all'>{t('permAllCategories')}</SelectItem>
                           {Object.keys(permissionsByResource).map((category) => (
                             <SelectItem key={category} value={category}>
                               {category.charAt(0).toUpperCase() +
@@ -859,10 +859,10 @@ export default function Permissions() {
                     <div className='flex gap-4 items-center'>
                       <Select value={filterActionType} onValueChange={setFilterActionType}>
                         <SelectTrigger className='w-40' data-testid='select-action-filter'>
-                          <SelectValue placeholder='Action type' />
+                          <SelectValue placeholder={t('permAllActions')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value='all'>All Actions</SelectItem>
+                          <SelectItem value='all'>{t('permAllActions')}</SelectItem>
                           {actionTypes.map((action) => (
                             <SelectItem key={action} value={action}>
                               {action.toUpperCase()}
@@ -873,13 +873,13 @@ export default function Permissions() {
 
                       <Select value={sortBy} onValueChange={setSortBy}>
                         <SelectTrigger className='w-40' data-testid='select-sort-by'>
-                          <SelectValue placeholder='Sort by' />
+                          <SelectValue placeholder={t('permSortByName')} />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value='name'>Sort by Name</SelectItem>
-                          <SelectItem value='resource'>Sort by Resource</SelectItem>
-                          <SelectItem value='action'>Sort by Action</SelectItem>
-                          <SelectItem value='date'>Sort by Date</SelectItem>
+                          <SelectItem value='name'>{t('permSortByName')}</SelectItem>
+                          <SelectItem value='resource'>{t('permSortByResource')}</SelectItem>
+                          <SelectItem value='action'>{t('permSortByAction')}</SelectItem>
+                          <SelectItem value='date'>{t('permSortByDate')}</SelectItem>
                         </SelectContent>
                       </Select>
 
@@ -891,14 +891,14 @@ export default function Permissions() {
                         data-testid='button-reset-permission-filters'
                       >
                         <X className='h-4 w-4' />
-                        Reset Filters
+                        {t('permResetFilters')}
                       </Button>
                     </div>
 
                     {/* Filter summary */}
                     <div className='flex items-center gap-4 text-sm text-gray-600'>
                       <span>
-                        Showing {sortedPermissions.length} of {permissions?.length || 0} permissions
+                        {t('permShowingPerms').replace('{count}', String(sortedPermissions.length)).replace('{total}', String(permissions?.length || 0))}
                       </span>
                       {(permissionSearchQuery ||
                         selectedCategory !== 'all' ||
@@ -906,7 +906,7 @@ export default function Permissions() {
                         sortBy !== 'name') && (
                         <div className='flex items-center gap-2'>
                           <Filter className='h-4 w-4' />
-                          <span>Filters active</span>
+                          <span>{t('permFiltersActive')}</span>
                         </div>
                       )}
                     </div>
@@ -922,23 +922,23 @@ export default function Permissions() {
                         <TableHeader>
                           <TableRow className='bg-gray-50'>
                             <TableHead className='font-semibold text-gray-900'>
-                              Permission ID
+                              {t('permIdHeader')}
                             </TableHead>
                             <TableHead className='font-semibold text-gray-900'>
-                              Display Name
+                              {t('permDisplayNameHeader')}
                             </TableHead>
                             <TableHead className='font-semibold text-gray-900'>
-                              Resource Type
+                              {t('permResourceTypeHeader')}
                             </TableHead>
-                            <TableHead className='font-semibold text-gray-900'>Action</TableHead>
+                            <TableHead className='font-semibold text-gray-900'>{t('impLogAction')}</TableHead>
                             <TableHead className='text-center font-semibold text-gray-900'>
-                              Status
+                              {t('status')}
                             </TableHead>
                             <TableHead className='font-semibold text-gray-900'>
-                              Description
+                              {t('description')}
                             </TableHead>
                             <TableHead className='text-center font-semibold text-gray-900'>
-                              Roles
+                              {t('permRolesHeader')}
                             </TableHead>
                           </TableRow>
                         </TableHeader>
@@ -966,7 +966,7 @@ export default function Permissions() {
                                 </TableCell>
                                 <TableCell className='text-center'>
                                   <Badge variant={permission.isActive ? 'default' : 'secondary'}>
-                                    {permission.isActive ? 'Active' : 'Inactive'}
+                                    {permission.isActive ? t('active') : t('inactive')}
                                   </Badge>
                                 </TableCell>
                                 <TableCell className='text-sm text-gray-600 max-w-md'>
@@ -976,11 +976,11 @@ export default function Permissions() {
                                   <div className='flex flex-wrap gap-1 justify-center'>
                                     {rolesWithPermission.map((role) => (
                                       <Badge key={role} variant='secondary' className='text-xs'>
-                                        {role.charAt(0).toUpperCase() + role.slice(1)}
+                                        {enumLabels.role(role, language)}
                                       </Badge>
                                     ))}
                                     {rolesWithPermission.length === 0 && (
-                                      <span className='text-xs text-gray-400'>None</span>
+                                      <span className='text-xs text-gray-400'>{t('permNone')}</span>
                                     )}
                                   </div>
                                 </TableCell>

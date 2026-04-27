@@ -2,6 +2,7 @@ import { LogOut, ChevronDown, ChevronRight, X, Linkedin, ChevronLeft } from 'luc
 import { Link, useLocation, useSearch } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { translations } from '@/lib/i18n';
+import { enumLabels } from '@/lib/i18n/enumLabels';
 import { useAuth } from '@/hooks/use-auth';
 import { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -313,7 +314,7 @@ export function Sidebar({ forceExpanded = false }: SidebarProps) {
     return (fallback || '?').toUpperCase();
   })();
   const effectiveRole = user?.role || (user ? 'tenant' : undefined);
-  const roleLabel = user?.role || 'User';
+  const roleLabel = user?.role ? enumLabels.role(user.role, language) : t('user');
 
   // Get filtered navigation based on user role and common spaces access.
   // Guard this computation on isFirstHydrationComplete so we never derive

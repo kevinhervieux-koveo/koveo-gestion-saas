@@ -452,10 +452,10 @@ export default function FinancialOverview() {
       nextMonthStart: format(startOfMonth(selectedDate), 'yyyy-MM-dd'),
       nextMonthEnd: format(endOfMonth(selectedDate), 'yyyy-MM-dd'),
       // UI labels
-      previousMonthLabel: format(previousMonth, 'MMMM yyyy'),
-      selectedMonthLabel: format(selectedDate, 'MMMM yyyy'),
+      previousMonthLabel: new Intl.DateTimeFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { month: 'long', year: 'numeric' }).format(previousMonth),
+      selectedMonthLabel: new Intl.DateTimeFormat(language === 'fr' ? 'fr-CA' : 'en-CA', { month: 'long', year: 'numeric' }).format(selectedDate),
     };
-  }, [billsFilterMonth, billsFilterYear]);
+  }, [billsFilterMonth, billsFilterYear, language]);
 
   // Fetch available years for bills filter
   const { data: availableYears } = useQuery<{ years: number[] }>({

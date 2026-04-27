@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
+import { useLanguage } from '@/hooks/use-language';
+import { enumLabels } from '@/lib/i18n/enumLabels';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -52,6 +54,7 @@ interface OrganizationsCardProps {
  * @returns JSX element for the organizations card component.
  */
 export function OrganizationsCard({ className }: OrganizationsCardProps) {
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
@@ -125,18 +128,7 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
     }
   };
 
-  const formatTypeName = (type: string) => {
-    switch (type) {
-      case 'management_company':
-        return 'Management Company';
-      case 'syndicate':
-        return 'Syndicate';
-      case 'cooperative':
-        return 'Cooperative';
-      default:
-        return type;
-    }
-  };
+  const formatTypeName = (type: string) => enumLabels.orgType(type, language);
 
   if (isLoading) {
     return (
@@ -144,11 +136,11 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
           <CardTitle className='text-sm font-medium flex items-center gap-2'>
             <Building className='h-4 w-4' />
-            Organizations
+            {t('orgCardOrganizations')}
           </CardTitle>
           <Button size='sm' onClick={handleCreateNew}>
             <Plus className='h-4 w-4 mr-2' />
-            Create
+            {t('orgCardCreate')}
           </Button>
         </CardHeader>
         <CardContent>
@@ -166,21 +158,21 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
         <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-4'>
           <CardTitle className='text-lg font-semibold flex items-center gap-2'>
             <Building className='h-5 w-5' />
-            Organizations
+            {t('orgCardOrganizations')}
           </CardTitle>
           <Button size='sm' onClick={handleCreateNew}>
             <Plus className='h-4 w-4 mr-2' />
-            Create
+            {t('orgCardCreate')}
           </Button>
         </CardHeader>
         <CardContent className='space-y-4'>
           {!organizations || organizations.length === 0 ? (
             <div className='text-center py-8'>
               <Building className='h-12 w-12 text-gray-400 mx-auto mb-4' />
-              <p className='text-gray-500 mb-4'>No organizations found</p>
+              <p className='text-gray-500 mb-4'>{t('orgCardNoOrgs')}</p>
               <Button onClick={handleCreateNew} variant='outline'>
                 <Plus className='h-4 w-4 mr-2' />
-                Create First Organization
+                {t('orgCardCreateFirst')}
               </Button>
             </div>
           ) : (
@@ -240,18 +232,18 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
                       <DropdownMenuContent align='end'>
                         <DropdownMenuItem onClick={() => handleView(organization)}>
                           <Eye className='h-4 w-4 mr-2' />
-                          View
+                          {t('orgCardView')}
                         </DropdownMenuItem>
                         <DropdownMenuItem onClick={() => handleEdit(organization)}>
                           <Edit className='h-4 w-4 mr-2' />
-                          Edit
+                          {t('orgCardEdit')}
                         </DropdownMenuItem>
                         <DropdownMenuItem
                           onClick={() => handleDelete(organization)}
                           className='text-red-600 dark:text-red-400'
                         >
                           <Trash2 className='h-4 w-4 mr-2' />
-                          Delete
+                          {t('orgCardDelete')}
                         </DropdownMenuItem>
                       </DropdownMenuContent>
                     </DropdownMenu>
@@ -301,7 +293,7 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
               <div className='grid grid-cols-2 gap-4'>
                 <div>
                   <label className='text-sm font-medium text-gray-500 dark:text-gray-400'>
-                    Type
+                    {t('orgCardTypeLabel')}
                   </label>
                   <Badge className={getOrganizationTypeColor(viewingOrganization.type)}>
                     {formatTypeName(viewingOrganization.type)}
@@ -309,17 +301,17 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
                 </div>
                 <div>
                   <label className='text-sm font-medium text-gray-500 dark:text-gray-400'>
-                    Status
+                    {t('orgCardStatusLabel')}
                   </label>
                   <Badge variant={viewingOrganization.isActive ? 'default' : 'secondary'}>
-                    {viewingOrganization.isActive ? 'Active' : 'Inactive'}
+                    {viewingOrganization.isActive ? t('orgCardActive') : t('orgCardInactive')}
                   </Badge>
                 </div>
               </div>
 
               <div>
                 <label className='text-sm font-medium text-gray-500 dark:text-gray-400'>
-                  Address
+                  {t('orgCardAddressLabel')}
                 </label>
                 <p className='mt-1'>
                   {viewingOrganization.address}
@@ -333,7 +325,7 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
                 {viewingOrganization.phone && (
                   <div>
                     <label className='text-sm font-medium text-gray-500 dark:text-gray-400'>
-                      Phone
+                      {t('orgCardPhoneLabel')}
                     </label>
                     <p className='mt-1'>{viewingOrganization.phone}</p>
                   </div>
@@ -341,7 +333,7 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
                 {viewingOrganization.email && (
                   <div>
                     <label className='text-sm font-medium text-gray-500 dark:text-gray-400'>
-                      Email
+                      {t('orgCardEmailLabel')}
                     </label>
                     <p className='mt-1'>{viewingOrganization.email}</p>
                   </div>
@@ -351,7 +343,7 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
               {viewingOrganization.website && (
                 <div>
                   <label className='text-sm font-medium text-gray-500 dark:text-gray-400'>
-                    Website
+                    {t('orgCardWebsiteLabel')}
                   </label>
                   <p className='mt-1'>
                     <a
@@ -369,14 +361,14 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
               {viewingOrganization.registrationNumber && (
                 <div>
                   <label className='text-sm font-medium text-gray-500 dark:text-gray-400'>
-                    Registration Number
+                    {t('orgCardRegistrationLabel')}
                   </label>
                   <p className='mt-1'>{viewingOrganization.registrationNumber}</p>
                 </div>
               )}
             </div>
             <AlertDialogFooter>
-              <AlertDialogCancel>Close</AlertDialogCancel>
+              <AlertDialogCancel>{t('orgCardClose')}</AlertDialogCancel>
               <AlertDialogAction
                 onClick={() => {
                   setViewingOrganization(null);
@@ -384,7 +376,7 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
                 }}
               >
                 <Edit className='h-4 w-4 mr-2' />
-                Edit
+                {t('orgCardEdit')}
               </AlertDialogAction>
             </AlertDialogFooter>
           </AlertDialogContent>
