@@ -38,7 +38,7 @@ export function BulkEditResidenceDialog({
   buildingId,
   onSuccess,
 }: BulkEditResidenceDialogProps) {
-  const { t } = useLanguage();
+  const { t, tp } = useLanguage();
   const { toast } = useToast();
   const [formData, setFormData] = useState<FormData>({
     residenceId: null,
@@ -109,7 +109,7 @@ export function BulkEditResidenceDialog({
       queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'elements'] });
       toast({
         title: t('bulkResidenceToastUpdatedTitle'),
-        description: `${t('bulkResidenceToastUpdatedDescPrefix')}${selectedElementIds.length}${t('bulkResidenceToastUpdatedDescSuffix')}`,
+        description: tp('bulkResidenceToastUpdatedDesc', selectedElementIds.length),
       });
       onSuccess?.();
       handleClose();
@@ -171,7 +171,7 @@ export function BulkEditResidenceDialog({
             {t('bulkResidenceTitle')}
           </DialogTitle>
           <DialogDescription>
-            {t('bulkResidenceDescPrefix')}{selectedElementIds.length}{t('bulkResidenceDescSuffix')}
+            {tp('bulkResidenceDesc', selectedElementIds.length)}
           </DialogDescription>
         </DialogHeader>
 

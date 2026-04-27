@@ -1556,7 +1556,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
               {submissionVendors.some(v => v.preferred) && (
                 <Badge variant="outline" className="border-yellow-400 text-yellow-600">
                   <Star className="h-3 w-3 mr-1" />
-                  {t('submissionPreferredCountTemplate').replace('{count}', String(submissionVendors.filter(v => v.preferred).length))}
+                  {tp('submissionPreferredCountTemplate', submissionVendors.filter(v => v.preferred).length)}
                 </Badge>
               )}
             </div>

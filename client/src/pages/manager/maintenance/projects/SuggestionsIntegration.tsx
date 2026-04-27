@@ -82,7 +82,7 @@ export function SuggestionsIntegration({
 }: SuggestionsIntegrationProps) {
   const { hasPermission } = useBuildingPermissions();
   const { toast } = useToast();
-  const { language, t } = useLanguage();
+  const { language, t, tp } = useLanguage();
   const [searchTerm, setSearchTerm] = useState('');
   const [priorityFilter, setPriorityFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('');
@@ -177,7 +177,7 @@ export function SuggestionsIntegration({
       
       toast({
         title: t('pvProjectsCreatedTitle'),
-        description: t('pvProjectsCreatedDesc').replace('{count}', String(createdProjects.length)),
+        description: tp('pvProjectsCreatedDesc', createdProjects.length),
       });
     },
     onError: (error) => {
@@ -321,7 +321,7 @@ export function SuggestionsIntegration({
                     </div>
                     
                     <div className="text-sm text-muted-foreground">
-                      {t('pvNSelected').replace('{count}', String(selectedSuggestions.length))}
+                      {tp('pvNSelected', selectedSuggestions.length)}
                     </div>
                   </div>
                 </CardContent>
@@ -481,7 +481,7 @@ export function SuggestionsIntegration({
         <div className="flex items-center justify-between pt-4 border-t">
           <div className="text-sm text-muted-foreground">
             {selectedSuggestions.length > 0 && (
-              <span>{t('pvSuggestionsSelectedFooter').replace('{count}', String(selectedSuggestions.length))}</span>
+              <span>{tp('pvSuggestionsSelectedFooter', selectedSuggestions.length)}</span>
             )}
           </div>
           

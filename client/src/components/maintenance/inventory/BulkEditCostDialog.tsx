@@ -32,7 +32,7 @@ export function BulkEditCostDialog({
   buildingId,
   onSuccess,
 }: BulkEditCostDialogProps) {
-  const { t } = useLanguage();
+  const { t, tp } = useLanguage();
   const { toast } = useToast();
   const [costType, setCostType] = useState<'per-element' | 'per-unit'>('per-element');
   const [costValue, setCostValue] = useState<string>('');
@@ -65,7 +65,7 @@ export function BulkEditCostDialog({
       queryClient.invalidateQueries({ queryKey: ['/api/maintenance/buildings', buildingId, 'elements'] });
       toast({
         title: t('bulkCostToastUpdatedTitle'),
-        description: `${t('bulkCostToastUpdatedDescPrefix')}${selectedElementIds.length}${t('bulkCostToastUpdatedDescSuffix')}`,
+        description: tp('bulkCostToastUpdatedDesc', selectedElementIds.length),
       });
       onSuccess?.();
       handleClose();
@@ -100,7 +100,7 @@ export function BulkEditCostDialog({
             {t('bulkCostUpdateTitle')}
           </DialogTitle>
           <DialogDescription>
-            {t('bulkCostUpdateDescPrefix')}{selectedElementIds.length}{t('bulkCostUpdateDescSuffix')}
+            {tp('bulkCostUpdateDesc', selectedElementIds.length)}
           </DialogDescription>
         </DialogHeader>
 

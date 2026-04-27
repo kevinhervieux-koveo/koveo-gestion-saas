@@ -131,7 +131,7 @@ export function ProjectDashboardView({
 }: ProjectDashboardViewProps) {
   // Use building context to get current building state
   const { building, hasPermission } = useBuildingContext();
-  const { t } = useLanguage();
+  const { t, tp } = useLanguage();
 
   // Permission checks for various actions
   const canCreateProjects = hasPermission ? hasPermission('canCreateProjects') : true;
@@ -654,7 +654,7 @@ export function ProjectDashboardView({
           <AlertDescription>
             <div className="space-y-1">
               {dashboardMetrics.overdueProjects > 0 && (
-                <p>{t('pvOverdueProjectsAlert').replace('{count}', String(dashboardMetrics.overdueProjects))}</p>
+                <p>{tp('pvOverdueProjectsAlert', dashboardMetrics.overdueProjects)}</p>
               )}
               {dashboardMetrics.budgetUtilization > 90 && (
                 <p>{t('pvBudgetUtilizationHighAlert').replace('{percent}', String(dashboardMetrics.budgetUtilization))}</p>

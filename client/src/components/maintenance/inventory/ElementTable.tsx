@@ -72,7 +72,7 @@ function ElementTableImpl({
   uniformatFilter = '',
   showOverdueOnly = false,
 }: ElementTableProps) {
-  const { t } = useLanguage();
+  const { t, tp } = useLanguage();
   // Mirror filter inputs through useDeferredValue so the (potentially heavy)
   // client-side filter pass over `allElements` runs at lower priority. Without
   // this, every keystroke / filter toggle synchronously re-runs the filter +
@@ -527,7 +527,7 @@ function ElementTableImpl({
       if (failCount === 0) {
         toast({
           title: t('etElementsDeletedTitle'),
-          description: `${t('etElementsDeletedDescPrefix')} ${successCount} ${t('etElementsDeletedDescSuffix')}`,
+          description: tp('etElementsDeletedDesc', successCount),
         });
       } else if (successCount > 0) {
         toast({
@@ -556,7 +556,7 @@ function ElementTableImpl({
       <div className="flex items-center gap-2 p-4 bg-muted/50 border rounded-lg">
         <div className="flex-1">
           <p className="text-sm font-medium">
-            {selectedElementsCount} {t('etElementsSelectedSuffix')}
+            {tp('etElementsSelected', selectedElementsCount)}
           </p>
         </div>
         

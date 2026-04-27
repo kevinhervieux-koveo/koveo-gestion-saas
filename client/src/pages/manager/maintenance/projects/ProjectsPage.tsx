@@ -82,7 +82,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     buildingName
   } = props;
   
-  const { t } = useLanguage();
+  const { t, tp } = useLanguage();
   
   const { toast } = useToast();
 
@@ -319,9 +319,9 @@ function ProjectsPageContent(props: ProjectsPageProps) {
     
     toast({
       title: t('projectsCreated'),
-      description: `${projects.length} ${t('projectsCreatedFromSuggestions')}`,
+      description: tp('projectsCreatedFromSuggestions', projects.length),
     });
-  }, [toast, t]);
+  }, [toast, t, tp]);
 
   // Handle auto-project acceptance success
   const handleAutoProjectAccepted = useCallback((project: MaintenanceProject) => {
@@ -519,7 +519,7 @@ function ProjectsPageContent(props: ProjectsPageProps) {
                   {selectedProjects.length > 0 && (
                     <div className="flex items-center gap-2 ml-4">
                       <span className="text-sm text-muted-foreground">
-                        {selectedProjects.length} {t('projectsSelected')}
+                        {tp('projectsSelected', selectedProjects.length)}
                       </span>
                     </div>
                   )}

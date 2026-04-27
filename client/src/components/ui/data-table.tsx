@@ -127,7 +127,7 @@ export function DataTable<TData, TValue>({
   virtualOverscan = 10,
   virtualScrollHeight = '600px',
 }: DataTableProps<TData, TValue>) {
-  const { t } = useLanguage();
+  const { t, tp } = useLanguage();
   const [sorting, setSorting] = useState<SortingState>([]);
   const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
   const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -593,13 +593,14 @@ export function DataTable<TData, TValue>({
                   {selectedRows.length} of {table.getFilteredRowModel().rows.length} row(s) selected
                 </span>
               )}
-              {t('paginationShowingResults')
-                .replace('{start}', String(table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1))
-                .replace('{end}', String(Math.min(
+              {tp('paginationShowingResults', table.getFilteredRowModel().rows.length, {
+                start: table.getState().pagination.pageIndex * table.getState().pagination.pageSize + 1,
+                end: Math.min(
                   (table.getState().pagination.pageIndex + 1) * table.getState().pagination.pageSize,
                   table.getFilteredRowModel().rows.length
-                )))
-                .replace('{total}', String(table.getFilteredRowModel().rows.length))}
+                ),
+                total: table.getFilteredRowModel().rows.length,
+              })}
             </div>
             
             <div className="flex items-center space-x-2">

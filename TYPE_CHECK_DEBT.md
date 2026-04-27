@@ -168,6 +168,7 @@ Six more files were cleaned up in task #1482 (see section above).
 - `server/api/buildings/queries.ts` — **HIGH**: building read queries
 - `server/api/buildings/statistics.ts` — **MEDIUM**: analytics reads
 - `server/api/buildings/validation.ts` — **HIGH**: shared validation logic
+- `server/api/communication.ts` — **MEDIUM**: communication/messaging API routes
 - `server/api/demo-management.ts` — **HIGH**: admin-only demo data management
 - `server/api/ai-document-analysis.ts` — **MEDIUM**: AI integration
 - `server/api/ai-monitoring.ts` — **MEDIUM**: AI monitoring

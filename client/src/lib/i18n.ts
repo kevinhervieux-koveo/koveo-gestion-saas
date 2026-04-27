@@ -241,8 +241,10 @@ export interface Translations {
   postWorkYearsAddedToRemainingLifespan: string;
   postWorkImpactSummaryLabel: string;
   postWorkThisWorkWill: string;
-  postWorkSetLifespanToYearsTemplate: string;
-  postWorkAddYearsToLifespanTemplate: string;
+  postWorkSetLifespanToYearsTemplate_one: string;
+  postWorkSetLifespanToYearsTemplate_other: string;
+  postWorkAddYearsToLifespanTemplate_one: string;
+  postWorkAddYearsToLifespanTemplate_other: string;
   postWorkNotChangeRemainingLifespan: string;
   postWorkElementConfirmationsLabel: string;
   postWorkAllElementsConfirmed: string;
@@ -352,7 +354,8 @@ export interface Translations {
   submissionNoSubmissionsYetTitle: string;
   submissionNoSubmissionsYetDescription: string;
   submissionNoVendorSubmissionsYetMessage: string;
-  submissionPreferredCountTemplate: string;
+  submissionPreferredCountTemplate_one: string;
+  submissionPreferredCountTemplate_other: string;
   submissionUpdatingButton: string;
   submissionSaveChangesButton: string;
   submissionEditVendorTitleTemplate: string;
@@ -421,7 +424,8 @@ export interface Translations {
   overdueOnly: string;
   projectName: string;
   startDate: string;
-  paginationShowingResults: string;
+  paginationShowingResults_one: string;
+  paginationShowingResults_other: string;
   noProjectsFoundTitle: string;
   noProjectsForBuilding: string;
   profileSettings: string;
@@ -1956,7 +1960,8 @@ export interface Translations {
   projectsMaintenanceManagement: string;
   projectsManagementSubtitle: string;
   toggleProjectOverview: string;
-  projectsSelected: string;
+  projectsSelected_one: string;
+  projectsSelected_other: string;
   newProject: string;
   toggleProjectsTable: string;
   projectTable: string;
@@ -1977,7 +1982,8 @@ export interface Translations {
   projectCreatedSuccessfully: string;
   projectUpdatedSuccessfully: string;
   projectsCreated: string;
-  projectsCreatedFromSuggestions: string;
+  projectsCreatedFromSuggestions_one: string;
+  projectsCreatedFromSuggestions_other: string;
   projectCreatedSuccessfully2: string;
   autoProjectConvertedSuccess: string;
   statusUpdated: string;
@@ -2989,7 +2995,8 @@ export interface Translations {
   // Bulk edit cost dialog (task #707)
   bulkCostUpdateTitle: string;
   bulkCostUpdateDescPrefix: string;
-  bulkCostUpdateDescSuffix: string;
+  bulkCostUpdateDesc_one: string;
+  bulkCostUpdateDesc_other: string;
   bulkCostAssignmentType: string;
   bulkCostPerElement: string;
   bulkCostPerUnit: string;
@@ -3006,7 +3013,8 @@ export interface Translations {
   bulkCostUpdateButton: string;
   bulkCostToastUpdatedTitle: string;
   bulkCostToastUpdatedDescPrefix: string;
-  bulkCostToastUpdatedDescSuffix: string;
+  bulkCostToastUpdatedDesc_one: string;
+  bulkCostToastUpdatedDesc_other: string;
   bulkCostToastFailedTitle: string;
   bulkCostToastFailedDesc: string;
   bulkCostInvalidAmountError: string;
@@ -3014,7 +3022,8 @@ export interface Translations {
   // Bulk edit residence dialog (task #707)
   bulkResidenceTitle: string;
   bulkResidenceDescPrefix: string;
-  bulkResidenceDescSuffix: string;
+  bulkResidenceDesc_one: string;
+  bulkResidenceDesc_other: string;
   bulkResidenceUpdateAssignment: string;
   bulkResidenceSelectPlaceholder: string;
   bulkResidenceBuildingWide: string;
@@ -3040,7 +3049,8 @@ export interface Translations {
   bulkResidenceUpdateButton: string;
   bulkResidenceToastUpdatedTitle: string;
   bulkResidenceToastUpdatedDescPrefix: string;
-  bulkResidenceToastUpdatedDescSuffix: string;
+  bulkResidenceToastUpdatedDesc_one: string;
+  bulkResidenceToastUpdatedDesc_other: string;
   bulkResidenceToastFailedTitle: string;
   bulkResidenceToastFailedDesc: string;
   bulkResidenceSelectFieldError: string;
@@ -3275,7 +3285,8 @@ export interface Translations {
   pvBudgetAnalysisDesc: string;
   pvStatusBreakdownDesc: string;
   pvPriorityBreakdownDesc: string;
-  pvOverdueProjectsAlert: string;
+  pvOverdueProjectsAlert_one: string;
+  pvOverdueProjectsAlert_other: string;
   pvBudgetUtilizationHighAlert: string;
   pvExecutiveSummaryDesc: string;
   pvBudgetWithinTarget: string;
@@ -3313,7 +3324,8 @@ export interface Translations {
   pvNoSuggestionsMatchFilters: string;
   // Project view (pv*) keys added in task #740 — short strings missed in #712
   pvProjectsCreatedTitle: string;
-  pvProjectsCreatedDesc: string;
+  pvProjectsCreatedDesc_one: string;
+  pvProjectsCreatedDesc_other: string;
   pvFailedToCreateProjects: string;
   pvNoSuggestionsSelectedTitle: string;
   pvNoSuggestionsSelectedDesc: string;
@@ -3332,7 +3344,8 @@ export interface Translations {
   pvHealthWarning: string;
   pvHealthCritical: string;
   pvSelectAllSuggestions: string;
-  pvNSelected: string;
+  pvNSelected_one: string;
+  pvNSelected_other: string;
   pvNoSuggestionsFound: string;
   pvSuggestionTypeElementEvaluation: string;
   pvElementHash: string;
@@ -3341,7 +3354,8 @@ export interface Translations {
   pvDurationDaysLabel: string;
   pvDefaultPriorityLabel: string;
   pvEstimatedTotalBudget: string;
-  pvSuggestionsSelectedFooter: string;
+  pvSuggestionsSelectedFooter_one: string;
+  pvSuggestionsSelectedFooter_other: string;
   pvCreatingButton: string;
   pvCreateNProjects: string;
   pvNoBuildingSelected: string;
@@ -3440,15 +3454,18 @@ export interface Translations {
   pvEventEnd: string;
   pvEventMilestone: string;
   pvSelectADate: string;
-  pvEventsScheduledOnDate: string;
+  pvEventsScheduledOnDate_one: string;
+  pvEventsScheduledOnDate_other: string;
   pvProjectNumber: string;
   pvTimelineActions: string;
   pvBulkStatusUpdate: string;
   pvResourcePlanning: string;
   pvExportTimeline: string;
   pvTotalProjectsTitle: string;
-  pvNActive: string;
-  pvNCompleted: string;
+  pvNActive_one: string;
+  pvNActive_other: string;
+  pvNCompleted_one: string;
+  pvNCompleted_other: string;
   pvBudgetOverviewTitle: string;
   pvAmountSpentText: string;
   pvScheduleStatusTitle: string;
@@ -3960,7 +3977,8 @@ export interface Translations {
   etEditButton: string;
   etSelectAllAria: string;
   etSelectElementAria: string;
-  etElementsSelectedSuffix: string;
+  etElementsSelected_one: string;
+  etElementsSelected_other: string;
   etBulkEditButton: string;
   etChangeResidenceItem: string;
   etUpdateCostItem: string;
@@ -3968,7 +3986,8 @@ export interface Translations {
   etConfirmBulkDelete: string;
   etElementsDeletedTitle: string;
   etElementsDeletedDescPrefix: string;
-  etElementsDeletedDescSuffix: string;
+  etElementsDeletedDesc_one: string;
+  etElementsDeletedDesc_other: string;
   etPartiallyCompletedTitle: string;
   etPartiallyCompletedDesc: string;
   etDeleteFailedTitle: string;
@@ -4326,7 +4345,8 @@ export interface Translations {
   pdvAnalyticsInsightsSubtitle: string;
   pdvProjectTrendsDesc: string;
   pdvBudgetTrendsDesc: string;
-  pdvOverdueProjectsAlert: string;
+  pdvOverdueProjectsAlert_one: string;
+  pdvOverdueProjectsAlert_other: string;
   pdvExecSummaryDesc: string;
   pdpComprehensiveDetails: string;
   pdpFailedToLoadDetails: string;
@@ -6030,7 +6050,8 @@ export const translations: Record<Language, Translations> = {
     projectsMaintenanceManagement: 'Projects - Maintenance Management',
     projectsManagementSubtitle: 'Manage maintenance projects, track progress, and coordinate work schedules',
     toggleProjectOverview: 'Toggle project overview',
-    projectsSelected: 'project(s) selected',
+    projectsSelected_one: '{count} project selected',
+    projectsSelected_other: '{count} projects selected',
     newProject: 'New Project',
     toggleProjectsTable: 'Toggle projects table',
     projectTable: 'Project Table',
@@ -6051,7 +6072,8 @@ export const translations: Record<Language, Translations> = {
     projectCreatedSuccessfully: 'has been created successfully.',
     projectUpdatedSuccessfully: 'has been updated successfully.',
     projectsCreated: 'Projects Created',
-    projectsCreatedFromSuggestions: 'project(s) have been created from evaluation suggestions.',
+    projectsCreatedFromSuggestions_one: '{count} project has been created from evaluation suggestions.',
+    projectsCreatedFromSuggestions_other: '{count} projects have been created from evaluation suggestions.',
     projectCreatedSuccessfully2: 'Project Created Successfully',
     autoProjectConvertedSuccess: 'has been converted to a maintenance project.',
     statusUpdated: 'Status Updated',
@@ -6947,8 +6969,10 @@ export const translations: Record<Language, Translations> = {
     postWorkYearsAddedToRemainingLifespan: 'Years added to remaining lifespan',
     postWorkImpactSummaryLabel: 'Impact Summary:',
     postWorkThisWorkWill: 'This work will',
-    postWorkSetLifespanToYearsTemplate: "set the element's lifespan to {years} year(s) starting from the date of the work",
-    postWorkAddYearsToLifespanTemplate: "add {years} year(s) to the element's remaining lifespan",
+    postWorkSetLifespanToYearsTemplate_one: "set the element's lifespan to {years} year starting from the date of the work",
+    postWorkSetLifespanToYearsTemplate_other: "set the element's lifespan to {years} years starting from the date of the work",
+    postWorkAddYearsToLifespanTemplate_one: "add {years} year to the element's remaining lifespan",
+    postWorkAddYearsToLifespanTemplate_other: "add {years} years to the element's remaining lifespan",
     postWorkNotChangeRemainingLifespan: 'not change the remaining lifespan',
     postWorkElementConfirmationsLabel: 'Element Confirmations',
     postWorkAllElementsConfirmed: 'All elements confirmed!',
@@ -7058,7 +7082,8 @@ export const translations: Record<Language, Translations> = {
     submissionNoSubmissionsYetTitle: 'No Submissions Yet',
     submissionNoSubmissionsYetDescription: 'No vendor submissions have been received for this project',
     submissionNoVendorSubmissionsYetMessage: 'Add vendor submissions with their quotes, availability, and proposal documents.',
-    submissionPreferredCountTemplate: '{count} Preferred',
+    submissionPreferredCountTemplate_one: '{count} Preferred',
+    submissionPreferredCountTemplate_other: '{count} Preferred',
     submissionUpdatingButton: 'Updating...',
     submissionSaveChangesButton: 'Save Changes',
     submissionEditVendorTitleTemplate: 'Edit Vendor - {vendor}',
@@ -7133,7 +7158,8 @@ export const translations: Record<Language, Translations> = {
     overdueOnly: 'Overdue Only',
     projectName: 'Project Name',
     startDate: 'Start Date',
-    paginationShowingResults: 'Showing {start} to {end} of {total} result(s)',
+    paginationShowingResults_one: 'Showing {start} to {end} of {total} result',
+    paginationShowingResults_other: 'Showing {start} to {end} of {total} results',
     noProjectsFoundTitle: 'No Projects Found',
     noProjectsForBuilding: 'No maintenance projects have been created for this building yet.',
     profileSettings: 'Profile Settings',
@@ -7394,7 +7420,8 @@ export const translations: Record<Language, Translations> = {
     // Bulk edit cost dialog (task #707)
     bulkCostUpdateTitle: 'Update Reconstruction Costs',
     bulkCostUpdateDescPrefix: 'Update reconstruction costs for ',
-    bulkCostUpdateDescSuffix: ' selected element(s).',
+    bulkCostUpdateDesc_one: 'Update reconstruction costs for {count} selected element.',
+    bulkCostUpdateDesc_other: 'Update reconstruction costs for {count} selected elements.',
     bulkCostAssignmentType: 'Cost Assignment Type',
     bulkCostPerElement: 'Per Element',
     bulkCostPerUnit: 'Per Unit (m², m, etc.)',
@@ -7411,7 +7438,8 @@ export const translations: Record<Language, Translations> = {
     bulkCostUpdateButton: 'Update Costs',
     bulkCostToastUpdatedTitle: 'Costs updated',
     bulkCostToastUpdatedDescPrefix: 'Successfully updated costs for ',
-    bulkCostToastUpdatedDescSuffix: ' element(s)',
+    bulkCostToastUpdatedDesc_one: 'Successfully updated costs for {count} element.',
+    bulkCostToastUpdatedDesc_other: 'Successfully updated costs for {count} elements.',
     bulkCostToastFailedTitle: 'Update failed',
     bulkCostToastFailedDesc: 'Failed to update element costs',
     bulkCostInvalidAmountError: 'Please enter a valid cost amount',
@@ -7419,7 +7447,8 @@ export const translations: Record<Language, Translations> = {
     // Bulk edit residence dialog (task #707)
     bulkResidenceTitle: 'Change Assignment & Properties',
     bulkResidenceDescPrefix: 'Update residence assignment, access type, and charge type for ',
-    bulkResidenceDescSuffix: ' selected element(s).',
+    bulkResidenceDesc_one: 'Update residence assignment, access type, and charge type for {count} selected element.',
+    bulkResidenceDesc_other: 'Update residence assignment, access type, and charge type for {count} selected elements.',
     bulkResidenceUpdateAssignment: 'Update Residence Assignment',
     bulkResidenceSelectPlaceholder: 'Select residence',
     bulkResidenceBuildingWide: 'Building-wide',
@@ -7445,7 +7474,8 @@ export const translations: Record<Language, Translations> = {
     bulkResidenceUpdateButton: 'Update Assignment',
     bulkResidenceToastUpdatedTitle: 'Assignment updated',
     bulkResidenceToastUpdatedDescPrefix: 'Successfully updated assignment for ',
-    bulkResidenceToastUpdatedDescSuffix: ' element(s)',
+    bulkResidenceToastUpdatedDesc_one: 'Successfully updated assignment for {count} element.',
+    bulkResidenceToastUpdatedDesc_other: 'Successfully updated assignment for {count} elements.',
     bulkResidenceToastFailedTitle: 'Update failed',
     bulkResidenceToastFailedDesc: 'Failed to update element assignments',
     bulkResidenceSelectFieldError: 'Please select at least one field to update',
@@ -7678,7 +7708,8 @@ export const translations: Record<Language, Translations> = {
     pvBudgetAnalysisDesc: 'Planned vs actual budget utilization over time',
     pvStatusBreakdownDesc: 'Current breakdown of projects by status',
     pvPriorityBreakdownDesc: 'Project breakdown by priority level',
-    pvOverdueProjectsAlert: '{count} project(s) are overdue and require immediate attention.',
+    pvOverdueProjectsAlert_one: '{count} project is overdue and requires immediate attention.',
+    pvOverdueProjectsAlert_other: '{count} projects are overdue and require immediate attention.',
     pvBudgetUtilizationHighAlert: 'Budget utilization is high ({percent}%). Consider reviewing spending.',
     pvExecutiveSummaryDesc: 'Key insights and recommendations for project portfolio management',
     pvBudgetWithinTarget: 'Budget utilization within target range',
@@ -7715,7 +7746,8 @@ export const translations: Record<Language, Translations> = {
     pvNoPendingSuggestions: 'No pending evaluation suggestions are available for this building.',
     pvNoSuggestionsMatchFilters: 'No suggestions match your current search and filter criteria.',
     pvProjectsCreatedTitle: 'Projects Created',
-    pvProjectsCreatedDesc: 'Successfully created {count} project(s) from evaluation suggestions.',
+    pvProjectsCreatedDesc_one: 'Successfully created {count} project from evaluation suggestions.',
+    pvProjectsCreatedDesc_other: 'Successfully created {count} projects from evaluation suggestions.',
     pvFailedToCreateProjects: 'Failed to create projects. Please try again.',
     pvNoSuggestionsSelectedTitle: 'No Suggestions Selected',
     pvNoSuggestionsSelectedDesc: 'Please select at least one suggestion to create projects.',
@@ -7734,7 +7766,8 @@ export const translations: Record<Language, Translations> = {
     pvHealthWarning: 'Warning',
     pvHealthCritical: 'Critical',
     pvSelectAllSuggestions: 'Select All ({count} suggestions)',
-    pvNSelected: '{count} selected',
+    pvNSelected_one: '{count} selected',
+    pvNSelected_other: '{count} selected',
     pvNoSuggestionsFound: 'No Suggestions Found',
     pvSuggestionTypeElementEvaluation: '{type} - Element Evaluation',
     pvElementHash: 'Element #{id}',
@@ -7743,7 +7776,8 @@ export const translations: Record<Language, Translations> = {
     pvDurationDaysLabel: 'Duration (days)',
     pvDefaultPriorityLabel: 'Default Priority',
     pvEstimatedTotalBudget: 'Estimated total budget:',
-    pvSuggestionsSelectedFooter: '{count} suggestion(s) selected',
+    pvSuggestionsSelectedFooter_one: '{count} suggestion selected',
+    pvSuggestionsSelectedFooter_other: '{count} suggestions selected',
     pvCreatingButton: 'Creating...',
     pvCreateNProjects: 'Create {count} Project{plural}',
     pvNoBuildingSelected: 'No Building Selected',
@@ -7842,15 +7876,18 @@ export const translations: Record<Language, Translations> = {
     pvEventEnd: 'End',
     pvEventMilestone: 'Milestone',
     pvSelectADate: 'Select a Date',
-    pvEventsScheduledOnDate: '{count} event(s) scheduled',
+    pvEventsScheduledOnDate_one: '{count} event scheduled',
+    pvEventsScheduledOnDate_other: '{count} events scheduled',
     pvProjectNumber: 'Project #{number}',
     pvTimelineActions: 'Timeline Actions',
     pvBulkStatusUpdate: 'Bulk Status Update',
     pvResourcePlanning: 'Resource Planning',
     pvExportTimeline: 'Export Timeline',
     pvTotalProjectsTitle: 'Total Projects',
-    pvNActive: '{count} active',
-    pvNCompleted: '{count} completed',
+    pvNActive_one: '{count} active',
+    pvNActive_other: '{count} active',
+    pvNCompleted_one: '{count} completed',
+    pvNCompleted_other: '{count} completed',
     pvBudgetOverviewTitle: 'Budget Overview',
     pvAmountSpentText: '{amount} spent',
     pvScheduleStatusTitle: 'Schedule Status',
@@ -8374,7 +8411,8 @@ export const translations: Record<Language, Translations> = {
     etEditButton: 'Edit',
     etSelectAllAria: 'Select all elements',
     etSelectElementAria: 'Select element',
-    etElementsSelectedSuffix: 'element(s) selected',
+    etElementsSelected_one: '{count} element selected',
+    etElementsSelected_other: '{count} elements selected',
     etBulkEditButton: 'Bulk Actions',
     etChangeResidenceItem: 'Change Residence',
     etUpdateCostItem: 'Update Replacement Cost',
@@ -8382,7 +8420,8 @@ export const translations: Record<Language, Translations> = {
     etConfirmBulkDelete: 'Are you sure you want to delete the selected elements? This action cannot be undone.',
     etElementsDeletedTitle: 'Elements deleted',
     etElementsDeletedDescPrefix: 'Successfully deleted',
-    etElementsDeletedDescSuffix: 'element(s).',
+    etElementsDeletedDesc_one: 'Successfully deleted {count} element.',
+    etElementsDeletedDesc_other: 'Successfully deleted {count} elements.',
     etPartiallyCompletedTitle: 'Partially completed',
     etPartiallyCompletedDesc: 'Some elements could not be deleted.',
     etDeleteFailedTitle: 'Delete failed',
@@ -8738,7 +8777,8 @@ export const translations: Record<Language, Translations> = {
     pdvAnalyticsInsightsSubtitle: 'Analytics, insights, and performance metrics for maintenance project management',
     pdvProjectTrendsDesc: 'Monthly project creation and completion trends',
     pdvBudgetTrendsDesc: 'Planned vs actual budget utilization over time',
-    pdvOverdueProjectsAlert: '{count} project(s) are overdue and require immediate attention.',
+    pdvOverdueProjectsAlert_one: '{count} project is overdue and requires immediate attention.',
+    pdvOverdueProjectsAlert_other: '{count} projects are overdue and require immediate attention.',
     pdvExecSummaryDesc: 'Key insights and recommendations for project portfolio management',
     pdpComprehensiveDetails: 'Comprehensive project details, timeline, budget, and management tools',
     pdpFailedToLoadDetails: 'Failed to load project details. Please try again.',
@@ -10433,7 +10473,8 @@ export const translations: Record<Language, Translations> = {
     projectsMaintenanceManagement: 'Projets - Gestion de la maintenance',
     projectsManagementSubtitle: 'Gérez les projets de maintenance, suivez les progrès et coordonnez les horaires de travail',
     toggleProjectOverview: 'Basculer l\'aperçu des projets',
-    projectsSelected: 'projet(s) sélectionné(s)',
+    projectsSelected_one: '{count} projet sélectionné',
+    projectsSelected_other: '{count} projets sélectionnés',
     newProject: 'Nouveau projet',
     toggleProjectsTable: 'Basculer le tableau des projets',
     projectTable: 'Tableau des projets',
@@ -10454,7 +10495,8 @@ export const translations: Record<Language, Translations> = {
     projectCreatedSuccessfully: 'a été créé avec succès.',
     projectUpdatedSuccessfully: 'a été mis à jour avec succès.',
     projectsCreated: 'Projets créés',
-    projectsCreatedFromSuggestions: 'projet(s) ont été créé(s) à partir des suggestions d\'évaluation.',
+    projectsCreatedFromSuggestions_one: '{count} projet a été créé à partir des suggestions d\'évaluation.',
+    projectsCreatedFromSuggestions_other: '{count} projets ont été créés à partir des suggestions d\'évaluation.',
     projectCreatedSuccessfully2: 'Projet créé avec succès',
     autoProjectConvertedSuccess: 'a été converti en projet de maintenance.',
     statusUpdated: 'Statut mis à jour',
@@ -11351,8 +11393,10 @@ export const translations: Record<Language, Translations> = {
     postWorkYearsAddedToRemainingLifespan: 'Années ajoutées à la durée de vie restante',
     postWorkImpactSummaryLabel: 'Résumé de l\'impact :',
     postWorkThisWorkWill: 'Ces travaux vont',
-    postWorkSetLifespanToYearsTemplate: 'fixer la durée de vie de l\'élément à {years} année(s) à partir de la date des travaux',
-    postWorkAddYearsToLifespanTemplate: 'ajouter {years} année(s) à la durée de vie restante de l\'élément',
+    postWorkSetLifespanToYearsTemplate_one: 'fixer la durée de vie de l\'élément à {years} année à partir de la date des travaux',
+    postWorkSetLifespanToYearsTemplate_other: 'fixer la durée de vie de l\'élément à {years} années à partir de la date des travaux',
+    postWorkAddYearsToLifespanTemplate_one: 'ajouter {years} année à la durée de vie restante de l\'élément',
+    postWorkAddYearsToLifespanTemplate_other: 'ajouter {years} années à la durée de vie restante de l\'élément',
     postWorkNotChangeRemainingLifespan: 'ne pas modifier la durée de vie restante',
     postWorkElementConfirmationsLabel: 'Confirmations des éléments',
     postWorkAllElementsConfirmed: 'Tous les éléments sont confirmés !',
@@ -11462,7 +11506,8 @@ export const translations: Record<Language, Translations> = {
     submissionNoSubmissionsYetTitle: 'Aucune soumission pour l\'instant',
     submissionNoSubmissionsYetDescription: 'Aucune soumission de fournisseur n\'a été reçue pour ce projet',
     submissionNoVendorSubmissionsYetMessage: 'Ajoutez des soumissions de fournisseurs avec leurs devis, disponibilités et documents de proposition.',
-    submissionPreferredCountTemplate: '{count} privilégié(s)',
+    submissionPreferredCountTemplate_one: '{count} privilégié',
+    submissionPreferredCountTemplate_other: '{count} privilégiés',
     submissionUpdatingButton: 'Mise à jour...',
     submissionSaveChangesButton: 'Enregistrer les modifications',
     submissionEditVendorTitleTemplate: 'Modifier le fournisseur - {vendor}',
@@ -11537,7 +11582,8 @@ export const translations: Record<Language, Translations> = {
     overdueOnly: 'En retard seulement',
     projectName: 'Nom du projet',
     startDate: 'Date de début',
-    paginationShowingResults: 'Affichage de {start} à {end} sur {total} résultat(s)',
+    paginationShowingResults_one: 'Affichage de {start} à {end} sur {total} résultat',
+    paginationShowingResults_other: 'Affichage de {start} à {end} sur {total} résultats',
     noProjectsFoundTitle: 'Aucun projet trouvé',
     noProjectsForBuilding: 'Aucun projet d\'entretien n\'a été créé pour ce bâtiment.',
     profileSettings: 'Paramètres du profil',
@@ -11798,7 +11844,8 @@ export const translations: Record<Language, Translations> = {
     // Bulk edit cost dialog (task #707)
     bulkCostUpdateTitle: 'Mettre à jour les coûts de reconstruction',
     bulkCostUpdateDescPrefix: 'Mettre à jour les coûts de reconstruction pour ',
-    bulkCostUpdateDescSuffix: ' élément(s) sélectionné(s).',
+    bulkCostUpdateDesc_one: 'Mettre à jour les coûts de reconstruction pour {count} élément sélectionné.',
+    bulkCostUpdateDesc_other: 'Mettre à jour les coûts de reconstruction pour {count} éléments sélectionnés.',
     bulkCostAssignmentType: 'Type d\'attribution du coût',
     bulkCostPerElement: 'Par élément',
     bulkCostPerUnit: 'Par unité (m², m, etc.)',
@@ -11815,7 +11862,8 @@ export const translations: Record<Language, Translations> = {
     bulkCostUpdateButton: 'Mettre à jour les coûts',
     bulkCostToastUpdatedTitle: 'Coûts mis à jour',
     bulkCostToastUpdatedDescPrefix: 'Coûts mis à jour avec succès pour ',
-    bulkCostToastUpdatedDescSuffix: ' élément(s)',
+    bulkCostToastUpdatedDesc_one: 'Coûts mis à jour avec succès pour {count} élément.',
+    bulkCostToastUpdatedDesc_other: 'Coûts mis à jour avec succès pour {count} éléments.',
     bulkCostToastFailedTitle: 'Échec de la mise à jour',
     bulkCostToastFailedDesc: 'Échec de la mise à jour des coûts des éléments',
     bulkCostInvalidAmountError: 'Veuillez saisir un montant de coût valide',
@@ -11823,7 +11871,8 @@ export const translations: Record<Language, Translations> = {
     // Bulk edit residence dialog (task #707)
     bulkResidenceTitle: 'Modifier l\'attribution et les propriétés',
     bulkResidenceDescPrefix: 'Mettre à jour l\'attribution de résidence, le type d\'accès et le type de charge pour ',
-    bulkResidenceDescSuffix: ' élément(s) sélectionné(s).',
+    bulkResidenceDesc_one: 'Mettre à jour l\'attribution de résidence, le type d\'accès et le type de charge pour {count} élément sélectionné.',
+    bulkResidenceDesc_other: 'Mettre à jour l\'attribution de résidence, le type d\'accès et le type de charge pour {count} éléments sélectionnés.',
     bulkResidenceUpdateAssignment: 'Mettre à jour l\'attribution de résidence',
     bulkResidenceSelectPlaceholder: 'Sélectionner une résidence',
     bulkResidenceBuildingWide: 'Pour tout le bâtiment',
@@ -11849,7 +11898,8 @@ export const translations: Record<Language, Translations> = {
     bulkResidenceUpdateButton: 'Mettre à jour l\'attribution',
     bulkResidenceToastUpdatedTitle: 'Attribution mise à jour',
     bulkResidenceToastUpdatedDescPrefix: 'Attribution mise à jour avec succès pour ',
-    bulkResidenceToastUpdatedDescSuffix: ' élément(s)',
+    bulkResidenceToastUpdatedDesc_one: 'Attribution mise à jour avec succès pour {count} élément.',
+    bulkResidenceToastUpdatedDesc_other: 'Attribution mise à jour avec succès pour {count} éléments.',
     bulkResidenceToastFailedTitle: 'Échec de la mise à jour',
     bulkResidenceToastFailedDesc: 'Échec de la mise à jour des attributions des éléments',
     bulkResidenceSelectFieldError: 'Veuillez sélectionner au moins un champ à mettre à jour',
@@ -12082,7 +12132,8 @@ export const translations: Record<Language, Translations> = {
     pvBudgetAnalysisDesc: 'Utilisation budgétaire planifiée vs réelle dans le temps',
     pvStatusBreakdownDesc: 'Répartition actuelle des projets par statut',
     pvPriorityBreakdownDesc: 'Répartition des projets par niveau de priorité',
-    pvOverdueProjectsAlert: '{count} projet(s) sont en retard et nécessitent une attention immédiate.',
+    pvOverdueProjectsAlert_one: '{count} projet est en retard et nécessite une attention immédiate.',
+    pvOverdueProjectsAlert_other: '{count} projets sont en retard et nécessitent une attention immédiate.',
     pvBudgetUtilizationHighAlert: 'L\'utilisation du budget est élevée ({percent} %). Envisagez de réviser les dépenses.',
     pvExecutiveSummaryDesc: 'Aperçus clés et recommandations pour la gestion du portefeuille de projets',
     pvBudgetWithinTarget: 'Utilisation du budget dans la fourchette cible',
@@ -12119,7 +12170,8 @@ export const translations: Record<Language, Translations> = {
     pvNoPendingSuggestions: 'Aucune suggestion d\'évaluation en attente n\'est disponible pour cet immeuble.',
     pvNoSuggestionsMatchFilters: 'Aucune suggestion ne correspond à vos critères de recherche et de filtrage actuels.',
     pvProjectsCreatedTitle: 'Projets créés',
-    pvProjectsCreatedDesc: '{count} projet(s) ont été créés avec succès à partir des suggestions d\'évaluation.',
+    pvProjectsCreatedDesc_one: '{count} projet a été créé avec succès à partir des suggestions d\'évaluation.',
+    pvProjectsCreatedDesc_other: '{count} projets ont été créés avec succès à partir des suggestions d\'évaluation.',
     pvFailedToCreateProjects: 'Échec de la création des projets. Veuillez réessayer.',
     pvNoSuggestionsSelectedTitle: 'Aucune suggestion sélectionnée',
     pvNoSuggestionsSelectedDesc: 'Veuillez sélectionner au moins une suggestion pour créer des projets.',
@@ -12138,7 +12190,8 @@ export const translations: Record<Language, Translations> = {
     pvHealthWarning: 'Avertissement',
     pvHealthCritical: 'Critique',
     pvSelectAllSuggestions: 'Tout sélectionner ({count} suggestions)',
-    pvNSelected: '{count} sélectionné(s)',
+    pvNSelected_one: '{count} sélectionné',
+    pvNSelected_other: '{count} sélectionnés',
     pvNoSuggestionsFound: 'Aucune suggestion trouvée',
     pvSuggestionTypeElementEvaluation: '{type} — Évaluation d\'élément',
     pvElementHash: 'Élément n°{id}',
@@ -12147,7 +12200,8 @@ export const translations: Record<Language, Translations> = {
     pvDurationDaysLabel: 'Durée (jours)',
     pvDefaultPriorityLabel: 'Priorité par défaut',
     pvEstimatedTotalBudget: 'Budget total estimé :',
-    pvSuggestionsSelectedFooter: '{count} suggestion(s) sélectionnée(s)',
+    pvSuggestionsSelectedFooter_one: '{count} suggestion sélectionnée',
+    pvSuggestionsSelectedFooter_other: '{count} suggestions sélectionnées',
     pvCreatingButton: 'Création...',
     pvCreateNProjects: 'Créer {count} projet{plural}',
     pvNoBuildingSelected: 'Aucun immeuble sélectionné',
@@ -12246,15 +12300,18 @@ export const translations: Record<Language, Translations> = {
     pvEventEnd: 'Fin',
     pvEventMilestone: 'Jalon',
     pvSelectADate: 'Sélectionnez une date',
-    pvEventsScheduledOnDate: '{count} événement(s) planifié(s)',
+    pvEventsScheduledOnDate_one: '{count} événement planifié',
+    pvEventsScheduledOnDate_other: '{count} événements planifiés',
     pvProjectNumber: 'Projet n°{number}',
     pvTimelineActions: 'Actions de l\'échéancier',
     pvBulkStatusUpdate: 'Mise à jour groupée du statut',
     pvResourcePlanning: 'Planification des ressources',
     pvExportTimeline: 'Exporter l\'échéancier',
     pvTotalProjectsTitle: 'Total des projets',
-    pvNActive: '{count} actif(s)',
-    pvNCompleted: '{count} terminé(s)',
+    pvNActive_one: '{count} actif',
+    pvNActive_other: '{count} actifs',
+    pvNCompleted_one: '{count} terminé',
+    pvNCompleted_other: '{count} terminés',
     pvBudgetOverviewTitle: 'Aperçu du budget',
     pvAmountSpentText: '{amount} dépensé',
     pvScheduleStatusTitle: 'Statut de l\'horaire',
@@ -12787,7 +12844,8 @@ export const translations: Record<Language, Translations> = {
     etEditButton: 'Modifier',
     etSelectAllAria: 'Sélectionner tous les éléments',
     etSelectElementAria: 'Sélectionner l\'élément',
-    etElementsSelectedSuffix: 'élément(s) sélectionné(s)',
+    etElementsSelected_one: '{count} élément sélectionné',
+    etElementsSelected_other: '{count} éléments sélectionnés',
     etBulkEditButton: 'Actions groupées',
     etChangeResidenceItem: 'Changer la résidence',
     etUpdateCostItem: 'Mettre à jour le coût de remplacement',
@@ -12795,7 +12853,8 @@ export const translations: Record<Language, Translations> = {
     etConfirmBulkDelete: 'Voulez-vous vraiment supprimer les éléments sélectionnés? Cette action est irréversible.',
     etElementsDeletedTitle: 'Éléments supprimés',
     etElementsDeletedDescPrefix: 'Suppression réussie de',
-    etElementsDeletedDescSuffix: 'élément(s).',
+    etElementsDeletedDesc_one: 'Suppression réussie de {count} élément.',
+    etElementsDeletedDesc_other: 'Suppression réussie de {count} éléments.',
     etPartiallyCompletedTitle: 'Partiellement complété',
     etPartiallyCompletedDesc: 'Certains éléments n\'ont pas pu être supprimés.',
     etDeleteFailedTitle: 'Échec de la suppression',
@@ -13151,7 +13210,8 @@ export const translations: Record<Language, Translations> = {
     pdvAnalyticsInsightsSubtitle: 'Analyses, perspectives et indicateurs de performance pour la gestion des projets de maintenance',
     pdvProjectTrendsDesc: 'Tendances mensuelles de création et de complétion des projets',
     pdvBudgetTrendsDesc: 'Utilisation budgétaire planifiée par rapport au réel dans le temps',
-    pdvOverdueProjectsAlert: '{count} projet(s) sont en retard et nécessitent une attention immédiate.',
+    pdvOverdueProjectsAlert_one: '{count} projet est en retard et nécessite une attention immédiate.',
+    pdvOverdueProjectsAlert_other: '{count} projets sont en retard et nécessitent une attention immédiate.',
     pdvExecSummaryDesc: 'Principales perspectives et recommandations pour la gestion du portefeuille de projets',
     pdpComprehensiveDetails: 'Détails complets du projet, calendrier, budget et outils de gestion',
     pdpFailedToLoadDetails: 'Échec du chargement des détails du projet. Veuillez réessayer.',

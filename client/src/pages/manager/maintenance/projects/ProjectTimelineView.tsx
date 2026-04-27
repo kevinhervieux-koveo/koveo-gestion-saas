@@ -85,7 +85,7 @@ export function ProjectTimelineView({
   organizationId,
 }: ProjectTimelineViewProps) {
   const { hasPermission } = useBuildingPermissions();
-  const { t } = useLanguage();
+  const { t, tp } = useLanguage();
   const [currentDate, setCurrentDate] = useState(new Date());
   const [timelineView, setTimelineView] = useState<TimelineView>('month');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
@@ -483,7 +483,7 @@ export function ProjectTimelineView({
                 {selectedDate ? format(selectedDate, 'EEEE, MMM dd') : t('pvSelectADate')}
               </CardTitle>
               <CardDescription>
-                {t('pvEventsScheduledOnDate').replace('{count}', String(selectedDateEvents.length))}
+                {tp('pvEventsScheduledOnDate', selectedDateEvents.length)}
               </CardDescription>
             </CardHeader>
             <CardContent>

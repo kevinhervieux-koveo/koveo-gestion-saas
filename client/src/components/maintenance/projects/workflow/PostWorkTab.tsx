@@ -84,7 +84,7 @@ interface ElementLifespanUpdate {
  */
 export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }: PostWorkTabProps) {
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, tp } = useLanguage();
 
   // Defensive null check for project data
   if (!project) {
@@ -925,11 +925,11 @@ export function PostWorkTab({ project, workflowState, onUpdate, onMarkComplete }
                                 {update.lifespanImpactYears > 0 ? (
                                   update.interventionType === 'replace' ? (
                                     <span className="font-medium text-blue-600">
-                                      {t('postWorkSetLifespanToYearsTemplate').replace('{years}', String(update.lifespanImpactYears))}
+                                      {tp('postWorkSetLifespanToYearsTemplate', update.lifespanImpactYears, { years: update.lifespanImpactYears })}
                                     </span>
                                   ) : (
                                     <span className="font-medium text-blue-600">
-                                      {t('postWorkAddYearsToLifespanTemplate').replace('{years}', String(update.lifespanImpactYears))}
+                                      {tp('postWorkAddYearsToLifespanTemplate', update.lifespanImpactYears, { years: update.lifespanImpactYears })}
                                     </span>
                                   )
                                 ) : (

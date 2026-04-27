@@ -66,7 +66,7 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
   // previous placeholder `() => true` rendered the gated UI for every
   // role, including tenants.
   const { hasPermission } = useBuildingPermissions();
-  const { t } = useLanguage();
+  const { t, tp } = useLanguage();
 
   // Fetch projects metrics for current building
   const {
@@ -168,12 +168,12 @@ export function ProjectsOverview({ className, buildingId, organizationId }: Proj
             <div className="flex items-center text-xs text-muted-foreground">
               <span className="flex items-center">
                 <Play className="h-3 w-3 mr-1 text-blue-500" />
-                {t('pvNActive').replace('{count}', String(metrics.activeProjects))}
+                {tp('pvNActive', metrics.activeProjects)}
               </span>
               <span className="mx-2">•</span>
               <span className="flex items-center">
                 <CheckCircle2 className="h-3 w-3 mr-1 text-green-500" />
-                {t('pvNCompleted').replace('{count}', String(metrics.completedProjects))}
+                {tp('pvNCompleted', metrics.completedProjects)}
               </span>
             </div>
           </CardContent>
