@@ -1,4 +1,7 @@
+import { useMemo, useState } from 'react';
 import { useQuery } from '@tanstack/react-query';
+import { format } from 'date-fns';
+import { CalendarIcon } from 'lucide-react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import {
   Table,
@@ -9,8 +12,20 @@ import {
   TableRow,
 } from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '@/components/ui/select';
+import { Button } from '@/components/ui/button';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { Label } from '@/components/ui/label';
 import { Header } from '@/components/layout/header';
 import { useLanguage } from '@/hooks/use-language';
+import { cn } from '@/lib/utils';
 
 type Outcome =
   | 'verbatim'
@@ -30,8 +45,16 @@ interface AggregateRow {
 
 interface AggregateResponse {
   metricKey: string;
-  sinceDays: number;
+  sinceDays: number | null;
+  from: string | null;
+  to: string | null;
+  organizationId: string | null;
   rows: AggregateRow[];
+}
+
+interface OrganizationOption {
+  id: string;
+  name: string;
 }
 
 const BRANCH_KEYS: Record<string, 'kpiBranchKeep' | 'kpiBranchMerge' | 'kpiBranchSplit'> = {
@@ -86,11 +109,76 @@ function formatRate(rate: number | null, n: number): string {
   return `${pct}% (n=${n})`;
 }
 
+const ALL_ORGS_VALUE = 'all';
+type RangePreset = '7' | '30' | '90' | 'custom';
+
+interface FilterState {
+  preset: RangePreset;
+  from: Date | undefined;
+  to: Date | undefined;
+  organizationId: string;
+}
+
+/** Build the query string the backend expects from the current filters. */
+function buildQueryString(filters: FilterState): string {
+  const params = new URLSearchParams();
+  if (filters.preset === 'custom') {
+    if (filters.from) params.set('from', startOfDayIso(filters.from));
+    if (filters.to) params.set('to', endOfDayIso(filters.to));
+  } else {
+    params.set('sinceDays', filters.preset);
+  }
+  if (filters.organizationId && filters.organizationId !== ALL_ORGS_VALUE) {
+    params.set('organizationId', filters.organizationId);
+  }
+  const qs = params.toString();
+  return qs ? `?${qs}` : '';
+}
+
+function startOfDayIso(d: Date): string {
+  const copy = new Date(d);
+  copy.setHours(0, 0, 0, 0);
+  return copy.toISOString();
+}
+
+function endOfDayIso(d: Date): string {
+  const copy = new Date(d);
+  copy.setHours(23, 59, 59, 999);
+  return copy.toISOString();
+}
+
 export default function KpiDashboardPage() {
   const { t } = useLanguage();
 
+  const [filters, setFilters] = useState<FilterState>({
+    preset: '90',
+    from: undefined,
+    to: undefined,
+    organizationId: ALL_ORGS_VALUE,
+  });
+
+  const queryString = useMemo(() => buildQueryString(filters), [filters]);
+
+  // Skip the request when "Custom" is selected but no full range is set yet,
+  // so we don't fire an unbounded query against the backend.
+  const queryEnabled =
+    filters.preset !== 'custom' || (Boolean(filters.from) && Boolean(filters.to));
+
+  const { data: organizations = [], isLoading: orgsLoading } = useQuery<OrganizationOption[]>({
+    queryKey: ['/api/organizations'],
+  });
+
   const { data, isLoading, isError } = useQuery<AggregateResponse>({
-    queryKey: ['/api/admin/kpi/bulk-import-filename-suggestions'],
+    queryKey: ['/api/admin/kpi/bulk-import-filename-suggestions', queryString],
+    enabled: queryEnabled,
+    queryFn: async () => {
+      const res = await fetch(
+        `/api/admin/kpi/bulk-import-filename-suggestions${queryString}`,
+        { credentials: 'include' },
+      );
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      return (await res.json()) as AggregateResponse;
+    },
   });
 
   const rows = data?.rows ?? [];
@@ -128,13 +216,144 @@ export default function KpiDashboardPage() {
     <div className="flex flex-col h-full">
       <Header title={t('kpiDashboardTitle')} subtitle={t('kpiDashboardSubtitle')} />
       <div className="flex-1 overflow-y-auto p-6 space-y-6" data-testid="kpi-dashboard-page">
+        <Card data-testid="kpi-filters-card">
+          <CardHeader>
+            <CardTitle>{t('kpiFiltersTitle')}</CardTitle>
+            <CardDescription>{t('kpiFiltersDescription')}</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-1.5">
+                <Label htmlFor="kpi-range-preset">{t('kpiDateRange')}</Label>
+                <Select
+                  value={filters.preset}
+                  onValueChange={(v) =>
+                    setFilters((s) => ({ ...s, preset: v as RangePreset }))
+                  }
+                >
+                  <SelectTrigger id="kpi-range-preset" data-testid="kpi-filter-range-preset">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="7">{t('kpiRangeLast7Days')}</SelectItem>
+                    <SelectItem value="30">{t('kpiRangeLast30Days')}</SelectItem>
+                    <SelectItem value="90">{t('kpiRangeLast90Days')}</SelectItem>
+                    <SelectItem value="custom">{t('kpiRangeCustom')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>{t('kpiFrom')}</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={filters.preset !== 'custom'}
+                      className={cn(
+                        'w-full pl-3 text-left font-normal',
+                        !filters.from && 'text-muted-foreground',
+                      )}
+                      data-testid="kpi-filter-from"
+                    >
+                      {filters.from ? format(filters.from, 'PPP') : <span>{t('kpiPickDate')}</span>}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={filters.from}
+                      onSelect={(date) =>
+                        setFilters((s) => ({ ...s, from: date ?? undefined }))
+                      }
+                      disabled={(date) =>
+                        (filters.to ? date > filters.to : false) || date > new Date()
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label>{t('kpiTo')}</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      type="button"
+                      variant="outline"
+                      disabled={filters.preset !== 'custom'}
+                      className={cn(
+                        'w-full pl-3 text-left font-normal',
+                        !filters.to && 'text-muted-foreground',
+                      )}
+                      data-testid="kpi-filter-to"
+                    >
+                      {filters.to ? format(filters.to, 'PPP') : <span>{t('kpiPickDate')}</span>}
+                      <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0" align="start">
+                    <Calendar
+                      mode="single"
+                      selected={filters.to}
+                      onSelect={(date) =>
+                        setFilters((s) => ({ ...s, to: date ?? undefined }))
+                      }
+                      disabled={(date) =>
+                        (filters.from ? date < filters.from : false) || date > new Date()
+                      }
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+
+              <div className="space-y-1.5">
+                <Label htmlFor="kpi-organization">{t('kpiOrganization')}</Label>
+                <Select
+                  value={filters.organizationId}
+                  onValueChange={(v) => setFilters((s) => ({ ...s, organizationId: v }))}
+                  disabled={orgsLoading}
+                >
+                  <SelectTrigger id="kpi-organization" data-testid="kpi-filter-organization">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={ALL_ORGS_VALUE}>{t('kpiAllOrganizations')}</SelectItem>
+                    {organizations.map((org) => (
+                      <SelectItem key={org.id} value={org.id}>
+                        {org.name}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+            {filters.preset === 'custom' && !queryEnabled ? (
+              <p
+                className="text-sm text-muted-foreground mt-3"
+                data-testid="kpi-filter-pick-range-hint"
+              >
+                {t('kpiPickRangeHint')}
+              </p>
+            ) : null}
+          </CardContent>
+        </Card>
+
         <Card data-testid="kpi-bulk-import-filename-card">
           <CardHeader>
             <CardTitle>{t('kpiBulkImportFilenameTitle')}</CardTitle>
             <CardDescription>{t('kpiBulkImportFilenameDescription')}</CardDescription>
           </CardHeader>
           <CardContent className="space-y-6">
-            {isLoading ? (
+            {!queryEnabled ? (
+              <p className="text-muted-foreground" data-testid="kpi-pending-range">
+                {t('kpiPickRangeHint')}
+              </p>
+            ) : isLoading ? (
               <div className="space-y-2">
                 <Skeleton className="h-8 w-1/3" />
                 <Skeleton className="h-32 w-full" />

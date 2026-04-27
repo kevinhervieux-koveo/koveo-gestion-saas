@@ -146,7 +146,6 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     items: [
       { nameKey: 'navBulkDocumentImport', href: '/admin/bulk-document-import', icon: Folder },
       { nameKey: 'documentTags', href: '/admin/document-tags', icon: FileText },
-      { nameKey: 'navKpiDashboard', href: '/admin/kpi-dashboard', icon: AreaChart },
     ],
   },
   {
@@ -160,6 +159,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { nameKey: 'navLaw25Compliance', href: '/admin/compliance', icon: Shield },
       { nameKey: 'rbacPermissions', href: '/admin/permissions', icon: ShieldCheck },
       { nameKey: 'navImpersonationLog', href: '/admin/impersonation-log', icon: ClipboardList },
+      { nameKey: 'navKpiDashboard', href: '/admin/kpi-dashboard', icon: AreaChart },
     ],
   },
   {

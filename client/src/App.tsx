@@ -387,7 +387,7 @@ function AuthenticatedLayout() {
             <Route path='/admin/permissions'>{() => <ProtectedRoute requiredRole="super_admin"><AdminPermissions /></ProtectedRoute>}</Route>
             <Route path='/admin/bulk-document-import'>{() => <ProtectedRoute requiredRole="admin"><AdminBulkDocumentImport /></ProtectedRoute>}</Route>
             <Route path='/admin/document-tags'>{() => <ProtectedRoute requiredRole="admin"><AdminDocumentTags /></ProtectedRoute>}</Route>
-            <Route path='/admin/kpi-dashboard'>{() => <ProtectedRoute requiredRole="admin"><AdminKpiDashboard /></ProtectedRoute>}</Route>
+            <Route path='/admin/kpi-dashboard'>{() => <ProtectedRoute requiredRole="super_admin"><AdminKpiDashboard /></ProtectedRoute>}</Route>
             <Route path='/admin/performance'>{() => <ProtectedRoute requiredRole="admin"><PerformanceDashboardPage /></ProtectedRoute>}</Route>
 
             {/* Manager routes */}

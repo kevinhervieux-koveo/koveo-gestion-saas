@@ -1,4 +1,4 @@
-import { and, eq, gte, sql } from 'drizzle-orm';
+import { and, eq, gte, lte, sql, type SQL } from 'drizzle-orm';
 import { db } from '../db';
 import * as schema from '@shared/schema';
 import { logWarn } from '../utils/logger';
@@ -79,15 +79,48 @@ export interface FilenameSuggestionAggregateRow {
 }
 
 /**
- * Aggregate the bulk-import filename-suggestion metric. Returns one row
- * per `(language, branch)` pair. Pass `sinceDays` to bound the window
- * (defaults to 90 days).
+ * Options for {@link aggregateBulkImportFilenameSuggestions}.
+ *
+ * - `sinceDays` is a convenience for "last N days" windows; ignored when
+ *   either `from` or `to` is provided so callers can express explicit
+ *   ranges without it silently re-applying.
+ * - `from` / `to` are inclusive bounds on `kpi_events.created_at`.
+ * - `organizationId` filters to a single tenant; omit (or pass null) to
+ *   aggregate across all organizations.
  */
-export async function aggregateBulkImportFilenameSuggestions(options: {
+export interface AggregateBulkImportFilenameSuggestionsOptions {
   sinceDays?: number;
-} = {}): Promise<FilenameSuggestionAggregateRow[]> {
-  const sinceDays = options.sinceDays ?? 90;
-  const cutoff = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000);
+  from?: Date | null;
+  to?: Date | null;
+  organizationId?: string | null;
+}
+
+/**
+ * Aggregate the bulk-import filename-suggestion metric. Returns one row
+ * per `(language, branch)` pair.
+ */
+export async function aggregateBulkImportFilenameSuggestions(
+  options: AggregateBulkImportFilenameSuggestionsOptions = {},
+): Promise<FilenameSuggestionAggregateRow[]> {
+  const { from, to, organizationId } = options;
+  const hasExplicitRange = from != null || to != null;
+
+  const conditions: SQL[] = [
+    eq(schema.kpiEvents.metricKey, schema.BULK_IMPORT_FILENAME_METRIC_KEY),
+  ];
+
+  if (hasExplicitRange) {
+    if (from) conditions.push(gte(schema.kpiEvents.createdAt, from));
+    if (to) conditions.push(lte(schema.kpiEvents.createdAt, to));
+  } else {
+    const sinceDays = options.sinceDays ?? 90;
+    const cutoff = new Date(Date.now() - sinceDays * 24 * 60 * 60 * 1000);
+    conditions.push(gte(schema.kpiEvents.createdAt, cutoff));
+  }
+
+  if (organizationId) {
+    conditions.push(eq(schema.kpiEvents.organizationId, organizationId));
+  }
 
   const rows = await db
     .select({
@@ -97,12 +130,7 @@ export async function aggregateBulkImportFilenameSuggestions(options: {
       n: sql<number>`count(*)::int`,
     })
     .from(schema.kpiEvents)
-    .where(
-      and(
-        eq(schema.kpiEvents.metricKey, schema.BULK_IMPORT_FILENAME_METRIC_KEY),
-        gte(schema.kpiEvents.createdAt, cutoff),
-      ),
-    )
+    .where(and(...conditions))
     .groupBy(
       sql`${schema.kpiEvents.dimensions}->>'language'`,
       sql`${schema.kpiEvents.dimensions}->>'branch'`,

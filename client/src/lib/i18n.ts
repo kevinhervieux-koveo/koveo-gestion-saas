@@ -1738,6 +1738,19 @@ export interface Translations {
   kpiLangEnglish: string;
   kpiLangFrench: string;
   kpiLangUnknown: string;
+  kpiFiltersTitle: string;
+  kpiFiltersDescription: string;
+  kpiDateRange: string;
+  kpiRangeLast7Days: string;
+  kpiRangeLast30Days: string;
+  kpiRangeLast90Days: string;
+  kpiRangeCustom: string;
+  kpiFrom: string;
+  kpiTo: string;
+  kpiPickDate: string;
+  kpiPickRangeHint: string;
+  kpiOrganization: string;
+  kpiAllOrganizations: string;
   rbacPermissions: string;
   modernPropertyManagement: string;
   comprehensivePropertyManagement: string;
@@ -5688,6 +5701,19 @@ export const translations: Record<Language, Translations> = {
     kpiLangEnglish: 'English',
     kpiLangFrench: 'French',
     kpiLangUnknown: 'Unknown',
+    kpiFiltersTitle: 'Filters',
+    kpiFiltersDescription: 'Narrow the metrics down to a specific time window or organization.',
+    kpiDateRange: 'Date range',
+    kpiRangeLast7Days: 'Last 7 days',
+    kpiRangeLast30Days: 'Last 30 days',
+    kpiRangeLast90Days: 'Last 90 days',
+    kpiRangeCustom: 'Custom range',
+    kpiFrom: 'From',
+    kpiTo: 'To',
+    kpiPickDate: 'Pick a date',
+    kpiPickRangeHint: 'Pick both a start and an end date to load metrics.',
+    kpiOrganization: 'Organization',
+    kpiAllOrganizations: 'All organizations',
     rbacPermissions: 'RBAC Permissions',
     modernPropertyManagement: 'Modern Property Management',
     comprehensivePropertyManagement: 'Comprehensive property management solution designed specifically for Quebec residential communities',
@@ -9860,6 +9886,19 @@ export const translations: Record<Language, Translations> = {
     kpiLangEnglish: 'Anglais',
     kpiLangFrench: 'Français',
     kpiLangUnknown: 'Inconnu',
+    kpiFiltersTitle: 'Filtres',
+    kpiFiltersDescription: 'Restreindre les mesures à une plage de dates ou à une organisation.',
+    kpiDateRange: 'Plage de dates',
+    kpiRangeLast7Days: '7 derniers jours',
+    kpiRangeLast30Days: '30 derniers jours',
+    kpiRangeLast90Days: '90 derniers jours',
+    kpiRangeCustom: 'Plage personnalisée',
+    kpiFrom: 'Du',
+    kpiTo: 'Au',
+    kpiPickDate: 'Choisir une date',
+    kpiPickRangeHint: 'Choisissez une date de début et de fin pour charger les mesures.',
+    kpiOrganization: 'Organisation',
+    kpiAllOrganizations: 'Toutes les organisations',
     rbacPermissions: 'Permissions RBAC',
     modernPropertyManagement: 'Gestion immobilière moderne',
     forQuebec: 'pour le Québec',
