@@ -72,6 +72,7 @@ import {
   GripVertical,
   Link2,
   Link2Off,
+  Library,
 } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
 import { StandaloneDatePicker } from '@/components/common/DatePickerField';
@@ -451,6 +452,20 @@ export interface BulkImportItemLite {
   linkingAfterItemId: string | null;
   /** Task #1233: true when an admin manually edited the linking chain for this item. */
   linkingManualOverride: boolean;
+  /**
+   * Task #1386: existing-library link fields. When an admin (or the AI)
+   * has attached this item to an existing family, these hold the family ID
+   * and the neighbor document ID that the new document will be placed
+   * relative to. Exactly one of beforeDocumentId/afterDocumentId is set.
+   */
+  linkingFamilyId: string | null;
+  linkingBeforeDocumentId: string | null;
+  linkingAfterDocumentId: string | null;
+  /** Task #1386: display names resolved server-side for the existing-family link. */
+  linkingFamilyName: string | null;
+  linkingNeighborDocumentName: string | null;
+  /** 'before' | 'after' derived from which of before/after document ID is set. */
+  linkingNeighborPosition: 'before' | 'after' | null;
   /**
    * Task #1002: enriched duplicate info — null for non-duplicate items.
    * When status === 'duplicate', these fields carry info about the
@@ -3501,6 +3516,124 @@ export default function BulkDocumentImportPage() {
   });
 
   /**
+   * Task #1386: Set or clear the existing-family link for a single item.
+   * Calls POST /api/admin/bulk-import/items/:id/set-existing-link-decision.
+   * After success, invalidates the session lite cache so the new
+   * linkingFamilyId / linkingBeforeDocumentId / linkingAfterDocumentId fields
+   * appear immediately in the row without waiting for the polling interval.
+   *
+   * On error, a per-item inline message is shown (EN/FR) instead of a generic toast.
+   */
+  /** Task #1386: per-item inline error state for the existing-family picker. */
+  const [existingLinkDecisionErrors, setExistingLinkDecisionErrors] = useState<
+    Map<string, { errorCode?: string; message: string }>
+  >(new Map());
+
+  /** Task #1386: map an errorCode returned by set-existing-link-decision to EN/FR copy. */
+  const getExistingLinkErrorMessage = (errorCode: string | undefined): string => {
+    const msgs: Record<string, [string, string]> = {
+      family_not_found:      ['Famille introuvable',                       'Family not found'],
+      family_not_visible:    ['Famille non autorisée',                     'Family not authorized'],
+      neighbor_not_found:    ['Document voisin introuvable',               'Neighbor document not found'],
+      scope_mismatch:        ['Le document voisin est hors périmètre',     'Neighbor document is out of scope'],
+      self_link:             ['Impossible de lier un document à lui-même', 'Cannot link a document to itself'],
+      neighbor_not_in_family:['Le voisin n\'appartient pas à cette famille', 'Neighbor does not belong to this family'],
+      occupied_side:         ['Ce côté est déjà occupé dans la famille',   'This side is already occupied in the family'],
+      cycle_detected:        ['Ce lien créerait une boucle dans la chaîne','This link would create a cycle in the chain'],
+      missing_fields:        ['Tous les champs sont requis',               'All fields are required'],
+    };
+    if (!errorCode || !(errorCode in msgs)) return isFr ? 'Erreur inattendue' : 'Unexpected error';
+    const [fr, en] = msgs[errorCode];
+    return isFr ? fr : en;
+  };
+
+  const setExistingLinkDecision = useMutation({
+    mutationFn: async ({
+      itemId,
+      familyId,
+      neighborDocumentId,
+      position,
+    }: {
+      itemId: string;
+      familyId: string | null;
+      neighborDocumentId: string | null;
+      position: 'before' | 'after' | null;
+    }) => {
+      const res = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/items/${itemId}/set-existing-link-decision`,
+        { familyId, neighborDocumentId, position },
+      );
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string; errorCode?: string };
+        const err = new Error(body.error ?? 'Failed to set existing link');
+        (err as Error & { errorCode?: string }).errorCode = body.errorCode;
+        throw err;
+      }
+      return res.json();
+    },
+    onSuccess: (_, variables) => {
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+      setExistingLinkDecisionErrors((prev) => {
+        const m = new Map(prev);
+        m.delete(variables.itemId);
+        return m;
+      });
+    },
+    onError: (err: Error & { errorCode?: string }, variables) => {
+      const code = err.errorCode;
+      if (code) {
+        setExistingLinkDecisionErrors((prev) => {
+          const m = new Map(prev);
+          m.set(variables.itemId, { errorCode: code, message: err.message });
+          return m;
+        });
+      } else {
+        toast({
+          variant: 'destructive',
+          title: isFr ? 'Échec de la mise à jour du lien de bibliothèque' : 'Failed to update library link',
+          description: err.message,
+        });
+      }
+    },
+  });
+
+  /** Task #1386: item ID for which the "Attach to existing family" picker is open. */
+  const [existingLinkPickerItemId, setExistingLinkPickerItemId] = useState<string | null>(null);
+  /** Task #1386: selected family ID in the picker (controlled). */
+  const [existingLinkPickerFamilyId, setExistingLinkPickerFamilyId] = useState<string>('');
+  /** Task #1386: selected neighbor document ID in the picker (controlled). */
+  const [existingLinkPickerDocId, setExistingLinkPickerDocId] = useState<string>('');
+  /** Task #1386: selected position in the picker (controlled). */
+  const [existingLinkPickerPosition, setExistingLinkPickerPosition] = useState<'before' | 'after'>('before');
+
+  /**
+   * Task #1386: load link candidates for the item whose picker is open.
+   * Only fires when `existingLinkPickerItemId` is set.
+   */
+  const linkCandidatesQuery = useQuery<{
+    families: Array<{
+      id: string;
+      name: string;
+      description: string | null;
+      isSystem: boolean;
+      documents: Array<{
+        id: string;
+        name: string;
+        effectiveDate: string | null;
+        mimeType: string | null;
+        canLinkBefore: boolean;
+        canLinkAfter: boolean;
+      }>;
+    }>;
+  }>({
+    queryKey: ['/api/admin/bulk-import/items', existingLinkPickerItemId, 'link-candidates'],
+    enabled: existingLinkPickerItemId !== null,
+  });
+
+  /**
    * Auto-apply AI suggestions for effective date and tags (Task #1149).
    *
    * Runs whenever `items` or `currentStep` changes. For each item visible in
@@ -6120,7 +6253,10 @@ export default function BulkDocumentImportPage() {
                         </div>
                       )}
 
-                      {/* Task #1233 — Linking step: render AI-suggested / admin-curated document chains */}
+                      {/* Linking group cards: render groups assembled from server state
+                          (in-session beforeItemId/afterItemId links). DnD creation of new
+                          in-session chains is disabled per Task #1386; existing chains from
+                          prior sessions are shown read-only so admins can break them if needed. */}
                       {currentStep === 'linking' && linkingGroupsData.groups.map((group) => (
                         <div
                           key={group.id}
@@ -6387,34 +6523,10 @@ export default function BulkDocumentImportPage() {
                         </div>
                       ))}
 
-                      {/* Task #1233 — Standalone drop zone: visible while dragging to allow
-                          ungrouping an item by dropping it in the empty area between groups
-                          and standalone items. */}
-                      {currentStep === 'linking' && linkingDragId !== null && (
-                        <div
-                          data-testid="linking-standalone-dropzone"
-                          className={[
-                            'rounded-lg border-2 border-dashed border-muted-foreground/40 py-3 text-center text-xs text-muted-foreground transition-colors mb-1',
-                            'hover:border-primary hover:bg-primary/5 hover:text-primary',
-                          ].join(' ')}
-                          onDragOver={(e) => {
-                            e.preventDefault();
-                            e.dataTransfer.dropEffect = 'move';
-                          }}
-                          onDrop={(e) => {
-                            e.preventDefault();
-                            const srcId = linkingDragId ?? e.dataTransfer.getData('text/plain');
-                            setLinkingDragId(null);
-                            setLinkingDropTarget(null);
-                            if (!srcId) return;
-                            handleLinkingMakeStandalone(srcId);
-                          }}
-                        >
-                          {isFr ? 'Déposer ici pour dissocier du groupe' : 'Drop here to make standalone'}
-                        </div>
-                      )}
+                      {/* Task #1386: DnD drop zone removed — linking now uses
+                          existing-family picker only, no in-session reordering. */}
 
-                      {displayedTopLevelItems.length === 0 && linkingGroupsData.groups.length === 0 && (
+                      {displayedTopLevelItems.length === 0 && (linkingGroupsData.groups.length === 0 || currentStep === 'linking') && (
                         <p className="text-sm text-muted-foreground" data-testid={`empty-state-${currentStep}`}>
                           {hideReady && topLevelItems.length > 0
                             ? (isFr ? "Tous les fichiers sont prêts pour l'étape suivante." : 'All files are ready for the next step.')
@@ -6571,84 +6683,21 @@ export default function BulkDocumentImportPage() {
                               ? ` · ${mergeGroupTotalCount} fichiers`
                               : ` · ${mergeGroupTotalCount} files`
                             : '';
-                        // Task #1233: drag props for standalone linking items
+                        // Task #1386: DnD removed from Linking step; items use existing-family picker only.
                         const isLinkingStandalone = currentStep === 'linking';
-                        const isLinkingDragging = isLinkingStandalone && linkingDragId === item.id;
-                        const isLinkingDropTgt = isLinkingStandalone && linkingDropTarget?.targetId === item.id;
                         return (
                           <div
                             key={item.id}
                             className={[
                               'rounded-md border transition',
                               isExcluded ? 'bg-muted/40 opacity-60' : '',
-                              isLinkingDragging ? 'opacity-40' : '',
-                              isLinkingDropTgt && linkingDropTarget?.position === 'before'
-                                ? 'border-t-2 border-t-primary'
-                                : isLinkingDropTgt && linkingDropTarget?.position === 'after'
-                                  ? 'border-b-2 border-b-primary'
-                                  : '',
-                              isLinkingStandalone && !isExcluded ? 'cursor-grab active:cursor-grabbing' : '',
                             ].join(' ')}
                             data-testid={isLinkingStandalone && !isExcluded ? `linking-row-${item.id}` : `item-row-${item.id}`}
                             data-excluded={isExcluded ? 'true' : 'false'}
-                            draggable={isLinkingStandalone && !isExcluded}
-                            onDragStart={isLinkingStandalone && !isExcluded ? (e) => {
-                              setLinkingDragId(item.id);
-                              e.dataTransfer.effectAllowed = 'move';
-                              e.dataTransfer.setData('text/plain', item.id);
-                              debugLog('linking: drag start (standalone)', { itemId: item.id, sessionId });
-                            } : undefined}
-                            onDragEnd={isLinkingStandalone ? () => {
-                              setLinkingDragId(null);
-                              setLinkingDropTarget(null);
-                            } : undefined}
-                            onDragOver={isLinkingStandalone && !isExcluded ? (e) => {
-                              if (!linkingDragId || linkingDragId === item.id) return;
-                              e.preventDefault();
-                              e.stopPropagation();
-                              e.dataTransfer.dropEffect = 'move';
-                              const rect = e.currentTarget.getBoundingClientRect();
-                              const pos: 'before' | 'after' =
-                                e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
-                              if (
-                                linkingDropTarget?.targetId !== item.id ||
-                                linkingDropTarget.position !== pos
-                              ) {
-                                setLinkingDropTarget({ targetId: item.id, position: pos });
-                              }
-                            } : undefined}
-                            onDragLeave={isLinkingStandalone ? (e) => {
-                              if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                                if (linkingDropTarget?.targetId === item.id) setLinkingDropTarget(null);
-                              }
-                            } : undefined}
-                            onDrop={isLinkingStandalone && !isExcluded ? (e) => {
-                              e.preventDefault();
-                              const srcId = linkingDragId ?? e.dataTransfer.getData('text/plain');
-                              const pos = linkingDropTarget?.position ?? 'after';
-                              setLinkingDragId(null);
-                              setLinkingDropTarget(null);
-                              if (!srcId || srcId === item.id) return;
-                              handleLinkingDrop(srcId, item.id, pos);
-                            } : undefined}
                           >
-                            {/* Task #1233: linking-step drag handle bar for standalone rows */}
+                            {/* Task #1386: linking-step header bar for standalone rows (drag handle removed) */}
                             {isLinkingStandalone && (
                               <div className="flex items-center gap-2 px-2 pt-2">
-                                <button
-                                  type="button"
-                                  className={[
-                                    'flex-shrink-0 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded',
-                                    isExcluded ? 'opacity-40 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing',
-                                  ].join(' ')}
-                                  data-testid={`linking-drag-handle-${item.id}`}
-                                  aria-label={isFr ? 'Déplacer (flèches clavier)' : 'Drag to reorder (arrow keys)'}
-                                  tabIndex={isExcluded ? -1 : 0}
-                                  onKeyDown={!isExcluded ? (e) => handleLinkingKeyDown(e, item.id, null) : undefined}
-                                  aria-grabbed={isLinkingDragging}
-                                >
-                                  <GripVertical className="h-4 w-4" />
-                                </button>
                                 <span
                                   data-testid={`linking-row-position-${item.id}`}
                                   className="text-xs text-muted-foreground"
@@ -6663,6 +6712,264 @@ export default function BulkDocumentImportPage() {
                                   >
                                     {isFr ? 'Manuel' : 'Manual'}
                                   </Badge>
+                                )}
+                                {/* Task #1386: existing-library link badge + picker */}
+                                {item.linkingFamilyId && (
+                                  <Badge
+                                    data-testid={`linking-existing-family-badge-${item.id}`}
+                                    variant="outline"
+                                    className="border-blue-300 bg-blue-50 text-blue-900 dark:border-blue-700 dark:bg-blue-950 dark:text-blue-200 text-xs flex items-center gap-1"
+                                    title={item.linkingFamilyName ?? undefined}
+                                  >
+                                    <Library className="h-3 w-3 flex-shrink-0" />
+                                    {item.linkingFamilyName
+                                      ? item.linkingFamilyName
+                                      : (isFr ? 'Déjà dans Koveo' : 'Already in Koveo')}
+                                  </Badge>
+                                )}
+                                {item.linkingFamilyId && item.linkingNeighborDocumentName && (
+                                  <span
+                                    className="text-xs text-blue-800 dark:text-blue-300 flex items-center gap-1"
+                                    data-testid={`linking-existing-neighbor-context-${item.id}`}
+                                  >
+                                    {item.linkingNeighborPosition === 'before'
+                                      ? (isFr ? 'Avant' : 'Before')
+                                      : (isFr ? 'Après' : 'After')}
+                                    {' · '}
+                                    <span className="font-medium truncate max-w-[120px]" title={item.linkingNeighborDocumentName}>
+                                      {item.linkingNeighborDocumentName}
+                                    </span>
+                                  </span>
+                                )}
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  className="h-6 px-2 text-xs ml-auto"
+                                  data-testid={`linking-attach-family-btn-${item.id}`}
+                                  onClick={(e) => {
+                                    e.stopPropagation();
+                                    if (existingLinkPickerItemId === item.id) {
+                                      setExistingLinkPickerItemId(null);
+                                    } else {
+                                      setExistingLinkPickerItemId(item.id);
+                                      setExistingLinkPickerFamilyId(item.linkingFamilyId ?? '');
+                                      const neighborId = item.linkingBeforeDocumentId ?? item.linkingAfterDocumentId ?? '';
+                                      setExistingLinkPickerDocId(neighborId);
+                                      setExistingLinkPickerPosition(item.linkingBeforeDocumentId ? 'before' : 'after');
+                                    }
+                                  }}
+                                >
+                                  <Library className="h-3.5 w-3.5 mr-1" />
+                                  {isFr ? 'Lier à la bibliothèque' : 'Link to library'}
+                                </Button>
+                              </div>
+                            )}
+                            {/* Task #1386: existing-family link picker panel (inline) */}
+                            {isLinkingStandalone && existingLinkPickerItemId === item.id && (
+                              <div
+                                className="mx-2 mb-2 rounded border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950 p-3 space-y-2"
+                                data-testid={`existing-link-picker-${item.id}`}
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span className="text-xs font-semibold text-blue-900 dark:text-blue-200">
+                                    {isFr ? 'Attacher à une famille existante' : 'Attach to an existing family'}
+                                  </span>
+                                  {item.linkingFamilyId && (
+                                    <Button
+                                      size="sm"
+                                      variant="ghost"
+                                      className="h-6 px-2 text-xs text-red-700 hover:text-red-900 dark:text-red-400"
+                                      data-testid={`existing-link-clear-${item.id}`}
+                                      disabled={setExistingLinkDecision.isPending}
+                                      onClick={() => {
+                                        setExistingLinkDecision.mutate({
+                                          itemId: item.id,
+                                          familyId: null,
+                                          neighborDocumentId: null,
+                                          position: null,
+                                        });
+                                        setExistingLinkPickerItemId(null);
+                                      }}
+                                    >
+                                      {isFr ? 'Effacer le lien' : 'Clear link'}
+                                    </Button>
+                                  )}
+                                </div>
+                                {linkCandidatesQuery.isLoading && (
+                                  <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                    <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                    {isFr ? 'Chargement des candidats…' : 'Loading candidates…'}
+                                  </div>
+                                )}
+                                {linkCandidatesQuery.isError && (
+                                  <p className="text-xs text-red-700 dark:text-red-400">
+                                    {isFr ? 'Échec du chargement des candidats.' : 'Failed to load candidates.'}
+                                  </p>
+                                )}
+                                {linkCandidatesQuery.data && (
+                                  <>
+                                    {linkCandidatesQuery.data.families.length === 0 ? (
+                                      <p className="text-xs text-muted-foreground">
+                                        {isFr
+                                          ? 'Aucun document existant disponible comme point d\'ancrage.'
+                                          : 'No existing documents available as anchor points.'}
+                                      </p>
+                                    ) : (
+                                      <div className="space-y-2">
+                                        <div>
+                                          <label className="text-xs font-medium text-blue-900 dark:text-blue-200 block mb-1">
+                                            {isFr ? 'Famille' : 'Family'}
+                                          </label>
+                                          <select
+                                            className="w-full rounded border border-input bg-background px-2 py-1 text-xs"
+                                            value={existingLinkPickerFamilyId}
+                                            data-testid={`existing-link-family-select-${item.id}`}
+                                            onChange={(e) => {
+                                              setExistingLinkPickerFamilyId(e.target.value);
+                                              setExistingLinkPickerDocId('');
+                                              setExistingLinkDecisionErrors((prev) => {
+                                                const m = new Map(prev); m.delete(item.id); return m;
+                                              });
+                                            }}
+                                          >
+                                            <option value="">
+                                              {isFr ? '— Choisir une famille —' : '— Choose a family —'}
+                                            </option>
+                                            {linkCandidatesQuery.data.families.map((f) => (
+                                              <option key={f.id} value={f.id}>{f.name}</option>
+                                            ))}
+                                          </select>
+                                          {existingLinkPickerFamilyId && (() => {
+                                            const selectedFam = linkCandidatesQuery.data!.families.find(
+                                              (f) => f.id === existingLinkPickerFamilyId,
+                                            );
+                                            return selectedFam?.description ? (
+                                              <p
+                                                className="text-xs text-muted-foreground mt-0.5"
+                                                data-testid={`existing-link-family-description-${item.id}`}
+                                              >
+                                                {selectedFam.description}
+                                              </p>
+                                            ) : null;
+                                          })()}
+                                        </div>
+                                        {existingLinkPickerFamilyId && (() => {
+                                          const fam = linkCandidatesQuery.data!.families.find(
+                                            (f) => f.id === existingLinkPickerFamilyId,
+                                          );
+                                          if (!fam || fam.documents.length === 0) return null;
+                                          return (
+                                            <>
+                                              <div>
+                                                <label className="text-xs font-medium text-blue-900 dark:text-blue-200 block mb-1">
+                                                  {isFr ? 'Document voisin' : 'Neighbor document'}
+                                                </label>
+                                                <select
+                                                  className="w-full rounded border border-input bg-background px-2 py-1 text-xs"
+                                                  value={existingLinkPickerDocId}
+                                                  data-testid={`existing-link-doc-select-${item.id}`}
+                                                  onChange={(e) => {
+                                                    setExistingLinkPickerDocId(e.target.value);
+                                                    const doc = fam.documents.find((d) => d.id === e.target.value);
+                                                    if (doc) {
+                                                      if (doc.canLinkBefore && !doc.canLinkAfter) setExistingLinkPickerPosition('before');
+                                                      else if (!doc.canLinkBefore && doc.canLinkAfter) setExistingLinkPickerPosition('after');
+                                                    }
+                                                  }}
+                                                >
+                                                  <option value="">
+                                                    {isFr ? '— Choisir un document —' : '— Choose a document —'}
+                                                  </option>
+                                                  {fam.documents.map((d) => (
+                                                    <option key={d.id} value={d.id}>
+                                                      {d.name}
+                                                      {d.effectiveDate ? ` (${d.effectiveDate.slice(0, 10)})` : ''}
+                                                    </option>
+                                                  ))}
+                                                </select>
+                                              </div>
+                                              {existingLinkPickerDocId && (() => {
+                                                const doc = fam.documents.find((d) => d.id === existingLinkPickerDocId);
+                                                if (!doc) return null;
+                                                return (
+                                                  <div>
+                                                    <label className="text-xs font-medium text-blue-900 dark:text-blue-200 block mb-1">
+                                                      {isFr ? 'Position' : 'Position'}
+                                                    </label>
+                                                    <div className="flex gap-2">
+                                                      {doc.canLinkBefore && (
+                                                        <label className="flex items-center gap-1 text-xs cursor-pointer">
+                                                          <input
+                                                            type="radio"
+                                                            name={`existing-link-position-${item.id}`}
+                                                            value="before"
+                                                            checked={existingLinkPickerPosition === 'before'}
+                                                            onChange={() => setExistingLinkPickerPosition('before')}
+                                                            data-testid={`existing-link-position-before-${item.id}`}
+                                                          />
+                                                          {isFr ? 'Avant' : 'Before'}
+                                                        </label>
+                                                      )}
+                                                      {doc.canLinkAfter && (
+                                                        <label className="flex items-center gap-1 text-xs cursor-pointer">
+                                                          <input
+                                                            type="radio"
+                                                            name={`existing-link-position-${item.id}`}
+                                                            value="after"
+                                                            checked={existingLinkPickerPosition === 'after'}
+                                                            onChange={() => setExistingLinkPickerPosition('after')}
+                                                            data-testid={`existing-link-position-after-${item.id}`}
+                                                          />
+                                                          {isFr ? 'Après' : 'After'}
+                                                        </label>
+                                                      )}
+                                                    </div>
+                                                    <Button
+                                                      size="sm"
+                                                      variant="default"
+                                                      className="mt-2 h-7 text-xs"
+                                                      data-testid={`existing-link-confirm-${item.id}`}
+                                                      disabled={setExistingLinkDecision.isPending}
+                                                      onClick={() => {
+                                                        if (!existingLinkPickerFamilyId || !existingLinkPickerDocId) return;
+                                                        setExistingLinkDecisionErrors((prev) => {
+                                                          const m = new Map(prev); m.delete(item.id); return m;
+                                                        });
+                                                        setExistingLinkDecision.mutate({
+                                                          itemId: item.id,
+                                                          familyId: existingLinkPickerFamilyId,
+                                                          neighborDocumentId: existingLinkPickerDocId,
+                                                          position: existingLinkPickerPosition,
+                                                        }, {
+                                                          onSuccess: () => {
+                                                            setExistingLinkPickerItemId(null);
+                                                          },
+                                                        });
+                                                      }}
+                                                    >
+                                                      {setExistingLinkDecision.isPending
+                                                        ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                        : (isFr ? 'Confirmer le lien' : 'Confirm link')}
+                                                    </Button>
+                                                    {existingLinkDecisionErrors.has(item.id) && (
+                                                      <p
+                                                        className="text-xs text-red-700 dark:text-red-400 mt-1"
+                                                        data-testid={`existing-link-error-${item.id}`}
+                                                      >
+                                                        {getExistingLinkErrorMessage(
+                                                          existingLinkDecisionErrors.get(item.id)?.errorCode,
+                                                        )}
+                                                      </p>
+                                                    )}
+                                                  </div>
+                                                );
+                                              })()}
+                                            </>
+                                          );
+                                        })()}
+                                      </div>
+                                    )}
+                                  </>
                                 )}
                               </div>
                             )}

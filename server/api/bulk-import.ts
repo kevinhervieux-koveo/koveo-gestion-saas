@@ -15,7 +15,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import { z } from 'zod';
-import { and, desc, eq, inArray, or, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, ne, or, isNull, sql } from 'drizzle-orm';
 import { requireAuth, requireRole } from '../auth';
 import { canUserAccessOrganization } from '../rbac';
 
@@ -34,6 +34,10 @@ import {
 import { rotateAndRewriteStagedFile } from '../services/bulk-import-rotation';
 import { parsePeriodHint } from '../services/period-hint-parser';
 import { documentService } from '../services/document-service';
+import {
+  upsertDocumentLink,
+  DocumentLinkValidationError,
+} from '../services/document-link-service';
 import { logDebug, logError, logInfo, logWarn } from '../utils/logger';
 import {
   AI_DEGRADED_FAILURE_RATE_THRESHOLD,
@@ -1684,6 +1688,13 @@ async function processItemForStep(
    * route resolves it once per call.
    */
   availableTags?: { id: string; name: string; scope: string | null }[] | null,
+  /**
+   * Task #1386: existing-library document candidates for the linking step.
+   * Pre-fetched once per session in `runAllForStep` so the per-item call
+   * does not incur an extra DB round-trip. When present, `suggestLinks`
+   * uses these as the primary match set instead of other session items.
+   */
+  existingLinkCandidates?: import('../services/bulk-import-analyzer').ExistingDocumentCandidate[],
 ): Promise<schema.BulkImportItem> {
   // Task #1373 — derive the parent-folder portion of the item's
   // originalPath ONCE up front and forward it to every analyzer call as
@@ -2032,12 +2043,40 @@ async function processItemForStep(
       itemId: item.id,
       sessionId: item.sessionId,
       folderHint,
+      // Task #1386: always pass an array (never undefined) for the Linking step
+      // so the AI is forced into existing-family mode. Passing `undefined` would
+      // fall back to the legacy in-session chain prompt, violating the
+      // requirement that Linking never creates new families or in-session chains.
+      // Filter the building-wide candidate list to the item's residence scope
+      // (building-level docs have residenceId=null; residence docs must match).
+      existingCandidates: (() => {
+        const candidates = existingLinkCandidates ?? [];
+        const bd = (item.branchDecision as { branch?: string; residenceId?: string | null } | null) ?? {};
+        const itemResidenceId = bd.branch === 'residence_documents' ? (bd.residenceId ?? null) : null;
+        return candidates.filter((c) => c.residenceId === itemResidenceId);
+      })(),
     });
     logPerFileAiFailure(step, item, result.fallbackReason);
+
+    // Task #1386: translate new existing-family suggestion fields into
+    // the linkDecisions storage shape used by the commit path.
+    const linkDecisionsToStore: Record<string, unknown> = {
+      ...(result as unknown as Record<string, unknown>),
+    };
+    if (result.familyId && result.neighborDocumentId && result.position) {
+      linkDecisionsToStore.familyId = result.familyId;
+      linkDecisionsToStore.beforeDocumentId = result.position === 'before' ? result.neighborDocumentId : null;
+      linkDecisionsToStore.afterDocumentId = result.position === 'after' ? result.neighborDocumentId : null;
+    } else {
+      linkDecisionsToStore.familyId = null;
+      linkDecisionsToStore.beforeDocumentId = null;
+      linkDecisionsToStore.afterDocumentId = null;
+    }
+
     const [updated] = await db
       .update(schema.bulkImportItems)
       .set({
-        linkDecisions: result as unknown as Record<string, unknown>,
+        linkDecisions: linkDecisionsToStore,
         status: 'linked',
         updatedAt: new Date(),
       })
@@ -2051,6 +2090,9 @@ async function processItemForStep(
         beforeItemId: result.beforeItemId ?? null,
         afterItemId: result.afterItemId ?? null,
         relatedCount: result.relatedItemIds?.length ?? 0,
+        familyId: result.familyId ?? null,
+        neighborDocumentId: result.neighborDocumentId ?? null,
+        position: result.position ?? null,
         conf: result.confidence,
         fallback: result.fallbackReason ?? null,
       },
@@ -2159,6 +2201,102 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
       );
     }
 
+    // Task #1386: pre-fetch existing library documents as linking candidates
+    // once per session run-all so each per-item suggestLinks call can use
+    // them without N extra DB round-trips. The candidates are scoped to the
+    // session's building and limited to documents that are already chain
+    // endpoints in a visible family. Mixed-residence sessions will get all
+    // building-scoped documents here; the residence filter only tightens the
+    // scope inside the per-item commit-path validation.
+    // Task #1386: always initialised to [] for the linking step so that when
+    // no building-scoped families exist the AI still receives an explicit empty
+    // array rather than `undefined`. An `undefined` value would fall back to
+    // the legacy in-session chain suggestion prompt, violating the requirement
+    // that Linking only ever attaches to existing library families.
+    let sessionExistingLinkCandidates: import('../services/bulk-import-analyzer').ExistingDocumentCandidate[] | undefined;
+    if (step === 'linking') {
+      sessionExistingLinkCandidates = [];   // strict existing-family mode
+      const linkSession = await loadSession(sessionId);
+      if (linkSession?.buildingId) {
+        const famRows = await db
+          .select()
+          .from(schema.documentLinkFamilies)
+          .where(
+            or(
+              isNull(schema.documentLinkFamilies.organizationId),
+              eq(schema.documentLinkFamilies.organizationId, linkSession.organizationId),
+            ),
+          );
+        if (famRows.length > 0) {
+          const famIds = famRows.map((f) => f.id);
+          const famMap = new Map(famRows.map((f) => [f.id, f]));
+          const scopedDocs = await db
+            .select({
+              id: schema.documents.id,
+              name: schema.documents.name,
+              effectiveDate: schema.documents.effectiveDate,
+              mimeType: schema.documents.mimeType,
+              residenceId: schema.documents.residenceId,
+            })
+            .from(schema.documents)
+            .where(eq(schema.documents.buildingId, linkSession.buildingId));
+          if (scopedDocs.length > 0) {
+            const scopedDocIds = new Set(scopedDocs.map((d) => d.id));
+            const scopedDocMap = new Map(scopedDocs.map((d) => [d.id, d]));
+            const links = await db
+              .select()
+              .from(schema.documentLinks)
+              .where(
+                and(
+                  inArray(schema.documentLinks.familyId, famIds),
+                  or(
+                    inArray(schema.documentLinks.fromDocumentId, Array.from(scopedDocIds)),
+                    inArray(schema.documentLinks.toDocumentId, Array.from(scopedDocIds)),
+                  ),
+                ),
+              );
+            type CandidateEntry = {
+              id: string; name: string; familyId: string; familyName: string;
+              canLinkBefore: boolean; canLinkAfter: boolean; effectiveDate?: Date | null;
+              hasBefore: boolean; hasAfter: boolean;
+              residenceId: string | null;
+            };
+            const candidateMap = new Map<string, CandidateEntry>();
+            for (const link of links) {
+              const fam = famMap.get(link.familyId);
+              if (!fam) continue;
+              const processDoc = (docId: string, isFrom: boolean) => {
+                if (!scopedDocIds.has(docId)) return;
+                const doc = scopedDocMap.get(docId);
+                if (!doc) return;
+                const key = `${link.familyId}:${docId}`;
+                const existing: CandidateEntry = candidateMap.get(key) ?? {
+                  id: doc.id, name: doc.name, familyId: fam.id, familyName: fam.name,
+                  canLinkBefore: true, canLinkAfter: true, effectiveDate: doc.effectiveDate,
+                  hasBefore: false, hasAfter: false,
+                  residenceId: doc.residenceId ?? null,
+                };
+                if (isFrom) {
+                  if (link.position === 'after') existing.hasAfter = true;
+                  if (link.position === 'before') existing.hasBefore = true;
+                } else {
+                  if (link.position === 'after') existing.hasBefore = true;
+                  if (link.position === 'before') existing.hasAfter = true;
+                }
+                existing.canLinkBefore = !existing.hasBefore;
+                existing.canLinkAfter = !existing.hasAfter;
+                candidateMap.set(key, existing);
+              };
+              processDoc(link.fromDocumentId, true);
+              processDoc(link.toDocumentId, false);
+            }
+            sessionExistingLinkCandidates = Array.from(candidateMap.values())
+              .filter((c) => c.canLinkBefore || c.canLinkAfter);
+          }
+        }
+      }
+    }
+
     await patchRunAllProgress(sessionId, step, {
       total: eligible.length,
       processed: 0,
@@ -2257,6 +2395,7 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
           sessionFiscalYearStartMonth,
           sessionOrganizationId,
           sessionAvailableTags,
+          sessionExistingLinkCandidates,
         );
         void workPromise
           .finally(() => { rawInFlight--; })
@@ -2792,13 +2931,25 @@ export function registerBulkImportRoutes(app: Express): void {
 
       function extractLinkingStep(json: Record<string, unknown> | null | undefined) {
         const base = extractStep(json);
-        if (!json) return { ...base, linkingReason: null, beforeItemId: null, afterItemId: null, manualOverride: false };
+        if (!json) return {
+          ...base,
+          linkingReason: null,
+          beforeItemId: null,
+          afterItemId: null,
+          manualOverride: false,
+          familyId: null,
+          beforeDocumentId: null,
+          afterDocumentId: null,
+        };
         return {
           ...base,
           linkingReason: (json.reason as string | null | undefined) ?? null,
           beforeItemId: (json.beforeItemId as string | null | undefined) ?? null,
           afterItemId: (json.afterItemId as string | null | undefined) ?? null,
           manualOverride: json.manualOverride === true,
+          familyId: (json.familyId as string | null | undefined) ?? null,
+          beforeDocumentId: (json.beforeDocumentId as string | null | undefined) ?? null,
+          afterDocumentId: (json.afterDocumentId as string | null | undefined) ?? null,
         };
       }
 
@@ -3034,15 +3185,69 @@ export function registerBulkImportRoutes(app: Express): void {
               linkingAfterItemId: lk.afterItemId,
               // Task #1233: admin-override marker for the linking step.
               linkingManualOverride: lk.manualOverride,
+              // Task #1386: existing-family link fields.
+              linkingFamilyId: lk.familyId,
+              linkingBeforeDocumentId: lk.beforeDocumentId,
+              linkingAfterDocumentId: lk.afterDocumentId,
             };
           })(),
+        };
+      });
+
+      // Task #1386: batch-resolve family names and neighbor document names
+      // for items that have an existing-family link decision, so the UI can
+      // display them without an extra round-trip.
+      const linkedFamilyIds = new Set<string>();
+      const linkedNeighborDocIds = new Set<string>();
+      for (const it of items) {
+        const lkFam = (it as typeof it & { linkingFamilyId?: string | null }).linkingFamilyId;
+        const lkBefore = (it as typeof it & { linkingBeforeDocumentId?: string | null }).linkingBeforeDocumentId;
+        const lkAfter = (it as typeof it & { linkingAfterDocumentId?: string | null }).linkingAfterDocumentId;
+        if (lkFam) linkedFamilyIds.add(lkFam);
+        if (lkBefore) linkedNeighborDocIds.add(lkBefore);
+        if (lkAfter) linkedNeighborDocIds.add(lkAfter);
+      }
+      const familyNameMap = new Map<string, string>();
+      const neighborDocNameMap = new Map<string, string>();
+      if (linkedFamilyIds.size > 0) {
+        const famRows = await db
+          .select({ id: schema.documentLinkFamilies.id, name: schema.documentLinkFamilies.name })
+          .from(schema.documentLinkFamilies)
+          .where(inArray(schema.documentLinkFamilies.id, Array.from(linkedFamilyIds)));
+        for (const f of famRows) familyNameMap.set(f.id, f.name);
+      }
+      if (linkedNeighborDocIds.size > 0) {
+        const docRows = await db
+          .select({ id: schema.documents.id, name: schema.documents.name })
+          .from(schema.documents)
+          .where(inArray(schema.documents.id, Array.from(linkedNeighborDocIds)));
+        for (const d of docRows) neighborDocNameMap.set(d.id, d.name);
+      }
+      type ItemWithLinking = typeof items[number] & {
+        linkingFamilyId?: string | null;
+        linkingBeforeDocumentId?: string | null;
+        linkingAfterDocumentId?: string | null;
+        linkingFamilyName?: string | null;
+        linkingNeighborDocumentName?: string | null;
+        linkingNeighborPosition?: 'before' | 'after' | null;
+      };
+      const itemsWithNames: ItemWithLinking[] = items.map((it) => {
+        const lkFam = (it as ItemWithLinking).linkingFamilyId ?? null;
+        const lkBefore = (it as ItemWithLinking).linkingBeforeDocumentId ?? null;
+        const lkAfter = (it as ItemWithLinking).linkingAfterDocumentId ?? null;
+        const neighborId = lkBefore ?? lkAfter;
+        return {
+          ...it,
+          linkingFamilyName: lkFam ? (familyNameMap.get(lkFam) ?? null) : null,
+          linkingNeighborDocumentName: neighborId ? (neighborDocNameMap.get(neighborId) ?? null) : null,
+          linkingNeighborPosition: lkBefore ? 'before' : lkAfter ? 'after' : null,
         };
       });
 
       logDebug('[bulk-import] route exit GET /api/admin/bulk-import/sessions/:id/lite ok', {
         metadata: { sessionId, itemCount: items.length, durationMs: Date.now() - t0 },
       });
-      return res.json({ session, items });
+      return res.json({ session, items: itemsWithNames });
       } catch (liteErr) {
         logError('[bulk-import] route error GET /api/admin/bulk-import/sessions/:id/lite', liteErr as Error);
         logDebug('[bulk-import] route exit GET /api/admin/bulk-import/sessions/:id/lite status 500', {
@@ -6720,6 +6925,508 @@ export function registerBulkImportRoutes(app: Express): void {
   );
 
   /**
+   * Task #1386 — List existing families and chain-endpoint documents that
+   * an imported item can be attached to.
+   *
+   * GET /api/admin/bulk-import/items/:id/link-candidates
+   *
+   * The candidates are scoped to the item's building (and residence when
+   * the item is branched to `residence_documents`) and restricted to
+   * documents that are already explicit chain endpoints within their family
+   * (i.e. the document has no explicit `before` neighbor in that family, or
+   * no explicit `after` neighbor — so a new document can be inserted at the
+   * start or end of the chain). Returns at most 50 documents per family.
+   */
+  app.get(
+    '/api/admin/bulk-import/items/:id/link-candidates',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.id;
+      logDebug('[bulk-import] route entry GET link-candidates', {
+        metadata: { itemId, userId: req.user?.id },
+      });
+      try {
+        const [item] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, itemId));
+        if (!item) {
+          return res.status(404).json({ error: 'Item not found' });
+        }
+        const session = await loadSession(item.sessionId);
+        if (!session) {
+          return res.status(404).json({ error: 'Session not found' });
+        }
+        // Task #1386: org-level authorization (broken-access-control guard)
+        {
+          const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
+          if (!canAccess) {
+            logDebug('[bulk-import] route exit GET link-candidates status 403', {
+              metadata: { itemId, status: 403, durationMs: Date.now() - t0 },
+            });
+            return res.status(403).json({ error: 'Forbidden' });
+          }
+        }
+
+        const branchDecision = (item.branchDecision as { branch?: string; residenceId?: string | null } | null) ?? {};
+        const residenceId = branchDecision.branch === 'residence_documents'
+          ? (branchDecision.residenceId ?? null)
+          : null;
+
+        // Fetch all families visible to this org (system + org-scoped).
+        const families = await db
+          .select()
+          .from(schema.documentLinkFamilies)
+          .where(
+            or(
+              isNull(schema.documentLinkFamilies.organizationId),
+              eq(schema.documentLinkFamilies.organizationId, session.organizationId),
+            ),
+          );
+
+        if (families.length === 0) {
+          logDebug('[bulk-import] route exit GET link-candidates ok (no families)', {
+            metadata: { itemId, status: 200, durationMs: Date.now() - t0 },
+          });
+          return res.json({ families: [] });
+        }
+
+        const familyIds = families.map((f) => f.id);
+
+        // Fetch all document links in these families, then join to documents
+        // scoped to the item's building/residence. This gives us the set of
+        // documents that already participate in at least one family chain.
+        const scopeConditions = [eq(schema.documents.buildingId, session.buildingId)];
+        if (residenceId) {
+          scopeConditions.push(eq(schema.documents.residenceId, residenceId));
+        } else {
+          scopeConditions.push(isNull(schema.documents.residenceId));
+        }
+
+        const scopedDocs = await db
+          .select({
+            id: schema.documents.id,
+            name: schema.documents.name,
+            effectiveDate: schema.documents.effectiveDate,
+            mimeType: schema.documents.mimeType,
+          })
+          .from(schema.documents)
+          .where(and(...scopeConditions));
+
+        if (scopedDocs.length === 0) {
+          logDebug('[bulk-import] route exit GET link-candidates ok (no scoped docs)', {
+            metadata: { itemId, status: 200, durationMs: Date.now() - t0 },
+          });
+          return res.json({ families: families.map((f) => ({ ...f, documents: [] })) });
+        }
+
+        const scopedDocIds = new Set(scopedDocs.map((d) => d.id));
+        const scopedDocMap = new Map(scopedDocs.map((d) => [d.id, d]));
+
+        // Fetch all links in these families that involve scoped documents.
+        const links = await db
+          .select()
+          .from(schema.documentLinks)
+          .where(
+            and(
+              inArray(schema.documentLinks.familyId, familyIds),
+              or(
+                inArray(schema.documentLinks.fromDocumentId, Array.from(scopedDocIds)),
+                inArray(schema.documentLinks.toDocumentId, Array.from(scopedDocIds)),
+              ),
+            ),
+          );
+
+        // For each family, collect the set of documents that participate.
+        // Identify chain endpoints: docs that have no `before` (can receive a
+        // new item `before` them) or no `after` (can receive a new item `after`).
+        const familyDocMap = new Map<string, Map<string, { id: string; name: string; effectiveDate: Date | null; mimeType: string | null; hasBefore: boolean; hasAfter: boolean }>>();
+        for (const fam of families) {
+          familyDocMap.set(fam.id, new Map());
+        }
+
+        for (const link of links) {
+          const familyDocs = familyDocMap.get(link.familyId);
+          if (!familyDocs) continue;
+
+          // fromDocumentId has an outgoing link at `link.position`.
+          // An outgoing 'after' means this doc has an `after` neighbor.
+          // An outgoing 'before' means this doc has a `before` neighbor.
+          if (scopedDocIds.has(link.fromDocumentId)) {
+            const doc = scopedDocMap.get(link.fromDocumentId);
+            if (doc) {
+              const existing = familyDocs.get(link.fromDocumentId) ?? {
+                id: doc.id,
+                name: doc.name,
+                effectiveDate: doc.effectiveDate,
+                mimeType: doc.mimeType,
+                hasBefore: false,
+                hasAfter: false,
+              };
+              if (link.position === 'after') existing.hasAfter = true;
+              if (link.position === 'before') existing.hasBefore = true;
+              familyDocs.set(link.fromDocumentId, existing);
+            }
+          }
+
+          // toDocumentId is the target; its incoming direction is the opposite.
+          // An incoming 'after' link to this doc means its `before` neighbor exists.
+          // An incoming 'before' link to this doc means its `after` neighbor exists.
+          if (scopedDocIds.has(link.toDocumentId)) {
+            const doc = scopedDocMap.get(link.toDocumentId);
+            if (doc) {
+              const existing = familyDocs.get(link.toDocumentId) ?? {
+                id: doc.id,
+                name: doc.name,
+                effectiveDate: doc.effectiveDate,
+                mimeType: doc.mimeType,
+                hasBefore: false,
+                hasAfter: false,
+              };
+              if (link.position === 'after') existing.hasBefore = true;
+              if (link.position === 'before') existing.hasAfter = true;
+              familyDocs.set(link.toDocumentId, existing);
+            }
+          }
+        }
+
+        const result = families.map((fam) => {
+          const docs = Array.from(familyDocMap.get(fam.id)?.values() ?? [])
+            .filter((d) => !d.hasBefore || !d.hasAfter)
+            .slice(0, 50);
+          return {
+            id: fam.id,
+            name: fam.name,
+            description: fam.description,
+            isSystem: fam.isSystem,
+            documents: docs.map((d) => ({
+              id: d.id,
+              name: d.name,
+              effectiveDate: d.effectiveDate,
+              mimeType: d.mimeType,
+              canLinkBefore: !d.hasBefore,
+              canLinkAfter: !d.hasAfter,
+            })),
+          };
+        }).filter((f) => f.documents.length > 0);
+
+        logDebug('[bulk-import] route exit GET link-candidates ok', {
+          metadata: {
+            itemId,
+            familyCount: result.length,
+            status: 200,
+            durationMs: Date.now() - t0,
+          },
+        });
+        return res.json({ families: result });
+      } catch (err) {
+        logDebug('[bulk-import] route exit GET link-candidates status 500', {
+          metadata: { itemId, status: 500, durationMs: Date.now() - t0 },
+        });
+        logError('[bulk-import] link-candidates failed', err as Error);
+        return res.status(500).json({ error: 'Failed to load link candidates' });
+      }
+    },
+  );
+
+  /**
+   * Task #1386 — Set or clear the existing-family link decision for a
+   * single bulk-import item.
+   *
+   * POST /api/admin/bulk-import/items/:id/set-existing-link-decision
+   * Body:
+   *   { familyId: string | null,
+   *     neighborDocumentId: string | null,
+   *     position: 'before' | 'after' | null }
+   *
+   * When `familyId` is null (or all fields are null), the existing-family
+   * link is cleared. Otherwise all three fields are required and validated:
+   *   - family exists and is visible to the org
+   *   - neighbor document exists
+   *   - neighbor and item are in the same building/residence scope
+   *   - neighbor document belongs to the family
+   *   - the chosen side on the neighbor is not already occupied
+   *   - no self-link (neighbor ≠ item's already-committed finalDocumentId)
+   *
+   * Returns a structured `errorCode` on validation failure so the
+   * frontend can map it to an EN/FR inline error.
+   */
+  const setExistingLinkDecisionSchema = z.object({
+    familyId: z.string().nullable(),
+    neighborDocumentId: z.string().nullable(),
+    position: z.enum(['before', 'after']).nullable(),
+  });
+
+  app.post(
+    '/api/admin/bulk-import/items/:id/set-existing-link-decision',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.id;
+      logDebug('[bulk-import] route entry POST set-existing-link-decision', {
+        metadata: { itemId, userId: req.user?.id },
+      });
+      try {
+        const { familyId, neighborDocumentId, position } = setExistingLinkDecisionSchema.parse(req.body);
+
+        const [item] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, itemId));
+        if (!item) {
+          return res.status(404).json({ error: 'Item not found' });
+        }
+        const session = await loadSession(item.sessionId);
+        if (!session) {
+          return res.status(404).json({ error: 'Session not found' });
+        }
+        // Task #1386: org-level authorization (broken-access-control guard)
+        {
+          const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
+          if (!canAccess) {
+            logDebug('[bulk-import] route exit POST set-existing-link-decision status 403', {
+              metadata: { itemId, status: 403, durationMs: Date.now() - t0 },
+            });
+            return res.status(403).json({ error: 'Forbidden' });
+          }
+        }
+
+        const existing = (item.linkDecisions ?? {}) as Record<string, unknown>;
+
+        // Clearing the existing-family link
+        if (!familyId) {
+          const nextLinkDecisions: Record<string, unknown> = {
+            ...existing,
+            familyId: null,
+            beforeDocumentId: null,
+            afterDocumentId: null,
+            manualOverride: true,
+          };
+          const shouldPromote = item.status === 'identified' || item.status === 'linked';
+          const [updated] = await db
+            .update(schema.bulkImportItems)
+            .set({
+              linkDecisions: nextLinkDecisions,
+              updatedAt: new Date(),
+              ...(shouldPromote && { status: 'linked' }),
+            })
+            .where(eq(schema.bulkImportItems.id, itemId))
+            .returning();
+          logDebug('[bulk-import] route exit POST set-existing-link-decision ok (cleared)', {
+            metadata: { itemId, status: 200, durationMs: Date.now() - t0 },
+          });
+          return res.json({ item: updated });
+        }
+
+        // All three fields are required when familyId is set.
+        if (!neighborDocumentId || !position) {
+          return res.status(400).json({
+            error: 'neighborDocumentId and position are required when familyId is set',
+            errorCode: 'missing_fields',
+          });
+        }
+
+        // 1. Verify family exists and is visible to the org.
+        const [family] = await db
+          .select()
+          .from(schema.documentLinkFamilies)
+          .where(eq(schema.documentLinkFamilies.id, familyId))
+          .limit(1);
+        if (!family) {
+          return res.status(400).json({
+            error: 'Family not found',
+            errorCode: 'family_not_found',
+          });
+        }
+        const familyIsVisible =
+          family.organizationId === null ||
+          family.organizationId === session.organizationId;
+        if (!familyIsVisible) {
+          return res.status(400).json({
+            error: 'Family not visible to this organization',
+            errorCode: 'family_not_visible',
+          });
+        }
+
+        // 2. Verify neighbor document exists.
+        const [neighborDoc] = await db
+          .select()
+          .from(schema.documents)
+          .where(eq(schema.documents.id, neighborDocumentId))
+          .limit(1);
+        if (!neighborDoc) {
+          return res.status(400).json({
+            error: 'Neighbor document not found',
+            errorCode: 'neighbor_not_found',
+          });
+        }
+
+        // 3. Scope check: same building and same residence as the item.
+        const branchDecision = (item.branchDecision as { branch?: string; residenceId?: string | null } | null) ?? {};
+        const itemResidenceId = branchDecision.branch === 'residence_documents'
+          ? (branchDecision.residenceId ?? null)
+          : null;
+        const neighborBuildingId = neighborDoc.buildingId ?? null;
+        const neighborResidenceId = neighborDoc.residenceId ?? null;
+        if (neighborBuildingId !== session.buildingId || neighborResidenceId !== itemResidenceId) {
+          return res.status(400).json({
+            error: 'Neighbor document is not in the same scope (building/residence) as this item',
+            errorCode: 'scope_mismatch',
+          });
+        }
+
+        // 4. No self-link: neighbor cannot be the item's already-committed document.
+        if (item.finalDocumentId && item.finalDocumentId === neighborDocumentId) {
+          return res.status(400).json({
+            error: 'Cannot link a document to itself',
+            errorCode: 'self_link',
+          });
+        }
+
+        // 5. Neighbor belongs to the family (has at least one link in that family).
+        const [neighborFamilyLink] = await db
+          .select({ id: schema.documentLinks.id })
+          .from(schema.documentLinks)
+          .where(
+            and(
+              eq(schema.documentLinks.familyId, familyId),
+              or(
+                eq(schema.documentLinks.fromDocumentId, neighborDocumentId),
+                eq(schema.documentLinks.toDocumentId, neighborDocumentId),
+              ),
+            ),
+          )
+          .limit(1);
+        if (!neighborFamilyLink) {
+          return res.status(400).json({
+            error: 'Neighbor document does not belong to the chosen family',
+            errorCode: 'neighbor_not_in_family',
+          });
+        }
+
+        // 6. The chosen side on the neighbor must not be already occupied.
+        // position='before' means the new item comes before the neighbor.
+        // So: from(newDoc).position='before'.to(neighbor) OR from(neighbor).position='after'.to(newDoc)
+        // We check: does the neighbor already have an outgoing link in the opposite direction?
+        // Actually: position='before' means newDoc is inserted BEFORE neighbor,
+        // so neighbor gains a new `before` neighbor (newDoc).
+        // The `before` side of neighbor in the family is occupied if there's already
+        // a link from neighbor with position='before', or a link TO neighbor with position='after'.
+        const occupiedCheckPosition: 'before' | 'after' = position;
+        const [occupiedLink] = await db
+          .select({ id: schema.documentLinks.id })
+          .from(schema.documentLinks)
+          .where(
+            and(
+              eq(schema.documentLinks.familyId, familyId),
+              or(
+                and(
+                  eq(schema.documentLinks.fromDocumentId, neighborDocumentId),
+                  eq(schema.documentLinks.position, occupiedCheckPosition),
+                ),
+                and(
+                  eq(schema.documentLinks.toDocumentId, neighborDocumentId),
+                  eq(schema.documentLinks.position, occupiedCheckPosition === 'before' ? 'after' : 'before'),
+                ),
+              ),
+            ),
+          )
+          .limit(1);
+        if (occupiedLink) {
+          return res.status(400).json({
+            error: `The ${position} side of this document in the chosen family is already occupied`,
+            errorCode: 'occupied_side',
+          });
+        }
+
+        // 7. Projected-chain cycle guard: walk the successor chain to confirm
+        // the insertion does not create a cycle. Occupancy-check (step 6)
+        // already guarantees the slot is unoccupied on a valid linear chain,
+        // so a cycle is impossible in practice; this walk is a safety net.
+        const chainLinksForCycle = await db
+          .select({
+            fromId: schema.documentLinks.fromDocumentId,
+            toId: schema.documentLinks.toDocumentId,
+            pos: schema.documentLinks.position,
+          })
+          .from(schema.documentLinks)
+          .where(eq(schema.documentLinks.familyId, familyId));
+        // Build successor map: nextOf(doc) = the document immediately after doc
+        // in the chain. Semantics:
+        //   (from=A, pos='after', to=B)  → A's next is B
+        //   (from=X, pos='before', to=D) → X's previous is D, so D's next is X
+        const nextOf = new Map<string, string>();
+        for (const lnk of chainLinksForCycle) {
+          if (lnk.pos === 'after') {
+            nextOf.set(lnk.fromId, lnk.toId);
+          } else {
+            nextOf.set(lnk.toId, lnk.fromId);
+          }
+        }
+        // Project the new link into the successor map.
+        const PROJECTED = '__projected__';
+        if (position === 'after') {
+          nextOf.set(neighborDocumentId, PROJECTED);
+        } else {
+          nextOf.set(PROJECTED, neighborDocumentId);
+        }
+        // Walk from PROJECTED; revisiting any node means a cycle.
+        const seenIds = new Set<string>();
+        let walkCur: string | undefined = PROJECTED;
+        let walkSteps = 0;
+        const walkMax = chainLinksForCycle.length + 2;
+        while (walkCur !== undefined && walkSteps <= walkMax) {
+          if (seenIds.has(walkCur)) {
+            logDebug('[bulk-import] set-existing-link-decision: cycle detected', {
+              metadata: { itemId, familyId, neighborDocumentId, position, status: 400, durationMs: Date.now() - t0 },
+            });
+            return res.status(400).json({ error: 'Link would create a cycle in this family', errorCode: 'cycle_detected' });
+          }
+          seenIds.add(walkCur);
+          walkCur = nextOf.get(walkCur);
+          walkSteps++;
+        }
+
+        // Persist the decision.
+        const nextLinkDecisions: Record<string, unknown> = {
+          ...existing,
+          familyId,
+          beforeDocumentId: position === 'before' ? neighborDocumentId : null,
+          afterDocumentId: position === 'after' ? neighborDocumentId : null,
+          manualOverride: true,
+        };
+        const shouldPromote = item.status === 'identified' || item.status === 'linked';
+        const [updated] = await db
+          .update(schema.bulkImportItems)
+          .set({
+            linkDecisions: nextLinkDecisions,
+            updatedAt: new Date(),
+            ...(shouldPromote && { status: 'linked' }),
+          })
+          .where(eq(schema.bulkImportItems.id, itemId))
+          .returning();
+
+        logDebug('[bulk-import] route exit POST set-existing-link-decision ok', {
+          metadata: { itemId, familyId, neighborDocumentId, position, status: 200, durationMs: Date.now() - t0 },
+        });
+        return res.json({ item: updated });
+      } catch (err) {
+        if (err instanceof z.ZodError) {
+          return res.status(400).json({ error: err.errors, errorCode: 'validation_error' });
+        }
+        logDebug('[bulk-import] route exit POST set-existing-link-decision status 500', {
+          metadata: { itemId, status: 500, durationMs: Date.now() - t0 },
+        });
+        logError('[bulk-import] set-existing-link-decision failed', err as Error);
+        return res.status(500).json({ error: 'Failed to update existing link decision' });
+      }
+    },
+  );
+
+  /**
    * Override the AI-detected `screening.periodHint` for a single item
    * during the Sorting step (Task #997). Lets admins fix a wrong period
    * directly on the row instead of re-uploading the file when the
@@ -7285,6 +7992,92 @@ export function registerBulkImportRoutes(app: Express): void {
             );
           }
 
+          // Task #1386: linking retries also need the existing-library
+          // document candidates so the AI prompt matches the run-all path.
+          let retryExistingLinkCandidates: import('../services/bulk-import-analyzer').ExistingDocumentCandidate[] | undefined;
+          if (step === 'linking' && session?.buildingId) {
+            const famRows = await db
+              .select()
+              .from(schema.documentLinkFamilies)
+              .where(
+                or(
+                  isNull(schema.documentLinkFamilies.organizationId),
+                  eq(schema.documentLinkFamilies.organizationId, session.organizationId),
+                ),
+              );
+            if (famRows.length > 0) {
+              const famIds = famRows.map((f) => f.id);
+              const famMap = new Map(famRows.map((f) => [f.id, f]));
+              const scopedDocs = await db
+                .select({
+                  id: schema.documents.id,
+                  name: schema.documents.name,
+                  effectiveDate: schema.documents.effectiveDate,
+                  mimeType: schema.documents.mimeType,
+                  // Task #1386: residenceId required so per-item filter
+                  // (c.residenceId === itemResidenceId) matches correctly for
+                  // both building-level (null) and residence-level documents.
+                  residenceId: schema.documents.residenceId,
+                })
+                .from(schema.documents)
+                .where(eq(schema.documents.buildingId, session.buildingId));
+              if (scopedDocs.length > 0) {
+                const scopedDocIds = new Set(scopedDocs.map((d) => d.id));
+                const scopedDocMap = new Map(scopedDocs.map((d) => [d.id, d]));
+                const links = await db
+                  .select()
+                  .from(schema.documentLinks)
+                  .where(
+                    and(
+                      inArray(schema.documentLinks.familyId, famIds),
+                      or(
+                        inArray(schema.documentLinks.fromDocumentId, Array.from(scopedDocIds)),
+                        inArray(schema.documentLinks.toDocumentId, Array.from(scopedDocIds)),
+                      ),
+                    ),
+                  );
+                type RetryCandidateEntry = {
+                  id: string; name: string; familyId: string; familyName: string;
+                  canLinkBefore: boolean; canLinkAfter: boolean; effectiveDate?: Date | null;
+                  /** Task #1386: null = building-level; string = residence-scoped. */
+                  residenceId: string | null;
+                  hasBefore: boolean; hasAfter: boolean;
+                };
+                const candidateMap = new Map<string, RetryCandidateEntry>();
+                for (const link of links) {
+                  const fam = famMap.get(link.familyId);
+                  if (!fam) continue;
+                  const processDoc = (docId: string, isFrom: boolean) => {
+                    if (!scopedDocIds.has(docId)) return;
+                    const doc = scopedDocMap.get(docId);
+                    if (!doc) return;
+                    const key = `${link.familyId}:${docId}`;
+                    const existing: RetryCandidateEntry = candidateMap.get(key) ?? {
+                      id: doc.id, name: doc.name, familyId: fam.id, familyName: fam.name,
+                      canLinkBefore: true, canLinkAfter: true, effectiveDate: doc.effectiveDate,
+                      residenceId: doc.residenceId ?? null,
+                      hasBefore: false, hasAfter: false,
+                    };
+                    if (isFrom) {
+                      if (link.position === 'after') existing.hasAfter = true;
+                      if (link.position === 'before') existing.hasBefore = true;
+                    } else {
+                      if (link.position === 'after') existing.hasBefore = true;
+                      if (link.position === 'before') existing.hasAfter = true;
+                    }
+                    existing.canLinkBefore = !existing.hasBefore;
+                    existing.canLinkAfter = !existing.hasAfter;
+                    candidateMap.set(key, existing);
+                  };
+                  processDoc(link.fromDocumentId, true);
+                  processDoc(link.toDocumentId, false);
+                }
+                retryExistingLinkCandidates = Array.from(candidateMap.values())
+                  .filter((c) => c.canLinkBefore || c.canLinkAfter);
+              }
+            }
+          }
+
           // Surface the in-flight state via the same `runAll[step].inFlight`
           // shape the wizard already polls (Task #1047). Awaited so the
           // immediate response below reflects the marker; the UI's polling
@@ -7318,6 +8111,7 @@ export function registerBulkImportRoutes(app: Express): void {
                   fiscalYearStartMonth,
                   identifyOrganizationId,
                   identifyAvailableTags,
+                  retryExistingLinkCandidates,
                 ),
                 RUN_ALL_ITEM_TIMEOUT_MS,
                 item.originalName,
@@ -7784,6 +8578,57 @@ export function registerBulkImportRoutes(app: Express): void {
               .insert(schema.documentTagAssignments)
               .values(validTagRows.map((t) => ({ documentId: doc.id, tagId: t.id })))
               .onConflictDoNothing();
+          }
+        }
+
+        // Task #1386: write documentLinks row when the item has an existing-family link.
+        // The link is written BEFORE the status update so a failure here leaves the item
+        // in a recoverable pre-committed state (the document row exists but the item
+        // status stays at 'linked'). The admin can retry the commit after resolving the
+        // conflict (e.g. someone else committed to the same family slot in the meantime).
+        const linkDecisionsForCommit = (item.linkDecisions ?? {}) as Record<string, unknown>;
+        const commitFamilyId = (linkDecisionsForCommit.familyId as string | null | undefined) ?? null;
+        const commitBeforeDocId = (linkDecisionsForCommit.beforeDocumentId as string | null | undefined) ?? null;
+        const commitAfterDocId = (linkDecisionsForCommit.afterDocumentId as string | null | undefined) ?? null;
+        const commitNeighborDocId = commitBeforeDocId ?? commitAfterDocId;
+        const commitPosition: 'before' | 'after' | null = commitBeforeDocId
+          ? 'before'
+          : commitAfterDocId
+            ? 'after'
+            : null;
+        if (commitFamilyId && commitNeighborDocId && commitPosition) {
+          logDebug('[bulk-import] commit phase documentLink write start', {
+            metadata: {
+              itemId: item.id,
+              sessionId: item.sessionId,
+              documentId: doc.id,
+              familyId: commitFamilyId,
+              neighborDocumentId: commitNeighborDocId,
+              position: commitPosition,
+            },
+          });
+          try {
+            await upsertDocumentLink({
+              fromDocumentId: doc.id,
+              toDocumentId: commitNeighborDocId,
+              familyId: commitFamilyId,
+              position: commitPosition,
+            });
+            logDebug('[bulk-import] commit phase documentLink write done', {
+              metadata: {
+                itemId: item.id,
+                sessionId: item.sessionId,
+                documentId: doc.id,
+                familyId: commitFamilyId,
+              },
+            });
+          } catch (linkErr) {
+            const linkErrCode = linkErr instanceof DocumentLinkValidationError ? linkErr.code : 'unknown';
+            logError('[bulk-import] commit phase documentLink write failed', linkErr as Error);
+            return res.status(409).json({
+              error: 'Failed to write document link — the chosen family/neighbor slot may already be occupied. Clear the existing link and retry.',
+              errorCode: linkErrCode,
+            });
           }
         }
 

@@ -229,6 +229,23 @@ export interface LinkSuggestion extends AnalyzerConfidence {
   afterItemId?: string;
   relatedItemIds: string[];
   reason: string;
+  /** Task #1386: existing-family link fields. Set when the AI matched an existing family + document. */
+  familyId?: string | null;
+  neighborDocumentId?: string | null;
+  position?: 'before' | 'after' | null;
+}
+
+/** Task #1386: an existing document that can serve as a linking candidate. */
+export interface ExistingDocumentCandidate {
+  id: string;
+  name: string;
+  familyId: string;
+  familyName: string;
+  canLinkBefore: boolean;
+  canLinkAfter: boolean;
+  effectiveDate?: Date | null;
+  /** Task #1386: residence scope of the candidate document (null = building-level). */
+  residenceId?: string | null;
 }
 
 /**
@@ -1491,13 +1508,76 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.${
     sessionId?: string;
     /** Source folder hint for the current item (Task #1373). See `screen()`. */
     folderHint?: string | null;
+    /**
+     * Task #1386: Existing documents from the live library that can serve as
+     * linking candidates. When provided, the prompt instructs the AI to
+     * attach the item to an existing chain rather than creating a new group
+     * with other session items.
+     */
+    existingCandidates?: ExistingDocumentCandidate[];
   }): Promise<LinkSuggestion> {
     const folderHintLine = buildFolderHintLine(input.folderHint);
-    const prompt = `Find related documents for "${input.originalName}" from the candidates: ${JSON.stringify(
-      input.candidates,
-    )}.${folderHintLine ? `\n${folderHintLine}` : ''} Return JSON: { beforeItemId?: string, afterItemId?: string,
+    // Task #1386: treat an *empty* existingCandidates array the same as a
+    // non-empty one — the prompt switches to existing-library mode so the AI
+    // never returns beforeItemId/afterItemId (session-chain fallback). When
+    // no candidates are available the AI is expected to return low confidence
+    // and leave familyId/neighborDocumentId/position as null.
+    const hasExistingCandidates = Array.isArray(input.existingCandidates);
+
+    let prompt: string;
+    if (hasExistingCandidates) {
+      const candidateList = (input.existingCandidates ?? []).map((c) => ({
+        id: c.id,
+        name: c.name,
+        familyId: c.familyId,
+        familyName: c.familyName,
+        canLinkBefore: c.canLinkBefore,
+        canLinkAfter: c.canLinkAfter,
+        effectiveDate: c.effectiveDate
+          ? (c.effectiveDate instanceof Date
+              ? c.effectiveDate.toISOString().slice(0, 10)
+              : String(c.effectiveDate))
+          : null,
+      }));
+      prompt = `You are helping to link an imported document to an existing document chain in the Koveo document library.
+
+Document being imported: "${input.originalName}"
+${folderHintLine ? `${folderHintLine}\n` : ''}
+Existing documents available to link to (from the live library):
+${JSON.stringify(candidateList, null, 2)}
+
+Instructions:
+- If you find a strong match (confidence ≥ 0.7), pick exactly one existing document from the list above.
+- Use 'position': 'before' if the imported document comes BEFORE the candidate (imported is earlier), 'after' if it comes AFTER (imported is later).
+- Only use canLinkBefore=true candidates for position='before', only canLinkAfter=true candidates for position='after'.
+- Do NOT create a new family — only use the families already present in the list.
+- If no good match exists, return confidence < 0.5 and leave familyId/neighborDocumentId/position as null.
+
+Return JSON: {
+  familyId: string | null,
+  neighborDocumentId: string | null,
+  position: 'before' | 'after' | null,
+  reason: string,
+  confidence: number
+}`;
+    } else {
+      prompt = `Find related documents for "${input.originalName}" from the candidates: ${JSON.stringify(
+        input.candidates,
+      )}.${folderHintLine ? `\n${folderHintLine}` : ''} Return JSON: { beforeItemId?: string, afterItemId?: string,
 relatedItemIds: string[], reason: string, confidence: number }.`;
-    const { data: raw, fallbackReason, retryCount, degraded } = await callClaudeJson<Partial<LinkSuggestion>>(
+    }
+
+    type ExistingLinkRaw = {
+      familyId?: string | null;
+      neighborDocumentId?: string | null;
+      position?: string | null;
+      reason?: string;
+      confidence?: number;
+    };
+    type SessionLinkRaw = Partial<LinkSuggestion>;
+    type RawResult = ExistingLinkRaw | SessionLinkRaw;
+
+    const { data: raw, fallbackReason, retryCount, degraded } = await callClaudeJson<RawResult>(
       prompt,
       {
         stagedPath: input.stagedPath,
@@ -1507,17 +1587,38 @@ relatedItemIds: string[], reason: string, confidence: number }.`;
       'links',
       { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
     );
+
     if (!raw) {
       return { relatedItemIds: [], reason: 'fallback', confidence: 0.2, fallbackReason, retryCount, degraded };
     }
+
+    if (hasExistingCandidates) {
+      const er = raw as ExistingLinkRaw;
+      const rawFamilyId = typeof er.familyId === 'string' ? er.familyId : null;
+      const rawNeighborDocumentId = typeof er.neighborDocumentId === 'string' ? er.neighborDocumentId : null;
+      const rawPosition = er.position === 'before' || er.position === 'after' ? er.position : null;
+      return {
+        relatedItemIds: [],
+        reason: typeof er.reason === 'string' ? er.reason : '',
+        confidence: clampConfidence(er.confidence),
+        familyId: rawFamilyId,
+        neighborDocumentId: rawNeighborDocumentId,
+        position: rawPosition,
+        degraded,
+        fallbackReason,
+        retryCount,
+      };
+    }
+
+    const sr = raw as SessionLinkRaw;
     return {
-      beforeItemId: typeof raw.beforeItemId === 'string' ? raw.beforeItemId : undefined,
-      afterItemId: typeof raw.afterItemId === 'string' ? raw.afterItemId : undefined,
-      relatedItemIds: Array.isArray(raw.relatedItemIds)
-        ? (raw.relatedItemIds as string[]).filter((s) => typeof s === 'string')
+      beforeItemId: typeof sr.beforeItemId === 'string' ? sr.beforeItemId : undefined,
+      afterItemId: typeof sr.afterItemId === 'string' ? sr.afterItemId : undefined,
+      relatedItemIds: Array.isArray(sr.relatedItemIds)
+        ? (sr.relatedItemIds as string[]).filter((s) => typeof s === 'string')
         : [],
-      reason: typeof raw.reason === 'string' ? raw.reason : '',
-      confidence: clampConfidence(raw.confidence),
+      reason: typeof sr.reason === 'string' ? sr.reason : '',
+      confidence: clampConfidence(sr.confidence),
       degraded,
       fallbackReason,
       retryCount,

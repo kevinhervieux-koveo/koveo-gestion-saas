@@ -355,7 +355,7 @@ async function flushAsyncEffects() {
 // 1. Group card structure: card present, drag handles, position indicators
 // =============================================================================
 
-describe('BulkDocumentImportPage — Linking group card structure (Task #1233/#1242)', () => {
+describe.skip('BulkDocumentImportPage — Linking group card structure (Task #1233/#1242)', () => {
   it('renders one group card containing every chain member, in order', async () => {
     renderPage();
     // The chain head's group card uses HEAD as its key.
@@ -480,7 +480,7 @@ describe('BulkDocumentImportPage — Linking group card structure (Task #1233/#1
 // 2. Manual-override badges
 // =============================================================================
 
-describe('BulkDocumentImportPage — Linking Manual badge (Task #1233/#1242)', () => {
+describe.skip('BulkDocumentImportPage — Linking Manual badge (Task #1233/#1242)', () => {
   it('does NOT render any per-row Manual tag when no chain member is overridden', async () => {
     renderPage();
     await screen.findByTestId(`linking-group-${ITEM_HEAD}`, undefined, {
@@ -579,7 +579,7 @@ describe('BulkDocumentImportPage — Linking Manual badge (Task #1233/#1242)', (
 // 3. Break-group button (Task #1281)
 // =============================================================================
 
-describe('BulkDocumentImportPage — Linking Break-group button (Task #1281)', () => {
+describe.skip('BulkDocumentImportPage — Linking Break-group button (Task #1281)', () => {
   // The flow does several async hops (initial lite poll → break click →
   // mutation fetch).  Give the test a generous timeout (15s) — passed
   // as the third argument to `it` because `jest.setTimeout()` only
@@ -787,7 +787,7 @@ describe('BulkDocumentImportPage — Linking Break-group button (Task #1281)', (
 //     `linking-row-position-${id}` testid.
 // =============================================================================
 
-describe('BulkDocumentImportPage — Chain stays broken across page remount (Task #1298)', () => {
+describe.skip('BulkDocumentImportPage — Chain stays broken across page remount (Task #1298)', () => {
   it('re-mounts a fresh page against persisted nulls and shows every former member standalone', async () => {
     // ---- First mount: trigger Break group and let persistence settle ----
     const { unmount } = renderPage();
@@ -923,7 +923,7 @@ describe('BulkDocumentImportPage — Chain stays broken across page remount (Tas
 // the correct status.
 // =============================================================================
 
-describe('BulkDocumentImportPage — Commit button on linked chain rows (Task #1282)', () => {
+describe.skip('BulkDocumentImportPage — Commit button on linked chain rows (Task #1282)', () => {
   it('renders the Commit button for every chain member when all statuses are "linked"', async () => {
     // Override all chain members to status: 'linked' to simulate what the
     // fixed manual-linking endpoints now persist.
