@@ -2,13 +2,14 @@
  * @jest-environment node
  *
  * Task #380: pin the shared upload-side filename normalization contract.
+ * Task #855: pin the fixLatin1MisdecodeFilename helper (Task #1317).
  */
 
 import { describe, it, expect } from '@jest/globals';
 import http from 'http';
 import { AddressInfo } from 'net';
 
-import { normalizeFilename } from '../../../server/utils/filenameNormalization';
+import { normalizeFilename, fixLatin1MisdecodeFilename } from '../../../server/utils/filenameNormalization';
 import { buildContentDisposition } from '../../../server/utils/content-disposition';
 
 const SAFE_NAME = /^[a-z0-9._-]+$/;
@@ -89,5 +90,34 @@ describe('upload-side filename normalization (Task #380)', () => {
     const safe = 'invoice-2026-04.pdf';
     expect(normalizeFilename(safe)).toBe(safe);
     expect(normalizeFilename(normalizeFilename(safe))).toBe(safe);
+  });
+});
+
+describe('fixLatin1MisdecodeFilename (Task #855 / #1317)', () => {
+  it('recovers a French filename mis-decoded as Latin-1 (JSDoc example)', () => {
+    const mojibake = 'Budget pr\u00c3\u00a9visionnel 2023-2024.pdf';
+    expect(fixLatin1MisdecodeFilename(mojibake)).toBe('Budget prévisionnel 2023-2024.pdf');
+  });
+
+  it('recovers the canonical French test fixture used in integration tests', () => {
+    const original = 'Procès-verbal été 2024.pdf';
+    const mojibake = Buffer.from(original, 'utf8').toString('latin1');
+    expect(fixLatin1MisdecodeFilename(mojibake)).toBe(original);
+  });
+
+  it('leaves an already-correct ASCII filename unchanged', () => {
+    expect(fixLatin1MisdecodeFilename('report.pdf')).toBe('report.pdf');
+  });
+
+  it('leaves an already-correct UTF-8 filename unchanged', () => {
+    const alreadyUtf8 = 'Procès-verbal été 2024.pdf';
+    expect(fixLatin1MisdecodeFilename(alreadyUtf8)).toBe(alreadyUtf8);
+  });
+
+  it('does not alter a filename that would produce a replacement character on recovery', () => {
+    const withReplacement = '\x80invalid.pdf';
+    const result = fixLatin1MisdecodeFilename(withReplacement);
+    expect(result).toBe(withReplacement);
+    expect(result).not.toContain('\uFFFD');
   });
 });
