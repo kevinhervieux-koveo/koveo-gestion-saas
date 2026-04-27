@@ -763,7 +763,156 @@ describe('BulkDocumentImportPage — Linking Break-group button (Task #1281)', (
 });
 
 // =============================================================================
-// 4. Task #1282 — Commit button visibility for manually-curated chains
+// 4. Task #1298 — Chains stay broken after a fresh page mount
+//
+// Task #1281 covers the click → optimistic UI → persistence payload cycle
+// for the "Break group" button.  It does NOT verify that the persisted
+// nulls round-trip back through `buildSessionPayload` (the lite poll's
+// payload shape) and re-derive into the standalone topology when the
+// page is mounted from scratch.  A regression in how the session loader
+// re-hydrates `linkingBeforeItemId/AfterItemId` (or how
+// `resolveLinkingGroups` derives groups from those pointers) could
+// silently restore the chain on reload even though Task #1281 still
+// passes.
+//
+// This test mounts the page once, clicks Break group, waits for the
+// optimistic + persistence cycle to complete (the fetch responder
+// mutates the in-memory `items` fixture so the next lite payload
+// reflects the persisted nulls), then unmounts the page and clears the
+// React Query cache.  It re-mounts a brand-new page tree against the
+// same SESSION_ID and asserts the chain is gone:
+//   - no `linking-group-${ITEM_HEAD}` card is rendered, and
+//   - each former chain member appears as a standalone row keyed by its
+//     `linking-row-position-${id}` testid.
+// =============================================================================
+
+describe('BulkDocumentImportPage — Chain stays broken across page remount (Task #1298)', () => {
+  it('re-mounts a fresh page against persisted nulls and shows every former member standalone', async () => {
+    // ---- First mount: trigger Break group and let persistence settle ----
+    const { unmount } = renderPage();
+    const breakBtn = await screen.findByTestId(
+      `linking-break-group-${ITEM_HEAD}`,
+      undefined,
+      { timeout: 4000 },
+    );
+    await flushAsyncEffects();
+
+    const liveBreakBtn = screen.getByTestId(
+      `linking-break-group-${ITEM_HEAD}`,
+    );
+    await act(async () => {
+      fireEvent.click(liveBreakBtn);
+    });
+    await flushAsyncEffects();
+
+    // Wait for the persistence POST to land — the fetch responder
+    // mutates `items` in place when this call arrives, so once it has
+    // fired the in-memory fixture reflects the persisted nulls and
+    // any subsequent `buildSessionPayload()` call will hand back the
+    // post-break server-of-record state.
+    function getPersistenceCalls() {
+      return fetchMock.mock.calls.filter(([input, init]) => {
+        const url =
+          typeof input === 'string'
+            ? input
+            : input instanceof URL
+              ? input.toString()
+              : (input as Request).url;
+        const method = (init?.method || 'GET').toUpperCase();
+        return (
+          method === 'POST' &&
+          url.includes(
+            `/sessions/${SESSION_ID}/batch-set-linking-decisions`,
+          )
+        );
+      });
+    }
+    await waitFor(
+      () => {
+        expect(getPersistenceCalls().length).toBeGreaterThanOrEqual(1);
+      },
+      { timeout: 8000 },
+    );
+
+    // Sanity: confirm the fetch responder really did persist nulls into
+    // the shared `items` fixture before we unmount.  Without this the
+    // remount could silently re-hydrate the original chain pointers
+    // and the assertions below would no longer prove anything about
+    // the round-trip.
+    for (const id of [ITEM_HEAD, ITEM_MID, ITEM_TAIL]) {
+      const persisted = items.find((i) => i.id === id);
+      expect(persisted).toBeDefined();
+      expect(persisted!.linkingBeforeItemId).toBeNull();
+      expect(persisted!.linkingAfterItemId).toBeNull();
+    }
+
+    // ---- Unmount the page and drop all in-memory React Query state ----
+    // `queryClient.clear()` removes every cached lite-poll entry so the
+    // next mount has to re-fetch the session from scratch (mirroring a
+    // browser hard-reload).  `localStorage` is intentionally NOT
+    // cleared so the page picks up the same SESSION_ID as before.
+    unmount();
+    cleanup();
+    queryClient.clear();
+
+    // ---- Second mount: fresh page tree, fresh fetches ----
+    renderPage();
+
+    // The lite poll fires a GET against the same endpoint as before.
+    // Wait until the page has finished re-hydrating from the
+    // updated `buildSessionPayload()` (the linking step renders the
+    // standalone-row position indicators only after the session has
+    // resolved and the chain derivation has run).
+    await waitFor(
+      () => {
+        for (const id of [ITEM_HEAD, ITEM_MID, ITEM_TAIL, ITEM_ALONE]) {
+          expect(
+            screen.getByTestId(`linking-row-position-${id}`),
+          ).toBeInTheDocument();
+        }
+      },
+      { timeout: 8000 },
+    );
+    await flushAsyncEffects();
+
+    // The chain head's group card must be GONE — derivation against
+    // the persisted nulls should produce zero groups for the former
+    // chain members.
+    expect(
+      screen.queryByTestId(`linking-group-${ITEM_HEAD}`),
+    ).not.toBeInTheDocument();
+    // Defensive: no other former member should anchor a group card
+    // either (e.g. via a stale before-pointer that got persisted by
+    // mistake).
+    expect(
+      screen.queryByTestId(`linking-group-${ITEM_MID}`),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`linking-group-${ITEM_TAIL}`),
+    ).not.toBeInTheDocument();
+
+    // Each former chain member must now render its own
+    // `linking-row-position-${id}` testid as a top-level standalone
+    // row.  The position indicator is the canonical "this row exists
+    // in the flat list" signal asked for by the task spec.
+    for (const id of [ITEM_HEAD, ITEM_MID, ITEM_TAIL]) {
+      const positionEl = screen.getByTestId(
+        `linking-row-position-${id}`,
+      );
+      expect(positionEl).toBeInTheDocument();
+    }
+
+    // The original standalone item from the fixture should still be
+    // present and unaffected by the break — guards against the
+    // remount accidentally dropping unrelated rows.
+    expect(
+      screen.getByTestId(`linking-row-position-${ITEM_ALONE}`),
+    ).toBeInTheDocument();
+  }, 20000);
+});
+
+// =============================================================================
+// 5. Task #1282 — Commit button visibility for manually-curated chains
 //
 // The Commit / Sauvegarder button renders only when a row's status is
 // 'linked'.  Before Task #1282 the manual-link endpoints never updated
