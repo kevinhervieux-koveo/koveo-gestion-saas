@@ -9,7 +9,7 @@ import * as bcrypt from 'bcryptjs';
 // Database-based permissions - no config imports needed
 import { db } from '../db';
 import * as schema from '../../shared/schema';
-import { eq, and, or, inArray, isNull, sql, lt, count, desc } from 'drizzle-orm';
+import { eq, and, or, inArray, isNull, sql, lt, count, desc, exists, SQL } from 'drizzle-orm';
 import {
   sanitizeString,
   sanitizeName,
@@ -1797,18 +1797,119 @@ export function registerUserRoutes(app: Express): void {
 
   /**
    * GET /api/users/me/buildings - Get current user's accessible buildings based on their residences.
+   *
+   * Accepted query parameters:
+   *   - organizationId  {string}  UUID — restrict to buildings belonging to this organization.
+   *   - has_common_spaces {boolean} "true" — restrict to buildings that have at least one common space.
+   *   - has_bills        {boolean} "true" — restrict to buildings that have at least one bill.
+   *                       Tenants calling this param receive a 403.
+   *   - has_budget       {boolean} "true" — restrict to buildings that have at least one budget record.
+   *                       Tenants calling this param receive a 403.
+   *   - type             {string}  buildingType enum value ("apartment"|"appartement"|"condo"|"rental").
+   *                       Unknown values → 400 Bad Request (never silently ignored).
+   *
+   * Role behavior (canonical Koveo hierarchy):
+   *   super_admin  → all active buildings; no org restriction unless ?organizationId is provided.
+   *   admin        → buildings scoped to the caller's accessible orgs; intersect with ?organizationId if provided.
+   *   manager/demo_manager → buildings from their userBuildings assignments, scoped to the orgs of those
+   *                          buildings; intersect with ?organizationId if provided.
+   *   resident/demo_resident → buildings via their active residences; non-financial filters only.
+   *   tenant/demo_tenant → buildings via their active residences; ?has_bills/?has_budget → 403.
    */
   app.get('/api/users/me/buildings', requireAuth, async (req: any, res) => {
     try {
       const userId = req.user.id;
-      const { has_common_spaces, organization_id } = req.query;
-      logDebug('[USER_MANAGEMENT] Fetching buildings for user', { userId, metadata: { role: req.user.role, hasCommonSpaces: has_common_spaces, organizationId: organization_id } });
+      const role: string = req.user.role;
 
-      // For residents and tenants (including demo roles), get buildings through their residences  
-      // Note: demo_manager uses userBuildings table like regular managers, so it falls through to the manager path
-      if (['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(req.user.role)) {
-        
-        // Get user's residences with building information using Drizzle
+      const has_common_spaces = req.query.has_common_spaces as string | undefined;
+      const organizationIdParam = req.query.organizationId as string | undefined;
+      const has_bills = req.query.has_bills as string | undefined;
+      const has_budget = req.query.has_budget as string | undefined;
+      const typeParam = req.query.type as string | undefined;
+
+      logDebug('[USER_MANAGEMENT] Fetching buildings for user', { userId, metadata: { role, hasCommonSpaces: has_common_spaces, organizationId: organizationIdParam, hasBills: has_bills, hasBudget: has_budget, type: typeParam } });
+
+      // Tenants may not use financial filters — no financial signal at building-list level
+      if (['tenant', 'demo_tenant'].includes(role) && (has_bills === 'true' || has_budget === 'true')) {
+        return res.status(403).json({
+          error: 'Forbidden',
+          message: 'Tenants may not filter buildings by financial criteria',
+          code: 'FINANCIAL_FILTER_FORBIDDEN',
+        });
+      }
+
+      // Valid building type values; reject unknown values so the filter is never silently ignored
+      const VALID_BUILDING_TYPES = ['apartment', 'appartement', 'condo', 'rental'] as const;
+      type BuildingType = typeof VALID_BUILDING_TYPES[number];
+
+      if (typeParam !== undefined && !(VALID_BUILDING_TYPES as readonly string[]).includes(typeParam)) {
+        return res.status(400).json({
+          error: 'Bad Request',
+          message: `Invalid type value: "${typeParam}". Must be one of: ${VALID_BUILDING_TYPES.join(', ')}`,
+          code: 'INVALID_BUILDING_TYPE',
+        });
+      }
+
+      // Helper: append the optional extra filters (organizationId, type, has_bills, has_budget)
+      // to the given conditions array in-place.
+      const applyExtraFilters = (conditions: SQL<unknown>[]) => {
+        if (organizationIdParam) {
+          conditions.push(eq(schema.buildings.organizationId, organizationIdParam));
+        }
+        if (typeParam) {
+          conditions.push(eq(schema.buildings.buildingType, typeParam as BuildingType));
+        }
+        if (has_bills === 'true') {
+          conditions.push(
+            exists(
+              db.select({ v: sql`1` }).from(schema.bills).where(eq(schema.bills.buildingId, schema.buildings.id))
+            )
+          );
+        }
+        if (has_budget === 'true') {
+          conditions.push(
+            exists(
+              db.select({ v: sql`1` }).from(schema.budgets).where(eq(schema.budgets.buildingId, schema.buildings.id))
+            )
+          );
+        }
+      };
+
+      // Shared column selection for all branches
+      const buildingCols = {
+        id: schema.buildings.id,
+        name: schema.buildings.name,
+        address: schema.buildings.address,
+        city: schema.buildings.city,
+        province: schema.buildings.province,
+        postalCode: schema.buildings.postalCode,
+        buildingType: schema.buildings.buildingType,
+        totalUnits: schema.buildings.totalUnits,
+        organizationId: schema.buildings.organizationId,
+        isActive: schema.buildings.isActive,
+      };
+
+      // Helper: execute the right query variant (with or without common-spaces join)
+      const runBuildingQuery = (whereConditions: SQL<unknown>[]) => {
+        if (has_common_spaces === 'true') {
+          return db
+            .selectDistinct(buildingCols)
+            .from(schema.buildings)
+            .innerJoin(schema.commonSpaces, eq(schema.commonSpaces.buildingId, schema.buildings.id))
+            .where(and(...whereConditions))
+            .orderBy(schema.buildings.name);
+        }
+        return db
+          .select(buildingCols)
+          .from(schema.buildings)
+          .where(and(...whereConditions))
+          .orderBy(schema.buildings.name);
+      };
+
+      // ── RESIDENT / TENANT: scope to buildings from their active residences ────────
+      // Note: demo_manager uses the userBuildings table like regular managers, so it
+      // falls through to the manager path below.
+      if (['resident', 'tenant', 'demo_resident', 'demo_tenant'].includes(role)) {
         const userResidences = await db
           .select({
             residenceId: schema.userResidences.residenceId,
@@ -1821,133 +1922,57 @@ export function registerUserRoutes(app: Express): void {
             eq(schema.userResidences.isActive, true),
             eq(schema.residences.isActive, true)
           ));
-        
+
         if (!userResidences || userResidences.length === 0) {
           return res.json([]);
         }
 
-        // Get unique building IDs from user's residences
         const buildingIds = [...new Set(userResidences.map(ur => ur.buildingId).filter(Boolean))];
-        
         if (buildingIds.length === 0) {
           return res.json([]);
         }
 
-        // Fetch building details with optional common spaces and organization filtering
-        let buildingQuery;
-        
-        // Build the base where conditions
-        const whereConditions = [
+        const whereConditions: SQL<unknown>[] = [
           inArray(schema.buildings.id, buildingIds),
-          eq(schema.buildings.isActive, true)
+          eq(schema.buildings.isActive, true),
         ];
-        
-        // Add organization filter if specified
-        if (organization_id) {
-          whereConditions.push(eq(schema.buildings.organizationId, organization_id));
-        }
-        
-        if (has_common_spaces === 'true') {
-          // Only buildings with common spaces
-          buildingQuery = db
-            .selectDistinct({
-              id: schema.buildings.id,
-              name: schema.buildings.name,
-              address: schema.buildings.address,
-              city: schema.buildings.city,
-              province: schema.buildings.province,
-              postalCode: schema.buildings.postalCode,
-              buildingType: schema.buildings.buildingType,
-              totalUnits: schema.buildings.totalUnits,
-              organizationId: schema.buildings.organizationId,
-              isActive: schema.buildings.isActive,
-            })
-            .from(schema.buildings)
-            .innerJoin(schema.commonSpaces, eq(schema.commonSpaces.buildingId, schema.buildings.id))
-            .where(and(...whereConditions))
-            .orderBy(schema.buildings.name);
-        } else {
-          // All buildings
-          buildingQuery = db
-            .select({
-              id: schema.buildings.id,
-              name: schema.buildings.name,
-              address: schema.buildings.address,
-              city: schema.buildings.city,
-              province: schema.buildings.province,
-              postalCode: schema.buildings.postalCode,
-              buildingType: schema.buildings.buildingType,
-              totalUnits: schema.buildings.totalUnits,
-              organizationId: schema.buildings.organizationId,
-              isActive: schema.buildings.isActive,
-            })
-            .from(schema.buildings)
-            .where(and(...whereConditions))
-            .orderBy(schema.buildings.name);
-        }
+        applyExtraFilters(whereConditions);
 
-        const buildingDetails = await buildingQuery;
+        const buildingDetails = await runBuildingQuery(whereConditions);
         logDebug('[USER_MANAGEMENT] Returning buildings for resident/tenant', { userId, metadata: { count: buildingDetails.length } });
         return res.json(buildingDetails);
       }
 
-      // For admins, get ALL buildings
-      if (req.user.role === 'admin' || req.user.role === 'super_admin') {
-        let buildingQuery;
-        
-        const whereConditions = [eq(schema.buildings.isActive, true)];
-        
-        // Add organization filter if specified
-        if (organization_id) {
-          whereConditions.push(eq(schema.buildings.organizationId, organization_id));
-        }
-        
-        if (has_common_spaces === 'true') {
-          // Only buildings with common spaces
-          buildingQuery = db
-            .selectDistinct({
-              id: schema.buildings.id,
-              name: schema.buildings.name,
-              address: schema.buildings.address,
-              city: schema.buildings.city,
-              province: schema.buildings.province,
-              postalCode: schema.buildings.postalCode,
-              buildingType: schema.buildings.buildingType,
-              totalUnits: schema.buildings.totalUnits,
-              organizationId: schema.buildings.organizationId,
-              isActive: schema.buildings.isActive,
-            })
-            .from(schema.buildings)
-            .innerJoin(schema.commonSpaces, eq(schema.commonSpaces.buildingId, schema.buildings.id))
-            .where(and(...whereConditions))
-            .orderBy(schema.buildings.name);
-        } else {
-          // All buildings
-          buildingQuery = db
-            .select({
-              id: schema.buildings.id,
-              name: schema.buildings.name,
-              address: schema.buildings.address,
-              city: schema.buildings.city,
-              province: schema.buildings.province,
-              postalCode: schema.buildings.postalCode,
-              buildingType: schema.buildings.buildingType,
-              totalUnits: schema.buildings.totalUnits,
-              organizationId: schema.buildings.organizationId,
-              isActive: schema.buildings.isActive,
-            })
-            .from(schema.buildings)
-            .where(and(...whereConditions))
-            .orderBy(schema.buildings.name);
-        }
-        
-        const buildingDetails = await buildingQuery;
+      // ── SUPER_ADMIN: all active buildings, no org restriction ─────────────────────
+      if (role === 'super_admin') {
+        const whereConditions: SQL<unknown>[] = [eq(schema.buildings.isActive, true)];
+        applyExtraFilters(whereConditions);
 
+        const buildingDetails = await runBuildingQuery(whereConditions);
+        logDebug('[USER_MANAGEMENT] Returning buildings for super_admin', { userId, metadata: { count: buildingDetails.length } });
+        return res.json(buildingDetails);
+      }
+
+      // ── ADMIN: scoped to their accessible orgs; intersect with ?organizationId ────
+      if (role === 'admin') {
+        const accessibleOrgIds = await getUserAccessibleOrganizations(userId, role);
+        if (accessibleOrgIds.length === 0) {
+          return res.json([]);
+        }
+        const whereConditions: SQL<unknown>[] = [
+          eq(schema.buildings.isActive, true),
+          inArray(schema.buildings.organizationId, accessibleOrgIds),
+        ];
+        applyExtraFilters(whereConditions);
+
+        const buildingDetails = await runBuildingQuery(whereConditions);
         logDebug('[USER_MANAGEMENT] Returning buildings for admin', { userId, metadata: { count: buildingDetails.length } });
         return res.json(buildingDetails);
       }
 
-      // For managers, get buildings from userBuildings table
+      // ── MANAGER / DEMO_MANAGER: scoped to their userBuildings assignments ─────────
+      // Org-level scope is derived from the orgs of their assigned buildings so that
+      // ?organizationId intersection is enforced at the org layer (not just building layer).
       const userBuildingsData = await db
         .select({
           buildingId: schema.userBuildings.buildingId,
@@ -1962,68 +1987,33 @@ export function registerUserRoutes(app: Express): void {
         return res.json([]);
       }
 
-      // Get unique building IDs
       const buildingIds = [...new Set(userBuildingsData.map(ub => ub.buildingId).filter(Boolean))];
-
       if (buildingIds.length === 0) {
         return res.json([]);
       }
 
-      // Build the where conditions
-      const whereConditions = [
+      // Derive the org IDs accessible to this manager from their building assignments.
+      const managerBuildingOrgs = await db
+        .select({ organizationId: schema.buildings.organizationId })
+        .from(schema.buildings)
+        .where(and(
+          inArray(schema.buildings.id, buildingIds),
+          eq(schema.buildings.isActive, true)
+        ));
+      const managerOrgIds = [...new Set(managerBuildingOrgs.map(b => b.organizationId).filter(Boolean))];
+
+      if (managerOrgIds.length === 0) {
+        return res.json([]);
+      }
+
+      const whereConditions: SQL<unknown>[] = [
         inArray(schema.buildings.id, buildingIds),
-        eq(schema.buildings.isActive, true)
+        inArray(schema.buildings.organizationId, managerOrgIds),
+        eq(schema.buildings.isActive, true),
       ];
+      applyExtraFilters(whereConditions);
 
-      // Add organization filter if specified
-      if (organization_id) {
-        whereConditions.push(eq(schema.buildings.organizationId, organization_id));
-      }
-
-      // Build the query with optional common spaces filtering
-      let buildingQuery;
-      
-      if (has_common_spaces === 'true') {
-        // Only buildings with common spaces
-        buildingQuery = db
-          .selectDistinct({
-            id: schema.buildings.id,
-            name: schema.buildings.name,
-            address: schema.buildings.address,
-            city: schema.buildings.city,
-            province: schema.buildings.province,
-            postalCode: schema.buildings.postalCode,
-            buildingType: schema.buildings.buildingType,
-            totalUnits: schema.buildings.totalUnits,
-            organizationId: schema.buildings.organizationId,
-            isActive: schema.buildings.isActive,
-          })
-          .from(schema.buildings)
-          .innerJoin(schema.commonSpaces, eq(schema.commonSpaces.buildingId, schema.buildings.id))
-          .where(and(...whereConditions))
-          .orderBy(schema.buildings.name);
-      } else {
-        // All buildings
-        buildingQuery = db
-          .select({
-            id: schema.buildings.id,
-            name: schema.buildings.name,
-            address: schema.buildings.address,
-            city: schema.buildings.city,
-            province: schema.buildings.province,
-            postalCode: schema.buildings.postalCode,
-            buildingType: schema.buildings.buildingType,
-            totalUnits: schema.buildings.totalUnits,
-            organizationId: schema.buildings.organizationId,
-            isActive: schema.buildings.isActive,
-          })
-          .from(schema.buildings)
-          .where(and(...whereConditions))
-          .orderBy(schema.buildings.name);
-      }
-
-      const buildingDetails = await buildingQuery;
-
+      const buildingDetails = await runBuildingQuery(whereConditions);
       logDebug('[USER_MANAGEMENT] Returning buildings for manager', { userId, metadata: { count: buildingDetails.length, source: 'userBuildings table' } });
       res.json(buildingDetails);
 
