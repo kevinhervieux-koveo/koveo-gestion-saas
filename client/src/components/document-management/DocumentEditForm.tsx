@@ -7,7 +7,18 @@ import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Switch } from '@/components/ui/switch';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { cn } from '@/lib/utils';
 import { Form } from '@/components/ui/form';
 import { StandardCard } from '@/components/ui/standard-card';
 import { useStandardForm } from '@/hooks/use-standard-form';
@@ -83,6 +94,7 @@ export function DocumentEditForm({
   const { t } = useLanguage();
   const queryClient = useQueryClient();
   const [isDeleting, setIsDeleting] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const initialTagIds: string[] = ((document as any).tags || []).map((t: any) => t.id);
   const [selectedTagIds, setSelectedTagIds] = useState<string[]>(initialTagIds);
 
@@ -287,14 +299,17 @@ export function DocumentEditForm({
     },
   });
 
-  const handleDelete = async () => {
-    if (window.confirm(t('confirmDeleteDocument'))) {
-      setIsDeleting(true);
-      try {
-        await deleteMutation.mutateAsync();
-      } finally {
-        setIsDeleting(false);
-      }
+  const handleDelete = () => {
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setShowDeleteDialog(false);
+    setIsDeleting(true);
+    try {
+      await deleteMutation.mutateAsync();
+    } finally {
+      setIsDeleting(false);
     }
   };
 
@@ -528,6 +543,37 @@ export function DocumentEditForm({
           </form>
         </Form>
       </div>
+
+      <AlertDialog
+        open={showDeleteDialog}
+        onOpenChange={(open) => {
+          if (!open) setShowDeleteDialog(false);
+        }}
+      >
+        <AlertDialogContent data-testid="dialog-confirm-delete-document">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('delete')}</AlertDialogTitle>
+            <AlertDialogDescription data-testid="text-confirm-delete-document-message">
+              {t('confirmDeleteDocument')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete-document">
+              {t('cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className={cn(buttonVariants({ variant: 'destructive' }))}
+              onClick={(e) => {
+                e.preventDefault();
+                void handleConfirmDelete();
+              }}
+              data-testid="button-confirm-delete-document"
+            >
+              {t('delete')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </StandardCard>
   );
 }

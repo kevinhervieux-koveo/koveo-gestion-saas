@@ -108,7 +108,10 @@ export const crudHelpers = {
     }
   },
 
-  // Generic delete operation
+  // Generic delete operation. Callers are responsible for confirming the
+  // destructive action via the in-app shadcn AlertDialog before invoking
+  // this helper — the helper deliberately does not show a `window.confirm`
+  // prompt so the experience stays consistent across the app (task #1466).
   delete: async (
     endpoint: string,
     id: string,
@@ -117,17 +120,8 @@ export const crudHelpers = {
       onError?: (error: any) => void;
       showSuccessToast?: boolean;
       successMessage?: string;
-      confirmMessage?: string;
     }
   ): Promise<void> => {
-    // Show confirmation dialog if message provided
-    if (options?.confirmMessage) {
-      const confirmed = window.confirm(options.confirmMessage);
-      if (!confirmed) {
-        return;
-      }
-    }
-
     try {
       await apiRequest('DELETE', `${endpoint}/${id}`);
 

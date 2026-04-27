@@ -2,9 +2,20 @@ import { useRef, useState } from 'react';
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { DocumentInlineViewer } from '@/components/common/DocumentInlineViewer';
 import { Badge } from '@/components/ui/badge';
-import { Button } from '@/components/ui/button';
+import { Button, buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import {
@@ -162,6 +173,7 @@ export default function DemandDetailsPopup({
   const [commentFile, setCommentFile] = useState<File | null>(null);
   const commentFileInputRef = useRef<HTMLInputElement | null>(null);
   const [viewingFile, setViewingFile] = useState<{ url: string; downloadUrl?: string; name?: string } | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
 
   // Form schemas - must be inside component to access t()
   const editDemandSchema = z.object({
@@ -372,9 +384,12 @@ export default function DemandDetailsPopup({
   };
 
   const handleDelete = () => {
-    if (window.confirm(t('confirmDeleteDemand'))) {
-      deleteDemandMutation.mutate();
-    }
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setShowDeleteDialog(false);
+    deleteDemandMutation.mutate();
   };
 
   const handleStatusChange = (newStatus: string) => {
@@ -1000,6 +1015,37 @@ export default function DemandDetailsPopup({
           fileName={viewingFile.name}
         />
       )}
+
+      <AlertDialog
+        open={showDeleteDialog}
+        onOpenChange={(open) => {
+          if (!open) setShowDeleteDialog(false);
+        }}
+      >
+        <AlertDialogContent data-testid="dialog-confirm-delete-demand">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t('deleteDemand')}</AlertDialogTitle>
+            <AlertDialogDescription data-testid="text-confirm-delete-demand-message">
+              {t('confirmDeleteDemand')}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete-demand">
+              {t('cancel')}
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className={cn(buttonVariants({ variant: 'destructive' }))}
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirmDelete();
+              }}
+              data-testid="button-confirm-delete-demand"
+            >
+              {t('deleteDemand')}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </Dialog>
   );
 }

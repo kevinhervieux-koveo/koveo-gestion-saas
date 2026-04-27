@@ -5,6 +5,17 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { buttonVariants } from '@/components/ui/button';
 import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -236,6 +247,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
   const [editVendorDocuments, setEditVendorDocuments] = useState<AttachedFile[]>([]);
   const [editUploadProgress, setEditUploadProgress] = useState<{ [key: string]: number }>({});
   const [activeTab, setActiveTab] = useState<string>("vendors");
+  const [pendingDeleteVendor, setPendingDeleteVendor] = useState<SubmissionVendorWithRelation | null>(null);
 
   // Get category from file name
   const getCategoryFromFileName = (fileName: string): string => {
@@ -551,10 +563,13 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
   // joined `vendor` object now that there's no top-level vendorName, with
   // a generic fallback for the rare ON-DELETE-SET-NULL case.
   const handleDeleteVendor = (vendorToDelete: SubmissionVendorWithRelation) => {
-    const vendorDisplayName = vendorToDelete.vendor?.name ?? 'this vendor';
-    if (!window.confirm(`Are you sure you want to delete the submission from ${vendorDisplayName}? This action cannot be undone.`)) {
-      return;
-    }
+    setPendingDeleteVendor(vendorToDelete);
+  };
+
+  const handleConfirmDeleteVendor = () => {
+    const vendorToDelete = pendingDeleteVendor;
+    setPendingDeleteVendor(null);
+    if (!vendorToDelete) return;
 
     deleteSubmissionVendor.mutate({
       projectId: project.id,
@@ -2329,6 +2344,37 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
           </Button>
         )}
       </div>
+
+      <AlertDialog
+        open={!!pendingDeleteVendor}
+        onOpenChange={(open) => {
+          if (!open) setPendingDeleteVendor(null);
+        }}
+      >
+        <AlertDialogContent data-testid="dialog-confirm-delete-submission-vendor">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Submission</AlertDialogTitle>
+            <AlertDialogDescription data-testid="text-confirm-delete-submission-vendor-message">
+              Are you sure you want to delete the submission from {pendingDeleteVendor?.vendor?.name ?? 'this vendor'}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete-submission-vendor">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className={cn(buttonVariants({ variant: 'destructive' }))}
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirmDeleteVendor();
+              }}
+              data-testid="button-confirm-delete-submission-vendor"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 }

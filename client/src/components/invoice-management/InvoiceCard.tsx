@@ -6,6 +6,18 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { buttonVariants } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 import { 
   Edit2, 
   Trash2, 
@@ -50,6 +62,7 @@ const formatAmount = (amount: string | number): string => {
 export function InvoiceCard({ invoice, onUpdate, compact = false }: InvoiceCardProps) {
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
   const queryClient = useQueryClient();
   const { toast } = useToast();
 
@@ -72,9 +85,12 @@ export function InvoiceCard({ invoice, onUpdate, compact = false }: InvoiceCardP
   });
 
   const handleDelete = () => {
-    if (window.confirm('Are you sure you want to delete this invoice? This action cannot be undone.')) {
-      deleteMutation.mutate();
-    }
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setShowDeleteDialog(false);
+    deleteMutation.mutate();
   };
 
   const handleEditSuccess = () => {
@@ -147,6 +163,7 @@ export function InvoiceCard({ invoice, onUpdate, compact = false }: InvoiceCardP
           onClick={handleDelete}
           className="text-destructive focus:text-destructive"
           disabled={deleteMutation.isPending}
+          data-testid={`button-delete-invoice-${invoice.id}`}
         >
           <Trash2 className="w-4 h-4 mr-2" />
           Delete
@@ -264,6 +281,37 @@ export function InvoiceCard({ invoice, onUpdate, compact = false }: InvoiceCardP
           </div>
         </DialogContent>
       </Dialog>
+
+      <AlertDialog
+        open={showDeleteDialog}
+        onOpenChange={(open) => {
+          if (!open) setShowDeleteDialog(false);
+        }}
+      >
+        <AlertDialogContent data-testid="dialog-confirm-delete-invoice">
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Invoice</AlertDialogTitle>
+            <AlertDialogDescription data-testid="text-confirm-delete-invoice-message">
+              Are you sure you want to delete invoice #{invoice.invoiceNumber} from {invoice.vendorName}? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel data-testid="button-cancel-delete-invoice">
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction
+              className={cn(buttonVariants({ variant: 'destructive' }))}
+              onClick={(e) => {
+                e.preventDefault();
+                handleConfirmDelete();
+              }}
+              data-testid="button-confirm-delete-invoice"
+            >
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </>
   );
 }

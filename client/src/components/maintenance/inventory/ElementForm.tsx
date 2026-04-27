@@ -17,6 +17,17 @@ import { Badge } from '@/components/ui/badge';
 import { Separator } from '@/components/ui/separator';
 import { ConditionBadge } from '@/components/maintenance/StatusBadges';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { buttonVariants } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { DocumentAttachmentManager } from '@/components/maintenance/inventory/DocumentAttachmentManager';
 import { HistoryTable } from '@/components/maintenance/inventory/HistoryTable';
@@ -443,6 +454,9 @@ export function ElementForm({
   // Active tab inside the element form (Details vs History)
   const [activeTab, setActiveTab] = useState<'details' | 'history'>('details');
 
+  // Confirmation dialog state for delete (task #1466)
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+
   // Fetch building data to get yearBuilt for default construction date
   const { data: building } = useQuery({
     queryKey: ['building', buildingId],
@@ -736,13 +750,17 @@ export function ElementForm({
 
   // Handle element deletion
   const handleDelete = () => {
-    if (window.confirm(t('efDeleteConfirm'))) {
-      deleteMutation.mutate();
-    }
+    setShowDeleteDialog(true);
+  };
+
+  const handleConfirmDelete = () => {
+    setShowDeleteDialog(false);
+    deleteMutation.mutate();
   };
 
 
   return (
+    <>
     <FormModal
       isOpen={isOpen}
       onOpenChange={onOpenChange}
@@ -1410,6 +1428,38 @@ export function ElementForm({
         </FormFieldWrapper>
       </div>
     </FormModal>
+
+    <AlertDialog
+      open={showDeleteDialog}
+      onOpenChange={(open) => {
+        if (!open) setShowDeleteDialog(false);
+      }}
+    >
+      <AlertDialogContent data-testid="dialog-confirm-delete-element">
+        <AlertDialogHeader>
+          <AlertDialogTitle>{t('efDeleteButton')}</AlertDialogTitle>
+          <AlertDialogDescription data-testid="text-confirm-delete-element-message">
+            {t('efDeleteConfirm')}
+          </AlertDialogDescription>
+        </AlertDialogHeader>
+        <AlertDialogFooter>
+          <AlertDialogCancel data-testid="button-cancel-delete-element">
+            {t('cancel')}
+          </AlertDialogCancel>
+          <AlertDialogAction
+            className={cn(buttonVariants({ variant: 'destructive' }))}
+            onClick={(e) => {
+              e.preventDefault();
+              handleConfirmDelete();
+            }}
+            data-testid="button-confirm-delete-element"
+          >
+            {t('efDeleteButton')}
+          </AlertDialogAction>
+        </AlertDialogFooter>
+      </AlertDialogContent>
+    </AlertDialog>
+    </>
   );
 }
 
