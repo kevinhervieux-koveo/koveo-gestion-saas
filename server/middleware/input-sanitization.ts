@@ -373,6 +373,26 @@ const LABEL_MAP_FIELD_NAMES = new Set([
 ]);
 
 /**
+ * Register an additional field name as a user-typed display-label map so the
+ * dangerous-input scanner skips LDAP checks for its object keys.
+ *
+ * Route modules that introduce new `Record<label, number>` fields should call
+ * this once at module load time rather than editing `LABEL_MAP_FIELD_NAMES`
+ * directly. This keeps the opt-out list open for extension without requiring
+ * changes to this file.
+ *
+ * The function is idempotent — calling it twice with the same name is safe.
+ *
+ * @example
+ * // In your route module:
+ * import { registerLabelMapFieldName } from '../middleware/input-sanitization';
+ * registerLabelMapFieldName('myCustomRates');
+ */
+export function registerLabelMapFieldName(name: string): void {
+  LABEL_MAP_FIELD_NAMES.add(name);
+}
+
+/**
  * Return true when `currentPath` refers to a field whose entries are user-
  * typed display-label maps. At that point the object's keys are the label
  * strings, not structural field names, so we relax key scanning to the

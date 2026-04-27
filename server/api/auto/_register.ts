@@ -21,10 +21,17 @@ export async function registerAutoRoutes(app: Express): Promise<void> {
   for (const [name, entry] of entries) {
     if (entry.lazy?.matcher) {
       // Defer both the import and the registrar to first matching request.
-      lazyMount(app, entry.lazy.matcher, async () => {
-        const mod = await entry.load();
-        return mod.default;
-      });
+      // Forward any declared method restriction so the router can enforce
+      // a 405 before the lazy loader is invoked.
+      lazyMount(
+        app,
+        entry.lazy.matcher,
+        async () => {
+          const mod = await entry.load();
+          return mod.default;
+        },
+        entry.lazy.methods ? { methods: entry.lazy.methods } : undefined,
+      );
       continue;
     }
 

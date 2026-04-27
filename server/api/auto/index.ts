@@ -32,7 +32,16 @@ export type AutoRouteEntry = {
    * `lazyMount(app, matcher, ...)` so neither the module's code nor its
    * registrar runs until the first request matching `matcher` arrives.
    */
-  lazy?: { matcher: LazyRouteMatcher };
+  lazy?: {
+    matcher: LazyRouteMatcher;
+    /**
+     * Restrict this lazy mount to specific HTTP methods (upper-case, e.g.
+     * `["GET", "POST"]`). Requests with any other method receive a
+     * `405 Method Not Allowed` before the loader is invoked.
+     * When omitted, all methods are forwarded to the module.
+     */
+    methods?: string[];
+  };
 };
 
 /**

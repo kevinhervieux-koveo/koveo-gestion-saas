@@ -26,6 +26,23 @@ export type LazyRouteMatcher =
   | string[]
   | ((path: string) => boolean);
 
+/**
+ * Optional configuration for a lazy mount.
+ */
+export interface LazyMountOptions {
+  /**
+   * Restrict this mount to a specific set of HTTP methods (upper-case, e.g.
+   * `["GET", "POST"]`). When set, any request whose method is NOT in the list
+   * receives a `405 Method Not Allowed` response with an `Allow` header
+   * — before the lazy loader is invoked. This lets route groups declare their
+   * expected verb surface and have the router enforce it at the boundary,
+   * rather than waiting for the underlying handler to return a 404/405.
+   *
+   * When omitted (default), all HTTP methods are forwarded to the module.
+   */
+  methods?: string[];
+}
+
 function buildMatcher(matcher: LazyRouteMatcher): (path: string) => boolean {
   if (typeof matcher === 'function') return matcher;
   const prefixes = Array.isArray(matcher) ? matcher : [matcher];
@@ -45,16 +62,32 @@ function buildMatcher(matcher: LazyRouteMatcher): (path: string) => boolean {
  * `next(err)` and the next matching request will retry the load. Once the
  * registrar succeeds, `loaded` flips and the trampoline becomes a thin
  * branch that delegates to the underlying router.
+ *
+ * Method enforcement: if `options.methods` is provided, requests with a
+ * method not in the list are rejected with `405 Method Not Allowed` before
+ * the loader is invoked. The `Allow` response header is set to the list so
+ * clients can discover which verbs are accepted.
  */
 export function lazyMount(
   app: Express,
   matcher: LazyRouteMatcher,
   loader: () => Promise<RouteRegistrar>,
+  options?: LazyMountOptions,
 ): void {
   const matches = buildMatcher(matcher);
   const router: Router = express.Router({ mergeParams: true });
   let loaded = false;
   let loading: Promise<void> | null = null;
+
+  // Normalise the allowed method set once at registration time so the hot
+  // path (every matched request) only does a Set lookup instead of
+  // re-building the set on each call.
+  const allowedMethods: ReadonlySet<string> | null = options?.methods
+    ? new Set(options.methods.map((m) => m.toUpperCase()))
+    : null;
+  const allowHeader: string | null = options?.methods
+    ? options.methods.map((m) => m.toUpperCase()).join(', ')
+    : null;
 
   const load = (): Promise<void> => {
     if (loading) return loading;
@@ -76,6 +109,19 @@ export function lazyMount(
 
   app.use((req, res, next) => {
     if (!matches(req.path)) return next();
+
+    // Method enforcement: reject unexpected verbs before touching the loader.
+    if (allowedMethods !== null && !allowedMethods.has(req.method)) {
+      res.setHeader('Allow', allowHeader!);
+      res.status(405).json({
+        error: 'Method Not Allowed',
+        message: `${req.method} is not supported on this endpoint. Allowed: ${allowHeader}.`,
+        code: 'METHOD_NOT_ALLOWED',
+        allowed: Array.from(allowedMethods),
+      });
+      return;
+    }
+
     if (loaded) return router(req, res, next);
     load().then(
       () => router(req, res, next),
