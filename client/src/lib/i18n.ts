@@ -1706,6 +1706,8 @@ export interface Translations {
   myResidence: string;
   myResidences: string;
   noResidenceLinkedYet: string;
+  noResidenceLinkedYetStaff: string;
+  noResidenceLinkedYetStaffLink: string;
   residencesLoadError: string;
   residenceRelationshipOwner: string;
   residenceRelationshipTenant: string;
@@ -5894,6 +5896,8 @@ export const translations: Record<Language, Translations> = {
     myResidence: 'My Residence',
     myResidences: 'My Residences',
     noResidenceLinkedYet: 'No residence linked yet — contact your manager.',
+    noResidenceLinkedYetStaff: 'As a {role}, you manage residences from ',
+    noResidenceLinkedYetStaffLink: 'Manager → Residences',
     residencesLoadError: 'Unable to load your residences. Please try again later.',
     residenceRelationshipOwner: 'Owner',
     residenceRelationshipTenant: 'Tenant',
@@ -10304,6 +10308,8 @@ export const translations: Record<Language, Translations> = {
     myResidence: 'Ma résidence',
     myResidences: 'Mes résidences',
     noResidenceLinkedYet: 'Aucune résidence liée pour l\'instant — contactez votre gestionnaire.',
+    noResidenceLinkedYetStaff: 'En tant que {role}, vous gérez les résidences depuis ',
+    noResidenceLinkedYetStaffLink: 'Gestionnaire → Résidences',
     residencesLoadError: 'Impossible de charger vos résidences. Veuillez réessayer plus tard.',
     residenceRelationshipOwner: 'Propriétaire',
     residenceRelationshipTenant: 'Locataire',

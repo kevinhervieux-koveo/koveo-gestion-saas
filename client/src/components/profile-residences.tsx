@@ -1,9 +1,13 @@
 import { useQuery } from '@tanstack/react-query';
+import { Link } from 'wouter';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
 import { Home, AlertCircle } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/hooks/use-auth';
+import { roleRank } from '@/lib/auth/roleRank';
+import { enumLabels } from '@/lib/i18n/enumLabels';
 import type { UserResidenceProfileRow } from '@shared/schema';
 import { translations } from '@/lib/i18n';
 
@@ -38,12 +42,16 @@ function formatDate(dateStr: string, language: string): string {
 
 export function ProfileResidences() {
   const { t, language } = useLanguage();
+  const { user } = useAuth();
 
   const { data, isLoading, isError } = useQuery<UserResidenceProfileRow[]>({
     queryKey: ['/api/user/residences'],
     refetchInterval: 30_000,
     refetchOnWindowFocus: true,
   });
+
+  const isStaff = !!user?.role && roleRank(user.role) >= roleRank('manager');
+  const roleLabel = user?.role ? enumLabels.role(user.role, language) : '';
 
   return (
     <Card data-testid='profile-residences-card'>
@@ -76,7 +84,21 @@ export function ProfileResidences() {
             className='text-sm text-muted-foreground'
             data-testid='profile-residences-empty'
           >
-            {t('noResidenceLinkedYet')}
+            {isStaff ? (
+              <>
+                {t('noResidenceLinkedYetStaff').replace('{role}', roleLabel)}
+                <Link
+                  href='/manager/residences'
+                  className='underline hover:opacity-80'
+                  data-testid='profile-residences-manager-link'
+                >
+                  {t('noResidenceLinkedYetStaffLink')}
+                </Link>
+                .
+              </>
+            ) : (
+              t('noResidenceLinkedYet')
+            )}
           </p>
         )}
 
