@@ -221,11 +221,11 @@ export function MaintenanceRequestDialog({
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
-                      <SelectItem value='low'>Low</SelectItem>
-                      <SelectItem value='medium'>Medium</SelectItem>
-                      <SelectItem value='high'>High</SelectItem>
-                      <SelectItem value='urgent'>Urgent</SelectItem>
-                      <SelectItem value='emergency'>Emergency</SelectItem>
+                      <SelectItem value='low'>{t('low')}</SelectItem>
+                      <SelectItem value='medium'>{t('medium')}</SelectItem>
+                      <SelectItem value='high'>{t('high')}</SelectItem>
+                      <SelectItem value='urgent'>{t('urgent')}</SelectItem>
+                      <SelectItem value='emergency'>{t('emergency')}</SelectItem>
                     </SelectContent>
                   </Select>
                   <FormMessage />

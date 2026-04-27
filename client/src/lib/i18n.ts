@@ -4360,6 +4360,47 @@ export interface Translations {
   aiUnavailableNoApiKey: string;
   aiUnavailableMisconfigured: string;
   residenceUnitsLoadError: string;
+  // Priority labels (standalone, used in selects and badges)
+  urgent: string;
+  emergency: string;
+  // Document attachment manager strings
+  deleteDocument: string;
+  deleteDocumentConfirm: string;
+  documentDeletedTitle: string;
+  documentUploadedTitle: string;
+  documentUploadedDesc: string;
+  uploadFailed: string;
+  uploadFailedDesc: string;
+  downloadFailed: string;
+  downloadFailedDesc: string;
+  cannotUploadDocumentsTitle: string;
+  assetDocumentationTitle: string;
+  documentFilesCount_one: string;
+  documentFilesCount_other: string;
+  documentAttachedViewDesc: string;
+  documentUploadAfterSaveDesc: string;
+  documentUploadEditDesc: string;
+  failedToLoadDocuments: string;
+  // Maintenance category labels (standalone)
+  maintenanceCategoryOther: string;
+  // DocumentManager UI labels
+  documentsAndFilesTitle: string;
+  uploadButton: string;
+  uploadDocumentsHeading: string;
+  dmTabAll: string;
+  dmTabImages: string;
+  dmTabPdfs: string;
+  dmTabWarranties: string;
+  dmTabSpecs: string;
+  dmTabReports: string;
+  dmNoDocumentsFound: string;
+  dmNoImagesFound: string;
+  dmNoPdfsFound: string;
+  dmNoWarrantiesFound: string;
+  dmNoSpecificationsFound: string;
+  dmNoReportsFound: string;
+  dmUploadFirstDocument: string;
+  dmUploadedBy: string;
 }
 
 /**
@@ -8731,6 +8772,43 @@ export const translations: Record<Language, Translations> = {
     aiUnavailableNoApiKey: 'The AI analyzer is not configured on this deployment. Every document will receive a generic 20% confidence score based on its filename only — no real analysis is performed.',
     aiUnavailableMisconfigured: 'The Anthropic API key is configured but appears to be invalid, or the requested model name is not recognised. Every document will receive a generic 20% confidence score until the deployment settings are corrected.',
     residenceUnitsLoadError: 'Failed to load residences. Refresh and try again.',
+    urgent: 'Urgent',
+    emergency: 'Emergency',
+    deleteDocument: 'Delete Document',
+    deleteDocumentConfirm: 'Are you sure you want to delete "{name}"? This action cannot be undone.',
+    documentDeletedTitle: 'Document deleted',
+    documentUploadedTitle: 'Document uploaded',
+    documentUploadedDesc: 'The document has been uploaded successfully.',
+    uploadFailed: 'Upload failed',
+    uploadFailedDesc: 'Failed to upload document.',
+    downloadFailed: 'Download failed',
+    downloadFailedDesc: 'Failed to download document.',
+    cannotUploadDocumentsTitle: 'Cannot upload documents',
+    assetDocumentationTitle: 'Asset Documentation',
+    documentFilesCount_one: '{count} file',
+    documentFilesCount_other: '{count} files',
+    documentAttachedViewDesc: 'Attached documents for this asset',
+    documentUploadAfterSaveDesc: 'Documents can be uploaded after saving the element.',
+    documentUploadEditDesc: 'Upload pictures and documents to help with identification and condition assessment.',
+    failedToLoadDocuments: 'Failed to load documents.',
+    maintenanceCategoryOther: 'Other',
+    documentsAndFilesTitle: 'Documents & Files',
+    uploadButton: 'Upload',
+    uploadDocumentsHeading: 'Upload Documents',
+    dmTabAll: 'All',
+    dmTabImages: 'Images',
+    dmTabPdfs: 'PDFs',
+    dmTabWarranties: 'Warranties',
+    dmTabSpecs: 'Specs',
+    dmTabReports: 'Reports',
+    dmNoDocumentsFound: 'No documents found',
+    dmNoImagesFound: 'No images found',
+    dmNoPdfsFound: 'No PDFs found',
+    dmNoWarrantiesFound: 'No warranties found',
+    dmNoSpecificationsFound: 'No specifications found',
+    dmNoReportsFound: 'No reports found',
+    dmUploadFirstDocument: 'Upload First Document',
+    dmUploadedBy: 'by {name}',
   },
   fr: {
 
@@ -12630,7 +12708,7 @@ export const translations: Record<Language, Translations> = {
     ubAllCategoriesPlaceholder: 'Toutes les catégories',
     ubAllCategoriesItem: 'Toutes les catégories',
     ubCommonBadge: 'Courant',
-    ubFilteredResultsPrefix: 'Filtré :',
+    ubFilteredResultsPrefix: 'Filtrés :',
     ubFilteredResultsSuffix: 'résultats',
     ubNoMatchingCodes: 'Aucun code ne correspond aux filtres actuels',
     ubNoCodesAvailable: 'Aucun code UNIFORMAT disponible',
@@ -12662,7 +12740,7 @@ export const translations: Record<Language, Translations> = {
     pcBudgetLabel: 'Budget',
     pcBudgetUsedSuffix: ' % utilisé',
     pcElementsLabel: 'Éléments',
-    pcElementsAssignedSuffix: 'assignés',
+    pcElementsAssignedSuffix: 'attribués',
     pcBuildingComponents: 'Composants du bâtiment',
     pcStatusUpdatedTitle: 'Statut mis à jour',
     pcStatusUpdatedDesc: 'Le statut du projet a été mis à jour avec succès.',
@@ -12813,7 +12891,7 @@ export const translations: Record<Language, Translations> = {
     edpLastInspectionLabel: 'Dernière inspection',
     edpLastInspectionNever: 'Jamais',
     edpUrgencyOverdueLabel: 'En retard',
-    edpUrgencyDueSoonLabel: 'Bientôt dû',
+    edpUrgencyDueSoonLabel: 'Échéance proche',
     edpUrgencyScheduledLabel: 'Prévu',
     edpUrgencyNotScheduledLabel: 'Non prévu',
     edpLifespanAnalysisTitle: 'Analyse de la durée de vie',
@@ -12841,7 +12919,7 @@ export const translations: Record<Language, Translations> = {
     iovBuildingConstructionDate: 'Date de construction du bâtiment',
     iovDefaultForNewElements: 'Utilisée par défaut pour les nouveaux éléments sans date de construction explicite.',
     iovTotalElementsTitle: 'Total des éléments',
-    iovBuildingInventoryItems: 'Articles d\'inventaire du bâtiment',
+    iovBuildingInventoryItems: 'Éléments d\'inventaire du bâtiment',
     iovCriticalAlertsTitle: 'Alertes critiques',
     iovPoorOrCriticalCondition: 'État mauvais ou critique',
     iovOverdueEvaluationsTitle: 'Évaluations en retard',
@@ -13107,5 +13185,42 @@ export const translations: Record<Language, Translations> = {
     aiUnavailableNoApiKey: 'L\'analyseur IA n\'est pas configuré sur ce déploiement. Tous les documents recevront un score de confiance générique de 20 % basé uniquement sur le nom du fichier — aucune analyse réelle n\'est effectuée.',
     aiUnavailableMisconfigured: 'La clé API Anthropic est configurée, mais semble invalide, ou le nom du modèle demandé n\'est pas reconnu. Tous les documents recevront un score de confiance générique de 20 % jusqu\'à ce que les paramètres de déploiement soient corrigés.',
     residenceUnitsLoadError: 'Échec du chargement des résidences. Actualisez et réessayez.',
+    urgent: 'Urgent',
+    emergency: 'Urgence',
+    deleteDocument: 'Supprimer le document',
+    deleteDocumentConfirm: 'Voulez-vous vraiment supprimer « {name} »? Cette action est irréversible.',
+    documentDeletedTitle: 'Document supprimé',
+    documentUploadedTitle: 'Document téléversé',
+    documentUploadedDesc: 'Le document a été téléversé avec succès.',
+    uploadFailed: 'Échec du téléversement',
+    uploadFailedDesc: 'Impossible de téléverser le document.',
+    downloadFailed: 'Échec du téléchargement',
+    downloadFailedDesc: 'Impossible de télécharger le document.',
+    cannotUploadDocumentsTitle: 'Téléversement impossible',
+    assetDocumentationTitle: 'Documentation de l\'actif',
+    documentFilesCount_one: '{count} fichier',
+    documentFilesCount_other: '{count} fichiers',
+    documentAttachedViewDesc: 'Documents joints à cet actif',
+    documentUploadAfterSaveDesc: 'Les documents peuvent être téléversés après l\'enregistrement de l\'élément.',
+    documentUploadEditDesc: 'Téléversez des photos et des documents pour faciliter l\'identification et l\'évaluation de l\'état.',
+    failedToLoadDocuments: 'Impossible de charger les documents.',
+    maintenanceCategoryOther: 'Autre',
+    documentsAndFilesTitle: 'Documents et fichiers',
+    uploadButton: 'Téléverser',
+    uploadDocumentsHeading: 'Téléverser des documents',
+    dmTabAll: 'Tous',
+    dmTabImages: 'Images',
+    dmTabPdfs: 'PDF',
+    dmTabWarranties: 'Garanties',
+    dmTabSpecs: 'Spécifications',
+    dmTabReports: 'Rapports',
+    dmNoDocumentsFound: 'Aucun document trouvé',
+    dmNoImagesFound: 'Aucune image trouvée',
+    dmNoPdfsFound: 'Aucun PDF trouvé',
+    dmNoWarrantiesFound: 'Aucune garantie trouvée',
+    dmNoSpecificationsFound: 'Aucune spécification trouvée',
+    dmNoReportsFound: 'Aucun rapport trouvé',
+    dmUploadFirstDocument: 'Téléverser le premier document',
+    dmUploadedBy: 'par {name}',
   }
 };

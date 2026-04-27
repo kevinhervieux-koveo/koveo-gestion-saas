@@ -60,7 +60,7 @@ export function DocumentAttachmentManager({
   onDocumentUploaded,
   onDocumentDeleted,
 }: DocumentAttachmentManagerProps) {
-  const { t } = useLanguage();
+  const { t, tp } = useLanguage();
   const { toast } = useToast();
   const [showUploader, setShowUploader] = useState(false);
 
@@ -103,14 +103,14 @@ export function DocumentAttachmentManager({
       }
       onDocumentDeleted?.(documentId);
       toast({
-        title: 'Document deleted',
-        description: 'The document has been removed successfully',
+        title: t('documentDeletedTitle'),
+        description: t('documentDeletedSuccessfully'),
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Delete failed',
-        description: error.message || 'Failed to delete document',
+        title: t('failedToDelete'),
+        description: error.message || t('failedToDeleteDocument'),
         variant: 'destructive',
       });
     },
@@ -149,7 +149,7 @@ export function DocumentAttachmentManager({
       if (response?.data) {
         onDocumentUploaded?.({
           id: response.data.id || `doc-${Date.now()}`,
-          name: response.data.fileName || response.data.name || 'Unknown',
+          name: response.data.fileName || response.data.name || t('unknown'),
           type: response.data.mimeType || response.data.type || 'application/octet-stream',
           size: response.data.fileSize || response.data.size || 0,
           url: `/api/maintenance/documents/${response.data.id}`,
@@ -160,14 +160,14 @@ export function DocumentAttachmentManager({
       
       setShowUploader(false);
       toast({
-        title: 'Document uploaded',
-        description: 'The document has been uploaded successfully',
+        title: t('documentUploadedTitle'),
+        description: t('documentUploadedDesc'),
       });
     },
     onError: (error: any) => {
       toast({
-        title: 'Upload failed',
-        description: error.message || 'Failed to upload document',
+        title: t('uploadFailed'),
+        description: error.message || t('uploadFailedDesc'),
         variant: 'destructive',
       });
     },
@@ -178,8 +178,8 @@ export function DocumentAttachmentManager({
     if (files.length > 0 && !uploadMutation.isPending) {
       if (!element?.id) {
         toast({
-          title: 'Cannot upload documents',
-          description: 'Please save the element first before uploading documents.',
+          title: t('cannotUploadDocumentsTitle'),
+          description: t('saveTheElementToEnableDocument'),
           variant: 'destructive',
         });
         return;
@@ -235,12 +235,12 @@ export function DocumentAttachmentManager({
     } catch (error) {
       console.error('[DOWNLOAD] File download failed:', error);
       toast({
-        title: 'Download failed',
-        description: 'Failed to download document',
+        title: t('downloadFailed'),
+        description: t('downloadFailedDesc'),
         variant: 'destructive',
       });
     }
-  }, [toast]);
+  }, [toast, t]);
 
   // Render document item
   const renderDocumentItem = useCallback((doc: DocumentFile) => {
@@ -300,19 +300,19 @@ export function DocumentAttachmentManager({
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                  <AlertDialogTitle>{t('deleteDocument')}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    {t('areYouSureYouWantTo2')}{doc.name}{t('thisActionCannotBeUndone')}
+                    {t('deleteDocumentConfirm', { name: doc.name })}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => deleteMutation.mutate(doc.id)}
                     disabled={deleteMutation.isPending}
                     className="bg-red-600 hover:bg-red-700"
                   >
-                    {deleteMutation.isPending ? 'Deleting...' : 'Delete'}
+                    {deleteMutation.isPending ? t('deleting') : t('delete')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -351,10 +351,10 @@ export function DocumentAttachmentManager({
       <div className="flex items-center justify-between">
         <h4 className="text-sm font-medium flex items-center gap-2">
           <Paperclip className="h-4 w-4" />
-          Asset Documentation
+          {t('assetDocumentationTitle')}
           {documents.length > 0 && (
             <Badge variant="secondary" data-testid="badge-document-count">
-              {documents.length} file{documents.length !== 1 ? 's' : ''}
+              {tp('documentFilesCount', documents.length, { count: documents.length })}
             </Badge>
           )}
         </h4>
@@ -369,17 +369,17 @@ export function DocumentAttachmentManager({
             data-testid="button-add-document"
           >
             <Plus className="h-4 w-4 mr-2" />
-            Add Document
+            {t('addDocument')}
           </Button>
         )}
       </div>
 
       <p className="text-sm text-muted-foreground">
-        {mode === 'view' 
-          ? 'Attached documents for this asset'
+        {mode === 'view'
+          ? t('documentAttachedViewDesc')
           : mode === 'create'
-            ? 'Documents can be uploaded after saving the element'
-            : 'Upload pictures and documents to help with identification and condition assessment'
+            ? t('documentUploadAfterSaveDesc')
+            : t('documentUploadEditDesc')
         }
       </p>
 
@@ -395,7 +395,7 @@ export function DocumentAttachmentManager({
         <div className="space-y-2">
           {mode === 'edit' && documents.length > 0 && (
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Add New Document</span>
+              <span className="text-sm font-medium">{t('addNewDocument')}</span>
               <Button
                 type="button"
                 variant="ghost"
@@ -403,7 +403,7 @@ export function DocumentAttachmentManager({
                 onClick={() => setShowUploader(false)}
                 data-testid="button-cancel-upload"
               >
-                Cancel
+                {t('cancel')}
               </Button>
             </div>
           )}
@@ -446,13 +446,13 @@ export function DocumentAttachmentManager({
       {mode === 'edit' && documents.length === 0 && !shouldShowUploadInterface && (
         <div className="text-center py-8 text-muted-foreground">
           <FileText className="h-8 w-8 mx-auto mb-2 opacity-50" />
-          <p className="text-sm">No documents attached</p>
+          <p className="text-sm">{t('noDocumentsAttached')}</p>
         </div>
       )}
 
       {error && (
         <div className="text-center py-4 text-red-500">
-          <p className="text-sm">Failed to load documents</p>
+          <p className="text-sm">{t('failedToLoadDocuments')}</p>
         </div>
       )}
     </div>

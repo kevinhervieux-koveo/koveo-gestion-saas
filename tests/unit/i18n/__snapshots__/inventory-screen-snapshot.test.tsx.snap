@@ -1,9 +1,200 @@
 // Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
 
-exports[`Inventory screen translations — snapshot matches English DocumentManager document count strings snapshot 1`] = `
+exports[`Inventory screen translations — snapshot matches English DocumentManager strings snapshot 1`] = `
 {
-  "one": "{count} document for {name}",
-  "other": "{count} documents for {name}",
+  "assetDocumentationTitle": "Asset Documentation",
+  "deleteDocument": "Delete Document",
+  "dmNoDocumentsFound": "No documents found",
+  "dmTabAll": "All",
+  "dmTabImages": "Images",
+  "dmTabPdfs": "PDFs",
+  "dmTabReports": "Reports",
+  "dmTabSpecs": "Specs",
+  "dmTabWarranties": "Warranties",
+  "dmUploadFirstDocument": "Upload First Document",
+  "docManagerDocumentCount_one": "{count} document for {name}",
+  "docManagerDocumentCount_other": "{count} documents for {name}",
+  "documentDeletedTitle": "Document deleted",
+  "documentUploadedDesc": "The document has been uploaded successfully.",
+  "documentUploadedTitle": "Document uploaded",
+  "documentsAndFilesTitle": "Documents & Files",
+  "downloadFailed": "Download failed",
+  "uploadButton": "Upload",
+  "uploadDocumentsHeading": "Upload Documents",
+  "uploadFailed": "Upload failed",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches English ElementCard strings snapshot 1`] = `
+{
+  "emcActivityLabel": "Activity",
+  "emcAgeLifespanLabel": "Age / Lifespan",
+  "emcBuiltLabel": "Built",
+  "emcConstructionLabel": "Construction",
+  "emcCostPerYearAvgSuffix": "/year avg",
+  "emcDocumentsSuffix": "documents",
+  "emcDueSoonBadge": "Due Soon",
+  "emcEditButton": "Edit",
+  "emcEditElementLabel": "Edit element",
+  "emcEntriesSuffix": "entries",
+  "emcExpectedLifespanSuffix": "of expected lifespan",
+  "emcLastInspectionLabel": "Last Inspection",
+  "emcLifespanProgressSuffix": "% of expected lifespan",
+  "emcNever": "Never",
+  "emcNextEvaluationLabel": "Next Evaluation",
+  "emcOverdueBadge": "Overdue",
+  "emcPhotoAltSuffix": "photo",
+  "emcScheduledBadge": "Scheduled",
+  "emcTimelineButton": "Timeline",
+  "emcTotalCostLabel": "Total Cost",
+  "emcUnknown": "Unknown",
+  "emcYearsSuffix": "years",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches English ElementDetailsPanel strings snapshot 1`] = `
+{
+  "edpAgeProgressLabel": "Age vs. Expected Lifespan",
+  "edpAgingMonitor": "Aging - monitor closely",
+  "edpConstructionDateLabel": "Construction Date",
+  "edpCurrentConditionLabel": "Current Condition",
+  "edpCurrentLifespanLabel": "Current Lifespan",
+  "edpDeleteAction": "Delete",
+  "edpDeleteDialogConfirmCancel": "Cancel",
+  "edpDeleteDialogTitle": "Delete this element?",
+  "edpDeletingProgress": "Deleting...",
+  "edpDocumentsTab": "Documents",
+  "edpEditAction": "Edit",
+  "edpElementDeletedToastDesc": "The element has been removed.",
+  "edpElementDeletedToastTitle": "Element deleted",
+  "edpGoodRemaining": "Good remaining lifespan",
+  "edpLastInspectionLabel": "Last Inspection",
+  "edpLastInspectionNever": "Never",
+  "edpLifespanAnalysisTitle": "Lifespan Analysis",
+  "edpNearingEndLifespan": "Nearing end of expected lifespan",
+  "edpNextEvaluationLabel": "Next Evaluation",
+  "edpNoDocumentsUploaded": "No documents uploaded yet.",
+  "edpNoRelatedProjects": "No related projects.",
+  "edpOriginalLifespanLabel": "Original Lifespan",
+  "edpOverviewTab": "Overview",
+  "edpProjectNumberPrefix": "Project",
+  "edpProjectsTab": "Projects",
+  "edpScheduleAction": "Schedule Evaluation",
+  "edpStatusEvaluationTitle": "Status & Evaluation",
+  "edpUploadFilesAction": "Upload Files",
+  "edpUrgencyDueSoonLabel": "Due Soon",
+  "edpUrgencyNotScheduledLabel": "Not scheduled",
+  "edpUrgencyOverdueLabel": "Overdue",
+  "edpUrgencyScheduledLabel": "Scheduled",
+  "edpYearsSuffix": "years",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches English ElementHistoryForm strings snapshot 1`] = `
+{
+  "ehfAddMaintenanceHistoryTitle": "Add Maintenance History",
+  "ehfAdditionalNotesLabel": "Additional Notes",
+  "ehfAutoCalculate": "Auto-calculate",
+  "ehfCancel": "Cancel",
+  "ehfCostLabel": "Cost",
+  "ehfCreate": "Create",
+  "ehfEditMaintenanceHistoryTitle": "Edit Maintenance History",
+  "ehfEventDateLabel": "Event Date",
+  "ehfEventTypeLabel": "Event Type",
+  "ehfEventTypeMajorRehab": "Major Rehabilitation",
+  "ehfEventTypeMinorRehab": "Minor Rehabilitation",
+  "ehfEventTypeOriginalConstruction": "Original Construction",
+  "ehfEventTypePlaceholder": "Select event type",
+  "ehfEventTypeRepair": "Repair",
+  "ehfEventTypeReplacement": "Replacement",
+  "ehfLifespanExtensionLabel": "Lifespan Extension (years)",
+  "ehfLifespanImpactHeading": "Lifespan Impact",
+  "ehfNoVendorInternalWork": "No vendor (Internal work)",
+  "ehfSaveChanges": "Save Changes",
+  "ehfVendorInformationHeading": "Vendor Information",
+  "ehfVendorLabel": "Vendor",
+  "ehfVendorSelectPlaceholder": "Select vendor",
+  "ehfWarrantyDurationLabel": "Warranty Duration (months)",
+  "ehfWarrantyInformationHeading": "Warranty Information",
+  "ehfWarrantyTermsLabel": "Warranty Terms",
+  "ehfWorkDescriptionLabel": "Work Description",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches English ElementTable strings snapshot 1`] = `
+{
+  "etBulkEditButton": "Bulk Actions",
+  "etElementDeletedDesc": "The element has been removed from the inventory.",
+  "etElementDeletedTitle": "Element deleted",
+  "etElementsDeletedDescPrefix": "Successfully deleted",
+  "etElementsDeletedDescSuffix": "element(s).",
+  "etElementsDeletedTitle": "Elements deleted",
+  "etElementsSelectedSuffix": "element(s) selected",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches English HistoryTable strings snapshot 1`] = `
+{
+  "htEditEntry": "Edit Entry",
+  "htWarrantyColumn": "Warranty",
+  "htWarrantyNoneLabel": "None",
+  "htWarrantyUntilPrefix": "Until",
+  "htWarrantyYearSuffix": "year",
+  "htWarrantyYearsSuffix": "years",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches English ProjectCard strings snapshot 1`] = `
+{
+  "pcAddNotes": "Add Notes",
+  "pcBudgetLabel": "Budget",
+  "pcBudgetUsedSuffix": "% used",
+  "pcBuildingComponents": "Building components",
+  "pcCompleteWork": "Complete Work",
+  "pcCriticalPriorityBadge": "Critical Priority",
+  "pcDaysOverdueSuffix": "days overdue",
+  "pcDaysRemainingSuffix": "days remaining",
+  "pcEditProject": "Edit Project",
+  "pcElementsAssignedSuffix": "assigned",
+  "pcElementsLabel": "Elements",
+  "pcEndDateLabel": "End Date",
+  "pcOpenMenu": "Open menu",
+  "pcOverBudgetBadge": "Over Budget",
+  "pcOverdueBadge": "Overdue",
+  "pcProgressLabel": "Progress",
+  "pcQuickActionsLabel": "Quick Actions",
+  "pcStartDateLabel": "Start Date",
+  "pcStartWork": "Start Work",
+  "pcStatusUpdatedDesc": "Project status has been updated successfully.",
+  "pcStatusUpdatedTitle": "Status Updated",
+  "pcTypeEvaluation": "Evaluation",
+  "pcTypeMajorRehab": "Major Rehab",
+  "pcTypeMinorRehab": "Minor Rehab",
+  "pcTypeRepair": "Repair",
+  "pcTypeReplacement": "Replacement",
+  "pcUpdateFailedDesc": "Failed to update project status. Please try again.",
+  "pcUpdateFailedTitle": "Update Failed",
+  "pcUpdatedPrefix": "Updated",
+  "pcViewTimeline": "View Timeline",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches English UniformatBrowser strings snapshot 1`] = `
+{
+  "ubAllCategoriesItem": "All categories",
+  "ubAllCategoriesPlaceholder": "All categories",
+  "ubAllLevelsItem": "All levels",
+  "ubAllLevelsPlaceholder": "All levels",
+  "ubCatalogTitle": "UNIFORMAT II Catalog",
+  "ubCommonBadge": "Common",
+  "ubCommonButton": "Common",
+  "ubFilteredResultsPrefix": "Filtered:",
+  "ubFilteredResultsSuffix": "results",
+  "ubLevelLabel": "Level",
+  "ubNoCodesAvailable": "No UNIFORMAT codes available",
+  "ubNoMatchingCodes": "No codes match your current filters",
+  "ubSearchPlaceholder": "Search codes, names, or descriptions...",
+  "ubYearsSuffix": "years",
 }
 `;
 
@@ -43,15 +234,208 @@ exports[`Inventory screen translations — snapshot matches English inventory ov
   "inventoryManagementTitle": "Inventory Management",
   "iovBuildingInventoryItems": "Building inventory items",
   "iovHeaderTitle": "Inventory Overview",
+  "iovMostCommonCategoryLabel": "Most Common Category",
+  "iovYearsSuffix": "years",
   "selectBuildingInventoryMessage": "Please select an organization and building to view its maintenance inventory.",
   "startBuildingYourInventoryByAdding": "Start building your inventory by adding building elements.",
 }
 `;
 
-exports[`Inventory screen translations — snapshot matches French DocumentManager document count strings snapshot 1`] = `
+exports[`Inventory screen translations — snapshot matches French DocumentManager strings snapshot 1`] = `
 {
-  "one": "{count} document pour {name}",
-  "other": "{count} documents pour {name}",
+  "assetDocumentationTitle": "Documentation de l'actif",
+  "deleteDocument": "Supprimer le document",
+  "dmNoDocumentsFound": "Aucun document trouvé",
+  "dmTabAll": "Tous",
+  "dmTabImages": "Images",
+  "dmTabPdfs": "PDF",
+  "dmTabReports": "Rapports",
+  "dmTabSpecs": "Spécifications",
+  "dmTabWarranties": "Garanties",
+  "dmUploadFirstDocument": "Téléverser le premier document",
+  "docManagerDocumentCount_one": "{count} document pour {name}",
+  "docManagerDocumentCount_other": "{count} documents pour {name}",
+  "documentDeletedTitle": "Document supprimé",
+  "documentUploadedDesc": "Le document a été téléversé avec succès.",
+  "documentUploadedTitle": "Document téléversé",
+  "documentsAndFilesTitle": "Documents et fichiers",
+  "downloadFailed": "Échec du téléchargement",
+  "uploadButton": "Téléverser",
+  "uploadDocumentsHeading": "Téléverser des documents",
+  "uploadFailed": "Échec du téléversement",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches French ElementCard strings snapshot 1`] = `
+{
+  "emcActivityLabel": "Activité",
+  "emcAgeLifespanLabel": "Âge / Durée de vie",
+  "emcBuiltLabel": "Construit",
+  "emcConstructionLabel": "Construction",
+  "emcCostPerYearAvgSuffix": "/année (moy.)",
+  "emcDocumentsSuffix": "documents",
+  "emcDueSoonBadge": "Bientôt dû",
+  "emcEditButton": "Modifier",
+  "emcEditElementLabel": "Modifier l'élément",
+  "emcEntriesSuffix": "entrées",
+  "emcExpectedLifespanSuffix": "de la durée de vie prévue",
+  "emcLastInspectionLabel": "Dernière inspection",
+  "emcLifespanProgressSuffix": " % de la durée de vie prévue",
+  "emcNever": "Jamais",
+  "emcNextEvaluationLabel": "Prochaine évaluation",
+  "emcOverdueBadge": "En retard",
+  "emcPhotoAltSuffix": "photo",
+  "emcScheduledBadge": "Prévu",
+  "emcTimelineButton": "Échéancier",
+  "emcTotalCostLabel": "Coût total",
+  "emcUnknown": "Inconnu",
+  "emcYearsSuffix": "ans",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches French ElementDetailsPanel strings snapshot 1`] = `
+{
+  "edpAgeProgressLabel": "Âge vs durée de vie prévue",
+  "edpAgingMonitor": "Vieillissant — surveiller de près",
+  "edpConstructionDateLabel": "Date de construction",
+  "edpCurrentConditionLabel": "État actuel",
+  "edpCurrentLifespanLabel": "Durée de vie actuelle",
+  "edpDeleteAction": "Supprimer",
+  "edpDeleteDialogConfirmCancel": "Annuler",
+  "edpDeleteDialogTitle": "Supprimer cet élément?",
+  "edpDeletingProgress": "Suppression...",
+  "edpDocumentsTab": "Documents",
+  "edpEditAction": "Modifier",
+  "edpElementDeletedToastDesc": "L'élément a été retiré.",
+  "edpElementDeletedToastTitle": "Élément supprimé",
+  "edpGoodRemaining": "Bonne durée de vie restante",
+  "edpLastInspectionLabel": "Dernière inspection",
+  "edpLastInspectionNever": "Jamais",
+  "edpLifespanAnalysisTitle": "Analyse de la durée de vie",
+  "edpNearingEndLifespan": "Approche de la fin de la durée de vie prévue",
+  "edpNextEvaluationLabel": "Prochaine évaluation",
+  "edpNoDocumentsUploaded": "Aucun document téléversé pour le moment.",
+  "edpNoRelatedProjects": "Aucun projet associé.",
+  "edpOriginalLifespanLabel": "Durée de vie d'origine",
+  "edpOverviewTab": "Aperçu",
+  "edpProjectNumberPrefix": "Projet",
+  "edpProjectsTab": "Projets",
+  "edpScheduleAction": "Planifier l'évaluation",
+  "edpStatusEvaluationTitle": "Statut et évaluation",
+  "edpUploadFilesAction": "Téléverser des fichiers",
+  "edpUrgencyDueSoonLabel": "Échéance proche",
+  "edpUrgencyNotScheduledLabel": "Non prévu",
+  "edpUrgencyOverdueLabel": "En retard",
+  "edpUrgencyScheduledLabel": "Prévu",
+  "edpYearsSuffix": "ans",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches French ElementHistoryForm strings snapshot 1`] = `
+{
+  "ehfAddMaintenanceHistoryTitle": "Ajouter un historique d'entretien",
+  "ehfAdditionalNotesLabel": "Notes supplémentaires",
+  "ehfAutoCalculate": "Calcul automatique",
+  "ehfCancel": "Annuler",
+  "ehfCostLabel": "Coût",
+  "ehfCreate": "Créer",
+  "ehfEditMaintenanceHistoryTitle": "Modifier l'historique d'entretien",
+  "ehfEventDateLabel": "Date de l'événement",
+  "ehfEventTypeLabel": "Type d'événement",
+  "ehfEventTypeMajorRehab": "Réhabilitation majeure",
+  "ehfEventTypeMinorRehab": "Réhabilitation mineure",
+  "ehfEventTypeOriginalConstruction": "Construction d'origine",
+  "ehfEventTypePlaceholder": "Sélectionner un type d'événement",
+  "ehfEventTypeRepair": "Réparation",
+  "ehfEventTypeReplacement": "Remplacement",
+  "ehfLifespanExtensionLabel": "Prolongation de la durée de vie (années)",
+  "ehfLifespanImpactHeading": "Impact sur la durée de vie",
+  "ehfNoVendorInternalWork": "Aucun fournisseur (travaux internes)",
+  "ehfSaveChanges": "Enregistrer les modifications",
+  "ehfVendorInformationHeading": "Renseignements sur le fournisseur",
+  "ehfVendorLabel": "Fournisseur",
+  "ehfVendorSelectPlaceholder": "Sélectionner un fournisseur",
+  "ehfWarrantyDurationLabel": "Durée de la garantie (mois)",
+  "ehfWarrantyInformationHeading": "Renseignements sur la garantie",
+  "ehfWarrantyTermsLabel": "Conditions de la garantie",
+  "ehfWorkDescriptionLabel": "Description des travaux",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches French ElementTable strings snapshot 1`] = `
+{
+  "etBulkEditButton": "Actions groupées",
+  "etElementDeletedDesc": "L'élément a été retiré de l'inventaire.",
+  "etElementDeletedTitle": "Élément supprimé",
+  "etElementsDeletedDescPrefix": "Suppression réussie de",
+  "etElementsDeletedDescSuffix": "élément(s).",
+  "etElementsDeletedTitle": "Éléments supprimés",
+  "etElementsSelectedSuffix": "élément(s) sélectionné(s)",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches French HistoryTable strings snapshot 1`] = `
+{
+  "htEditEntry": "Modifier l'entrée",
+  "htWarrantyColumn": "Garantie",
+  "htWarrantyNoneLabel": "Aucune",
+  "htWarrantyUntilPrefix": "Jusqu'au",
+  "htWarrantyYearSuffix": "année",
+  "htWarrantyYearsSuffix": "années",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches French ProjectCard strings snapshot 1`] = `
+{
+  "pcAddNotes": "Ajouter des notes",
+  "pcBudgetLabel": "Budget",
+  "pcBudgetUsedSuffix": " % utilisé",
+  "pcBuildingComponents": "Composants du bâtiment",
+  "pcCompleteWork": "Terminer les travaux",
+  "pcCriticalPriorityBadge": "Priorité critique",
+  "pcDaysOverdueSuffix": "jours de retard",
+  "pcDaysRemainingSuffix": "jours restants",
+  "pcEditProject": "Modifier le projet",
+  "pcElementsAssignedSuffix": "attribués",
+  "pcElementsLabel": "Éléments",
+  "pcEndDateLabel": "Date de fin",
+  "pcOpenMenu": "Ouvrir le menu",
+  "pcOverBudgetBadge": "Dépassement du budget",
+  "pcOverdueBadge": "En retard",
+  "pcProgressLabel": "Progression",
+  "pcQuickActionsLabel": "Actions rapides",
+  "pcStartDateLabel": "Date de début",
+  "pcStartWork": "Démarrer les travaux",
+  "pcStatusUpdatedDesc": "Le statut du projet a été mis à jour avec succès.",
+  "pcStatusUpdatedTitle": "Statut mis à jour",
+  "pcTypeEvaluation": "Évaluation",
+  "pcTypeMajorRehab": "Réhab. majeure",
+  "pcTypeMinorRehab": "Réhab. mineure",
+  "pcTypeRepair": "Réparation",
+  "pcTypeReplacement": "Remplacement",
+  "pcUpdateFailedDesc": "Échec de la mise à jour du statut du projet. Veuillez réessayer.",
+  "pcUpdateFailedTitle": "Échec de la mise à jour",
+  "pcUpdatedPrefix": "Mis à jour le",
+  "pcViewTimeline": "Voir l'échéancier",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches French UniformatBrowser strings snapshot 1`] = `
+{
+  "ubAllCategoriesItem": "Toutes les catégories",
+  "ubAllCategoriesPlaceholder": "Toutes les catégories",
+  "ubAllLevelsItem": "Tous les niveaux",
+  "ubAllLevelsPlaceholder": "Tous les niveaux",
+  "ubCatalogTitle": "Catalogue UNIFORMAT II",
+  "ubCommonBadge": "Courant",
+  "ubCommonButton": "Courants",
+  "ubFilteredResultsPrefix": "Filtrés :",
+  "ubFilteredResultsSuffix": "résultats",
+  "ubLevelLabel": "Niveau",
+  "ubNoCodesAvailable": "Aucun code UNIFORMAT disponible",
+  "ubNoMatchingCodes": "Aucun code ne correspond aux filtres actuels",
+  "ubSearchPlaceholder": "Rechercher des codes, noms ou descriptions...",
+  "ubYearsSuffix": "ans",
 }
 `;
 
@@ -89,8 +473,10 @@ exports[`Inventory screen translations — snapshot matches French inventory ove
 {
   "inventoryManagementSubtitle": "Gérez les éléments du bâtiment, les dossiers d'entretien et la documentation des actifs dans votre portefeuille immobilier.",
   "inventoryManagementTitle": "Gestion de l'inventaire",
-  "iovBuildingInventoryItems": "Articles d'inventaire du bâtiment",
+  "iovBuildingInventoryItems": "Éléments d'inventaire du bâtiment",
   "iovHeaderTitle": "Aperçu de l'inventaire",
+  "iovMostCommonCategoryLabel": "Catégorie la plus courante",
+  "iovYearsSuffix": "ans",
   "selectBuildingInventoryMessage": "Veuillez sélectionner une organisation et un bâtiment pour voir son inventaire de maintenance.",
   "startBuildingYourInventoryByAdding": "Commencez à constituer votre inventaire en ajoutant des éléments d'immeuble.",
 }

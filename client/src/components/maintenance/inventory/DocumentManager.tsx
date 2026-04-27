@@ -103,10 +103,10 @@ export function DocumentManager({
       const response = await apiRequest('DELETE', `/api/maintenance/elements/${element.id}/documents/${documentId}`);
       return await response.json();
     },
-    successTitle: 'Document deleted',
-    successMessage: 'The document has been removed successfully',
-    errorTitle: 'Delete failed',
-    errorMessage: (error: any) => error?.message || 'Failed to delete document',
+    successTitle: t('documentDeletedTitle'),
+    successMessage: t('documentDeletedSuccessfully'),
+    errorTitle: t('failedToDelete'),
+    errorMessage: (error: any) => error?.message || t('failedToDeleteDocument'),
     queryKeysToInvalidate: [['/api/maintenance/elements', element.id, 'documents']],
   });
 
@@ -292,18 +292,18 @@ export function DocumentManager({
                   </AlertDialogTrigger>
                   <AlertDialogContent>
                     <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                      <AlertDialogTitle>{t('deleteDocument')}</AlertDialogTitle>
                       <AlertDialogDescription>
-                        {t('areYouSureYouWantTo2')}{doc.name}{t('thisActionCannotBeUndone')}
+                        {t('deleteDocumentConfirm', { name: doc.name })}
                       </AlertDialogDescription>
                     </AlertDialogHeader>
                     <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
                       <AlertDialogAction
                         onClick={() => handleDeleteDocument(doc.id)}
                         className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                       >
-                        Delete
+                        {t('delete')}
                       </AlertDialogAction>
                     </AlertDialogFooter>
                   </AlertDialogContent>
@@ -314,7 +314,7 @@ export function DocumentManager({
         </CardContent>
       </Card>
     );
-  }, [getFileIcon, getCategoryBadgeVariant, formatFileSize, canManageDocuments, deleteMutation]);
+  }, [getFileIcon, getCategoryBadgeVariant, formatFileSize, canManageDocuments, deleteMutation, t]);
 
   // Render document list item
   const renderDocumentListItem = useCallback((doc: DocumentFile) => {
@@ -341,7 +341,7 @@ export function DocumentManager({
           <div className="flex items-center gap-4 text-xs text-muted-foreground">
             <span>{formatFileSize(doc.size)}</span>
             <span>{format(new Date(doc.uploadedAt), 'MMM d, yyyy')}</span>
-            {doc.uploadedBy && <span>by {doc.uploadedBy}</span>}
+            {doc.uploadedBy && <span>{t('dmUploadedBy', { name: doc.uploadedBy })}</span>}
           </div>
           
           {doc.description && (
@@ -386,18 +386,18 @@ export function DocumentManager({
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Document</AlertDialogTitle>
+                  <AlertDialogTitle>{t('deleteDocument')}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    {t('areYouSureYouWantTo2')}{doc.name}{t('thisActionCannotBeUndone')}
+                    {t('deleteDocumentConfirm', { name: doc.name })}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t('cancel')}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={() => handleDeleteDocument(doc.id)}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    Delete
+                    {t('delete')}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>
@@ -406,16 +406,16 @@ export function DocumentManager({
         </div>
       </div>
     );
-  }, [getFileIcon, getCategoryBadgeVariant, formatFileSize, canManageDocuments, deleteMutation]);
+  }, [getFileIcon, getCategoryBadgeVariant, formatFileSize, canManageDocuments, deleteMutation, t]);
 
   if (error) {
     return (
       <Card className={className}>
         <CardContent className="p-8 text-center">
           <AlertTriangle className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-          <h3 className="text-lg font-semibold mb-2">Failed to load documents</h3>
+          <h3 className="text-lg font-semibold mb-2">{t('failedToLoadDocuments')}</h3>
           <p className="text-muted-foreground">
-            {error instanceof Error ? error.message : 'An error occurred while loading documents'}
+            {error instanceof Error ? error.message : t('failedToLoadDocuments')}
           </p>
         </CardContent>
       </Card>
@@ -427,7 +427,7 @@ export function DocumentManager({
       <CardHeader className="space-y-4">
         <div className="flex items-center justify-between">
           <CardTitle className="text-lg">
-            Documents & Files
+            {t('documentsAndFilesTitle')}
           </CardTitle>
           
           <div className="flex items-center gap-2">
@@ -456,7 +456,7 @@ export function DocumentManager({
                 data-testid="upload-documents-button"
               >
                 <Plus className="h-4 w-4 mr-2" />
-                Upload
+                {t('uploadButton')}
               </Button>
             )}
           </div>
@@ -472,7 +472,7 @@ export function DocumentManager({
         {showUploadDialog && (
           <div className="border rounded-lg p-4 bg-muted/30">
             <div className="flex items-center justify-between mb-4">
-              <h4 className="font-medium">Upload Documents</h4>
+              <h4 className="font-medium">{t('uploadDocumentsHeading')}</h4>
               <Button
                 variant="ghost"
                 size="sm"
@@ -505,27 +505,27 @@ export function DocumentManager({
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-6">
             <TabsTrigger value="all" className="text-xs">
-              All ({categorizedDocuments.all.length})
+              {t('dmTabAll')} ({categorizedDocuments.all.length})
             </TabsTrigger>
             <TabsTrigger value="images" className="text-xs">
               <Image className="h-3 w-3 mr-1" />
-              Images ({categorizedDocuments.images.length})
+              {t('dmTabImages')} ({categorizedDocuments.images.length})
             </TabsTrigger>
             <TabsTrigger value="pdfs" className="text-xs">
               <FileText className="h-3 w-3 mr-1" />
-              PDFs ({categorizedDocuments.pdfs.length})
+              {t('dmTabPdfs')} ({categorizedDocuments.pdfs.length})
             </TabsTrigger>
             <TabsTrigger value="warranties" className="text-xs">
               <Shield className="h-3 w-3 mr-1" />
-              Warranties ({categorizedDocuments.warranties.length})
+              {t('dmTabWarranties')} ({categorizedDocuments.warranties.length})
             </TabsTrigger>
             <TabsTrigger value="specifications" className="text-xs">
               <FileCheck className="h-3 w-3 mr-1" />
-              Specs ({categorizedDocuments.specifications.length})
+              {t('dmTabSpecs')} ({categorizedDocuments.specifications.length})
             </TabsTrigger>
             <TabsTrigger value="reports" className="text-xs">
               <FileText className="h-3 w-3 mr-1" />
-              Reports ({categorizedDocuments.reports.length})
+              {t('dmTabReports')} ({categorizedDocuments.reports.length})
             </TabsTrigger>
           </TabsList>
 
@@ -563,7 +563,12 @@ export function DocumentManager({
                 <div className="text-center py-8" data-testid={`no-documents-${category}`}>
                   <FileIcon className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
                   <p className="text-sm text-muted-foreground">
-                    No {category === 'all' ? 'documents' : category === 'images' ? 'images' : category === 'pdfs' ? 'PDFs' : category} found
+                    {category === 'all' ? t('dmNoDocumentsFound')
+                      : category === 'images' ? t('dmNoImagesFound')
+                      : category === 'pdfs' ? t('dmNoPdfsFound')
+                      : category === 'warranties' ? t('dmNoWarrantiesFound')
+                      : category === 'specifications' ? t('dmNoSpecificationsFound')
+                      : t('dmNoReportsFound')}
                   </p>
                   {showUpload && canManageDocuments && (
                     <Button
@@ -572,7 +577,7 @@ export function DocumentManager({
                       onClick={() => setShowUploadDialog(true)}
                     >
                       <Upload className="h-4 w-4 mr-2" />
-                      Upload First Document
+                      {t('dmUploadFirstDocument')}
                     </Button>
                   )}
                 </div>

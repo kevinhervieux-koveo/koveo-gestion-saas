@@ -171,6 +171,7 @@ Six more files were cleaned up in task #1482 (see section above).
 - `server/api/demo-management.ts` — **HIGH**: admin-only demo data management
 - `server/api/ai-document-analysis.ts` — **MEDIUM**: AI integration
 - `server/api/ai-monitoring.ts` — **MEDIUM**: AI monitoring
+- `server/api/communication.ts` — **MEDIUM**: messaging/communication routes (task #769)
 - `server/api/optimized-documents.ts` — **MEDIUM**: document optimizations
 - `server/controllers/index.ts` — **HIGH**: re-exports controllers that don't exist on disk (dead stubs); suppression hides the missing-module errors
 - `server/db/queries/bills-queries.ts` — **HIGH**: financial DB queries
