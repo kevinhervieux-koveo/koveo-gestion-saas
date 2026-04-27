@@ -1,4 +1,3 @@
-// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 /**
  * Secure Error Handling Middleware
  * Prevents information leakage through error messages
@@ -138,22 +137,25 @@ export function secureErrorHandler(error: any, req: Request, res: Response, next
   // blocks used. Honor that contract so frontend behavior is unchanged.
   if (routeErrorMessage) {
     if (error instanceof ZodError || error.name === 'ZodError') {
-      return res.status(statusCode).json({
+      res.status(statusCode).json({
         message: 'Validation failed',
         errors: Array.isArray(error.errors) ? error.errors : undefined,
       });
+      return;
     }
     if (statusCode !== 500) {
-      return res.status(statusCode).json({
+      res.status(statusCode).json({
         message: error.message || routeErrorMessage,
       });
+      return;
     }
     // Only merge extra static label fields on the 500 path — they describe
     // unexpected server errors and shouldn't leak onto typed 4xx responses.
-    return res.status(500).json(scrubSqlFromPayload({
+    res.status(500).json(scrubSqlFromPayload({
       ...(routeErrorExtraFields ?? {}),
       message: routeErrorMessage,
     }));
+    return;
   }
 
   // Unwrapped routes: keep the existing sanitized response shape so we

@@ -1,4 +1,3 @@
-// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 /**
  * @file Development Security Middleware.
  * @description Additional security measures for development environment
@@ -52,18 +51,19 @@ export function devSecurityMiddleware(req: Request, res: Response, next: NextFun
     const isSuspicious = suspiciousPatterns.some((pattern) => pattern.test(path));
 
     if (isSuspicious) {
-      return res.status(403).json({
+      res.status(403).json({
         error: 'Access denied',
         message: 'External access to development resources is not permitted',
         code: 'DEV_SECURITY_BLOCK',
       });
+      return;
     }
   }
 
   // Rate limit development endpoints more strictly
   if (req.path.startsWith('/@vite') || req.path.startsWith('/__vite__')) {
     const clientIp = req.ip || req.socket.remoteAddress;
-    if (process.env.NODE_ENV !== 'production') console.log(`🔍 Dev resource access: ${req.path} from ${clientIp}`);
+    console.log(`🔍 Dev resource access: ${req.path} from ${clientIp}`);
   }
 
   next();
@@ -94,10 +94,11 @@ export function devCorsMiddleware(req: Request, res: Response, next: NextFunctio
   if (origin) {
     const isAllowed = allowedOrigins.some((pattern) => pattern.test(origin));
     if (!isAllowed) {
-      return res.status(403).json({
+      res.status(403).json({
         error: 'CORS policy violation in development',
         code: 'DEV_CORS_BLOCK',
       });
+      return;
     }
   }
 

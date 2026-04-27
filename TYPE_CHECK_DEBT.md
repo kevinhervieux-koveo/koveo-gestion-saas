@@ -64,11 +64,41 @@ type-checks cleanly. Then delete the file's entry from this list.
 If `npx tsc --noEmit` reports a new error in a file *not* in this list, that is
 a real regression you should fix rather than suppress.
 
-## Files currently suppressed (132)
+## Files cleaned up in task #1482
+
+The following files were de-suppressed and their type errors fixed in task #1482:
+
+- `server/api/users.ts` — had no `@ts-nocheck` (already clean; removed from list)
+- `server/api/company-history.ts` — removed dead code referencing undefined `histoireFile` variable (leftover from object-storage removal)
+- `server/api/contacts.ts` — fixed insert values to use explicit required fields instead of object spread that lost required-field narrowing
+- `server/middleware/dev-security.ts` — split `return res.json()` in void functions; removed dead `NODE_ENV !== 'production'` comparison inside a `!== 'development'`-guarded scope
+- `server/middleware/error-security.ts` — split `return res.json()` in void functions
+- `server/middleware/fileUpload.ts` — no actual errors; suppression was precautionary
+
+## Risk classification for remaining suppressed files
+
+Files are grouped by risk (HIGH → MEDIUM → LOW) within each category.
+The risk score reflects: security sensitivity, is it a server-side code path,
+does it handle user data, how frequently it is called, and how likely it is
+to hide a real bug rather than just a cosmetic type mismatch.
+
+### `server/types/transaction.ts` — **BLOCKED** (keep suppressed for now)
+
+The file references the non-existent type `NeonHttpTransaction` which resolves
+to `any` under `@ts-nocheck`, making `DrizzleTransaction` effectively `any`.
+Fixing it requires aligning `server/db.ts` (which returns a `NeonDatabase`
+from `@neondatabase/serverless`) with the rest of the codebase which uses
+`NeonHttpDatabase` from `drizzle-orm/neon-http`. That is a larger refactor
+touching `server/services/_base/base-service.ts`,
+`server/services/payment-generation-service.ts`, and the db client itself —
+out of scope for task #1482.
+
+## Files currently suppressed (126)
 
 The list below excludes `shared/schema.ts` and `server/storage.ts`, which were
 fully fixed (or surgically suppressed with line-level `@ts-expect-error`) in
-this task. The four workflow tab components were cleaned up in task #1316.
+task #769. The four workflow tab components were cleaned up in task #1316.
+Six more files were cleaned up in task #1482 (see section above).
 
 ### `__mocks__/`
 - `__mocks__/@/hooks/use-auth.tsx`
@@ -123,94 +153,87 @@ this task. The four workflow tab components were cleaned up in task #1316.
 - `scripts/test-auth-security.ts`
 - `scripts/test-database-sync.ts`
 
-### `server/`
-- `server/api/ai-document-analysis.ts`
-- `server/api/ai-monitoring.ts`
-- `server/api/bills.ts`
-- `server/api/buildings.ts`
-- `server/api/buildings/operations.ts`
-- `server/api/buildings/queries.ts`
-- `server/api/buildings/statistics.ts`
-- `server/api/buildings/validation.ts`
-- `server/api/communication.ts`
-- `server/api/company-history.ts`
-- `server/api/contacts.ts`
-- `server/api/demo-management.ts`
-- `server/api/documents.ts`
-- `server/api/dynamic-budgets.ts`
-- `server/api/invoices.ts`
-- `server/api/maintenance.ts`
-- `server/api/optimized-documents.ts`
-- `server/api/users.ts`
-- `server/controllers/index.ts`
-- `server/db/queries/bills-queries.ts`
-- `server/db/queries/index.ts`
-- `server/db/queries/maintenance-queries.ts`
-- `server/db/queries/optimized-document-queries.ts`
-- `server/db/queries/optimized-scope-queries.ts`
-- `server/init-query-optimizations.ts`
-- `server/mcp/oauth-consent.ts`
-- `server/mcp/server.ts`
-- `server/middleware/dev-security.ts`
-- `server/middleware/error-handler.ts`
-- `server/middleware/error-security.ts`
-- `server/middleware/fileUpload.ts`
-- `server/optimized-db-storage.ts`
-- `server/quality-monitoring.ts`
-- `server/routes.ts`
-- `server/services/bill-generation-service.ts`
-- `server/services/bulk-import-rotation.ts`
-- `server/services/cache-invalidation-service.ts`
+### `server/` — HIGH risk (server-side, handles data or auth)
+
+- `server/mcp/server.ts` — **HIGH**: MCP tool dispatch; auth/impersonation surface
+- `server/mcp/oauth-consent.ts` — **HIGH**: OAuth consent flow
+- `server/routes.ts` — **HIGH**: root route aggregator, may hide routing bugs
+- `server/api/bills.ts` — **HIGH**: financial data; billing errors are high-impact
+- `server/api/documents.ts` — **HIGH**: file access control, signed URLs
+- `server/api/maintenance.ts` — **HIGH**: work-order write paths
+- `server/api/dynamic-budgets.ts` — **HIGH**: financial writes
+- `server/api/invoices.ts` — **HIGH**: financial data
+- `server/api/buildings.ts` — **HIGH**: building CRUD with auth checks
+- `server/api/buildings/operations.ts` — **HIGH**: building write operations
+- `server/api/buildings/queries.ts` — **HIGH**: building read queries
+- `server/api/buildings/statistics.ts` — **MEDIUM**: analytics reads
+- `server/api/buildings/validation.ts` — **HIGH**: shared validation logic
+- `server/api/demo-management.ts` — **HIGH**: admin-only demo data management
+- `server/api/ai-document-analysis.ts` — **MEDIUM**: AI integration
+- `server/api/ai-monitoring.ts` — **MEDIUM**: AI monitoring
+- `server/api/optimized-documents.ts` — **MEDIUM**: document optimizations
+- `server/controllers/index.ts` — **HIGH**: re-exports controllers that don't exist on disk (dead stubs); suppression hides the missing-module errors
+- `server/db/queries/bills-queries.ts` — **HIGH**: financial DB queries
+- `server/db/queries/index.ts` — **MEDIUM**: query index re-exports
+- `server/db/queries/maintenance-queries.ts` — **HIGH**: maintenance DB queries
+- `server/db/queries/optimized-document-queries.ts` — **MEDIUM**: document queries
+- `server/db/queries/optimized-scope-queries.ts` — **HIGH**: org-scoping queries; bugs here can leak cross-org data
+- `server/init-query-optimizations.ts` — **MEDIUM**: startup optimization
+- `server/middleware/error-handler.ts` — **MEDIUM**: legacy error middleware; has empty function bodies and unassigned variables — real bugs hidden here
+- `server/optimized-db-storage.ts` — **HIGH**: DB storage layer
+- `server/quality-monitoring.ts` — **LOW**: monitoring utilities
+- `server/services/bill-generation-service.ts` — **HIGH**: financial bill generation
+- `server/services/bulk-import-rotation.ts` — **MEDIUM**: file rotation
+- `server/services/cache-invalidation-service.ts` — **MEDIUM**: cache service
 <!-- shared/schema.ts and server/storage.ts removed: fully fixed in task #769 -->
-- `server/services/cleanup-scheduler.ts`
-- `server/services/consolidated-ai-service.ts`
-- `server/services/consolidated-communication-service.ts`
-- `server/services/consolidated-financial-service.ts`
-- `server/services/demand-notification-service.ts`
-- `server/services/dynamic-financial-calculator.ts`
-- `server/services/email-routes.ts`
-- `server/services/file-migration-service.ts`
-- `server/services/gemini-analysis.ts`
-- `server/services/notification_service.ts`
-- `server/services/optimized-file-storage.ts`
-- `server/services/optimized-query-service.ts`
-- `server/tests/ai-bill-analyze-route.test.ts`
-- `server/tests/ai-document-analyze.test.ts`
-- `server/tests/document-residence-mismatch.test.ts`
-- `server/tests/ai-document-extra-methods.test.ts`
-- `server/tests/ai-document-tag-suggestion.test.ts`
-- `server/tests/ai-invoice-extract-route.test.ts`
-- `server/tests/ai-suggest-payment-schedule-route.test.ts`
-- `server/tests/ai-suggestion-cache.test.ts`
-- `server/tests/bill-api-integration.test.ts`
-- `server/tests/bill-generation-reliability.test.ts`
-- `server/tests/budget-api-integration.test.ts`
-- `server/tests/budget-database-integrity.test.ts`
-- `server/tests/budgets-forecast.test.ts`
-- `server/tests/bulk-import-analyzer-cache.test.ts`
-- `server/tests/bulk-import-tag-resolution.test.ts`
-- `server/tests/document-edit-tag-suggestion.test.ts`
-- `server/tests/document-residence-mismatch.test.ts`
-- `server/tests/document-text-endpoint.test.ts`
-- `server/tests/mcp-oauth-endpoints.test.ts`
-- `server/tests/user-residences-profile.test.ts`
-- `server/tests/mcp-oauth-hardening.test.ts`
-- `server/tests/mcp-tools.test.ts`
-- `server/tests/optimized-storage-test.ts`
-- `server/tests/seasonShift.test.ts`
-- `server/types/transaction.ts`
-- `server/web-vitals-api.ts`
+- `server/services/cleanup-scheduler.ts` — **LOW**: background cleanup
+- `server/services/consolidated-ai-service.ts` — **MEDIUM**: AI service wrapper
+- `server/services/consolidated-communication-service.ts` — **MEDIUM**: messaging
+- `server/services/consolidated-financial-service.ts` — **HIGH**: financial transactions
+- `server/services/demand-notification-service.ts` — **MEDIUM**: notifications
+- `server/services/dynamic-financial-calculator.ts` — **HIGH**: budget calculations
+- `server/services/email-routes.ts` — **LOW**: email sending helper routes
+- `server/services/file-migration-service.ts` — **LOW**: one-time migration
+- `server/services/gemini-analysis.ts` — **MEDIUM**: AI/Gemini integration
+- `server/services/notification_service.ts` — **MEDIUM**: push notifications
+- `server/services/optimized-file-storage.ts` — **MEDIUM**: file storage abstraction
+- `server/services/optimized-query-service.ts` — **MEDIUM**: query service
+- `server/tests/ai-bill-analyze-route.test.ts` — **LOW**: test file
+- `server/tests/ai-document-analyze.test.ts` — **LOW**: test file
+- `server/tests/document-residence-mismatch.test.ts` — **LOW**: test file
+- `server/tests/ai-document-extra-methods.test.ts` — **LOW**: test file
+- `server/tests/ai-document-tag-suggestion.test.ts` — **LOW**: test file
+- `server/tests/ai-invoice-extract-route.test.ts` — **LOW**: test file
+- `server/tests/ai-suggest-payment-schedule-route.test.ts` — **LOW**: test file
+- `server/tests/ai-suggestion-cache.test.ts` — **LOW**: test file
+- `server/tests/bill-api-integration.test.ts` — **LOW**: test file
+- `server/tests/bill-generation-reliability.test.ts` — **LOW**: test file
+- `server/tests/budget-api-integration.test.ts` — **LOW**: test file
+- `server/tests/budget-database-integrity.test.ts` — **LOW**: test file
+- `server/tests/budgets-forecast.test.ts` — **LOW**: test file
+- `server/tests/bulk-import-analyzer-cache.test.ts` — **LOW**: test file
+- `server/tests/bulk-import-tag-resolution.test.ts` — **LOW**: test file
+- `server/tests/document-edit-tag-suggestion.test.ts` — **LOW**: test file
+- `server/tests/document-text-endpoint.test.ts` — **LOW**: test file
+- `server/tests/mcp-oauth-endpoints.test.ts` — **LOW**: test file
+- `server/tests/user-residences-profile.test.ts` — **LOW**: test file
+- `server/tests/mcp-oauth-hardening.test.ts` — **LOW**: test file
+- `server/tests/mcp-tools.test.ts` — **LOW**: test file
+- `server/tests/optimized-storage-test.ts` — **LOW**: test file
+- `server/tests/seasonShift.test.ts` — **LOW**: test file
+- `server/types/transaction.ts` — **BLOCKED**: see note above; removing suppression breaks `payment-generation-service.ts` and `base-service.ts`
+- `server/web-vitals-api.ts` — **LOW**: client-side metrics collection
 
 ### `tests/`
-- `tests/integration/api-health-bulk-import-staging.test.ts`
-- `tests/integration/bulk-import-replace-file-large-memory.test.ts`
-- `tests/integration/bulk-import-staging-janitor.test.ts`
-- `tests/integration/bulk-import-upload-large-batch-memory.test.ts`
-- `tests/mocks/unified-database-mock.ts`
-- `tests/unit/api/bulk-import-staging-disk-low-alert.test.ts`
-- `tests/unit/api/bulk-import-staging-disk-usage.test.ts`
-- `tests/unit/api/bulk-import-staging-janitor.test.ts`
-- `tests/unit/api/bulk-import-upload-disk-streaming.test.ts`
-- `tests/unit/api/bulk-import-upload-mixed-payload.test.ts`
-- `tests/unit/api/bulk-import-zip-upload-filter.test.ts`
-- `tests/utils/budget-test-utils.ts`
+- `tests/integration/api-health-bulk-import-staging.test.ts` — **LOW**: test file
+- `tests/integration/bulk-import-replace-file-large-memory.test.ts` — **LOW**: test file
+- `tests/integration/bulk-import-staging-janitor.test.ts` — **LOW**: test file
+- `tests/integration/bulk-import-upload-large-batch-memory.test.ts` — **LOW**: test file
+- `tests/mocks/unified-database-mock.ts` — **LOW**: test mock
+- `tests/unit/api/bulk-import-staging-disk-low-alert.test.ts` — **LOW**: test file
+- `tests/unit/api/bulk-import-staging-disk-usage.test.ts` — **LOW**: test file
+- `tests/unit/api/bulk-import-staging-janitor.test.ts` — **LOW**: test file
+- `tests/unit/api/bulk-import-upload-disk-streaming.test.ts` — **LOW**: test file
+- `tests/unit/api/bulk-import-upload-mixed-payload.test.ts` — **LOW**: test file
+- `tests/unit/api/bulk-import-zip-upload-filter.test.ts` — **LOW**: test file
+- `tests/utils/budget-test-utils.ts` — **LOW**: test utilities

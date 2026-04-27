@@ -1,4 +1,3 @@
-// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import { Express } from 'express';
 import { db } from '../db';
 import {
@@ -164,9 +163,12 @@ export function registerContactRoutes(app: Express) {
         .insert(contacts)
         .values([
           {
-            ...validatedData,
-            entity: validatedData.entity as 'organization' | 'building' | 'residence',
-            contactCategory: validatedData.contactCategory as
+            name,
+            email: email ?? undefined,
+            phone: phone ?? undefined,
+            entity: entity as 'organization' | 'building' | 'residence',
+            entityId,
+            contactCategory: contactCategory as
               | 'resident'
               | 'manager'
               | 'tenant'
