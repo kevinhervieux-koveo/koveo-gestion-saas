@@ -219,7 +219,6 @@ describe('withHierarchicalSelection — common-spaces resident scope (Task #625)
     const captured: { props: CapturedProps | null } = { props: null };
     const Wrapped = withHierarchicalSelection(makeCapturingComponent(captured), {
       hierarchy: ['organization', 'building'],
-      residentScope: true,
       title: { en: 'Common Spaces', fr: 'Espaces Communs' },
       subtitle: { en: 'Book your common spaces', fr: 'Réservez vos espaces communs' },
     });
@@ -248,7 +247,6 @@ describe('withHierarchicalSelection — common-spaces resident scope (Task #625)
     const captured: { props: CapturedProps | null } = { props: null };
     const Wrapped = withHierarchicalSelection(makeCapturingComponent(captured), {
       hierarchy: ['organization', 'building'],
-      residentScope: true,
       title: { en: 'Common Spaces', fr: 'Espaces Communs' },
       subtitle: { en: 'Book your common spaces', fr: 'Réservez vos espaces communs' },
     });
@@ -291,16 +289,14 @@ describe('withHierarchicalSelection — common-spaces resident scope (Task #625)
     const captured: { props: CapturedProps | null } = { props: null };
     const Wrapped = withHierarchicalSelection(makeCapturingComponent(captured), {
       hierarchy: ['organization', 'building'],
-      residentScope: true,
       title: { en: 'Common Spaces', fr: 'Espaces Communs' },
       subtitle: { en: 'Book your common spaces', fr: 'Réservez vos espaces communs' },
     });
 
     renderWithClient(<Wrapped />);
 
-    // The manager goes through the org → building flow (residentScope is
-    // ignored for non-resident roles). With a single org, the HOC
-    // auto-forwards to the building picker; we wait for that nav call.
+    // The manager goes through the org → building flow. With a single org, the
+    // HOC auto-forwards to the building picker; we wait for that nav call.
     await waitFor(
       () => {
         expect(mockSetLocation).toHaveBeenCalledWith(

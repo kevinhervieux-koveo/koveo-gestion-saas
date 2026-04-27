@@ -223,7 +223,6 @@ describe('withHierarchicalSelection — /residents/residence resident scope (Tas
     const Wrapped = withHierarchicalSelection(makeCapturingComponent(captured), {
       hierarchy: ['organization', 'building', 'residence'],
       checkResidenceAccess: true,
-      residentScope: true,
       title: RESIDENCE_TITLE,
       subtitle: RESIDENCE_SUBTITLE,
       onResidenceSelect: (residenceId) => `/residents/residences/${residenceId}/documents`,
@@ -261,7 +260,6 @@ describe('withHierarchicalSelection — /residents/residence resident scope (Tas
     const Wrapped = withHierarchicalSelection(makeCapturingComponent(captured), {
       hierarchy: ['organization', 'building', 'residence'],
       checkResidenceAccess: true,
-      residentScope: true,
       title: RESIDENCE_TITLE,
       subtitle: RESIDENCE_SUBTITLE,
       onResidenceSelect: (residenceId) => `/residents/residences/${residenceId}/documents`,
@@ -313,7 +311,6 @@ describe('withHierarchicalSelection — /residents/residence resident scope (Tas
     const Wrapped = withHierarchicalSelection(makeCapturingComponent(captured), {
       hierarchy: ['organization', 'building', 'residence'],
       checkResidenceAccess: true,
-      residentScope: true,
       title: RESIDENCE_TITLE,
       subtitle: RESIDENCE_SUBTITLE,
       onResidenceSelect: (residenceId) => `/residents/residences/${residenceId}/documents`,

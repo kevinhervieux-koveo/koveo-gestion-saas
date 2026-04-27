@@ -38,15 +38,6 @@ interface HierarchyConfig {
   titleKey?: string; // Optional i18n key resolved via t() — when set, takes precedence over `title`.
   subtitle?: LocalizedText; // Custom subtitle for the page (overrides default per-step subtitle). String or { en, fr }.
   onResidenceSelect?: (residenceId: string, buildingId?: string, organizationId?: string) => string; // Custom navigation when residence is selected
-  /**
-   * When true and the authenticated user is a resident/tenant, the HOC
-   * switches to a flat residence-first flow: it fetches all residences
-   * the user is linked to and either auto-forwards (single link) or
-   * shows a flat residence chooser (multiple links). Org/building
-   * picker steps are skipped entirely for those users. Other roles
-   * (manager/admin) keep the existing org → building hierarchy.
-   */
-  residentScope?: boolean;
 }
 
 /**

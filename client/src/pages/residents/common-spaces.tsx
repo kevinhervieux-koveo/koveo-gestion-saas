@@ -1286,12 +1286,12 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
 // - Managers/admins: org → building picker, both steps now showing the
 //   "Espaces Communs / Réservez vos espaces communs" header instead of the
 //   generic "Gestion de bâtiments / Sélectionnez l'organisation" leak.
-// - Residents/tenants (residentScope): the org → building flow is bypassed
-//   in favour of a flat residence chooser fed by /api/users/me/residences.
-//   Single-link residents are auto-forwarded straight to the spaces list.
+// - Residents/tenants: the org → building flow is bypassed via the role-based
+//   ResidentBypassFlow in favour of a flat residence chooser fed by
+//   /api/users/me/residences. Single-link residents are auto-forwarded straight
+//   to the spaces list.
 const CommonSpacesPage = withHierarchicalSelection(CommonSpacesPageInner, {
   hierarchy: ['organization', 'building'],
-  residentScope: true,
   title: { en: 'Common Spaces', fr: 'Espaces Communs' },
   subtitle: { en: 'Book your common spaces', fr: 'Réservez vos espaces communs' },
 });

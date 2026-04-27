@@ -594,7 +594,6 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
 const ResidencePage = withHierarchicalSelection(ResidencePageInner, {
   hierarchy: ['organization', 'building', 'residence'],
   checkResidenceAccess: true,
-  residentScope: true,
   title: { en: 'My Residence', fr: 'Ma résidence' },
   subtitle: {
     en: 'View your residence information and contacts',

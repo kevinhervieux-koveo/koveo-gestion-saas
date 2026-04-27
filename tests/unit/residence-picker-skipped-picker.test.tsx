@@ -254,7 +254,6 @@ function renderWithClient(node: React.ReactElement) {
 const RESIDENCE_CONFIG = {
   hierarchy: ['organization', 'building', 'residence'] as const,
   checkResidenceAccess: true as const,
-  residentScope: true as const,
   title: { en: 'My Residence', fr: 'Ma résidence' },
   subtitle: {
     en: 'View your residence information',
@@ -265,7 +264,6 @@ const RESIDENCE_CONFIG = {
 
 const COMMON_SPACES_CONFIG = {
   hierarchy: ['organization', 'building'] as const,
-  residentScope: true as const,
   title: { en: 'Common Spaces', fr: 'Espaces Communs' },
   subtitle: { en: 'Book your common spaces', fr: 'Réservez vos espaces communs' },
 };
@@ -442,6 +440,90 @@ describe('Skipped-picker — common-spaces flow (resident with single building)'
     });
 
     expect(screen.getByTestId('header-title')).not.toHaveTextContent('buildingManagement');
+  });
+});
+
+describe('ResidentBypassFlow — 0 residences: empty state', () => {
+  jest.setTimeout(15000);
+
+  let originalFetch: typeof fetch | undefined;
+
+  beforeEach(() => {
+    originalFetch = (global as unknown as { fetch?: typeof fetch }).fetch;
+    mockSearch = '';
+    mockSetLocation.mockClear();
+    mockUserRole = 'resident';
+  });
+
+  afterEach(() => {
+    if (originalFetch) {
+      (global as unknown as { fetch: typeof fetch }).fetch = originalFetch;
+    }
+    jest.clearAllMocks();
+  });
+
+  test('shows empty state card when resident has no residence links', async () => {
+    setupFetchMock([]);
+
+    const captured: { props: CapturedProps | null } = { props: null };
+    const Wrapped = withHierarchicalSelection(makeCapturingComponent(captured), RESIDENCE_CONFIG);
+
+    renderWithClient(<Wrapped />);
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('no-residence-linked')).toBeInTheDocument();
+      },
+      { timeout: 8000 },
+    );
+
+    expect(screen.queryByTestId('wrapped')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('selection-grid')).not.toBeInTheDocument();
+    expect(screen.queryByTestId('searchable-selection-grid')).not.toBeInTheDocument();
+    expect(mockSetLocation).not.toHaveBeenCalled();
+  });
+
+  test('empty state shows the configured page title (not the generic admin header)', async () => {
+    setupFetchMock([]);
+
+    const captured: { props: CapturedProps | null } = { props: null };
+    const Wrapped = withHierarchicalSelection(makeCapturingComponent(captured), RESIDENCE_CONFIG);
+
+    renderWithClient(<Wrapped />);
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('no-residence-linked')).toBeInTheDocument();
+      },
+      { timeout: 8000 },
+    );
+
+    expect(screen.getByTestId('header-title')).toHaveTextContent('My Residence');
+    expect(screen.getByTestId('header-title')).not.toHaveTextContent('buildingManagement');
+    expect(screen.getByTestId('header-subtitle')).not.toHaveTextContent('selectOrganization');
+  });
+
+  test('0 buildings (via common-spaces config) also shows empty state', async () => {
+    setupFetchMock([]);
+
+    const captured: { props: CapturedProps | null } = { props: null };
+    const Wrapped = withHierarchicalSelection(
+      makeCapturingComponent(captured),
+      COMMON_SPACES_CONFIG,
+    );
+
+    renderWithClient(<Wrapped />);
+
+    await waitFor(
+      () => {
+        expect(screen.getByTestId('no-residence-linked')).toBeInTheDocument();
+      },
+      { timeout: 8000 },
+    );
+
+    expect(screen.getByTestId('header-title')).toHaveTextContent('Common Spaces');
+    expect(screen.getByTestId('header-title')).not.toHaveTextContent('buildingManagement');
+    expect(mockSetLocation).not.toHaveBeenCalled();
   });
 });
 
