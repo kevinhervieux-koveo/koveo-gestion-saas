@@ -1,7 +1,7 @@
 /**
  * Resident-scope flow tests for `/residents/residence` (Task #678).
  *
- * Task #625 fixed the residence-first flow on `/resident/common-spaces`.
+ * Task #625 fixed the residence-first flow on `/residents/common-spaces`.
  * The same picker leak (W13) was still present on `/residents/residence`,
  * which used the full `['organization', 'building', 'residence']`
  * hierarchy without a `residentScope` flag — residents were forced

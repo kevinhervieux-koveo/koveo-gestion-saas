@@ -107,7 +107,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
       { nameKey: 'myDemands', href: '/residents/demands', icon: AlertCircle },
       {
         nameKey: 'commonSpaces',
-        href: '/resident/common-spaces',
+        href: '/residents/common-spaces',
         icon: Building2,
         requiredRole: 'resident',
       },

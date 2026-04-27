@@ -1,5 +1,5 @@
 // @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
-import { Switch, Route, useLocation } from 'wouter';
+import { Switch, Route, useLocation, useSearch } from 'wouter';
 import { PARENT_ROUTE_REDIRECTS } from '@/config/route-redirects';
 import { HelmetProvider } from 'react-helmet-async';
 import { queryClient } from './lib/queryClient';
@@ -432,7 +432,8 @@ function AuthenticatedLayout() {
               component={() => <ResidentsBuildingDocuments />}
             />
             <Route path='/residents/demands' component={ResidentsDemands} />
-            <Route path='/resident/common-spaces'>{() => <ResidentsCommonSpaces />}</Route>
+            <Route path='/residents/common-spaces'>{() => <ResidentsCommonSpaces />}</Route>
+            <Route path='/resident/common-spaces'>{() => <SingularCommonSpacesRedirect />}</Route>
             <Route path='/resident/my-calendar' component={ResidentsMyCalendar} />
 
             {/* Settings routes */}
@@ -518,6 +519,17 @@ function SettingsOverviewRedirect() {
   useEffect(() => {
     setLocation(PARENT_ROUTE_REDIRECTS['/settings']);
   }, [setLocation]);
+
+  return <LoadingSpinner />;
+}
+
+function SingularCommonSpacesRedirect() {
+  const [, setLocation] = useLocation();
+  const search = useSearch();
+
+  useEffect(() => {
+    setLocation('/residents/common-spaces' + (search ? `?${search}` : ''));
+  }, [setLocation, search]);
 
   return <LoadingSpinner />;
 }

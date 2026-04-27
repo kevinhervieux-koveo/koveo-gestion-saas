@@ -443,7 +443,7 @@ export const helpContentMap: Record<string, HelpContent> = {
       { label: { en: 'Location', fr: 'Emplacement' }, description: { en: 'Where in your unit the issue is located', fr: 'Où se situe le problème dans votre unité' } },
     ],
   },
-  '/resident/common-spaces': {
+  '/residents/common-spaces': {
     title: { en: 'Common Spaces', fr: 'Espaces Communs' },
     description: { en: 'Book and manage shared amenity reservations.', fr: 'Réservez et gérez les réservations d\'installations partagées.' },
     goal: { en: 'Reserve common areas like gyms, pools, and party rooms.', fr: 'Réservez des espaces communs comme les gymnases, piscines et salles de fête.' },

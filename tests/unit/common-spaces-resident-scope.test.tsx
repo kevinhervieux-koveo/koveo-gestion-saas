@@ -1,14 +1,14 @@
 /**
  * Resident-scope flow & header tests for the `withHierarchicalSelection` HOC.
  *
- * Task #625: `/resident/common-spaces` should never leak the generic
+ * Task #625: `/residents/common-spaces` should never leak the generic
  * "Gestion de bâtiments / Sélectionnez l'organisation" wrapper header, and
  * residents/tenants should bypass the org → building picker in favour of a
  * residence-aware flow fed by `/api/users/me/residences`.
  *
  * After rebasing onto main, the resident bypass is implemented by a sibling
  * `ResidentBypassFlow` component that the HOC selects when the user role is
- * resident/tenant. For building-level pages (e.g. `/resident/common-spaces`):
+ * resident/tenant. For building-level pages (e.g. `/residents/common-spaces`):
  *   - if the user's residences resolve to a single distinct building, the
  *     wrapped page is rendered directly with `buildingId` injected (no URL
  *     navigation, no picker);
@@ -45,7 +45,7 @@ let mockSearch = '';
 const mockSetLocation = jest.fn();
 
 jest.mock('wouter', () => ({
-  useLocation: () => ['/resident/common-spaces', mockSetLocation],
+  useLocation: () => ['/residents/common-spaces', mockSetLocation],
   useSearch: () => mockSearch,
 }));
 

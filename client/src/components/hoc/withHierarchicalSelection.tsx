@@ -781,7 +781,7 @@ function AdminManagerHierarchyFlow<T extends object>({
  *     listing 1+ residences (the inner residence page already does this with
  *     a built-in selector).
  *   - For building-level pages (e.g. ['organization','building'] like
- *     /resident/common-spaces): auto-select the user's building when there is
+ *     /residents/common-spaces): auto-select the user's building when there is
  *     a single distinct building, or show a small building picker when the
  *     user is linked to residences across multiple buildings. The user's
  *     selection is persisted via the `?building=` URL param so deep-links
@@ -990,7 +990,7 @@ function ResidentBypassFlow<T extends object>({
     return <WrappedComponent {...(wrappedProps as T)} />;
   }
 
-  // Building-level pages (e.g. /resident/common-spaces): we need a buildingId
+  // Building-level pages (e.g. /residents/common-spaces): we need a buildingId
   // before the wrapped page can render. Auto-select when there is a single
   // distinct building; otherwise show a small building picker.
   if (includesBuilding) {
