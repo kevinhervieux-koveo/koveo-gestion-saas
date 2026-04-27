@@ -55,7 +55,7 @@ export async function resolveOrgScope(req: any, res: Response): Promise<OrgScope
       return null;
     }
 
-    const accessible = await getUserAccessibleOrganizations(user.id);
+    const accessible = await getUserAccessibleOrganizations(user.id, user.role);
     if (!accessible.includes(requested)) {
       res.status(403).json({
         message: 'Access denied to this organization',
@@ -67,7 +67,7 @@ export async function resolveOrgScope(req: any, res: Response): Promise<OrgScope
     return { explicit: true, orgIds: [requested] };
   }
 
-  const accessible = await getUserAccessibleOrganizations(user.id);
+  const accessible = await getUserAccessibleOrganizations(user.id, user.role);
   return { explicit: false, orgIds: accessible };
 }
 
@@ -106,6 +106,7 @@ export async function assertBuildingWriteAccess(
   res: Response,
   userId: string,
   buildingId: string | null | undefined,
+  userRole?: string,
 ): Promise<BuildingWriteAccess> {
   if (!buildingId) {
     res.status(404).json({
@@ -137,7 +138,7 @@ export async function assertBuildingWriteAccess(
     });
     return { ok: false };
   }
-  const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
+  const accessibleOrgIds = await getUserAccessibleOrganizations(userId, userRole);
   if (!accessibleOrgIds.includes(orgId)) {
     // Return 404 (not 403) to avoid confirming the building exists to callers
     // outside its organization — consistent with the 404-style existence-oracle

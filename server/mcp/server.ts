@@ -120,7 +120,25 @@ async function getMcpOrgIds(): Promise<string[]> {
   return orgs.map((o) => o.id);
 }
 
-type McpRole = "admin" | "manager" | "tenant";
+/**
+ * Return the org IDs an `admin` (customer admin) is a member of.
+ * Used to scope MCP tool calls for the `admin` role so they only touch
+ * the admin's own organizations, not the global dataset.
+ */
+async function getAdminOrgIds(userId: string): Promise<string[]> {
+  const memberships = await db
+    .select({ organizationId: schema.userOrganizations.organizationId })
+    .from(schema.userOrganizations)
+    .where(
+      and(
+        eq(schema.userOrganizations.userId, userId),
+        eq(schema.userOrganizations.isActive, true)
+      )
+    );
+  return memberships.map((m) => m.organizationId);
+}
+
+type McpRole = "super_admin" | "admin" | "manager" | "tenant";
 
 export interface McpAuthContext {
   /** OAuth-authenticated user id (Koveo users.id), if any. */
@@ -145,6 +163,7 @@ export interface McpAuthContext {
 
 async function lookupMcpUser(role: McpRole): Promise<{ id: string; role: string } | null> {
   const emailMap: Record<string, string> = {
+    super_admin: "mcp-admin@koveo-mcp.test",
     admin: "mcp-admin@koveo-mcp.test",
     manager: "mcp-manager@koveo-mcp.test",
     tenant: "mcp-tenant@koveo-mcp.test",
@@ -232,6 +251,7 @@ export async function resolveMcpUser(
  * should never silently grant elevated privileges via impersonation.
  */
 export function mapDbRoleToMcpRole(dbRole: string): McpRole {
+  if (dbRole === 'super_admin') return 'super_admin';
   if (dbRole === 'admin') return 'admin';
   if (dbRole === 'manager' || dbRole === 'demo_manager') return 'manager';
   return 'tenant';
@@ -249,6 +269,8 @@ export function mapDbRoleToMcpRole(dbRole: string): McpRole {
  */
 export function allowedRolesFor(enforcedRole: McpRole): McpRole[] {
   switch (enforcedRole) {
+    case 'super_admin':
+      return ['super_admin', 'admin', 'manager', 'tenant'];
     case 'admin':
       return ['admin', 'manager', 'tenant'];
     case 'manager':
@@ -840,6 +862,29 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
   // caller-supplied role for backwards compatibility.
   const enforcedRole: McpRole | undefined = authContext?.role;
 
+  /**
+   * Session-level org scope resolver (Task #1326).
+   *
+   * - `super_admin` → MCP-1 / MCP-2 sandbox orgs (prevents touching real
+   *   customer data from the internal tooling account).
+   * - `admin`       → the org IDs the authenticated admin user belongs to,
+   *   so customer admins can only read/write their own organizations.
+   * - everything else (manager, tenant) or the legacy MCP_API_KEY path →
+   *   MCP-1 / MCP-2, unchanged from the pre-1326 behaviour.
+   */
+  async function getOrgIds(): Promise<string[]> {
+    if (enforcedRole === 'admin' && authContext?.userId) {
+      return getAdminOrgIds(authContext.userId);
+    }
+    // super_admin, manager, tenant, and legacy MCP_API_KEY path all use the
+    // MCP-1/MCP-2 sandbox scope (unchanged from pre-1326 behaviour).
+    const sandboxOrgs = await db
+      .select({ id: schema.organizations.id })
+      .from(schema.organizations)
+      .where(inArray(schema.organizations.name, MCP_ORG_NAMES));
+    return sandboxOrgs.map((o) => o.id);
+  }
+
   // Per-session impersonation override (Task #642). When set by the admin-only
   // `assume_user` tool, `getMcpUser` resolves to this user instead of the
   // OAuth-bound user, scoping every subsequent tool call to the assumed
@@ -1011,7 +1056,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     // arbitrary tenant data even without an org filter.
     { role: roleParam },
     async ({ role }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const orgs = await db
         .select()
         .from(schema.organizations)
@@ -1025,7 +1070,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Get details of a specific organization",
     { role: roleParam, organizationId: z.string().describe("Organization ID") },
     async ({ role, organizationId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (!orgIds.includes(organizationId)) {
         return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
       }
@@ -1039,7 +1084,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "List buildings in an organization",
     { role: roleParam, organizationId: z.string().describe("Organization ID") },
     async ({ role, organizationId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (!orgIds.includes(organizationId)) {
         return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
       }
@@ -1056,7 +1101,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Get details of a specific building",
     { role: roleParam, buildingId: z.string().describe("Building ID") },
     async ({ role, buildingId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -1165,7 +1210,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot create buildings" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (!orgIds.includes(organizationId)) {
         return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
       }
@@ -1308,7 +1353,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot update buildings" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -1460,7 +1505,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "List residences in a building",
     { role: roleParam, buildingId: z.string().describe("Building ID") },
     async ({ role, buildingId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -1503,7 +1548,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Get details of a specific residence",
     { role: roleParam, residenceId: z.string().describe("Residence ID") },
     async ({ role, residenceId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [residence] = await db.select().from(schema.residences).where(eq(schema.residences.id, residenceId));
       if (!residence) return { content: [{ type: "text" as const, text: "Residence not found" }] };
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, residence.buildingId));
@@ -1576,7 +1621,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot create residences" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -1642,7 +1687,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot update residences" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [residence] = await db.select().from(schema.residences).where(eq(schema.residences.id, residenceId));
       if (!residence) {
         return { content: [{ type: "text" as const, text: "Residence not found or access denied" }] };
@@ -1691,7 +1736,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot link users to residences" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
 
       const userOrg = await db
         .select({ id: schema.userOrganizations.id })
@@ -1770,7 +1815,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot unlink users from residences" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
 
       const userOrg = await db
         .select({ id: schema.userOrganizations.id })
@@ -1846,7 +1891,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot list users" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (!orgIds.includes(organizationId)) {
         return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
       }
@@ -1885,7 +1930,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view user details" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const userOrg = await db
         .select()
         .from(schema.userOrganizations)
@@ -1925,7 +1970,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view bills" }] };
       }
       try {
-        const orgIds = await getMcpOrgIds();
+        const orgIds = await getOrgIds();
         const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
         if (!building || !orgIds.includes(building.organizationId)) {
           return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -2009,7 +2054,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view bills" }] };
       }
       try {
-        const orgIds = await getMcpOrgIds();
+        const orgIds = await getOrgIds();
         const [bill] = await db.select().from(schema.bills).where(eq(schema.bills.id, billId));
         if (!bill) return { content: [{ type: "text" as const, text: "Bill not found" }] };
         const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, bill.buildingId));
@@ -2046,7 +2091,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot create bills" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -2112,7 +2157,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot update bills" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [bill] = await db.select().from(schema.bills).where(eq(schema.bills.id, billId));
       if (!bill) return { content: [{ type: "text" as const, text: "Bill not found" }] };
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, bill.buildingId));
@@ -2138,7 +2183,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       status: z.enum(["submitted", "acknowledged", "in_progress", "completed", "cancelled"]).optional().describe("Filter by status"),
     },
     async ({ role, buildingId, status }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -2170,7 +2215,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Get details of a specific maintenance request",
     { role: roleParam, requestId: z.string().describe("Maintenance request ID") },
     async ({ role, requestId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [request] = await db.select().from(schema.maintenanceRequests).where(eq(schema.maintenanceRequests.id, requestId));
       if (!request) return { content: [{ type: "text" as const, text: "Request not found" }] };
       const [residence] = await db.select().from(schema.residences).where(eq(schema.residences.id, request.residenceId));
@@ -2220,7 +2265,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       priority: z.enum(["low", "medium", "high", "urgent", "emergency"]).default("medium").describe("Priority level"),
     },
     async ({ role, residenceId, title, description, category, priority }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [residence] = await db.select().from(schema.residences).where(eq(schema.residences.id, residenceId));
       if (!residence) return { content: [{ type: "text" as const, text: "Residence not found" }] };
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, residence.buildingId));
@@ -2277,7 +2322,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot update maintenance request status" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [request] = await db.select().from(schema.maintenanceRequests).where(eq(schema.maintenanceRequests.id, requestId));
       if (!request) return { content: [{ type: "text" as const, text: "Request not found" }] };
       const [residence] = await db.select().from(schema.residences).where(eq(schema.residences.id, request.residenceId));
@@ -2327,7 +2372,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       status: z.enum(["draft", "submitted", "under_review", "approved", "in_progress", "completed", "rejected", "cancelled"]).optional().describe("Filter by status"),
     },
     async ({ role, buildingId, status }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -2352,7 +2397,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Get details of a specific demand",
     { role: roleParam, demandId: z.string().describe("Demand ID") },
     async ({ role, demandId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [demand] = await db.select().from(schema.demands).where(eq(schema.demands.id, demandId));
       if (!demand) return { content: [{ type: "text" as const, text: "Demand not found" }] };
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, demand.buildingId));
@@ -2381,7 +2426,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       attachment: demandAttachmentParam,
     },
     async ({ role, buildingId, type, description, residenceId, attachment }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -2496,7 +2541,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot update demand status" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [demand] = await db.select().from(schema.demands).where(eq(schema.demands.id, demandId));
       if (!demand) return { content: [{ type: "text" as const, text: "Demand not found" }] };
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, demand.buildingId));
@@ -2534,7 +2579,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "List comments on a demand, joined with author info. Tenants only see comments on their own demands and never see internal (manager-only) comments.",
     { role: roleParam, demandId: z.string().describe("Demand ID") },
     async ({ role, demandId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [demand] = await db.select().from(schema.demands).where(eq(schema.demands.id, demandId));
       if (!demand) return { content: [{ type: "text" as const, text: "Demand not found" }] };
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, demand.buildingId));
@@ -2600,7 +2645,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant" && isInternal === true) {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot post internal comments" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [demand] = await db.select().from(schema.demands).where(eq(schema.demands.id, demandId));
       if (!demand) return { content: [{ type: "text" as const, text: "Demand not found" }] };
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, demand.buildingId));
@@ -2676,7 +2721,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "List common spaces in a building",
     { role: roleParam, buildingId: z.string().describe("Building ID") },
     async ({ role, buildingId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -2718,7 +2763,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
   async function getMcpAccessibleBuildingIds(role: McpRole): Promise<string[] | null> {
     const user = await getMcpUser(role);
     if (!user) return null;
-    const mcpOrgIds = await getMcpOrgIds();
+    const mcpOrgIds = await getOrgIds();
     if (mcpOrgIds.length === 0) return [];
 
     const allActiveBuildings = async (): Promise<string[]> => {
@@ -3274,7 +3319,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       // space's building organizationId first, then defer the
       // tenant-denial / not-found / out-of-scope wording to the helper
       // so it stays consistent with the other delete tools.
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [space] = await db
         .select({ id: schema.commonSpaces.id, buildingId: schema.commonSpaces.buildingId })
         .from(schema.commonSpaces)
@@ -3707,7 +3752,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "List general communications for an organization",
     { role: roleParam, organizationId: z.string().describe("Organization ID") },
     async ({ role, organizationId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (!orgIds.includes(organizationId)) {
         return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
       }
@@ -3748,7 +3793,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot create communications" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (!orgIds.includes(organizationId)) {
         return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
       }
@@ -3785,7 +3830,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (!buildingId && !residenceId) {
         return { content: [{ type: "text" as const, text: "Please provide buildingId or residenceId" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (buildingId) {
         const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
         if (!building || !orgIds.includes(building.organizationId)) {
@@ -3823,7 +3868,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       year: z.number().int().optional().describe("Filter by year"),
     },
     async ({ role, buildingId, year }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -3846,7 +3891,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       buildingId: z.string().describe("Building ID"),
     },
     async ({ role, buildingId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -3866,7 +3911,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "List meetings for an organization",
     { role: roleParam, organizationId: z.string().describe("Organization ID") },
     async ({ role, organizationId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (!orgIds.includes(organizationId)) {
         return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
       }
@@ -3895,7 +3940,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot create meetings" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (!orgIds.includes(organizationId)) {
         return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
       }
@@ -3951,7 +3996,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view inventory elements" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -3985,7 +4030,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view inventory elements" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [element] = await db.select().from(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
       if (!element) return { content: [{ type: "text" as const, text: "Inventory element not found" }] };
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, element.buildingId));
@@ -4025,7 +4070,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot create inventory elements" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -4110,7 +4155,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot update inventory elements" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [element] = await db.select().from(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
       if (!element) return { content: [{ type: "text" as const, text: "Inventory element not found" }] };
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, element.buildingId));
@@ -4158,7 +4203,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       // element's building organizationId first, then defer the
       // tenant-denial / not-found / out-of-scope wording to the helper
       // so it stays consistent with the other delete tools.
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [element] = await db.select().from(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
       let buildingOrgId: string | null | undefined = undefined;
       if (element) {
@@ -4245,7 +4290,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot view inventory element history" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [element] = await db.select().from(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
       if (!element) return { content: [{ type: "text" as const, text: "Inventory element not found" }] };
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, element.buildingId));
@@ -4404,7 +4449,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot log inventory element history" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [element] = await db.select().from(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
       if (!element) return { content: [{ type: "text" as const, text: "Inventory element not found" }] };
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, element.buildingId));
@@ -4539,7 +4584,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot update inventory element history" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [existing] = await db
         .select()
         .from(schema.elementHistory)
@@ -4721,7 +4766,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot delete inventory element history" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [existing] = await db
         .select()
         .from(schema.elementHistory)
@@ -5167,7 +5212,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Get information about the MCP setup including available organizations, users, and roles",
     { role: roleParam },
     async ({ role }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const orgs = await db
         .select({ id: schema.organizations.id, name: schema.organizations.name })
         .from(schema.organizations)
@@ -5400,7 +5445,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       entityId: z.string().optional().describe("Related entity ID (e.g. bill ID) if attaching to a specific record"),
     },
     async ({ role, buildingId, filename, documentType, residenceId, entityId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -5484,7 +5529,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       isVisibleToTenants: z.boolean().default(false).describe("Whether tenants can see this document"),
     },
     async ({ role, storagePath, buildingId, name, documentType, fileName, mimeType, fileSize, residenceId, description, isVisibleToTenants }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -5583,7 +5628,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       documentTypeHint: z.enum(["bills", "buildings", "residences", "maintenance", "general"]).default("general").describe("Hint about the document type to improve extraction accuracy"),
     },
     async ({ role, storagePath, documentTypeHint }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const normalizedPath = documentService.normalizePath(storagePath);
 
       const [doc] = await db
@@ -5706,7 +5751,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Delete a building (admin/manager only). Only buildings inside MCP-scoped organizations can be deleted via MCP. Cascades in application code (inside a single transaction) to all dependent rows: every residence in the building (and each residence's invoices, documents, building elements, maintenance requests, demands, and user-residence links), then building-scoped bills (and their payments), budgets, monthly budgets, capital investments, financial cache, invoices, documents, demands and their demand_comments (rows where this building is the primary buildingId are deleted; rows where it is only the assignationBuildingId are null-ed out), notification configurations and their notification_dispatch_log entries, contacts, common spaces (and their bookings/restrictions), user-building links, building elements, auto-generated projects, and maintenance projects. Pending invitations attached directly to the building or to any of its residences are soft-cancelled (status set to 'cancelled' and the dangling residenceId/buildingId nulled); already-terminal invitations are left alone. Returns a structured summary of how many rows were removed from each child table.",
     { role: roleParam, buildingId: z.string().describe("Building ID to delete") },
     async ({ role, buildingId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       const auth = authorizeDeleteInMcpScope({
         role,
@@ -5995,7 +6040,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Delete a single residence (admin/manager only). Only residences attached to buildings inside MCP-scoped organizations can be deleted via MCP. Cascades in application code (inside a single transaction) to all dependent rows: invoices, documents, building elements, maintenance requests, demands (rows where this residence is the primary residenceId are deleted; rows where it is only the assignationResidenceId are null-ed out), and user-residence links. Pending invitations whose residenceId points at this residence are soft-cancelled (status set to 'cancelled' and the dangling residenceId nulled); already-terminal invitations are left alone. Returns a structured summary of how many rows were removed from each child table.",
     { role: roleParam, residenceId: z.string().describe("Residence ID to delete") },
     async ({ role, residenceId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [residence] = await db
         .select()
         .from(schema.residences)
@@ -6109,7 +6154,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Delete a bill (admin/manager only). Only bills attached to buildings inside MCP-scoped organizations can be deleted via MCP. Cascades to scheduled payments.",
     { role: roleParam, billId: z.string().describe("Bill ID to delete") },
     async ({ role, billId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [bill] = await db.select().from(schema.bills).where(eq(schema.bills.id, billId));
       let buildingOrgId: string | null | undefined = undefined;
       if (bill) {
@@ -6168,7 +6213,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Delete a maintenance project (admin/manager only). Only projects attached to buildings inside MCP-scoped organizations can be deleted via MCP. Cascades in application code (inside a single transaction) to all dependent rows: project steps, project elements (junction to building elements), submission vendors, workflow tasks, project notifications, and element project updates. Evaluation suggestions that point at this project are not deleted; their projectId is null-ed out via the DB-level ON DELETE SET NULL FK. Returns a structured summary of how many rows were removed from each child table.",
     { role: roleParam, projectId: z.string().describe("Maintenance project ID to delete") },
     async ({ role, projectId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [project] = await db
         .select()
         .from(schema.maintenanceProjects)
@@ -6278,7 +6323,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     | { ok: true; project: typeof schema.maintenanceProjects.$inferSelect; building: typeof schema.buildings.$inferSelect }
     | { ok: false; response: { content: Array<{ type: 'text'; text: string }> } }
   > {
-    const orgIds = await getMcpOrgIds();
+    const orgIds = await getOrgIds();
     const [project] = await db
       .select()
       .from(schema.maintenanceProjects)
@@ -6308,7 +6353,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         .describe("Filter by workflow status"),
     },
     async ({ role, buildingId, status }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -6384,7 +6429,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied: tenants cannot create projects" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const [building] = await db.select().from(schema.buildings).where(eq(schema.buildings.id, buildingId));
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Building not found or access denied" }] };
@@ -6794,7 +6839,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         };
       }
       try {
-        const orgIds = await getMcpOrgIds();
+        const orgIds = await getOrgIds();
         if (!orgIds.includes(organizationId)) {
           return { content: [{ type: "text" as const, text: "Access denied: organization not in MCP scope" }] };
         }
@@ -7015,7 +7060,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         };
       }
 
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (orgIds.length === 0) {
         return { content: [{ type: "text" as const, text: JSON.stringify(emptyPage, null, 2) }] };
       }
@@ -7122,7 +7167,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (!invitation) {
         return { content: [{ type: "text" as const, text: `Invitation not found: ${invitationId}` }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (!invitation.organizationId || !orgIds.includes(invitation.organizationId)) {
         return {
           content: [{ type: "text" as const, text: "Access denied: invitation is not in an MCP-scoped organization" }],
@@ -7321,7 +7366,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (!invitation) {
         return { content: [{ type: "text" as const, text: `Invitation not found: ${invitationId}` }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (!invitation.organizationId || !orgIds.includes(invitation.organizationId)) {
         return { content: [{ type: "text" as const, text: "Access denied: invitation is not in an MCP-scoped organization" }] };
       }
@@ -7447,7 +7492,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         };
       }
 
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (orgIds.length === 0) {
         return { content: [{ type: "text" as const, text: JSON.stringify(emptyPage, null, 2) }] };
       }
@@ -7593,7 +7638,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       // building inside the caller's MCP org set (matches
       // `analyze_document`).
       if (doc.buildingId) {
-        const orgIds = await getMcpOrgIds();
+        const orgIds = await getOrgIds();
         const [building] = await db
           .select({ organizationId: schema.buildings.organizationId })
           .from(schema.buildings)
@@ -7676,7 +7721,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "List document tags available to the caller (system Koveo tags + tags from caller's organizations)",
     { role: roleParam },
     async () => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const rows = await db
         .select()
         .from(schema.documentTags)
@@ -7706,7 +7751,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role === "tenant") {
         return { content: [{ type: "text" as const, text: "Access denied" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (!orgIds.includes(organizationId)) {
         return { content: [{ type: "text" as const, text: "Organization not in MCP scope" }] };
       }
@@ -7746,7 +7791,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       const [tag] = await db.select().from(schema.documentTags).where(eq(schema.documentTags.id, tagId));
       if (!tag) return { content: [{ type: "text" as const, text: "Tag not found" }] };
       if (tag.isSystem) return { content: [{ type: "text" as const, text: "System tags cannot be modified" }] };
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (!tag.organizationId || !orgIds.includes(tag.organizationId)) {
         return { content: [{ type: "text" as const, text: "Tag not in MCP scope" }] };
       }
@@ -7768,7 +7813,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       const [tag] = await db.select().from(schema.documentTags).where(eq(schema.documentTags.id, tagId));
       if (!tag) return { content: [{ type: "text" as const, text: "Tag not found" }] };
       if (tag.isSystem) return { content: [{ type: "text" as const, text: "System tags cannot be deleted" }] };
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       if (!tag.organizationId || !orgIds.includes(tag.organizationId)) {
         return { content: [{ type: "text" as const, text: "Tag not in MCP scope" }] };
       }
@@ -7839,7 +7884,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "List explicit before/after links anchored at a document. Returns rows from `document_links` where the document is either source or target.",
     { role: roleParam, documentId: z.string().describe("Document ID") },
     async ({ documentId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const doc = await assertDocInMcpScope(documentId, orgIds);
       if (!doc) return { content: [{ type: "text" as const, text: "Document not found or access denied" }] };
       const { listLinksForDocument } = await import("../services/document-link-service");
@@ -7853,7 +7898,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     "Resolve previous/next documents for a document by combining explicit links with date-based ordering (scoped to same building/residence).",
     { role: roleParam, documentId: z.string().describe("Document ID") },
     async ({ role, documentId }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const doc = await assertDocInMcpScope(documentId, orgIds);
       if (!doc) return { content: [{ type: "text" as const, text: "Document not found or access denied" }] };
       const { resolveDocumentNeighbors } = await import("../services/document-link-service");
@@ -7892,7 +7937,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role !== "admin" && role !== "manager" && role !== "demo_manager") {
         return { content: [{ type: "text" as const, text: "Access denied: only admin or manager roles can manage document links" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const fromDoc = await assertDocInMcpScope(fromDocumentId, orgIds);
       const toDoc = await assertDocInMcpScope(toDocumentId, orgIds);
       if (!fromDoc) return { content: [{ type: "text" as const, text: "Source document not found or access denied" }] };
@@ -7927,7 +7972,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (role !== "admin" && role !== "manager" && role !== "demo_manager") {
         return { content: [{ type: "text" as const, text: "Access denied: only admin or manager roles can manage document links" }] };
       }
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const doc = await assertDocInMcpScope(fromDocumentId, orgIds);
       if (!doc) return { content: [{ type: "text" as const, text: "Document not found or access denied" }] };
       const { deleteDocumentLink } = await import("../services/document-link-service");
@@ -7946,7 +7991,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       limit: z.number().int().min(1).max(50).optional().describe("Max suggestions to return (default 10)"),
     },
     async ({ role, documentId, query, limit }) => {
-      const orgIds = await getMcpOrgIds();
+      const orgIds = await getOrgIds();
       const doc = await assertDocInMcpScope(documentId, orgIds);
       if (!doc) return { content: [{ type: "text" as const, text: "Document not found or access denied" }] };
       const { suggestLinkTargets } = await import("../services/document-link-service");

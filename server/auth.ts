@@ -511,11 +511,7 @@ export function requireSuperAdmin(req: Request, res: Response, next: NextFunctio
     });
   }
 
-  const email = typeof req.user.email === 'string' ? req.user.email.toLowerCase() : '';
-  const isInternalAdmin =
-    req.user.role === 'admin' && email.endsWith(SUPER_ADMIN_EMAIL_DOMAIN);
-
-  if (!isInternalAdmin) {
+  if (req.user.role !== 'super_admin') {
     return res.status(403).json({
       message: 'Insufficient permissions',
       code: 'INSUFFICIENT_PERMISSIONS',

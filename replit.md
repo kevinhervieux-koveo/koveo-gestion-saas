@@ -17,7 +17,7 @@ The UI is built using Shadcn/ui (Radix UI) and Tailwind CSS for a responsive des
 - **Backend**: Node.js, Express.js, TypeScript (ES modules) providing a RESTful API.
 - **Database**: PostgreSQL with Drizzle ORM and Drizzle Kit.
 - **Authentication**: Express sessions with PostgreSQL store, custom username/password, token-based password reset, and multi-step registration with Law 25 consent.
-- **Authorization**: Four-tier Role-Based Access Control (RBAC: Admin, Manager, Tenant, Resident) with granular permissions, including building-level access.
+- **Authorization**: Five-tier Role-Based Access Control (RBAC: Super Admin, Admin, Manager, Tenant, Resident) with granular permissions, including building-level access. `super_admin` is reserved for internal Koveo staff (@koveo-gestion.com) and unlocks all organisations and the Super Admin nav section. Regular `admin` is scoped to their own organisation(s).
 - **Demo User System**: Provides comprehensive read-only access for product demonstrations, integrated with backend middleware, frontend error handling, and RBAC.
 - **File Storage**: Replit Object Storage with a unified `DocumentService` for DRY document management. All document paths use a consistent `/objects/` prefix and hierarchical structure, with uploads using presigned URLs and ACL-based access control.
 - **Internationalization**: Custom language provider for English and French.

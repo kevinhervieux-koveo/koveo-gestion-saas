@@ -29,7 +29,7 @@ export interface AuthenticatedUser {
   email: string;
   firstName: string;
   lastName: string;
-  role: 'admin' | 'manager' | 'tenant' | 'resident' | 'demo_manager' | 'demo_tenant' | 'demo_resident';
+  role: 'super_admin' | 'admin' | 'manager' | 'tenant' | 'resident' | 'demo_manager' | 'demo_tenant' | 'demo_resident';
   isActive: boolean;
   organizations?: string[];
   canAccessAllOrganizations?: boolean;
@@ -82,8 +82,34 @@ export interface AccessContext {
  * @param userId
  * @returns Function result.
  */
-export async function getUserAccessibleOrganizations(userId: string): Promise<string[]> {
+/**
+ * Look up a user's role from the database. Used by RBAC helpers when the
+ * caller does not have the role in scope (e.g. functions that accept only a
+ * `userId`). Returns undefined when the user is not found.
+ */
+async function getUserRole(userId: string): Promise<string | undefined> {
   try {
+    const [user] = await db
+      .select({ role: schema.users.role })
+      .from(schema.users)
+      .where(eq(schema.users.id, userId))
+      .limit(1);
+    return user?.role;
+  } catch {
+    return undefined;
+  }
+}
+
+export async function getUserAccessibleOrganizations(userId: string, userRole?: string): Promise<string[]> {
+  try {
+
+    // super_admin sees every organization without needing the flag
+    if (userRole === 'super_admin') {
+      const allOrgs = await db.query.organizations.findMany({
+        where: eq(schema.organizations.isActive, true),
+      });
+      return allOrgs.map((org) => org.id);
+    }
 
     // Get user's organization memberships
     const userOrgs = await db.query.userOrganizations.findMany({
@@ -279,9 +305,11 @@ export async function canUserPerformWriteOperation(
  */
 export async function canUserAccessOrganization(
   userId: string,
-  organizationId: string
+  organizationId: string,
+  userRole?: string
 ): Promise<boolean> {
-  const accessibleOrgs = await getUserAccessibleOrganizations(userId);
+  const role = userRole ?? await getUserRole(userId);
+  const accessibleOrgs = await getUserAccessibleOrganizations(userId, role);
   return accessibleOrgs.includes(organizationId);
 }
 
@@ -619,8 +647,9 @@ export async function filterResidencesByAccess(userId: string, residences: any[]
  * @param userId
  * @returns Function result.
  */
-export async function getOrganizationFilter(userId: string) {
-  const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
+export async function getOrganizationFilter(userId: string, userRole?: string) {
+  const role = userRole ?? await getUserRole(userId);
+  const accessibleOrgIds = await getUserAccessibleOrganizations(userId, role);
   return inArray(schema.organizations.id, accessibleOrgIds);
 }
 
@@ -633,8 +662,9 @@ export async function getOrganizationFilter(userId: string) {
  * @param userId
  * @returns Function result.
  */
-export async function getBuildingFilter(userId: string) {
-  const accessibleOrgIds = await getUserAccessibleOrganizations(userId);
+export async function getBuildingFilter(userId: string, userRole?: string) {
+  const role = userRole ?? await getUserRole(userId);
+  const accessibleOrgIds = await getUserAccessibleOrganizations(userId, role);
   return inArray(schema.buildings.organizationId, accessibleOrgIds);
 }
 

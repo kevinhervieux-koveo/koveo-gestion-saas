@@ -62,7 +62,7 @@ async function createAdminUser() {
         lastName: 'Système',
         phone: '+1-514-555-0100',
         language: 'fr',
-        role: 'admin',
+        role: 'super_admin',
       })
       .returning();
 

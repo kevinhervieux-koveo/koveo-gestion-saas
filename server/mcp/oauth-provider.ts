@@ -15,7 +15,7 @@ import type {
 } from '@modelcontextprotocol/sdk/shared/auth.js';
 import type { AuthInfo } from '@modelcontextprotocol/sdk/server/auth/types.js';
 
-export const MCP_SUPPORTED_ROLES = ['admin', 'manager', 'tenant'] as const;
+export const MCP_SUPPORTED_ROLES = ['super_admin', 'admin', 'manager', 'tenant'] as const;
 export type McpRole = (typeof MCP_SUPPORTED_ROLES)[number];
 
 const AUTH_CODE_TTL_MS = 10 * 60 * 1000;

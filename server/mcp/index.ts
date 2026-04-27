@@ -240,7 +240,7 @@ export async function registerMcpRoutes(app: Express) {
       const sessionId = req.headers["mcp-session-id"] as string | undefined;
 
       if (!sessionId && isInitializeRequest(req.body)) {
-        const auth = (req as Request & { auth?: { extra?: { userId?: string; role?: "admin" | "manager" | "tenant" } } }).auth;
+        const auth = (req as Request & { auth?: { extra?: { userId?: string; role?: "super_admin" | "admin" | "manager" | "tenant" } } }).auth;
         // Capture client IP and User-Agent at session-initialize time so the
         // `assume_user` audit log (Task #642) can attribute every
         // impersonation row back to a specific caller. These values live on

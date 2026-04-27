@@ -526,6 +526,7 @@ export interface Translations {
   newRole: string;
   selectRole: string;
   admin: string;
+  superAdmin: string;
   manager: string;
   tenant: string;
   resident: string;
@@ -4304,6 +4305,7 @@ export const translations: Record<Language, Translations> = {
     newRole: 'New Role',
     selectRole: 'Select role',
     admin: 'Administrator',
+    superAdmin: 'Super Admin',
     manager: 'Manager',
     tenant: 'Tenant',
     resident: 'Resident',
@@ -8529,6 +8531,7 @@ export const translations: Record<Language, Translations> = {
     newRole: 'Nouveau rôle',
     selectRole: 'Sélectionner un rôle',
     admin: 'Administrateur',
+    superAdmin: 'Super Admin',
     manager: 'Gestionnaire',
     tenant: 'Locataire',
     resident: 'Résident',

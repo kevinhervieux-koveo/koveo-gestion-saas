@@ -23,6 +23,7 @@ import { relations } from 'drizzle-orm';
  * Determines user permissions and access levels across the application.
  */
 export const userRoleEnum = pgEnum('user_role', [
+  'super_admin',
   'admin',
   'manager',
   'tenant',

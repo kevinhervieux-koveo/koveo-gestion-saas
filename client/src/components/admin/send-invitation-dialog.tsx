@@ -280,8 +280,8 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
       return isValid;
     });
 
-    if (currentUser?.role === 'admin') {
-      // Admins can add users to any organization
+    if (currentUser?.role === 'admin' || currentUser?.role === 'super_admin') {
+      // Admins and super_admins can add users to any organization
       return validOrgs;
     } else if (currentUser?.role === 'manager') {
       // Managers can only add users to their own organization
@@ -303,7 +303,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
     // Organization filtering for user access control
     if (targetOrg?.name?.toLowerCase() === 'demo') {
-      return currentUser?.role === 'admin';
+      return currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
     }
 
     // Koveo organization users can add to any organization (override all restrictions)
@@ -313,8 +313,8 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
 
     // Simplified access control for now
 
-    // Admins can add to organizations they have access to
-    if (currentUser?.role === 'admin') {
+    // Admins and super_admins can add to organizations they have access to
+    if (currentUser?.role === 'admin' || currentUser?.role === 'super_admin') {
       return true;
     }
 

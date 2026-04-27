@@ -410,7 +410,7 @@ export async function registerRoutes(app: Express) {
       const userOrgs = await import('./storage').then(({ storage }) => storage.getUserOrganizations(user.id));
       const hasOrgAccess = userOrgs.some(org => org.organizationId === orgId);
       
-      if (!hasOrgAccess && user.role !== 'admin') {
+      if (!hasOrgAccess && user.role !== 'super_admin') {
         return res.status(403).json({ error: 'Access denied' });
       }
       

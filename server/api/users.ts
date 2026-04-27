@@ -113,8 +113,9 @@ export function registerUserRoutes(app: Express): void {
       
       logDebug('[USER FILTER] Applying role-based filters', { metadata: { role: currentUser.role } });
       
-      if (currentUser.role === 'admin') {
+      if (currentUser.role === 'admin' || currentUser.role === 'super_admin') {
         // Admins are no longer exempt: scope to the resolved org set.
+        // (super_admin resolves to all orgs via getUserAccessibleOrganizations)
         if (scope.orgIds.length > 0) {
           roleBasedFilters.managerOrganizations = scope.orgIds.join(',');
           logDebug('[ADMIN] Restricting to users from resolved org scope', { metadata: { organizationIds: scope.orgIds } });
@@ -245,8 +246,8 @@ export function registerUserRoutes(app: Express): void {
       let organizations = [];
       let allowedRoles = [];
       
-      if (currentUser.role === 'admin') {
-        // Only admin can see all organizations and all roles
+      if (currentUser.role === 'admin' || currentUser.role === 'super_admin') {
+        // admin and super_admin can see all organizations and all roles
         const orgsResult = await db
           .select({ id: schema.organizations.id, name: schema.organizations.name })
           .from(schema.organizations)
@@ -254,7 +255,7 @@ export function registerUserRoutes(app: Express): void {
           .orderBy(schema.organizations.name);
         organizations = orgsResult;
         
-        // Admin sees all roles
+        // admin / super_admin sees all roles
         const rolesResult = await db
           .selectDistinct({ role: schema.users.role })
           .from(schema.users)
@@ -417,7 +418,7 @@ export function registerUserRoutes(app: Express): void {
   app.post('/api/users', async (req, res) => {
     try {
       const requestedRole = req.body.role;
-      const privilegedRoles = ['admin', 'manager', 'demo_manager'];
+      const privilegedRoles = ['super_admin', 'admin', 'manager', 'demo_manager'];
       if (requestedRole && privilegedRoles.includes(requestedRole)) {
         const sessionUserId = (req as any).session?.userId;
         if (!sessionUserId) {
@@ -427,10 +428,24 @@ export function registerUserRoutes(app: Express): void {
           });
         }
         const requestingUser = await storage.getUser(sessionUserId);
-        if (!requestingUser || requestingUser.role !== 'admin') {
+        if (!requestingUser || (requestingUser.role !== 'admin' && requestingUser.role !== 'super_admin')) {
           return res.status(403).json({
             error: 'Forbidden',
             message: 'Only admins can create users with privileged roles',
+          });
+        }
+      }
+
+      // Email-domain enforcement: only users with @koveo-gestion.com emails may
+      // receive the super_admin role.
+      if (requestedRole === 'super_admin') {
+        const SUPER_ADMIN_DOMAIN = '@koveo-gestion.com';
+        const emailForCheck = (req.body.email || '').toLowerCase();
+        if (!emailForCheck.endsWith(SUPER_ADMIN_DOMAIN)) {
+          return res.status(400).json({
+            error: 'Validation error',
+            message: `The super_admin role can only be assigned to users with an ${SUPER_ADMIN_DOMAIN} email address`,
+            code: 'SUPER_ADMIN_DOMAIN_REQUIRED',
           });
         }
       }
@@ -626,14 +641,23 @@ export function registerUserRoutes(app: Express): void {
       
       // Validate role assignment permissions
       if (newRole && newRole !== targetUser.role) {
-        // Admin can assign any role
-        if (currentUser.role === 'admin') {
-          // Admin has no restrictions
-        } 
+        // super_admin can assign any role; admin can assign any role except super_admin
+        if (currentUser.role === 'super_admin') {
+          // super_admin has no restrictions
+        } else if (currentUser.role === 'admin') {
+          // Regular admin cannot assign super_admin
+          if (newRole === 'super_admin') {
+            return res.status(403).json({
+              error: 'Permission denied',
+              message: 'Only super admins can assign the super_admin role',
+              code: 'ROLE_ESCALATION_DENIED',
+            });
+          }
+        }
         // Manager restrictions
         else if (currentUser.role === 'manager') {
-          // Managers cannot escalate to admin
-          if (newRole === 'admin') {
+          // Managers cannot escalate to admin or super_admin
+          if (newRole === 'admin' || newRole === 'super_admin') {
             return res.status(403).json({
               error: 'Permission denied',
               message: 'Managers cannot assign admin role',
@@ -667,6 +691,19 @@ export function registerUserRoutes(app: Express): void {
             message: 'Insufficient permissions to assign roles',
             code: 'INSUFFICIENT_PERMISSIONS',
           });
+        }
+
+        // Email-domain enforcement: super_admin can only be assigned to @koveo-gestion.com users
+        if (newRole === 'super_admin') {
+          const SUPER_ADMIN_DOMAIN = '@koveo-gestion.com';
+          const targetEmail = (req.body.email || targetUser.email || '').toLowerCase();
+          if (!targetEmail.endsWith(SUPER_ADMIN_DOMAIN)) {
+            return res.status(400).json({
+              error: 'Validation error',
+              message: `The super_admin role can only be assigned to users with an ${SUPER_ADMIN_DOMAIN} email address`,
+              code: 'SUPER_ADMIN_DOMAIN_REQUIRED',
+            });
+          }
         }
 
         // Organization scope validation for role assignments

@@ -10,12 +10,17 @@ import {
 
 /**
  * Map a Koveo user account role to the role its OAuth-bound MCP session
- * should run as. Admins connect as `manager` because the MCP server's
- * tool surface is not designed to operate as `admin` — manager is the
- * highest role MCP supports. Managers and tenants map to themselves.
+ * should run as.
+ *
+ * - `super_admin` → `super_admin` (scoped to MCP-1/MCP-2 sandbox orgs)
+ * - `admin`       → `admin` (scoped to that admin's own org memberships)
+ * - `manager`     → `manager`
+ * - everything else → `tenant`
  */
 export function effectiveMcpRoleForUser(userRole: string | null | undefined): McpRole {
-  if (userRole === 'admin' || userRole === 'manager') return 'manager';
+  if (userRole === 'super_admin') return 'super_admin';
+  if (userRole === 'admin') return 'admin';
+  if (userRole === 'manager') return 'manager';
   return 'tenant';
 }
 

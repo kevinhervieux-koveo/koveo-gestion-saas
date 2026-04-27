@@ -143,14 +143,18 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     icon: User,
     requiredRole: 'admin',
     items: [
+      { nameKey: 'navBulkDocumentImport', href: '/admin/bulk-document-import', icon: Folder },
+    ],
+  },
+  {
+    nameKey: 'superAdmin',
+    _key: 'superAdmin',
+    icon: ShieldCheck,
+    requiredRole: 'super_admin',
+    items: [
       { nameKey: 'organizations', href: '/admin/organizations', icon: Building },
       { nameKey: 'navQualityAssurance', href: '/admin/quality', icon: CheckCircle },
-      {
-        nameKey: 'navLaw25Compliance',
-        href: '/admin/compliance',
-        icon: Shield,
-        superAdminOnly: true,
-      },
+      { nameKey: 'navLaw25Compliance', href: '/admin/compliance', icon: Shield },
       { nameKey: 'rbacPermissions', href: '/admin/permissions', icon: ShieldCheck },
       { nameKey: 'navBulkDocumentImport', href: '/admin/bulk-document-import', icon: Folder },
     ],
@@ -178,6 +182,7 @@ export const ROLE_HIERARCHY = {
   manager: 2,
   demo_manager: 2, // Demo manager has same permissions as manager
   admin: 3,
+  super_admin: 4, // Internal Koveo staff — highest privilege level
 } as const;
 
 /**
@@ -212,9 +217,10 @@ export function hasRoleOrHigher(userRole: string | undefined, requiredRole: stri
 export const SUPER_ADMIN_EMAIL_DOMAIN = '@koveo-gestion.com';
 
 /**
- * Returns true when the user is internal Koveo staff: an admin whose email is
- * on the internal domain. All other users (including customer admins) are
- * treated as non-super-admin.
+ * Returns true when the user has the `super_admin` role (internal Koveo staff).
+ * The email-domain heuristic is no longer used here — role is the source of truth.
+ * `SUPER_ADMIN_EMAIL_DOMAIN` is still used as an eligibility rule during user
+ * creation/role assignment (server-side), but not as a runtime permission check.
  *
  * @param user - Authenticated user (or partial user shape) to inspect.
  * @returns True if the user qualifies as a super admin.
@@ -222,13 +228,10 @@ export const SUPER_ADMIN_EMAIL_DOMAIN = '@koveo-gestion.com';
 export function isSuperAdmin(
   user: { role?: string | null; email?: string | null } | null | undefined
 ): boolean {
-  if (!user || !user.role || !user.email) {
+  if (!user || !user.role) {
     return false;
   }
-  if (user.role !== 'admin') {
-    return false;
-  }
-  return user.email.toLowerCase().endsWith(SUPER_ADMIN_EMAIL_DOMAIN);
+  return user.role === 'super_admin';
 }
 
 /**

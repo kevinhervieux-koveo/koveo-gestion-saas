@@ -169,7 +169,7 @@ export async function seedMcpData() {
       password: hashedPassword,
       firstName: "MCP",
       lastName: "Admin",
-      role: "admin",
+      role: "super_admin",
       language: "en",
     })
     .returning();
