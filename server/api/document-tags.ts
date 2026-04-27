@@ -13,6 +13,7 @@ import {
 import { logError, logInfo } from '../utils/logger';
 import {
   isKoveoSystemTag,
+  refuseIfKoveoSystemTagUpdate,
   SYSTEM_TAG_DELETE_REFUSAL_MESSAGE,
 } from '../mcp/system-entity-guards';
 
@@ -185,8 +186,13 @@ export function registerDocumentTagRoutes(app: Express): void {
         if (!tag) {
           return res.status(404).json({ message: 'Tag not found' });
         }
-        if (tag.isSystem && user.role !== 'super_admin') {
-          return res.status(403).json({ message: 'Only super admins can modify Koveo system tags' });
+        // Reuse the shared MCP guard so REST and MCP emit the same
+        // refusal text. super_admin keeps the REST carve-out.
+        if (user.role !== 'super_admin') {
+          const refusal = refuseIfKoveoSystemTagUpdate(tag);
+          if (refusal) {
+            return res.status(403).json({ message: refusal.content[0].text });
+          }
         }
         if (!tag.isSystem && user.role !== 'admin') {
           const orgIds = await getUserOrgIds(user.id);

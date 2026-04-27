@@ -1,30 +1,9 @@
 /**
  * @jest-environment node
  *
- * Task #1418 — super-admin-only Koveo system tags & families
- * (creation path), updated for the role-agnostic delete/update guards
- * introduced by Tasks #1430 (link family delete), #1431 (tag delete),
- * #1436 (link family update), and the super_admin REST carve-outs from
- * Tasks #1440 (link family delete) and #1445 (tag delete).
- *
- * Verifies:
- *   - CREATE: super_admin can create Koveo system tags and families;
- *     admin/manager are 403'd. (Unchanged — only the create path is
- *     super-admin-only.)
- *   - DELETE on system tags: admin/manager/demo_manager are refused with
- *     the shared MCP guard message; super_admin can delete system tags
- *     via the REST handler (Task #1445). The MCP guard is unchanged.
- *   - PATCH on system link families: every role (including super_admin)
- *     is refused with the shared MCP guard message.
- *   - DELETE on system link families: admin/manager are refused with the
- *     shared MCP guard message; super_admin can delete via REST
- *     (Task #1440).
- *   - Non-system (org-scoped) tags and families remain accessible to
- *     admin, manager, and demo_manager exactly as before (regression).
- *
- * Note: The PATCH on system tags still uses the older
- * `Only super admins can modify Koveo system tags` branch (no role-
- * agnostic guard yet), so those cases are unchanged here.
+ * Coverage for super-admin-only Koveo system tags & families across the
+ * REST surface: CREATE, PATCH, and DELETE on document tags and link
+ * families, plus org-scoped (non-system) regressions.
  */
 
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
@@ -153,6 +132,7 @@ const ORG_FAMILY = {
 
 import { registerDocumentTagRoutes } from '../../../server/api/document-tags';
 import { registerDocumentLinkFamilyRoutes } from '../../../server/api/document-link-families';
+import { SYSTEM_TAG_UPDATE_REFUSAL_MESSAGE } from '../../../server/mcp/system-entity-guards';
 
 function makeAuth(role: string) {
   return (req: any, _res: any, next: any) => {
@@ -249,7 +229,7 @@ describe('POST /api/document-tags — isSystem flag', () => {
 // ─── PATCH /api/document-tags/:id ────────────────────────────────────────────
 
 describe('PATCH /api/document-tags/:id — system tag protection', () => {
-  it('super_admin can update a system tag (200)', async () => {
+  it('super_admin can update a system tag via REST', async () => {
     selectQueue.push([SYSTEM_TAG]);
     updateResult = [{ ...SYSTEM_TAG, name: 'Updated' }];
     const res = await request(buildApp('super_admin'))
@@ -258,22 +238,31 @@ describe('PATCH /api/document-tags/:id — system tag protection', () => {
     expect(res.status).toBe(200);
   });
 
-  it('admin gets 403 when trying to update a system tag', async () => {
+  it('admin gets 403 with shared message when trying to update a system tag', async () => {
     selectQueue.push([SYSTEM_TAG]);
     const res = await request(buildApp('admin'))
       .patch('/api/document-tags/tag-system-1')
       .send({ name: 'Updated' });
     expect(res.status).toBe(403);
-    expect(res.body.message).toMatch(/super admin/i);
+    expect(res.body.message).toBe(SYSTEM_TAG_UPDATE_REFUSAL_MESSAGE);
   });
 
-  it('manager gets 403 when trying to update a system tag', async () => {
+  it('manager gets 403 with shared message when trying to update a system tag', async () => {
     selectQueue.push([SYSTEM_TAG]);
     const res = await request(buildApp('manager'))
       .patch('/api/document-tags/tag-system-1')
       .send({ name: 'Updated' });
     expect(res.status).toBe(403);
-    expect(res.body.message).toMatch(/super admin/i);
+    expect(res.body.message).toBe(SYSTEM_TAG_UPDATE_REFUSAL_MESSAGE);
+  });
+
+  it('demo_manager gets 403 with shared message when trying to update a system tag', async () => {
+    selectQueue.push([SYSTEM_TAG]);
+    const res = await request(buildApp('demo_manager'))
+      .patch('/api/document-tags/tag-system-1')
+      .send({ name: 'Updated' });
+    expect(res.status).toBe(403);
+    expect(res.body.message).toBe(SYSTEM_TAG_UPDATE_REFUSAL_MESSAGE);
   });
 
   it('admin can still update a non-system tag from their org (200)', async () => {
