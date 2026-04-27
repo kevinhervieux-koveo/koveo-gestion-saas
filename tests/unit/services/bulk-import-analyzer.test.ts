@@ -391,6 +391,7 @@ describe('bulkImportAnalyzer per-step cache (Task #462)', () => {
       branch: 'building_documents',
       reason: 'cover page',
       confidence: 0.8,
+      suggestedFilename: 'Multi-page document',
     });
     await bulkImportAnalyzer.suggestBranch({
       originalName: 'multi.pdf',

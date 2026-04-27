@@ -1100,6 +1100,109 @@ export function sanitizeAiSuggestedFileName(raw: unknown): string | null {
   return s || null;
 }
 
+/**
+ * Returns true when the filename stem looks non-descriptive — e.g. an
+ * auto-generated camera/scanner name or a system identifier. Used to
+ * detect when the AI echoed the original stem instead of suggesting a
+ * real human-readable name.
+ *
+ * Heuristics (any one triggers):
+ *  1. Matches a known camera/scanner/system-name prefix pattern.
+ *  2. Contains a run of 6+ consecutive digits (date+time code in auto-names).
+ *  3. Has more underscores/dashes than word-boundary spaces (machine-joined
+ *     tokens dominate over human words).
+ */
+export function looksNonDescriptive(stem: string): boolean {
+  const s = stem.trim();
+  if (!s) return true;
+  if (/^(img|dsc|dscf|dcim|scan|screenshot|capture|photo|picture|image|page|doc|file|temp|tmp|untitled|no[\s_-]?centris)[\s_-]/i.test(s)) return true;
+  if (/\d{6,}/.test(s)) return true;
+  const separators = (s.match(/[_-]/g) || []).length;
+  const spaces = (s.match(/ /g) || []).length;
+  if (separators > spaces + 2) return true;
+  return false;
+}
+
+/**
+ * Normalize a filename stem for comparison by collapsing all separators
+ * (underscores, dashes, spaces) and removing accents/diacritics so that
+ * "Reglements_7_NoCentris_28525705" and "reglements 7 nocentris 28525705"
+ * compare equal. Only lowercase ASCII letters and digits survive.
+ */
+function normalizeForStemComparison(s: string): string {
+  return s
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[\u0300-\u036f]/g, '')
+    .replace(/[_\-\s]+/g, '')
+    .replace(/[^a-z0-9]/g, '');
+}
+
+/**
+ * One-shot filename-only retry call. Used when the main `suggestBranch`
+ * call either omitted `suggestedFilename` or returned a value that looks
+ * like it just echoed the original non-descriptive stem. The retry uses a
+ * tighter prompt focused solely on the filename suggestion.
+ *
+ * Returns the cleaned suggestion strings, or nulls on timeout/failure so
+ * callers fall through to the stem fallback.
+ *
+ * Only called once per item (no internal retries).
+ */
+async function retrySuggestFilenameOnly(input: {
+  originalName: string;
+  description?: string;
+  stagedPath?: string | null;
+  buffer?: Buffer | null;
+  mimeType?: string | null;
+  needsSplitNames: boolean;
+  itemId?: string;
+  sessionId?: string;
+}): Promise<{ suggestedFilename: string | null; suggestedSplitFilenames: [string, string] | null }> {
+  const splitInstruction = input.needsSplitNames
+    ? '\nAlso return suggestedSplitFilenames: [string, string] — one descriptive stem per part (Part 1 first, Part 2 second).'
+    : '';
+  const retryPrompt = `A property-management document needs a clean, descriptive filename stem.
+Original filename: ${input.originalName}
+Description: ${input.description ?? '(not available)'}
+
+Rules:
+- Describe what the document IS based on its content, not its filename.
+- Combine the document subject with the relevant period or identifier when available.
+- Match the document's own language (French → French, English → English).
+- NEVER copy the original filename or any auto-generated code (underscores, digit runs, camera/scan prefixes).
+- No extension, no path separators, under 200 characters.
+
+Examples:
+  "Reglements_7_NoCentris_28525705.pdf" → "Règlements de l'immeuble"
+  "IMG_20231204_142301.pdf"             → "Procès-verbal AGA 2023-12-04"
+  "Scan_001.pdf"                        → "Facture entretien janvier 2024"${splitInstruction}
+
+Return JSON only: { suggestedFilename: string${input.needsSplitNames ? ', suggestedSplitFilenames: [string, string]' : ''} }`;
+
+  const empty = { suggestedFilename: null, suggestedSplitFilenames: null };
+  try {
+    const { data } = await callClaudeJson<{ suggestedFilename?: unknown; suggestedSplitFilenames?: unknown }>(
+      retryPrompt,
+      { stagedPath: input.stagedPath, buffer: input.buffer, mimeType: input.mimeType },
+      'branch',
+      { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
+    );
+    if (!data) return empty;
+    const cleaned = sanitizeAiSuggestedFileName(data.suggestedFilename);
+    if (!cleaned) return empty;
+    let splitNames: [string, string] | null = null;
+    if (input.needsSplitNames && Array.isArray(data.suggestedSplitFilenames) && data.suggestedSplitFilenames.length === 2) {
+      const p1 = sanitizeAiSuggestedFileName(data.suggestedSplitFilenames[0]);
+      const p2 = sanitizeAiSuggestedFileName(data.suggestedSplitFilenames[1]);
+      if (p1 && p2) splitNames = [p1, p2];
+    }
+    return { suggestedFilename: cleaned, suggestedSplitFilenames: splitNames };
+  } catch {
+    return empty;
+  }
+}
+
 function fallbackQuickAnalysis(
   fallbackReason: BulkImportFallbackReason | null = null,
 ): QuickAnalysis {
@@ -1349,9 +1452,20 @@ Sub-categories per destination:
   maintenance: work_order | quote | inspection_report | inventory | other
   other: other
 
-Also propose a clean, human-readable filename for this document (Task #1401):
-- suggestedFilename (string): a single clean stem with NO extension and NO path separators, suitable as a default in a rename input. Prefer descriptive names that combine the document subject and the relevant period or unique identifier (e.g. "Procès-verbal AGA 2024-09-12", "Insurance policy 2024", "Invoice INV-2024-042"). Avoid generic camera/scanner filenames like "IMG_20240912_184231" or "Scan_001". Keep it under 200 characters.
-- suggestedSplitFilenames (array of two strings, optional): include ONLY when this file clearly contains two separate documents stitched together (i.e. you would advise a split). Each entry is a clean stem (no extension), one for each part, in the order they appear in the file (Part 1 first, Part 2 second). Omit this key entirely when no split is warranted.
+REQUIRED — you must always return a descriptive suggestedFilename. Rules:
+- Describe what the document IS, based on its content — not on its filename.
+- Combine document subject with the relevant period or identifier when available (e.g. "Règlements de l'immeuble", "Procès-verbal AGA 2024-09-12", "Police d'assurance 2024", "Facture gaz mars 2024").
+- Match the document's own language: French documents → French name, English documents → English name.
+- NEVER echo the original filename stem, especially when it contains auto-generated codes (underscores, digit runs, camera/scan prefixes like IMG_, Scan_, DSC_, NoCentris, etc.).
+- No extension, no path separators, under 200 characters.
+
+Examples:
+  original "Reglements_7_NoCentris_28525705.pdf"  → suggestedFilename: "Règlements de l'immeuble"
+  original "IMG_20231204_142301.pdf"               → suggestedFilename: "Procès-verbal AGA 2023-12-04"
+  original "Scan_001.pdf"                          → suggestedFilename: "Facture entretien janvier 2024"
+  original "Procès-verbal AGA 2024-09-12.pdf"      → suggestedFilename: "Procès-verbal AGA 2024-09-12"
+
+suggestedSplitFilenames (array of two strings, optional): include ONLY when this file clearly contains two separate documents stitched together (i.e. you would advise a split). Each entry is a descriptive clean stem (no extension), one for each part, in the order they appear in the file (Part 1 first, Part 2 second). Omit this key entirely when no split is warranted.
 
 Return JSON: { branch: string, subCategory: string, residenceHint?: string, reason: string, confidence: number, suggestedFilename: string, suggestedSplitFilenames?: [string, string]${residenceJsonNote} }.`;
     const { data: raw, fallbackReason, retryCount, degraded } = await callClaudeJson<Partial<BranchResult & { subCategory: string }>>(
@@ -1442,6 +1556,9 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
     // fall back to the original-filename stem so the rename input is never
     // blank on first open. Mark the fallback with `suggestedFinalFileNameIsFallback`
     // so the UI suppresses the "AI suggestion" badge for stem-only values.
+    // Task #1509 — also detect when the AI just echoed the original
+    // non-descriptive stem (e.g. "Reglements_7_NoCentris_28525705") and
+    // treat that as a missing suggestion, triggering a one-shot retry.
     const rawSuggested = (raw as Record<string, unknown>).suggestedFilename;
     const aiSuggestedFinalFileName = sanitizeAiSuggestedFileName(rawSuggested);
     const rawSplit = (raw as Record<string, unknown>).suggestedSplitFilenames;
@@ -1458,14 +1575,54 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
       (sanitizeAiSuggestedFileName(input.originalName) ??
       input.originalName.replace(/\.[^/.]+$/, '').trim()) ||
       input.originalName;
-    const isFallback = !aiSuggestedFinalFileName;
-    const suggestedFinalFileName = aiSuggestedFinalFileName ?? stemFallback;
+
+    // Task #1509 — detect AI echoing the non-descriptive stem.
+    // If the sanitised suggestion normalises to the same token sequence as the
+    // original stem AND the stem looks non-descriptive, the AI essentially
+    // returned the filename back to us — treat it like a missing suggestion.
+    const stemNorm = normalizeForStemComparison(stemFallback);
+    const suggestionNorm = aiSuggestedFinalFileName ? normalizeForStemComparison(aiSuggestedFinalFileName) : null;
+    const aiEchoedStem =
+      !!aiSuggestedFinalFileName &&
+      suggestionNorm === stemNorm &&
+      looksNonDescriptive(stemFallback);
+
+    // A suggestion is considered missing when the AI either omitted it,
+    // returned something that sanitised to empty, or just echoed the stem.
+    let isFallback = !aiSuggestedFinalFileName || aiEchoedStem;
+
+    // Task #1509 — one-shot retry when the suggestion is missing but the
+    // overall AI call succeeded (no api_error / no_api_key). This asks
+    // Claude a second time using a tighter, filename-focused prompt.
+    let retrySuggestedFilename: string | null = null;
+    let retrySuggestedSplitNames: [string, string] | null = null;
+    if (isFallback && !fallbackReason) {
+      const needsSplitNames = aiSuggestedSplitFinalNames !== null;
+      const retryResult = await retrySuggestFilenameOnly({
+        originalName: input.originalName,
+        description: input.description,
+        stagedPath: input.stagedPath,
+        buffer: input.buffer,
+        mimeType: input.mimeType,
+        needsSplitNames,
+        itemId: input.itemId,
+        sessionId: input.sessionId,
+      });
+      retrySuggestedFilename = retryResult.suggestedFilename;
+      retrySuggestedSplitNames = retryResult.suggestedSplitFilenames;
+      if (retrySuggestedFilename) {
+        isFallback = false;
+      }
+    }
+
+    const suggestedFinalFileName = retrySuggestedFilename ?? aiSuggestedFinalFileName ?? stemFallback;
     // When the AI provided a real single suggestion, keep split names as whatever the
     // AI returned (or null if absent) so the badge only fires when the value is a real
     // AI split suggestion. When the AI had no single suggestion either (isFallback),
     // populate both split slots with the stem so split rows are never blank.
+    const resolvedSplitNames = retrySuggestedSplitNames ?? aiSuggestedSplitFinalNames;
     const suggestedSplitFinalNames: [string, string] | null =
-      aiSuggestedSplitFinalNames ?? (isFallback ? [stemFallback, stemFallback] : null);
+      resolvedSplitNames ?? (isFallback ? [stemFallback, stemFallback] : null);
 
     return {
       branch,

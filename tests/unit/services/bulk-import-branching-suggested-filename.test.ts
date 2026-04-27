@@ -42,12 +42,28 @@ jest.mock('mammoth', () => ({
 import {
   bulkImportAnalyzer,
   sanitizeAiSuggestedFileName,
+  looksNonDescriptive,
 } from '../../../server/services/bulk-import-analyzer';
 
 function makeFakeClient(jsonPayload: object) {
   const create = jest.fn().mockResolvedValue({
     content: [{ type: 'text', text: JSON.stringify(jsonPayload) }],
   });
+  const fakeClient = {
+    messages: { create },
+  } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0];
+  bulkImportAnalyzer.__setClientForTests(fakeClient);
+  return create;
+}
+
+function makeSequencedClient(responses: object[]) {
+  const create = jest.fn();
+  for (const payload of responses) {
+    create.mockResolvedValueOnce({
+      content: [{ type: 'text', text: JSON.stringify(payload) }],
+    });
+  }
+  create.mockResolvedValue({ content: [{ type: 'text', text: '{}' }] });
   const fakeClient = {
     messages: { create },
   } as unknown as Parameters<typeof bulkImportAnalyzer.__setClientForTests>[0];
@@ -276,5 +292,120 @@ describe('suggestBranch — fallback path uses stem fallback (Task #1401 / #1454
 
     expect(r.suggestedFinalFileName).toBe('rapport.annuel.2023');
     expect(r.suggestedFinalFileNameIsFallback).toBe(true);
+  });
+});
+
+describe('looksNonDescriptive (Task #1509)', () => {
+  it('returns true for camera/scanner prefixes with a separator', () => {
+    expect(looksNonDescriptive('IMG_20240912_184231')).toBe(true);
+    expect(looksNonDescriptive('DSC_0042')).toBe(true);
+    expect(looksNonDescriptive('Scan_001')).toBe(true);
+    expect(looksNonDescriptive('Screenshot_2024')).toBe(true);
+  });
+
+  it('returns true for stems with long digit runs (6+)', () => {
+    expect(looksNonDescriptive('Reglements_7_NoCentris_28525705')).toBe(true);
+    expect(looksNonDescriptive('Report_20240912184231')).toBe(true);
+  });
+
+  it('returns true when underscores/dashes dominate over spaces', () => {
+    expect(looksNonDescriptive('foo_bar_baz_qux_quux')).toBe(true);
+    expect(looksNonDescriptive('some-file-name-with-dashes')).toBe(true);
+  });
+
+  it('returns false for normal human-readable filenames', () => {
+    expect(looksNonDescriptive('Règlements de l\'immeuble')).toBe(false);
+    expect(looksNonDescriptive('Procès-verbal AGA 2024-09-12')).toBe(false);
+    expect(looksNonDescriptive('Insurance policy 2024')).toBe(false);
+    expect(looksNonDescriptive('Budget annuel 2024')).toBe(false);
+  });
+});
+
+describe('suggestBranch — echo detection and retry (Task #1509)', () => {
+  beforeAll(() => {
+    process.env.ANTHROPIC_API_KEY = 'test-key-task1509';
+  });
+
+  it('(a) AI returns a good suggestion → isFallback=false, badge shown', async () => {
+    makeFakeClient({
+      branch: 'building_documents',
+      subCategory: 'bylaws',
+      reason: 'Condo bylaws',
+      confidence: 0.92,
+      suggestedFilename: 'Règlements de l\'immeuble',
+    });
+
+    const r = await bulkImportAnalyzer.suggestBranch({ originalName: 'Reglements_7_NoCentris_28525705.pdf' });
+
+    expect(r.suggestedFinalFileName).toBe('Règlements de l\'immeuble');
+    expect(r.suggestedFinalFileNameIsFallback).toBe(false);
+  });
+
+  it('(b) AI echoes the non-descriptive stem → retry runs → real suggestion returned, badge shown', async () => {
+    const create = makeSequencedClient([
+      // First call (main branch): echoes the non-descriptive stem
+      {
+        branch: 'building_documents',
+        subCategory: 'bylaws',
+        reason: 'Condo bylaws',
+        confidence: 0.75,
+        suggestedFilename: 'Reglements_7_NoCentris_28525705',
+      },
+      // Second call (retry): returns a proper descriptive name
+      {
+        suggestedFilename: 'Règlements de l\'immeuble',
+      },
+    ]);
+
+    const r = await bulkImportAnalyzer.suggestBranch({ originalName: 'Reglements_7_NoCentris_28525705.pdf' });
+
+    // Retry should have been triggered (2 calls total)
+    expect(create).toHaveBeenCalledTimes(2);
+    // The retry suggestion should win
+    expect(r.suggestedFinalFileName).toBe('Règlements de l\'immeuble');
+    expect(r.suggestedFinalFileNameIsFallback).toBe(false);
+  });
+
+  it('(c) AI echoes stem on both calls → stem fallback, no badge', async () => {
+    const create = makeSequencedClient([
+      // First call (main branch): echoes the non-descriptive stem
+      {
+        branch: 'building_documents',
+        subCategory: 'bylaws',
+        reason: 'Condo bylaws',
+        confidence: 0.6,
+        suggestedFilename: 'IMG_20240912_184231',
+      },
+      // Second call (retry): also returns a junk / empty suggestion
+      {
+        suggestedFilename: '   ',
+      },
+    ]);
+
+    const r = await bulkImportAnalyzer.suggestBranch({ originalName: 'IMG_20240912_184231.pdf' });
+
+    // Retry was attempted (2 calls total)
+    expect(create).toHaveBeenCalledTimes(2);
+    // Falls back to the stem; badge must be suppressed
+    expect(r.suggestedFinalFileName).toBe('IMG_20240912_184231');
+    expect(r.suggestedFinalFileNameIsFallback).toBe(true);
+  });
+
+  it('retry is NOT triggered when the overall call had an api_error fallback', async () => {
+    makeFakeClient({
+      branch: 'building_documents',
+      subCategory: 'other',
+      reason: 'fallback',
+      confidence: 0.2,
+    });
+
+    // Simulate fallback by using no client
+    bulkImportAnalyzer.__setClientForTests(null);
+    const r = await bulkImportAnalyzer.suggestBranch({ originalName: 'IMG_20240912_184231.pdf' });
+
+    expect(r.fallbackReason).toBe('no_api_key');
+    expect(r.suggestedFinalFileNameIsFallback).toBe(true);
+    // Restore the client for subsequent tests
+    bulkImportAnalyzer.__setClientForTests(null);
   });
 });
