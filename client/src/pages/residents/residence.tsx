@@ -66,6 +66,7 @@ import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSele
 import { useAuth } from '@/hooks/use-auth';
 import { PaginationControls } from '@/components/common/PaginationControls';
 import { MaintenanceRequestDialog } from '@/components/maintenance/MaintenanceRequestDialog';
+import { ResidentMaintenanceList } from '@/components/maintenance/ResidentMaintenanceList';
 
 /**
  * Residence data structure
@@ -563,6 +564,7 @@ function ResidencePageInner({ buildingId, showBackButton, backButtonLabel, onBac
                         unitNumber={residence.unitNumber}
                       />
                     </div>
+                    <ResidentMaintenanceList residenceId={residence.id} />
                   </CardContent>
                 </Card>
               ))}

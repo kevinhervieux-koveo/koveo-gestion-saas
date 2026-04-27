@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, jest, beforeEach } from '@jest/globals';
 import { documentService, DocumentContext } from '../services/document-service';
+import { safeMimeType } from '../utils/safe-header';
+import { buildContentDisposition } from '../utils/content-disposition';
 
 const UUID_REGEX = /[a-f0-9]{8}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{4}-[a-f0-9]{12}/;
 const SHORT_UUID = /[a-f0-9]{8}/;
@@ -424,5 +426,211 @@ describe('UUID Uniqueness in Paths', () => {
     const path = documentService.buildHierarchicalPath(context, 'invoice.pdf');
     
     expect(path.match(UUID_REGEX)).toBeTruthy();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// File type MIME mapping — Task #1484
+// Documents surface in: buildings, residences, bills, demands, maintenance,
+// support (bugs/features). The supported set is:
+//   PDF · Word (.docx) · plain text (.txt) · JPEG · PNG · Excel (.xlsx)
+// ---------------------------------------------------------------------------
+
+const SUPPORTED_FILE_TYPES: Array<{ ext: string; mime: string; label: string }> = [
+  { ext: 'pdf',  mime: 'application/pdf',                                                 label: 'PDF' },
+  { ext: 'docx', mime: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document', label: 'Word' },
+  { ext: 'txt',  mime: 'text/plain',                                                      label: 'Plain text' },
+  { ext: 'jpg',  mime: 'image/jpeg',                                                      label: 'JPEG' },
+  { ext: 'png',  mime: 'image/png',                                                       label: 'PNG' },
+  { ext: 'xlsx', mime: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', label: 'Excel' },
+];
+
+describe('Supported File Type MIME Validation', () => {
+  describe('safeMimeType passes canonical MIME strings through unchanged', () => {
+    for (const { mime, label } of SUPPORTED_FILE_TYPES) {
+      it(`should pass through ${label} MIME type: ${mime}`, () => {
+        expect(safeMimeType(mime)).toBe(mime);
+      });
+    }
+
+    it('should return octet-stream fallback for null', () => {
+      expect(safeMimeType(null)).toBe('application/octet-stream');
+    });
+
+    it('should return octet-stream fallback for undefined', () => {
+      expect(safeMimeType(undefined)).toBe('application/octet-stream');
+    });
+
+    it('should return octet-stream fallback for empty string', () => {
+      expect(safeMimeType('')).toBe('application/octet-stream');
+    });
+
+    it('should reject an invalid MIME string and return fallback', () => {
+      expect(safeMimeType('not-a-mime-type')).toBe('application/octet-stream');
+    });
+  });
+});
+
+describe('Content-Disposition: inline preview vs attachment download', () => {
+  it('should produce inline disposition for preview mode', () => {
+    const header = buildContentDisposition('report.pdf', { type: 'inline' });
+    expect(header).toMatch(/^inline/);
+    expect(header).toContain('report.pdf');
+  });
+
+  it('should produce attachment disposition for download mode', () => {
+    const header = buildContentDisposition('report.pdf', { type: 'attachment' });
+    expect(header).toMatch(/^attachment/);
+    expect(header).toContain('report.pdf');
+  });
+
+  it('should default to attachment when no type is specified', () => {
+    const header = buildContentDisposition('report.pdf');
+    expect(header).toMatch(/^attachment/);
+  });
+
+  describe('per file type: inline preview', () => {
+    for (const { ext, label } of SUPPORTED_FILE_TYPES) {
+      it(`should build inline Content-Disposition for ${label} (.${ext})`, () => {
+        const filename = `document.${ext}`;
+        const header = buildContentDisposition(filename, { type: 'inline' });
+        expect(header).toMatch(/^inline/);
+        expect(header).toContain(filename);
+      });
+    }
+  });
+
+  describe('per file type: attachment download', () => {
+    for (const { ext, label } of SUPPORTED_FILE_TYPES) {
+      it(`should build attachment Content-Disposition for ${label} (.${ext})`, () => {
+        const filename = `document.${ext}`;
+        const header = buildContentDisposition(filename, { type: 'attachment' });
+        expect(header).toMatch(/^attachment/);
+        expect(header).toContain(filename);
+      });
+    }
+  });
+
+  it('should handle French filenames with RFC 5987 extended encoding for inline', () => {
+    const header = buildContentDisposition('Procès-verbal assemblée.pdf', { type: 'inline' });
+    expect(header).toMatch(/^inline/);
+    expect(header).toContain("filename*=UTF-8''");
+  });
+
+  it('should handle French filenames with RFC 5987 extended encoding for attachment', () => {
+    const header = buildContentDisposition('Facture électricité.pdf', { type: 'attachment' });
+    expect(header).toMatch(/^attachment/);
+    expect(header).toContain("filename*=UTF-8''");
+  });
+});
+
+describe('Document path generation per module and file type', () => {
+  const MODULES: Array<{ label: string; context: DocumentContext }> = [
+    {
+      label: 'buildings',
+      context: { type: 'documents', buildingId: 'bld-001' },
+    },
+    {
+      label: 'residences',
+      context: { type: 'documents', buildingId: 'bld-001', residenceId: 'res-001' },
+    },
+    {
+      label: 'bills',
+      context: { type: 'bills', buildingId: 'bld-001' },
+    },
+    {
+      label: 'demands',
+      context: { type: 'demands', buildingId: 'bld-001' },
+    },
+    {
+      label: 'maintenance',
+      context: { type: 'maintenance', buildingId: 'bld-001' },
+    },
+    {
+      label: 'support (bugs)',
+      context: { type: 'bugs', entityId: 'bug-001' },
+    },
+    {
+      label: 'support (features)',
+      context: { type: 'features', entityId: 'feat-001' },
+    },
+  ];
+
+  for (const { label, context } of MODULES) {
+    describe(`module: ${label}`, () => {
+      for (const { ext, label: fileLabel } of SUPPORTED_FILE_TYPES) {
+        it(`should generate a valid path for ${fileLabel} (.${ext})`, () => {
+          const filename = `testfile.${ext}`;
+          const path = documentService.buildHierarchicalPath(context, filename);
+
+          expect(typeof path).toBe('string');
+          expect(path.length).toBeGreaterThan(0);
+          expect(path).toMatch(UUID_REGEX);
+          expect(path).toContain(`.${ext}`);
+          expect(path).not.toContain(' ');
+
+          const normalized = documentService.normalizePath(path);
+          expect(normalized.startsWith('/objects/')).toBe(true);
+        });
+      }
+    });
+  }
+});
+
+describe('MIME type and path consistency per file type across modules', () => {
+  it('should preserve PDF MIME type through safeMimeType after path is built', () => {
+    const path = documentService.buildHierarchicalPath(
+      { type: 'documents', buildingId: 'bld-pdf' },
+      'spec.pdf'
+    );
+    expect(path.endsWith('.pdf')).toBe(true);
+    expect(safeMimeType('application/pdf')).toBe('application/pdf');
+  });
+
+  it('should preserve Word MIME type through safeMimeType after path is built', () => {
+    const path = documentService.buildHierarchicalPath(
+      { type: 'projects', buildingId: 'bld-docx' },
+      'renovation_plan.docx'
+    );
+    expect(path.endsWith('.docx')).toBe(true);
+    const mime = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document';
+    expect(safeMimeType(mime)).toBe(mime);
+  });
+
+  it('should preserve plain text MIME type through safeMimeType after path is built', () => {
+    const path = documentService.buildHierarchicalPath(
+      { type: 'demands', buildingId: 'bld-txt' },
+      'notes.txt'
+    );
+    expect(path.endsWith('.txt')).toBe(true);
+    expect(safeMimeType('text/plain')).toBe('text/plain');
+  });
+
+  it('should preserve JPEG MIME type through safeMimeType after path is built', () => {
+    const path = documentService.buildHierarchicalPath(
+      { type: 'maintenance', buildingId: 'bld-jpg' },
+      'damage_photo.jpg'
+    );
+    expect(path.endsWith('.jpg')).toBe(true);
+    expect(safeMimeType('image/jpeg')).toBe('image/jpeg');
+  });
+
+  it('should preserve PNG MIME type through safeMimeType after path is built', () => {
+    const path = documentService.buildHierarchicalPath(
+      { type: 'documents', buildingId: 'bld-png', residenceId: 'res-png' },
+      'floor_plan.png'
+    );
+    expect(path.endsWith('.png')).toBe(true);
+    expect(safeMimeType('image/png')).toBe('image/png');
+  });
+
+  it('should preserve Excel MIME type through safeMimeType after path is built', () => {
+    const path = documentService.buildHierarchicalPath(
+      { type: 'bills', buildingId: 'bld-xlsx' },
+      'budget_2024.xlsx'
+    );
+    expect(path.endsWith('.xlsx')).toBe(true);
+    const mime = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+    expect(safeMimeType(mime)).toBe(mime);
   });
 });

@@ -1111,6 +1111,13 @@ export interface Translations {
   managerWillBeNotified: string;
   maintenancePhotoOptional: string;
   maintenanceRequestSubmitted: string;
+  myMaintenanceRequests: string;
+  noMaintenanceRequests: string;
+  maintenanceStatusSubmitted: string;
+  maintenanceStatusAcknowledged: string;
+  maintenanceStatusInProgress: string;
+  maintenanceStatusCompleted: string;
+  maintenanceStatusCancelled: string;
   professionalServices: string;
   repairs: string;
   supplies: string;
@@ -5156,6 +5163,13 @@ export const translations: Record<Language, Translations> = {
     managerWillBeNotified: 'Your manager will be notified.',
     maintenancePhotoOptional: 'Photo (optional)',
     maintenanceRequestSubmitted: 'Maintenance request submitted',
+    myMaintenanceRequests: 'My Maintenance Requests',
+    noMaintenanceRequests: 'No maintenance requests yet.',
+    maintenanceStatusSubmitted: 'Submitted',
+    maintenanceStatusAcknowledged: 'Acknowledged',
+    maintenanceStatusInProgress: 'In Progress',
+    maintenanceStatusCompleted: 'Completed',
+    maintenanceStatusCancelled: 'Cancelled',
     professionalServices: 'Professional Services',
     repairs: 'Repairs',
     supplies: 'Supplies',
@@ -9450,6 +9464,13 @@ export const translations: Record<Language, Translations> = {
     managerWillBeNotified: 'Votre gestionnaire sera informé.',
     maintenancePhotoOptional: 'Photo (facultatif)',
     maintenanceRequestSubmitted: 'Demande d\'entretien soumise',
+    myMaintenanceRequests: 'Mes demandes d\'entretien',
+    noMaintenanceRequests: 'Aucune demande d\'entretien pour l\'instant.',
+    maintenanceStatusSubmitted: 'Soumise',
+    maintenanceStatusAcknowledged: 'Prise en charge',
+    maintenanceStatusInProgress: 'En cours',
+    maintenanceStatusCompleted: 'Complétée',
+    maintenanceStatusCancelled: 'Annulée',
     professionalServices: 'Services professionnels',
     repairs: 'Réparations',
     supplies: 'Fournitures',
