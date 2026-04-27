@@ -8472,11 +8472,53 @@ export function registerBulkImportRoutes(app: Express): void {
             .set({ ...baseSet, identification: null })
             .where(where);
         } else {
-          // linking
-          await db
-            .update(schema.bulkImportItems)
-            .set({ ...baseSet, linkDecisions: null })
-            .where(where);
+          // linking — Task #1421: preserve existing-platform document links.
+          // Fetch all linked items for this session so we can classify each one
+          // before deciding whether to reset it or preserve its existing-doc link.
+          const allSessionItems = await db
+            .select()
+            .from(schema.bulkImportItems)
+            .where(eq(schema.bulkImportItems.sessionId, session.id));
+
+          for (const item of allSessionItems) {
+            if (item.status !== 'linked') continue;
+            const ld = item.linkDecisions as Record<string, unknown> | null | undefined;
+            // An item references an existing platform document when familyId is
+            // set AND at least one of beforeDocumentId / afterDocumentId is set.
+            const hasExistingDocLink =
+              ld != null &&
+              ld.familyId != null &&
+              (ld.beforeDocumentId != null || ld.afterDocumentId != null);
+
+            if (hasExistingDocLink) {
+              // Preserve: strip in-session chain fields, keep only the
+              // existing-platform link fields, and leave the item as `linked`
+              // so the run-all loop (which only picks up `identified`) skips it.
+              await db
+                .update(schema.bulkImportItems)
+                .set({
+                  linkDecisions: {
+                    familyId: ld!.familyId,
+                    beforeDocumentId: ld!.beforeDocumentId ?? null,
+                    afterDocumentId: ld!.afterDocumentId ?? null,
+                  } as Record<string, unknown>,
+                  updatedAt: new Date(),
+                })
+                .where(eq(schema.bulkImportItems.id, item.id));
+            } else {
+              // In-session chain only (or familyId set but no neighbor doc):
+              // revert to `identified` and clear linkDecisions so the run-all
+              // loop re-runs the AI on this item.
+              await db
+                .update(schema.bulkImportItems)
+                .set({
+                  status: 'identified',
+                  linkDecisions: null,
+                  updatedAt: new Date(),
+                })
+                .where(eq(schema.bulkImportItems.id, item.id));
+            }
+          }
         }
 
         // Drop progress.runAll[step] entirely so the wizard's progress

@@ -10303,9 +10303,13 @@ export default function BulkDocumentImportPage() {
                 : 'Retry this step from scratch?'}
             </AlertDialogTitle>
             <AlertDialogDescription>
-              {isFr
-                ? `Toutes les décisions de l'IA et les corrections manuelles pour l'étape « ${pendingResetStep ? stepLabels[pendingResetStep] : ''} » seront effacées sur chaque fichier non exclu et non finalisé. Les fichiers exclus, finalisés ou marqués comme doublons ne sont pas touchés. Les autres étapes ne sont pas affectées. L'analyse redémarrera immédiatement.`
-                : `All AI decisions and manual overrides for the "${pendingResetStep ? stepLabels[pendingResetStep] : ''}" step will be wiped on every file that is not excluded or already committed. Excluded, committed, and duplicate files are left alone. Other steps are not affected. Analysis will restart immediately.`}
+              {pendingResetStep === 'linking'
+                ? isFr
+                  ? "Les regroupements de fichiers créés lors de cette session seront effacés et relancés par l'IA. Les liens vers des documents déjà présents dans la plateforme (famille et voisin) sont conservés — ces fichiers restent marqués comme liés et ne seront pas réanalysés. Les fichiers exclus, finalisés ou marqués comme doublons ne sont pas touchés."
+                  : 'In-session chain groupings will be cleared and re-run by AI. Links to existing platform documents (family and neighbor) are preserved — those files stay marked as linked and will not be re-analyzed. Excluded, committed, and duplicate files are left alone.'
+                : isFr
+                  ? `Toutes les décisions de l'IA et les corrections manuelles pour l'étape « ${pendingResetStep ? stepLabels[pendingResetStep] : ''} » seront effacées sur chaque fichier non exclu et non finalisé. Les fichiers exclus, finalisés ou marqués comme doublons ne sont pas touchés. Les autres étapes ne sont pas affectées. L'analyse redémarrera immédiatement.`
+                  : `All AI decisions and manual overrides for the "${pendingResetStep ? stepLabels[pendingResetStep] : ''}" step will be wiped on every file that is not excluded or already committed. Excluded, committed, and duplicate files are left alone. Other steps are not affected. Analysis will restart immediately.`}
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

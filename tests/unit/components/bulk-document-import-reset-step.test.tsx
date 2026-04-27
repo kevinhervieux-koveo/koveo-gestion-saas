@@ -419,17 +419,24 @@ describe('BulkDocumentImportPage — "Retry step from scratch" button (Task #107
         within(dialog).getByText('Retry this step from scratch?'),
       ).toBeInTheDocument();
 
-      // EN body must mention the step's EN label inside the quoted
-      // interpolation slot. This guards against a future refactor that
-      // accidentally drops `stepLabels[pendingResetStep]` from the
-      // template literal.
-      const description = within(dialog).getByText(
-        /All AI decisions and manual overrides for the/,
-      );
-      expect(description.textContent).toContain(`"${STEP_LABEL_EN[step]}"`);
-      expect(description.textContent).toContain(
-        'Analysis will restart immediately.',
-      );
+      // EN body — Task #1421: Linking uses a different description that
+      // explains existing-platform links are preserved. All other steps
+      // use the generic template with the step label interpolated.
+      if (step === 'linking') {
+        const description = within(dialog).getByText(
+          /In-session chain groupings will be cleared/,
+        );
+        expect(description.textContent).toContain('existing platform documents');
+        expect(description.textContent).toContain('preserved');
+      } else {
+        const description = within(dialog).getByText(
+          /All AI decisions and manual overrides for the/,
+        );
+        expect(description.textContent).toContain(`"${STEP_LABEL_EN[step]}"`);
+        expect(description.textContent).toContain(
+          'Analysis will restart immediately.',
+        );
+      }
 
       // EN action label.
       const confirmButton = within(dialog).getByTestId('reset-step-confirm');
@@ -478,13 +485,23 @@ describe('BulkDocumentImportPage — "Retry step from scratch" button (Task #107
         within(dialog).getByText("Reprendre l'étape à zéro ?"),
       ).toBeInTheDocument();
 
-      const description = within(dialog).getByText(
-        /Toutes les décisions de l'IA/,
-      );
-      expect(description.textContent).toContain(`« ${STEP_LABEL_FR[step]} »`);
-      expect(description.textContent).toContain(
-        "L'analyse redémarrera immédiatement.",
-      );
+      // FR body — Task #1421: Linking uses a different description (FR)
+      // that explains existing-platform links are preserved. We check
+      // the body text via the aria-describedby paragraph rather than
+      // within(dialog) to side-step Radix portal scope edge-cases.
+      const descId = dialog.getAttribute('aria-describedby');
+      const descEl = descId ? document.getElementById(descId) : null;
+      const descText = descEl?.textContent ?? '';
+      if (step === 'linking') {
+        // Linking-specific FR copy: in-session groupings cleared, existing
+        // platform doc links preserved.
+        expect(descText).toMatch(/famille et voisin/);
+        expect(descText).toMatch(/conserv/);
+      } else {
+        expect(descText).toMatch(/Toutes les d/);
+        expect(descText).toContain(`« ${STEP_LABEL_FR[step]} »`);
+        expect(descText).toContain("L'analyse red");
+      }
 
       const confirmButton = within(dialog).getByTestId('reset-step-confirm');
       expect(confirmButton).toHaveTextContent("Reprendre l'étape");

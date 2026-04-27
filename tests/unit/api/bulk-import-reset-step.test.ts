@@ -577,7 +577,187 @@ describe('POST /reset-step — clears progress.runAll[step] (Task #1068)', () =>
 });
 
 // ===========================================================================
-// 5. Validation: rejected step names + unknown session
+// 5. Task #1421 — Linking reset preserves existing-platform document links
+// ===========================================================================
+
+describe('POST /reset-step — linking step preserves existing-platform doc links (Task #1421)', () => {
+  /**
+   * Seed a full mix:
+   *  (a) linked with only in-session chain fields (no familyId)         → reset
+   *  (b) linked with familyId + beforeDocumentId                        → preserve
+   *  (c) linked with familyId + afterDocumentId                         → preserve
+   *  (d) linked with familyId but neither beforeDocumentId nor
+   *      afterDocumentId (treat as in-session)                          → reset
+   *  (e) rejected (excluded)                                             → untouched
+   *  (f) committed                                                       → untouched
+   *  (g) identified (already pre-step status)                           → untouched
+   */
+  it('resets in-session items and preserves existing-doc-linked items', async () => {
+    seedSession('sess-1421', {
+      progress: { runAll: { linking: { total: 4, processed: 4, failed: 0, startedAt: '2024-01-01T00:00:00.000Z', finishedAt: '2024-01-01T00:01:00.000Z' } } } as Record<string, unknown>,
+    });
+
+    // (a) in-session only — no familyId
+    seedItem('it-a', {
+      sessionId: 'sess-1421',
+      status: 'linked',
+      linkDecisions: { beforeItemId: 'other-1', relatedItemIds: [], reason: 'chain', confidence: 0.8 } as Record<string, unknown>,
+    } as any);
+
+    // (b) existing-doc link via beforeDocumentId
+    seedItem('it-b', {
+      sessionId: 'sess-1421',
+      status: 'linked',
+      linkDecisions: {
+        familyId: 'fam-1',
+        beforeDocumentId: 'doc-123',
+        afterDocumentId: null,
+        beforeItemId: null,
+        relatedItemIds: [],
+        reason: 'existing_family',
+        confidence: 0.95,
+      } as Record<string, unknown>,
+    } as any);
+
+    // (c) existing-doc link via afterDocumentId
+    seedItem('it-c', {
+      sessionId: 'sess-1421',
+      status: 'linked',
+      linkDecisions: {
+        familyId: 'fam-2',
+        beforeDocumentId: null,
+        afterDocumentId: 'doc-456',
+        beforeItemId: null,
+        relatedItemIds: [],
+        reason: 'existing_family',
+        confidence: 0.9,
+      } as Record<string, unknown>,
+    } as any);
+
+    // (d) familyId set but no neighbor document → treat as in-session, reset
+    seedItem('it-d', {
+      sessionId: 'sess-1421',
+      status: 'linked',
+      linkDecisions: {
+        familyId: 'fam-3',
+        beforeDocumentId: null,
+        afterDocumentId: null,
+        reason: 'existing_family',
+        confidence: 0.5,
+      } as Record<string, unknown>,
+    } as any);
+
+    // (e) rejected → untouched
+    seedItem('it-e', {
+      sessionId: 'sess-1421',
+      status: 'rejected',
+      linkDecisions: { reason: 'admin_excluded' } as Record<string, unknown>,
+    } as any);
+
+    // (f) committed → untouched
+    seedItem('it-f', {
+      sessionId: 'sess-1421',
+      status: 'committed',
+      linkDecisions: { reason: 'existing_family', familyId: 'fam-4' } as Record<string, unknown>,
+    } as any);
+
+    // (g) identified → untouched (already pre-step, not linked)
+    seedItem('it-g', {
+      sessionId: 'sess-1421',
+      status: 'identified',
+      linkDecisions: null,
+    } as any);
+
+    const res = await request(buildApp())
+      .post(RESET('sess-1421'))
+      .send({ step: 'linking' })
+      .expect(200);
+
+    expect(res.body.step).toBe('linking');
+
+    // (a) in-session only → reverted to identified, linkDecisions wiped
+    const a = itemStore.get('it-a')!;
+    expect(a.status).toBe('identified');
+    expect(a.linkDecisions).toBeNull();
+
+    // (b) existing-doc via beforeDocumentId → stays linked, only family fields kept
+    const b = itemStore.get('it-b')!;
+    expect(b.status).toBe('linked');
+    const bLd = b.linkDecisions as Record<string, unknown>;
+    expect(bLd.familyId).toBe('fam-1');
+    expect(bLd.beforeDocumentId).toBe('doc-123');
+    expect(bLd.afterDocumentId).toBeNull();
+    // in-session chain fields must be stripped
+    expect(bLd.beforeItemId).toBeUndefined();
+    expect(bLd.relatedItemIds).toBeUndefined();
+    expect(bLd.reason).toBeUndefined();
+    expect(bLd.confidence).toBeUndefined();
+
+    // (c) existing-doc via afterDocumentId → stays linked, only family fields kept
+    const c = itemStore.get('it-c')!;
+    expect(c.status).toBe('linked');
+    const cLd = c.linkDecisions as Record<string, unknown>;
+    expect(cLd.familyId).toBe('fam-2');
+    expect(cLd.beforeDocumentId).toBeNull();
+    expect(cLd.afterDocumentId).toBe('doc-456');
+    expect(cLd.reason).toBeUndefined();
+
+    // (d) familyId set but no neighbor doc → treated as in-session, reset
+    const d = itemStore.get('it-d')!;
+    expect(d.status).toBe('identified');
+    expect(d.linkDecisions).toBeNull();
+
+    // (e) rejected → untouched
+    const e = itemStore.get('it-e')!;
+    expect(e.status).toBe('rejected');
+    expect((e.linkDecisions as Record<string, unknown>)?.reason).toBe('admin_excluded');
+
+    // (f) committed → untouched
+    const f = itemStore.get('it-f')!;
+    expect(f.status).toBe('committed');
+
+    // (g) identified → untouched
+    const g = itemStore.get('it-g')!;
+    expect(g.status).toBe('identified');
+    expect(g.linkDecisions).toBeNull();
+
+    // progress.runAll.linking must be cleared
+    const sess = sessionStore.get('sess-1421')!;
+    const runAll = (sess.progress as any).runAll as Record<string, unknown>;
+    if (runAll.linking !== undefined) {
+      // If the background loop re-set it, it must be a fresh payload,
+      // not the stale finishedAt snapshot we seeded.
+      const linking = runAll.linking as any;
+      expect(linking.finishedAt).not.toBe('2024-01-01T00:01:00.000Z');
+    }
+
+    inFlightRunAll.delete('sess-1421:linking');
+  });
+
+  it('does not touch other steps when step=linking is reset', async () => {
+    seedSession('sess-1421-other');
+    seedItem('it-past-screening', {
+      sessionId: 'sess-1421-other',
+      status: 'linked',
+      linkDecisions: null,
+      screening: { keep: true } as Record<string, unknown>,
+    } as any);
+
+    await request(buildApp())
+      .post(RESET('sess-1421-other'))
+      .send({ step: 'linking' })
+      .expect(200);
+
+    const stored = itemStore.get('it-past-screening')!;
+    // screening JSON must be untouched by a linking reset
+    expect((stored.screening as Record<string, unknown>)?.keep).toBe(true);
+
+    inFlightRunAll.delete('sess-1421-other:linking');
+  });
+});
+
+// ===========================================================================
+// 6. Validation: rejected step names + unknown session
 // ===========================================================================
 
 describe('POST /reset-step — validation (Task #1068)', () => {
