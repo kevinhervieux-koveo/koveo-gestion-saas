@@ -1,5 +1,9 @@
 /**
  * Task #1372 — Render-level coverage for `linkingOverrides` clearing.
+ * Task #1375 — Strengthened to remove silent-skip escape hatches and add
+ *              direct UI proxies for both the override-set and override-clear
+ *              transitions, so a future regression that accidentally drops
+ *              one of the two clearing branches can no longer pass vacuously.
  *
  * Root cause (recap): the Linking step keeps optimistic chain edits in a
  * React state Map (`linkingOverrides`).  Two events must clear that Map so
@@ -29,12 +33,25 @@
  *   POST hang, we keep the override alive and verify that the finishedAt
  *   event alone is sufficient to clear it.
  *
- * Observable proxy for `linkingOverrides`:
+ * Observable proxies for `linkingOverrides`:
  *   - data-testid="linking-group-<headId>" is the group card for a multi-item
  *     chain.  When HEAD→TAIL is server state there is exactly one group.
  *   - When HEAD is standalone (override active), no 2-item group exists.
- *   - When the override is cleared, the group reappears.
- *   - data-testid="linking-row-position-<id>" shows "N/total" for chain items.
+ *   - data-testid="linking-row-position-<id>" shows "N/total" for chain items
+ *     and "Standalone" text when an item is detached.
+ *   - data-testid="linking-manual-tag-<id>" is rendered for a standalone item
+ *     when `linkingManualOverride || linkingOverrides.has(item.id)`.  Since
+ *     our fixture seeds `linkingManualOverride: false`, the badge appearing
+ *     is a *direct* proxy for `linkingOverrides.has(id) === true`, and the
+ *     badge disappearing after the clearing event is a *direct* proxy for
+ *     `linkingOverrides.size === 0`.  This is what locks down the assertion
+ *     that the React state Map was actually emptied — without it, a future
+ *     regression that re-rendered server state for a different reason could
+ *     fool the chain-reverts assertion alone.
+ *   - The `computeLinkingMakeStandaloneChanges` spy proves the keyboard DnD
+ *     event actually produced a non-empty change set (i.e. setLinkingOverrides
+ *     was actually called with a populated Map).  This guards against the
+ *     test passing because the keyboard handler silently no-op'd.
  */
 
 import { describe, it, expect, jest, beforeEach, afterEach } from '@jest/globals';
@@ -99,10 +116,18 @@ jest.mock('@/pages/admin/bulk-import-linking-groups', () => {
 
 import BulkDocumentImportPage from '@/pages/admin/bulk-document-import';
 import { queryClient } from '@/lib/queryClient';
+import * as linkingGroupsModule from '@/pages/admin/bulk-import-linking-groups';
 import {
   nextSessionId,
   resetSharedQueryClient,
 } from '../../helpers/queryClientIsolation';
+
+// Typed reference to the spy installed by the jest.mock factory above so the
+// tests can assert that the keyboard DnD path actually fired.  If this spy is
+// never invoked, the page never wrote to `linkingOverrides` and the rest of
+// the assertions would be vacuous.
+const computeMakeStandaloneSpy =
+  linkingGroupsModule.computeLinkingMakeStandaloneChanges as unknown as jest.Mock;
 
 // -----------------------------------------------------------------------------
 // Fixture state.
@@ -347,6 +372,7 @@ beforeEach(async () => {
   global.fetch = fetchMock as unknown as typeof fetch;
   fetchMock.mockClear();
   mockToast.mockReset();
+  computeMakeStandaloneSpy.mockClear();
   window.localStorage.setItem('bulkImportActiveSessionId', SESSION_ID);
 });
 
@@ -396,21 +422,47 @@ async function flushAsyncEffects(): Promise<void> {
  * The POST is configured to hang (see `fetchMock`), so the override remains
  * in `linkingOverrides` until either the POST resolves or another clearing
  * event (finishedAt change, resetStep) fires.
+ *
+ * Strict (Task #1375): throws if the drag handle is missing or if the
+ * underlying make-standalone helper was never called.  The Task #1372 test
+ * originally returned a boolean and let callers silently skip — that allowed
+ * a future regression that broke the keyboard handler to pass vacuously.
  */
-async function makeHeadStandaloneViaKeyboard(): Promise<boolean> {
-  const handle = screen.queryByTestId(`linking-drag-handle-${ITEM_HEAD}`);
-  if (!handle) return false;
+async function makeHeadStandaloneViaKeyboard(): Promise<void> {
+  const handle = screen.getByTestId(`linking-drag-handle-${ITEM_HEAD}`);
 
   await act(async () => {
     fireEvent.focus(handle);
     await Promise.resolve();
   });
 
+  const callsBefore = computeMakeStandaloneSpy.mock.calls.length;
   await act(async () => {
     fireEvent.keyDown(handle, { key: 'ArrowLeft' });
     for (let i = 0; i < 6; i++) await Promise.resolve();
   });
-  return true;
+
+  // Sanity: the keyboard handler MUST have called the make-standalone
+  // computer at least once with HEAD as the dragId.  Without this,
+  // `linkingOverrides` was never populated and any "override is empty after
+  // the trigger" assertion would be trivially true.
+  expect(computeMakeStandaloneSpy.mock.calls.length).toBeGreaterThan(callsBefore);
+  const lastCall =
+    computeMakeStandaloneSpy.mock.calls[
+      computeMakeStandaloneSpy.mock.calls.length - 1
+    ];
+  expect(lastCall[0]).toBe(ITEM_HEAD);
+}
+
+/**
+ * Direct UI proxy for `linkingOverrides.has(id)`.  Returns true while the
+ * standalone "Manual" badge is in the DOM for the given item, which only
+ * renders when `linkingManualOverride || linkingOverrides.has(id)`.  The
+ * fixture seeds `linkingManualOverride: false`, so the badge presence is a
+ * direct readout of the React state Map.
+ */
+function hasManualBadge(itemId: string): boolean {
+  return screen.queryByTestId(`linking-manual-tag-${itemId}`) !== null;
 }
 
 // -----------------------------------------------------------------------------
@@ -437,24 +489,37 @@ describe('Task #1372 — linkingOverrides cleared when run-all finishes (null �
       ).toBeInTheDocument();
     }, { timeout: 8000 });
 
-    // Verify initial state: HEAD is at position 1 in the 2-item chain.
+    // Verify initial state: HEAD is at position 1 in the 2-item chain and
+    // the manual badge is absent (linkingOverrides is empty at start).
     expect(
       screen.getByTestId(`linking-row-position-${ITEM_HEAD}`),
     ).toHaveTextContent('1');
+    expect(hasManualBadge(ITEM_HEAD)).toBe(false);
+    expect(hasManualBadge(ITEM_TAIL)).toBe(false);
 
-    // Create an optimistic override: make HEAD standalone.
-    // The batch-set POST is hanging — the override stays in linkingOverrides.
-    const didFire = await makeHeadStandaloneViaKeyboard();
-    if (!didFire) {
-      // Keyboard DnD not available in this render environment — skip.
-      return;
-    }
+    // Create an optimistic override: make HEAD standalone.  The batch-set
+    // POST is hanging — the override stays in linkingOverrides.  The helper
+    // throws if the keyboard handler did not actually compute changes, so a
+    // future regression that breaks the DnD path can no longer pass here.
+    await makeHeadStandaloneViaKeyboard();
 
-    // At this point the override may have split the chain:
-    //   HEAD is standalone, TAIL is standalone.
-    // The linking-group card for the original 2-item chain may be gone or
-    // show only 1 item.  (Exact DOM structure depends on how the component
-    // renders single-item "groups".)
+    // Override-set proxy: the standalone "Manual" badge appears for HEAD,
+    // confirming linkingOverrides.has(HEAD) is now true.  The 2-item group
+    // card disappears since both items are now standalone in the override.
+    await waitFor(() => {
+      expect(hasManualBadge(ITEM_HEAD)).toBe(true);
+    }, { timeout: 4000 });
+    expect(
+      screen.queryByTestId(`linking-group-${ITEM_HEAD}`),
+    ).not.toBeInTheDocument();
+
+    // The hanging POST means setLinkingDecision.onSuccess hasn't cleared
+    // overrides — confirm the override is still alive immediately before
+    // we trigger the finishedAt event.  Without this, a flake that resolved
+    // the POST early could let the finishedAt-clear assertion pass for the
+    // wrong reason.
+    expect(resolvePendingPost).toBeDefined();
+    expect(hasManualBadge(ITEM_HEAD)).toBe(true);
 
     // Simulate run-all completing: finishedAt goes null → T1.
     linkingFinishedAt = '2024-06-01T12:00:00.000Z';
@@ -464,13 +529,21 @@ describe('Task #1372 — linkingOverrides cleared when run-all finishes (null �
     // After the poll: runAllTransitionRef effect fires because
     //   prev.finishedAt (null) !== next.finishedAt (T1)  AND  next.finishedAt ≠ null.
     // → setLinkingOverrides(new Map()) is called.
-    // → The chain reverts to server state: HEAD→TAIL group reappears.
+    // → The chain reverts to server state: HEAD→TAIL group reappears AND
+    //   the standalone "Manual" badge is gone (direct proxy that
+    //   linkingOverrides was emptied).
     await waitFor(() => {
       const headPos = screen.queryByTestId(`linking-row-position-${ITEM_HEAD}`);
       expect(headPos).toBeInTheDocument();
       // Position "1" confirms HEAD is the first item in a multi-item chain.
       expect(headPos).toHaveTextContent('1');
     }, { timeout: 5000 });
+
+    // Override-clear proxy: the manual badge MUST be gone now.  This is the
+    // strongest assertion that the React state Map was actually emptied —
+    // not just that the chain happens to render the server state again.
+    expect(hasManualBadge(ITEM_HEAD)).toBe(false);
+    expect(hasManualBadge(ITEM_TAIL)).toBe(false);
 
     // TAIL must also be in the chain.
     expect(
@@ -509,10 +582,19 @@ describe('Task #1372 — linkingOverrides cleared on re-run (T1 → T2, hardened
     expect(
       screen.getByTestId(`linking-row-position-${ITEM_HEAD}`),
     ).toHaveTextContent('1');
+    expect(hasManualBadge(ITEM_HEAD)).toBe(false);
 
-    // Create an optimistic override; POST hangs.
-    const didFire = await makeHeadStandaloneViaKeyboard();
-    if (!didFire) return;
+    // Create an optimistic override; POST hangs.  Helper throws on no-op.
+    await makeHeadStandaloneViaKeyboard();
+
+    // Override-set proxy: badge appears and the 2-item group disappears.
+    await waitFor(() => {
+      expect(hasManualBadge(ITEM_HEAD)).toBe(true);
+    }, { timeout: 4000 });
+    expect(
+      screen.queryByTestId(`linking-group-${ITEM_HEAD}`),
+    ).not.toBeInTheDocument();
+    expect(resolvePendingPost).toBeDefined(); // POST is still hanging.
 
     // Simulate re-run: finishedAt jumps from T1 to T2 directly.
     // The poll never captured the intermediate null that would occur when the
@@ -529,6 +611,10 @@ describe('Task #1372 — linkingOverrides cleared on re-run (T1 → T2, hardened
       expect(headPos).toBeInTheDocument();
       expect(headPos).toHaveTextContent('1');
     }, { timeout: 5000 });
+
+    // Override-clear proxy: manual badge gone for both items.
+    expect(hasManualBadge(ITEM_HEAD)).toBe(false);
+    expect(hasManualBadge(ITEM_TAIL)).toBe(false);
 
     expect(
       screen.queryByTestId(`linking-row-position-${ITEM_TAIL}`),
@@ -567,50 +653,89 @@ describe('Task #1372 — linkingOverrides cleared on resetStep success', () => {
     expect(
       screen.getByTestId(`linking-row-position-${ITEM_HEAD}`),
     ).toHaveTextContent('1');
+    expect(hasManualBadge(ITEM_HEAD)).toBe(false);
 
-    // Create an optimistic override; the batch-set POST is hanging.
-    const didFire = await makeHeadStandaloneViaKeyboard();
-    if (!didFire) return;
+    // Create an optimistic override; the batch-set POST is hanging.  Helper
+    // throws on no-op so this can no longer pass vacuously.
+    await makeHeadStandaloneViaKeyboard();
 
-    // Find the "Retry step from scratch" button.
-    const resetBtn = screen.queryByRole('button', { name: /retry step from scratch/i });
-    if (!resetBtn) {
-      // Button not visible in this rendering context — accept the test as
-      // inconclusive rather than failing, matching the banner-test pattern.
-      return;
-    }
+    // Override-set proxy.
+    await waitFor(() => {
+      expect(hasManualBadge(ITEM_HEAD)).toBe(true);
+    }, { timeout: 4000 });
+    expect(resolvePendingPost).toBeDefined();
+
+    // Find the "Retry step from scratch" button via its stable test id
+    // (see bulk-document-import-reset-step.test.tsx).  The linking step's
+    // reset button is `auto-run-reset-step-linking` and must be enabled
+    // because the auto-mounted run-all has settled (finishedAt = T1).
+    const resetBtn = await screen.findByTestId('auto-run-reset-step-linking', undefined, {
+      timeout: 4000,
+    });
+    await waitFor(() => expect(resetBtn).toBeEnabled(), { timeout: 4000 });
 
     await act(async () => {
       fireEvent.click(resetBtn);
       for (let i = 0; i < 4; i++) await Promise.resolve();
     });
 
-    // Handle confirmation dialog. The dialog's confirm button carries
-    // data-testid="reset-step-confirm" (see BulkDocumentImportPage source).
-    const confirmBtn =
-      screen.queryByTestId('reset-step-confirm') ??
-      screen.queryByRole('button', { name: /confirm|yes|reset/i });
-    if (confirmBtn) {
-      await act(async () => {
-        fireEvent.click(confirmBtn);
-        for (let i = 0; i < 6; i++) await Promise.resolve();
-      });
-    }
+    // Confirmation dialog must appear; click confirm.  The dialog's confirm
+    // button carries data-testid="reset-step-confirm" (locked down by Task
+    // #1074 in bulk-document-import-reset-step.test.tsx).  We require it to
+    // be present rather than silently skipping — that's the whole point of
+    // this suite.
+    const confirmBtn = await screen.findByTestId('reset-step-confirm', undefined, {
+      timeout: 4000,
+    });
 
-    // Trigger a lite poll so the page re-renders with fresh server data.
-    await triggerLitePoll();
-    await flushAsyncEffects();
+    await act(async () => {
+      fireEvent.click(confirmBtn);
+      for (let i = 0; i < 6; i++) await Promise.resolve();
+    });
 
-    // The resetStep onSuccess handler calls setLinkingOverrides(new Map())
-    // → override is cleared → chain reverts to HEAD→TAIL server state.
+    // The resetStep POST resolves immediately in the fetch mock, so its
+    // onSuccess handler runs synchronously: it calls
+    // `setLinkingOverrides(new Map())` and invalidates the lite query.
+    // → Override is cleared → chain reverts to HEAD→TAIL server state.
     await waitFor(() => {
       const headPos = screen.queryByTestId(`linking-row-position-${ITEM_HEAD}`);
       expect(headPos).toBeInTheDocument();
       expect(headPos).toHaveTextContent('1');
     }, { timeout: 5000 });
 
+    // Direct proxy: the manual badge is gone for both items, proving the
+    // React state Map was emptied by the resetStep success path.
+    expect(hasManualBadge(ITEM_HEAD)).toBe(false);
+    expect(hasManualBadge(ITEM_TAIL)).toBe(false);
+
     expect(
       screen.queryByTestId(`linking-row-position-${ITEM_TAIL}`),
     ).toBeInTheDocument();
+
+    // Final cross-check: the resetStep POST was actually fired with
+    // `{ step: 'linking' }`.  Without this, the test could be passing
+    // because the dialog confirm did nothing and the override was never
+    // really tested by the resetStep code path.
+    const resetPosts = fetchMock.mock.calls.filter(([input, init]) => {
+      const u =
+        typeof input === 'string'
+          ? input
+          : input instanceof URL
+            ? input.toString()
+            : (input as Request).url;
+      return (
+        (init?.method || 'GET').toUpperCase() === 'POST' &&
+        u === `/api/admin/bulk-import/sessions/${SESSION_ID}/reset-step`
+      );
+    });
+    expect(resetPosts.length).toBeGreaterThanOrEqual(1);
+    const lastBody = resetPosts[resetPosts.length - 1][1]?.body;
+    const parsedBody =
+      typeof lastBody === 'string'
+        ? JSON.parse(lastBody)
+        : lastBody instanceof Uint8Array
+          ? JSON.parse(new TextDecoder().decode(lastBody))
+          : lastBody;
+    expect(parsedBody).toEqual({ step: 'linking' });
   });
 });
