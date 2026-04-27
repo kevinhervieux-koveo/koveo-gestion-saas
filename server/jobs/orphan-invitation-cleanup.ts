@@ -11,7 +11,7 @@
  */
 
 import { db } from '../db';
-import { and, eq, isNotNull, isNull, inArray, sql } from 'drizzle-orm';
+import { and, isNotNull, isNull, inArray, sql } from 'drizzle-orm';
 import { invitations, invitationAuditLog, buildings, residences } from '@shared/schema';
 
 export interface OrphanInvitationCleanupResult {
@@ -23,11 +23,13 @@ export interface OrphanInvitationCleanupResult {
 }
 
 /**
- * Cancel pending invitations whose buildingId or residenceId no longer
- * exists in the database.
+ * Cancel pending and expired invitations whose buildingId or residenceId no
+ * longer exists in the database.
  *
- * Only 'pending' invitations are touched — accepted/cancelled/expired rows
- * are already terminal and don't need further action.
+ * Both 'pending' and 'expired' rows are swept: an expired invitation with a
+ * dangling FK can be silently re-activated by the resend endpoint, so it must
+ * be cleaned up the same way as a pending one (task #630 expansion).
+ * Accepted and cancelled rows are already terminal and are left untouched.
  */
 export async function cleanupOrphanInvitations(): Promise<OrphanInvitationCleanupResult> {
   const ranAt = new Date();
@@ -35,17 +37,20 @@ export async function cleanupOrphanInvitations(): Promise<OrphanInvitationCleanu
   let cancelledBuilding = 0;
   let cancelledResidence = 0;
 
+  // Status filter for rows that are still actionable (pending or expired).
+  const actionableStatuses = ['pending', 'expired'] as const;
+
   // --- Building orphans ---
   // Left-join invitations with buildings; where no matching building row exists
   // (buildings.id IS NULL) the invitation is orphaned.
   try {
     const orphanByBuilding = await db
-      .select({ id: invitations.id })
+      .select({ id: invitations.id, status: invitations.status })
       .from(invitations)
       .leftJoin(buildings, sql`${buildings.id} = ${invitations.buildingId}`)
       .where(
         and(
-          eq(invitations.status, 'pending'),
+          inArray(invitations.status, actionableStatuses),
           isNotNull(invitations.buildingId),
           isNull(buildings.id),
         ),
@@ -58,13 +63,13 @@ export async function cleanupOrphanInvitations(): Promise<OrphanInvitationCleanu
         .set({ status: 'cancelled', updatedAt: new Date() })
         .where(inArray(invitations.id, ids));
 
-      for (const { id } of orphanByBuilding) {
+      for (const { id, status } of orphanByBuilding) {
         try {
           await db.insert(invitationAuditLog).values({
             invitationId: id,
             action: 'cancelled',
             performedBy: null,
-            previousStatus: 'pending',
+            previousStatus: (status ?? 'pending') as 'pending' | 'expired',
             newStatus: 'cancelled',
             details: {
               source: 'orphan-cleanup-job',
@@ -85,14 +90,16 @@ export async function cleanupOrphanInvitations(): Promise<OrphanInvitationCleanu
 
   // --- Residence orphans ---
   // Same pattern: left-join with residences to find dangling invitations.
+  // Also covers 'expired' rows (task #630): an expired invitation can be
+  // re-activated by the resend endpoint, so it must be swept like a pending one.
   try {
     const orphanByResidence = await db
-      .select({ id: invitations.id })
+      .select({ id: invitations.id, status: invitations.status })
       .from(invitations)
       .leftJoin(residences, sql`${residences.id} = ${invitations.residenceId}`)
       .where(
         and(
-          eq(invitations.status, 'pending'),
+          inArray(invitations.status, actionableStatuses),
           isNotNull(invitations.residenceId),
           isNull(residences.id),
         ),
@@ -105,13 +112,13 @@ export async function cleanupOrphanInvitations(): Promise<OrphanInvitationCleanu
         .set({ status: 'cancelled', updatedAt: new Date() })
         .where(inArray(invitations.id, ids));
 
-      for (const { id } of orphanByResidence) {
+      for (const { id, status } of orphanByResidence) {
         try {
           await db.insert(invitationAuditLog).values({
             invitationId: id,
             action: 'cancelled',
             performedBy: null,
-            previousStatus: 'pending',
+            previousStatus: (status ?? 'pending') as 'pending' | 'expired',
             newStatus: 'cancelled',
             details: {
               source: 'orphan-cleanup-job',
