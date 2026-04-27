@@ -59,15 +59,20 @@ export async function extractTextFromBuffer(
       return (result.value || '').slice(0, MAX_EXTRACTED_TEXT);
     }
     if (XLSX_MIMES.has(mimeType)) {
-      const XLSX = await import('xlsx');
-      const workbook = XLSX.read(buffer, { type: 'buffer' });
+      const ExcelJS = await import('exceljs');
+      const workbook = new ExcelJS.Workbook();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      await workbook.xlsx.load(buffer as any);
       const lines: string[] = [];
-      for (const sheetName of workbook.SheetNames) {
-        const sheet = workbook.Sheets[sheetName];
-        if (!sheet) continue;
-        const csv = XLSX.utils.sheet_to_csv(sheet);
+      for (const worksheet of workbook.worksheets) {
+        const rows: string[] = [];
+        worksheet.eachRow({ includeEmpty: false }, (row) => {
+          const values = (row.values as (string | number | boolean | null | undefined)[]).slice(1);
+          rows.push(values.map((v) => (v == null ? '' : String(v))).join(','));
+        });
+        const csv = rows.join('\n');
         if (csv.trim()) {
-          lines.push(`# ${sheetName}\n${csv}`);
+          lines.push(`# ${worksheet.name}\n${csv}`);
         }
         if (lines.join('\n').length > MAX_EXTRACTED_TEXT) break;
       }

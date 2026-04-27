@@ -1350,15 +1350,19 @@ IMPORTANT: Retournez UNIQUEMENT l'objet JSON, sans formatage markdown ni explica
         return (result.value || '').slice(0, 20000);
       }
       if (ConsolidatedAIService.XLSX_MIME_TYPES.has(mimeType)) {
-        const XLSX = await import('xlsx');
-        const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
+        const ExcelJS = await import('exceljs');
+        const workbook = new ExcelJS.Workbook();
+        await workbook.xlsx.load(fileBuffer);
         const lines: string[] = [];
-        for (const sheetName of workbook.SheetNames) {
-          const sheet = workbook.Sheets[sheetName];
-          if (!sheet) continue;
-          const csv = XLSX.utils.sheet_to_csv(sheet);
+        for (const worksheet of workbook.worksheets) {
+          const rows: string[] = [];
+          worksheet.eachRow({ includeEmpty: false }, (row) => {
+            const values = (row.values as (string | number | boolean | null | undefined)[]).slice(1);
+            rows.push(values.map((v) => (v == null ? '' : String(v))).join(','));
+          });
+          const csv = rows.join('\n');
           if (csv.trim()) {
-            lines.push(`# ${sheetName}\n${csv}`);
+            lines.push(`# ${worksheet.name}\n${csv}`);
           }
           if (lines.join('\n').length > 20000) break;
         }
