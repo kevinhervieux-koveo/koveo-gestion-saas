@@ -6268,9 +6268,20 @@ export function registerBulkImportRoutes(app: Express): void {
           manualOverride: true,
         };
 
+        // Task #1282 — promote status to 'linked' when the item is eligible.
+        // Only rows that have reached the identification step but not yet moved
+        // past linking are promoted; terminal statuses ('committed', 'duplicate',
+        // 'rejected') and early-step statuses are left untouched.
+        const shouldPromoteStatus =
+          item.status === 'identified' || item.status === 'linked';
+
         const [updated] = await db
           .update(schema.bulkImportItems)
-          .set({ linkDecisions: nextLinkDecisions, updatedAt: new Date() })
+          .set({
+            linkDecisions: nextLinkDecisions,
+            updatedAt: new Date(),
+            ...(shouldPromoteStatus && { status: 'linked' }),
+          })
           .where(eq(schema.bulkImportItems.id, itemId))
           .returning();
 
@@ -6322,7 +6333,7 @@ export function registerBulkImportRoutes(app: Express): void {
 
         // Load all items in this session.
         const sessionItems = await db
-          .select({ id: schema.bulkImportItems.id, linkDecisions: schema.bulkImportItems.linkDecisions, sessionId: schema.bulkImportItems.sessionId })
+          .select({ id: schema.bulkImportItems.id, linkDecisions: schema.bulkImportItems.linkDecisions, sessionId: schema.bulkImportItems.sessionId, status: schema.bulkImportItems.status })
           .from(schema.bulkImportItems)
           .where(eq(schema.bulkImportItems.sessionId, sessionId));
 
@@ -6452,9 +6463,15 @@ export function registerBulkImportRoutes(app: Express): void {
               afterItemId: afterItemId ?? null,
               manualOverride: true,
             };
+            // Task #1282 — promote status to 'linked' when the item is eligible.
+            const shouldPromoteStatus = si?.status === 'identified' || si?.status === 'linked';
             const [updated] = await tx
               .update(schema.bulkImportItems)
-              .set({ linkDecisions: nextLinkDecisions, updatedAt: new Date() })
+              .set({
+                linkDecisions: nextLinkDecisions,
+                updatedAt: new Date(),
+                ...(shouldPromoteStatus && { status: 'linked' }),
+              })
               .where(eq(schema.bulkImportItems.id, itemId))
               .returning({ id: schema.bulkImportItems.id });
             results.push(updated);

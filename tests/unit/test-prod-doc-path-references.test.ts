@@ -107,6 +107,11 @@ const ALLOWED_MISSING_REFERENCES: AllowedRef[] = [
     justification:
       'Defensive existence probe: scripts/validation-suite.ts:129 calls `existsSync()` on this path before reporting on SSL management. The file is intentionally optional (deployments without SSL automation skip the check), so the missing path is not a bug.',
   },
+  {
+    filePath: 'tests/unit/api/bulk-import-link-diagnostics-script.test.ts',
+    justification:
+      'Planned future test referenced in a JSDoc comment inside scripts/audit-bulk-import-link-chains.ts:95. The comment documents the intended integration-test entry point for the exported `auditBulkImportLinkChains` function. The file does not yet exist; the reference is aspirational documentation, not a live import.',
+  },
 ];
 
 const ALLOWED_PATHS = new Set(

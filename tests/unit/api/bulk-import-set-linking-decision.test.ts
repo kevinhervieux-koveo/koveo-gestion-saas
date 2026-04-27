@@ -26,6 +26,7 @@ type LinkDecisions = {
 type Item = {
   id: string;
   sessionId: string;
+  status: string;
   linkDecisions: LinkDecisions | null;
   updatedAt?: Date;
   [key: string]: unknown;
@@ -33,8 +34,8 @@ type Item = {
 
 const itemStore = new Map<string, Item>();
 
-function seedItem(id: string, sessionId: string, linkDecisions: LinkDecisions | null = null): Item {
-  const item: Item = { id, sessionId, linkDecisions };
+function seedItem(id: string, sessionId: string, linkDecisions: LinkDecisions | null = null, status = 'linked'): Item {
+  const item: Item = { id, sessionId, status, linkDecisions };
   itemStore.set(id, item);
   return item;
 }
@@ -627,5 +628,177 @@ describe('Task #1251 — set-linking-decision dual-side updates and shape integr
     expect(itemStore.get('a')!.linkDecisions).toBeNull();
     expect(itemStore.get('b')!.linkDecisions).toBeNull();
     expect(itemStore.get('c')!.linkDecisions).toBeNull();
+  });
+});
+
+/**
+ * Task #1282 — Status promotion tests.
+ *
+ * Both manual-linking endpoints must promote a row's status to 'linked'
+ * when the current status is 'identified' or 'linked', and must leave
+ * terminal / early-step statuses untouched.
+ */
+describe('Task #1282 — set-linking-decision status promotion', () => {
+  // ---------------------------------------------------------------------------
+  // Single-item endpoint
+  // ---------------------------------------------------------------------------
+
+  it('promotes an "identified" item to "linked" on the single-item endpoint', async () => {
+    // doc-a is identified; doc-b already has the back-pointer so the graph is
+    // bidirectionally consistent and the call passes validation.
+    seedItem('doc-a', SESSION, null, 'identified');
+    seedItem('doc-b', SESSION, { beforeItemId: 'doc-a', afterItemId: null }, 'identified');
+
+    await request(buildApp())
+      .post(ITEM_URL('doc-a'))
+      .send({ beforeItemId: null, afterItemId: 'doc-b' })
+      .expect(200);
+
+    expect(itemStore.get('doc-a')!.status).toBe('linked');
+  });
+
+  it('keeps an already-"linked" item as "linked" on the single-item endpoint (idempotent)', async () => {
+    seedItem('doc-a', SESSION, null, 'linked');
+    seedItem('doc-b', SESSION, { beforeItemId: 'doc-a', afterItemId: null }, 'linked');
+
+    await request(buildApp())
+      .post(ITEM_URL('doc-a'))
+      .send({ beforeItemId: null, afterItemId: 'doc-b' })
+      .expect(200);
+
+    expect(itemStore.get('doc-a')!.status).toBe('linked');
+  });
+
+  it('does NOT downgrade a "committed" item on the single-item endpoint', async () => {
+    seedItem('doc-a', SESSION, null, 'committed');
+    seedItem('doc-b', SESSION, { beforeItemId: 'doc-a', afterItemId: null }, 'committed');
+
+    await request(buildApp())
+      .post(ITEM_URL('doc-a'))
+      .send({ beforeItemId: null, afterItemId: 'doc-b' })
+      .expect(200);
+
+    expect(itemStore.get('doc-a')!.status).toBe('committed');
+  });
+
+  it('does NOT downgrade a "duplicate" item on the single-item endpoint', async () => {
+    seedItem('doc-a', SESSION, null, 'duplicate');
+    seedItem('doc-b', SESSION, { beforeItemId: 'doc-a', afterItemId: null }, 'duplicate');
+
+    await request(buildApp())
+      .post(ITEM_URL('doc-a'))
+      .send({ beforeItemId: null, afterItemId: 'doc-b' })
+      .expect(200);
+
+    expect(itemStore.get('doc-a')!.status).toBe('duplicate');
+  });
+
+  it('does NOT fast-forward an early-step ("sorted") item on the single-item endpoint', async () => {
+    seedItem('doc-a', SESSION, null, 'sorted');
+    seedItem('doc-b', SESSION, { beforeItemId: 'doc-a', afterItemId: null }, 'sorted');
+
+    await request(buildApp())
+      .post(ITEM_URL('doc-a'))
+      .send({ beforeItemId: null, afterItemId: 'doc-b' })
+      .expect(200);
+
+    expect(itemStore.get('doc-a')!.status).toBe('sorted');
+  });
+
+  // ---------------------------------------------------------------------------
+  // Batch endpoint
+  // ---------------------------------------------------------------------------
+
+  it('promotes "identified" items to "linked" via the batch endpoint', async () => {
+    seedItem('doc-a', SESSION, null, 'identified');
+    seedItem('doc-b', SESSION, null, 'identified');
+    seedItem('doc-c', SESSION, null, 'identified');
+
+    await request(buildApp())
+      .post(BATCH_URL(SESSION))
+      .send({
+        decisions: [
+          { itemId: 'doc-a', beforeItemId: null, afterItemId: 'doc-b' },
+          { itemId: 'doc-b', beforeItemId: 'doc-a', afterItemId: 'doc-c' },
+          { itemId: 'doc-c', beforeItemId: 'doc-b', afterItemId: null },
+        ],
+      })
+      .expect(200);
+
+    expect(itemStore.get('doc-a')!.status).toBe('linked');
+    expect(itemStore.get('doc-b')!.status).toBe('linked');
+    expect(itemStore.get('doc-c')!.status).toBe('linked');
+  });
+
+  it('does NOT downgrade "committed" items via the batch endpoint', async () => {
+    seedItem('doc-a', SESSION, null, 'committed');
+    seedItem('doc-b', SESSION, null, 'committed');
+
+    await request(buildApp())
+      .post(BATCH_URL(SESSION))
+      .send({
+        decisions: [
+          { itemId: 'doc-a', beforeItemId: null, afterItemId: 'doc-b' },
+          { itemId: 'doc-b', beforeItemId: 'doc-a', afterItemId: null },
+        ],
+      })
+      .expect(200);
+
+    expect(itemStore.get('doc-a')!.status).toBe('committed');
+    expect(itemStore.get('doc-b')!.status).toBe('committed');
+  });
+
+  it('does NOT fast-forward early-step items via the batch endpoint', async () => {
+    seedItem('doc-a', SESSION, null, 'sorted');
+    seedItem('doc-b', SESSION, null, 'sorted');
+
+    await request(buildApp())
+      .post(BATCH_URL(SESSION))
+      .send({
+        decisions: [
+          { itemId: 'doc-a', beforeItemId: null, afterItemId: 'doc-b' },
+          { itemId: 'doc-b', beforeItemId: 'doc-a', afterItemId: null },
+        ],
+      })
+      .expect(200);
+
+    expect(itemStore.get('doc-a')!.status).toBe('sorted');
+    expect(itemStore.get('doc-b')!.status).toBe('sorted');
+  });
+
+  it('keeps already-"linked" items as "linked" via the batch endpoint (idempotent)', async () => {
+    seedItem('doc-a', SESSION, null, 'linked');
+    seedItem('doc-b', SESSION, null, 'linked');
+
+    await request(buildApp())
+      .post(BATCH_URL(SESSION))
+      .send({
+        decisions: [
+          { itemId: 'doc-a', beforeItemId: null, afterItemId: 'doc-b' },
+          { itemId: 'doc-b', beforeItemId: 'doc-a', afterItemId: null },
+        ],
+      })
+      .expect(200);
+
+    expect(itemStore.get('doc-a')!.status).toBe('linked');
+    expect(itemStore.get('doc-b')!.status).toBe('linked');
+  });
+
+  it('does NOT downgrade "duplicate" items via the batch endpoint', async () => {
+    seedItem('doc-a', SESSION, null, 'duplicate');
+    seedItem('doc-b', SESSION, null, 'duplicate');
+
+    await request(buildApp())
+      .post(BATCH_URL(SESSION))
+      .send({
+        decisions: [
+          { itemId: 'doc-a', beforeItemId: null, afterItemId: 'doc-b' },
+          { itemId: 'doc-b', beforeItemId: 'doc-a', afterItemId: null },
+        ],
+      })
+      .expect(200);
+
+    expect(itemStore.get('doc-a')!.status).toBe('duplicate');
+    expect(itemStore.get('doc-b')!.status).toBe('duplicate');
   });
 });

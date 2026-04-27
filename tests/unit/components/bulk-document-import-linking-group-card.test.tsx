@@ -80,6 +80,7 @@ const ITEM_ALONE = 'item-alone-ddd';
 interface ItemFixture {
   id: string;
   originalName: string;
+  status: string;
   linkingBeforeItemId: string | null;
   linkingAfterItemId: string | null;
   linkingManualOverride: boolean;
@@ -112,9 +113,10 @@ function buildSessionPayload() {
       id: it.id,
       originalName: it.originalName,
       mimeType: 'application/pdf',
-      // 'identified' is late enough that the row is visible in the
-      // Linking step (not filtered as 'rejected').
-      status: 'identified' as const,
+      // status comes from the fixture so individual tests can set it to
+      // 'linked' (to verify the Commit button) without losing the
+      // default 'identified' fixture used by all other tests.
+      status: it.status as 'identified' | 'linked' | 'committed' | 'duplicate' | 'rejected',
       preExcludeStatus: null,
       excludeSource: null,
       finalFileName: null,
@@ -280,6 +282,7 @@ function defaultFixture(): ItemFixture[] {
     {
       id: ITEM_HEAD,
       originalName: 'invoice-page-1.pdf',
+      status: 'identified',
       linkingBeforeItemId: null,
       linkingAfterItemId: ITEM_MID,
       linkingManualOverride: false,
@@ -287,6 +290,7 @@ function defaultFixture(): ItemFixture[] {
     {
       id: ITEM_MID,
       originalName: 'invoice-page-2.pdf',
+      status: 'identified',
       linkingBeforeItemId: ITEM_HEAD,
       linkingAfterItemId: ITEM_TAIL,
       linkingManualOverride: false,
@@ -294,6 +298,7 @@ function defaultFixture(): ItemFixture[] {
     {
       id: ITEM_TAIL,
       originalName: 'invoice-page-3.pdf',
+      status: 'identified',
       linkingBeforeItemId: ITEM_MID,
       linkingAfterItemId: null,
       linkingManualOverride: false,
@@ -301,6 +306,7 @@ function defaultFixture(): ItemFixture[] {
     {
       id: ITEM_ALONE,
       originalName: 'standalone-doc.pdf',
+      status: 'identified',
       linkingBeforeItemId: null,
       linkingAfterItemId: null,
       linkingManualOverride: false,
@@ -754,4 +760,55 @@ describe('BulkDocumentImportPage — Linking Break-group button (Task #1281)', (
       'Chain broken — 3 files now standalone',
     );
   }, 15000);
+});
+
+// =============================================================================
+// 4. Task #1282 — Commit button visibility for manually-curated chains
+//
+// The Commit / Sauvegarder button renders only when a row's status is
+// 'linked'.  Before Task #1282 the manual-link endpoints never updated
+// status, so rows dragged into a chain stayed 'identified' and their
+// Commit buttons never appeared.  These tests confirm the button is
+// present for every non-excluded chain member once the payload reflects
+// the correct status.
+// =============================================================================
+
+describe('BulkDocumentImportPage — Commit button on linked chain rows (Task #1282)', () => {
+  it('renders the Commit button for every chain member when all statuses are "linked"', async () => {
+    // Override all chain members to status: 'linked' to simulate what the
+    // fixed manual-linking endpoints now persist.
+    items = defaultFixture().map((it) => ({
+      ...it,
+      status: it.linkingBeforeItemId !== null || it.linkingAfterItemId !== null ? 'linked' : it.status,
+    }));
+
+    renderPage();
+    await screen.findByTestId(`linking-group-${ITEM_HEAD}`, undefined, {
+      timeout: 4000,
+    });
+    await flushAsyncEffects();
+
+    // Commit button must appear for every chain member.
+    for (const id of [ITEM_HEAD, ITEM_MID, ITEM_TAIL]) {
+      expect(
+        screen.getByTestId(`button-commit-${id}`),
+      ).toBeInTheDocument();
+    }
+  });
+
+  it('does NOT render the Commit button for chain members that are still "identified"', async () => {
+    // Default fixture keeps status: 'identified' — simulating the
+    // pre-fix state where the endpoint never promoted status.
+    renderPage();
+    await screen.findByTestId(`linking-group-${ITEM_HEAD}`, undefined, {
+      timeout: 4000,
+    });
+    await flushAsyncEffects();
+
+    for (const id of [ITEM_HEAD, ITEM_MID, ITEM_TAIL]) {
+      expect(
+        screen.queryByTestId(`button-commit-${id}`),
+      ).not.toBeInTheDocument();
+    }
+  });
 });
