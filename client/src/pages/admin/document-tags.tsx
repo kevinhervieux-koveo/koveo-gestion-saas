@@ -47,6 +47,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { Header } from '@/components/layout/header';
 import type { DocumentTag } from '@/components/document-tags/TagPicker';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/hooks/use-auth';
 
 // ─── Tag form schema ──────────────────────────────────────────────────────────
 
@@ -84,6 +85,8 @@ type FamilyFormValues = z.infer<typeof familyFormSchema>;
 export default function AdminDocumentTags() {
   const { t } = useLanguage();
   const { toast } = useToast();
+  const { user } = useAuth();
+  const isSuperAdmin = user?.role === 'super_admin';
 
   // ── View toggle ───────────────────────────────────────────────────────────
   const VIEW_STORAGE_KEY = 'admin:document-tags:view';
@@ -343,7 +346,9 @@ export default function AdminDocumentTags() {
               <TagsTable
                 tags={systemTags}
                 isLoading={tagsLoading}
-                readOnly
+                readOnly={!isSuperAdmin}
+                onEdit={isSuperAdmin ? openEditTag : undefined}
+                onDelete={isSuperAdmin ? removeTag : undefined}
                 scopeLabel={scopeLabel}
                 importanceLabel={importanceLabel}
                 loadingText={t('dtLoading')}
@@ -413,8 +418,10 @@ export default function AdminDocumentTags() {
               <FamiliesTable
                 families={systemFamilies}
                 isLoading={familiesLoading}
-                onEdit={openEditFamily}
-                onDelete={removeFamily}
+                readOnly={!isSuperAdmin}
+                onEdit={isSuperAdmin ? openEditFamily : undefined}
+                onDelete={isSuperAdmin ? removeFamily : undefined}
+                readOnlyText={t('dtReadOnly')}
               />
             </CardContent>
           </Card>
@@ -429,6 +436,7 @@ export default function AdminDocumentTags() {
                 isLoading={familiesLoading}
                 onEdit={openEditFamily}
                 onDelete={removeFamily}
+                readOnlyText={t('dtReadOnly')}
               />
             </CardContent>
           </Card>
@@ -544,7 +552,7 @@ export default function AdminDocumentTags() {
                     </FormItem>
                   )}
                 />
-                {!editingTag && (
+                {!editingTag && isSuperAdmin && (
                   <FormField
                     control={tagForm.control}
                     name="isSystem"
@@ -633,7 +641,7 @@ export default function AdminDocumentTags() {
                     </FormItem>
                   )}
                 />
-                {!editingFamily && (
+                {!editingFamily && isSuperAdmin && (
                   <FormField
                     control={familyForm.control}
                     name="isSystem"
@@ -799,12 +807,14 @@ function FamiliesTable({
   readOnly,
   onEdit,
   onDelete,
+  readOnlyText,
 }: {
   families: LinkFamily[];
   isLoading: boolean;
   readOnly?: boolean;
   onEdit?: (f: LinkFamily) => void;
   onDelete?: (f: LinkFamily) => void;
+  readOnlyText?: string;
 }) {
   if (isLoading) return <p className="text-muted-foreground">Loading…</p>;
   if (families.length === 0) return <p className="text-muted-foreground">No families yet.</p>;
@@ -850,7 +860,7 @@ function FamiliesTable({
                   </Button>
                 </div>
               ) : (
-                <span className="text-xs text-muted-foreground">Read-only</span>
+                <span className="text-xs text-muted-foreground">{readOnlyText ?? 'Read-only'}</span>
               )}
             </TableCell>
           </TableRow>

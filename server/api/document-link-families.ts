@@ -74,8 +74,8 @@ export function registerDocumentLinkFamilyRoutes(app: Express): void {
 
         const wantsSystem = parsed.data.isSystem === true;
 
-        if (wantsSystem && user.role !== 'admin') {
-          return res.status(403).json({ message: 'Only admins can create system families' });
+        if (wantsSystem && user.role !== 'super_admin') {
+          return res.status(403).json({ message: 'Only super admins can create Koveo system families' });
         }
 
         if (wantsSystem) {
@@ -136,8 +136,8 @@ export function registerDocumentLinkFamilyRoutes(app: Express): void {
         if (!family) {
           return res.status(404).json({ message: 'Family not found' });
         }
-        if (family.isSystem && user.role !== 'admin') {
-          return res.status(403).json({ message: 'System families cannot be modified by non-admins' });
+        if (family.isSystem && user.role !== 'super_admin') {
+          return res.status(403).json({ message: 'Only super admins can modify Koveo system families' });
         }
         if (!family.isSystem && user.role !== 'admin') {
           const orgIds = await getUserOrgIds(user.id);
@@ -181,10 +181,10 @@ export function registerDocumentLinkFamilyRoutes(app: Express): void {
         if (!family) {
           return res.status(404).json({ message: 'Family not found' });
         }
-        if (family.isSystem && user.role !== 'admin') {
-          return res.status(403).json({ message: 'System families cannot be deleted by non-admins' });
+        if (family.isSystem && user.role !== 'super_admin') {
+          return res.status(403).json({ message: 'Only super admins can delete Koveo system families' });
         }
-        if (user.role !== 'admin') {
+        if (!family.isSystem && user.role !== 'admin') {
           const orgIds = await getUserOrgIds(user.id);
           if (!family.organizationId || !orgIds.includes(family.organizationId)) {
             return res.status(403).json({ message: 'Access denied' });

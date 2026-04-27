@@ -115,8 +115,8 @@ export function registerDocumentTagRoutes(app: Express): void {
 
         const wantsSystem = parsed.data.isSystem === true;
 
-        if (wantsSystem && user.role !== 'admin') {
-          return res.status(403).json({ message: 'Only admins can create system tags' });
+        if (wantsSystem && user.role !== 'super_admin') {
+          return res.status(403).json({ message: 'Only super admins can create Koveo system tags' });
         }
 
         if (wantsSystem) {
@@ -181,10 +181,10 @@ export function registerDocumentTagRoutes(app: Express): void {
         if (!tag) {
           return res.status(404).json({ message: 'Tag not found' });
         }
-        if (tag.isSystem) {
-          return res.status(403).json({ message: 'System tags cannot be modified' });
+        if (tag.isSystem && user.role !== 'super_admin') {
+          return res.status(403).json({ message: 'Only super admins can modify Koveo system tags' });
         }
-        if (user.role !== 'admin') {
+        if (!tag.isSystem && user.role !== 'admin') {
           const orgIds = await getUserOrgIds(user.id);
           if (!tag.organizationId || !orgIds.includes(tag.organizationId)) {
             return res.status(403).json({ message: 'Access denied' });
@@ -228,10 +228,10 @@ export function registerDocumentTagRoutes(app: Express): void {
         if (!tag) {
           return res.status(404).json({ message: 'Tag not found' });
         }
-        if (tag.isSystem) {
-          return res.status(403).json({ message: 'System tags cannot be deleted' });
+        if (tag.isSystem && user.role !== 'super_admin') {
+          return res.status(403).json({ message: 'Only super admins can delete Koveo system tags' });
         }
-        if (user.role !== 'admin') {
+        if (!tag.isSystem && user.role !== 'admin') {
           const orgIds = await getUserOrgIds(user.id);
           if (!tag.organizationId || !orgIds.includes(tag.organizationId)) {
             return res.status(403).json({ message: 'Access denied' });
