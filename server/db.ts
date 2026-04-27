@@ -46,6 +46,7 @@ import {
   workflowTasks,
   projectNotifications,
   elementProjectUpdates,
+  documentLinkFamilies,
 } from '@shared/schema';
 
 // Single source of truth: which DB env var supplied the URL is decided
@@ -230,6 +231,7 @@ const schema = {
   workflowTasks,
   projectNotifications,
   elementProjectUpdates,
+  documentLinkFamilies,
 };
 
 /**

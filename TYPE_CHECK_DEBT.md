@@ -190,6 +190,7 @@ this task. The four workflow tab components were cleaned up in task #1316.
 - `server/tests/bulk-import-analyzer-cache.test.ts`
 - `server/tests/bulk-import-tag-resolution.test.ts`
 - `server/tests/document-edit-tag-suggestion.test.ts`
+- `server/tests/document-residence-mismatch.test.ts`
 - `server/tests/document-text-endpoint.test.ts`
 - `server/tests/mcp-oauth-endpoints.test.ts`
 - `server/tests/user-residences-profile.test.ts`

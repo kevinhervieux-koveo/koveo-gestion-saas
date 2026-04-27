@@ -4751,7 +4751,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
   });
 
   // ===========================================================================
-  // Document linking (date-based sequence with explicit overrides)
+  // Document linking — family-aware chains
   // ===========================================================================
   const checkDocumentAccess = async (documentId: string, user: any) => {
     const orgs = await storage.getUserOrganizations(user.id);
@@ -4759,38 +4759,45 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
     return storage.getDocumentWithScope(documentId, user.id, user.role, orgIds);
   };
 
+  // Returns an array of per-family neighbor entries (one per family the
+  // document belongs to). The viewer can use left/right to navigate within a
+  // family and up/down to switch between families.
   app.get('/api/documents/:id/neighbors', requireAuth, asyncHandler(async (req: any, res) => {
     const accessible = await checkDocumentAccess(req.params.id, req.user);
     if (!accessible) {
       return res.status(404).json({ message: 'Document not found or access denied' });
     }
-    const { resolveDocumentNeighbors } = await import('../services/document-link-service');
-    const result = await resolveDocumentNeighbors(req.params.id, { role: req.user.role });
-    if (!result) return res.status(404).json({ message: 'Document not found' });
+    const { resolveAllFamilyNeighbors } = await import('../services/document-link-service');
+    const families = await resolveAllFamilyNeighbors(req.params.id, { role: req.user.role });
     res.json({
-      currentId: result.current.id,
-      previous: result.previous.document
-        ? {
-            id: result.previous.document.id,
-            name: result.previous.document.name,
-            effectiveDate: result.previous.document.effectiveDate,
-            createdAt: result.previous.document.createdAt,
-            documentType: result.previous.document.documentType,
-            source: result.previous.source,
-          }
-        : null,
-      previousIsChainEnd: result.previous.isChainEnd,
-      next: result.next.document
-        ? {
-            id: result.next.document.id,
-            name: result.next.document.name,
-            effectiveDate: result.next.document.effectiveDate,
-            createdAt: result.next.document.createdAt,
-            documentType: result.next.document.documentType,
-            source: result.next.source,
-          }
-        : null,
-      nextIsChainEnd: result.next.isChainEnd,
+      currentId: req.params.id,
+      families: families.map((f) => ({
+        familyId: f.family.id,
+        familyName: f.family.name,
+        familyDescription: f.family.description ?? null,
+        previous: f.previous.document
+          ? {
+              id: f.previous.document.id,
+              name: f.previous.document.name,
+              effectiveDate: f.previous.document.effectiveDate,
+              createdAt: f.previous.document.createdAt,
+              documentType: f.previous.document.documentType,
+              source: f.previous.source,
+            }
+          : null,
+        previousIsChainEnd: f.previous.isChainEnd,
+        next: f.next.document
+          ? {
+              id: f.next.document.id,
+              name: f.next.document.name,
+              effectiveDate: f.next.document.effectiveDate,
+              createdAt: f.next.document.createdAt,
+              documentType: f.next.document.documentType,
+              source: f.next.source,
+            }
+          : null,
+        nextIsChainEnd: f.next.isChainEnd,
+      })),
     });
   }));
 
@@ -4800,12 +4807,40 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       return res.status(404).json({ message: 'Document not found or access denied' });
     }
     const { listLinksForDocument } = await import('../services/document-link-service');
-    const links = await listLinksForDocument(req.params.id);
+    const familyId = typeof req.query.familyId === 'string' ? req.query.familyId : undefined;
+    if (familyId) {
+      const check = await assertFamilyAccess(req.user, familyId);
+      if (!check.allowed) return res.status(check.status).json({ message: check.message });
+    }
+    const links = await listLinksForDocument(req.params.id, familyId);
     res.json({ links });
   }));
 
+  // Shared helper: verify the caller may use the given familyId.
+  // System families are visible to all authenticated users.
+  // Org-scoped families require the caller to belong to that org (or be admin).
+  async function assertFamilyAccess(user: any, familyId: string): Promise<{ allowed: boolean; status: number; message: string }> {
+    const { db: dbInst } = await import('../db');
+    const { documentLinkFamilies: dlf } = await import('../../shared/schemas/documents');
+    const { eq: eqOp } = await import('drizzle-orm');
+    const [family] = await dbInst.select().from(dlf).where(eqOp(dlf.id, familyId));
+    if (!family) {
+      return { allowed: false, status: 404, message: 'Link family not found' };
+    }
+    if (!family.isSystem && user.role !== 'admin') {
+      const { storage: storageInst } = await import('../storage');
+      const orgs = await storageInst.getUserOrganizations(user.id);
+      const orgIds = orgs.map((o: any) => o.organizationId);
+      if (!family.organizationId || !orgIds.includes(family.organizationId)) {
+        return { allowed: false, status: 403, message: 'Access to this link family is denied' };
+      }
+    }
+    return { allowed: true, status: 200, message: 'ok' };
+  }
+
   const linkBodySchema = z.object({
     targetDocumentId: z.string().min(1),
+    familyId: z.string().min(1),
     position: z.enum(['before', 'after']),
     ordinal: z.number().int().optional(),
   });
@@ -4823,11 +4858,14 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
     if (!targetAccessible) {
       return res.status(404).json({ message: 'Target document not found or access denied' });
     }
+    const familyCheck = await assertFamilyAccess(req.user, parsed.data.familyId);
+    if (!familyCheck.allowed) return res.status(familyCheck.status).json({ message: familyCheck.message });
     const { upsertDocumentLink, DocumentLinkValidationError } = await import('../services/document-link-service');
     try {
       const link = await upsertDocumentLink({
         fromDocumentId: req.params.id,
         toDocumentId: parsed.data.targetDocumentId,
+        familyId: parsed.data.familyId,
         position: parsed.data.position,
         ordinal: parsed.data.ordinal ?? null,
       });
@@ -4850,8 +4888,14 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
     if (position !== 'before' && position !== 'after') {
       return res.status(400).json({ message: 'Position must be "before" or "after"' });
     }
+    const familyId = typeof req.query.familyId === 'string' ? req.query.familyId : undefined;
+    if (!familyId) {
+      return res.status(400).json({ message: 'familyId query parameter is required' });
+    }
+    const familyCheck = await assertFamilyAccess(req.user, familyId);
+    if (!familyCheck.allowed) return res.status(familyCheck.status).json({ message: familyCheck.message });
     const { deleteDocumentLink } = await import('../services/document-link-service');
-    const removed = await deleteDocumentLink({ fromDocumentId: req.params.id, position });
+    const removed = await deleteDocumentLink({ fromDocumentId: req.params.id, position, familyId });
     if (!removed) return res.status(404).json({ message: 'Link not found' });
     res.json({ status: 'ok' });
   }));
@@ -4861,11 +4905,18 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
     if (!accessible) {
       return res.status(404).json({ message: 'Document not found or access denied' });
     }
+    const familyId = typeof req.query.familyId === 'string' ? req.query.familyId : undefined;
+    if (!familyId) {
+      return res.status(400).json({ message: 'familyId query parameter is required' });
+    }
+    const familyCheck = await assertFamilyAccess(req.user, familyId);
+    if (!familyCheck.allowed) return res.status(familyCheck.status).json({ message: familyCheck.message });
     const { resolveChain } = await import('../services/document-link-service');
-    const chain = await resolveChain(req.params.id);
+    const chain = await resolveChain(req.params.id, familyId);
     if (!chain) return res.status(404).json({ message: 'Document not found' });
     res.json({
       currentId: req.params.id,
+      familyId,
       documents: chain.map((d) => ({
         id: d.id,
         name: d.name,
@@ -4878,6 +4929,7 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
 
   const reorderChainSchema = z.object({
     orderedIds: z.array(z.string().min(1)).min(1),
+    familyId: z.string().min(1),
   });
 
   app.post(
@@ -4893,16 +4945,14 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       if (!parsed.success) {
         return res.status(400).json({ message: 'Invalid request', errors: parsed.error.errors });
       }
-      // The seed document must be part of the proposed order so the request
-      // can't be used to rewrite an unrelated chain via a doc the caller
-      // happens to have access to.
+      const familyCheck = await assertFamilyAccess(req.user, parsed.data.familyId);
+      if (!familyCheck.allowed) return res.status(familyCheck.status).json({ message: familyCheck.message });
       if (!parsed.data.orderedIds.includes(req.params.id)) {
         return res.status(400).json({
           message: 'orderedIds must include the seed document id',
           code: 'seed_missing',
         });
       }
-      // Verify the caller can access every other document in the proposed order.
       for (const id of parsed.data.orderedIds) {
         if (id === req.params.id) continue;
         const ok = await checkDocumentAccess(id, req.user);
@@ -4915,10 +4965,11 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       const { reorderChain, resolveChain, DocumentLinkValidationError } =
         await import('../services/document-link-service');
       try {
-        await reorderChain(parsed.data.orderedIds);
-        const chain = await resolveChain(req.params.id);
+        await reorderChain(parsed.data.orderedIds, parsed.data.familyId);
+        const chain = await resolveChain(req.params.id, parsed.data.familyId);
         res.json({
           currentId: req.params.id,
+          familyId: parsed.data.familyId,
           documents: (chain ?? []).map((d) => ({
             id: d.id,
             name: d.name,
@@ -4937,6 +4988,10 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
     }),
   );
 
+  const removeFromChainSchema = z.object({
+    familyId: z.string().min(1),
+  });
+
   app.post(
     '/api/documents/:id/chain/remove',
     requireAuth,
@@ -4946,10 +5001,17 @@ export function registerDocumentRoutes(app: import('../utils/lazy-mount').RouteR
       if (!accessible) {
         return res.status(404).json({ message: 'Document not found or access denied' });
       }
+      const parsed = removeFromChainSchema.safeParse(req.body);
+      if (!parsed.success) {
+        return res.status(400).json({ message: 'Invalid request', errors: parsed.error.errors });
+      }
+      const familyCheck = await assertFamilyAccess(req.user, parsed.data.familyId);
+      if (!familyCheck.allowed) return res.status(familyCheck.status).json({ message: familyCheck.message });
       const { removeFromChain } = await import('../services/document-link-service');
-      const result = await removeFromChain(req.params.id);
+      const result = await removeFromChain(req.params.id, parsed.data.familyId);
       res.json({
         removedId: req.params.id,
+        familyId: parsed.data.familyId,
         previous: result.previous ? { id: result.previous.id, name: result.previous.name } : null,
         next: result.next ? { id: result.next.id, name: result.next.name } : null,
       });

@@ -280,6 +280,40 @@ export type InsertDocumentTagAssignment = z.infer<typeof insertDocumentTagAssign
 export type DocumentTagAssignment = typeof documentTagAssignments.$inferSelect;
 
 /**
+ * Link families: named groupings that give meaning to a document chain.
+ * System families (isSystem=true, organizationId=null) are seeded by Koveo
+ * and are read-only for non-admins. Custom families belong to an organization.
+ */
+export const documentLinkFamilies = pgTable('document_link_families', {
+  id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+  organizationId: varchar('organization_id').references(() => organizations.id, {
+    onDelete: 'cascade',
+  }),
+  name: text('name').notNull(),
+  description: text('description'),
+  isSystem: boolean('is_system').notNull().default(false),
+  source: text('source'),
+  createdAt: timestamp('created_at').defaultNow().notNull(),
+  updatedAt: timestamp('updated_at').defaultNow().notNull(),
+}, (table) => ({
+  organizationIdIdx: index('document_link_families_organization_id_idx').on(table.organizationId),
+  isSystemIdx: index('document_link_families_is_system_idx').on(table.isSystem),
+  orgNameUniq: uniqueIndex('document_link_families_org_name_uniq').on(table.organizationId, table.name),
+  systemNameUniq: uniqueIndex('document_link_families_system_name_uniq').on(table.name).where(sql`organization_id IS NULL`),
+}));
+
+export const insertDocumentLinkFamilySchema = z.object({
+  organizationId: z.string().optional().nullable(),
+  name: z.string().min(1, 'Family name is required').max(150),
+  description: z.string().optional().nullable(),
+  isSystem: z.boolean().default(false),
+  source: z.string().optional().nullable(),
+});
+
+export type InsertDocumentLinkFamily = z.infer<typeof insertDocumentLinkFamilySchema>;
+export type DocumentLinkFamily = typeof documentLinkFamilies.$inferSelect;
+
+/**
  * Position of a linked document relative to the source document in a sequence.
  *  - before: the linked target comes BEFORE the source document
  *  - after: the linked target comes AFTER the source document
@@ -287,16 +321,16 @@ export type DocumentTagAssignment = typeof documentTagAssignments.$inferSelect;
 export const documentLinkPositionEnum = pgEnum('document_link_position', ['before', 'after']);
 
 /**
- * Explicit links between documents to define a reading sequence.
- * Each row says: from `fromDocumentId`, the document reached at `position`
- * is `toDocumentId`. A document has at most one explicit `before` and one
- * explicit `after` link (enforced via uniqueness on (fromDocumentId, position)).
- * When no explicit link exists, the resolver falls back to date-based ordering.
+ * Explicit links between documents to define a reading sequence within a family.
+ * Each row says: from `fromDocumentId`, the document reached at `position` in
+ * family `familyId` is `toDocumentId`. A document has at most one explicit `before`
+ * and one `after` per family (enforced via uniqueness on (fromDocumentId, position, familyId)).
  */
 export const documentLinks = pgTable('document_links', {
   id: text('id').primaryKey().default(sql`gen_random_uuid()`),
   fromDocumentId: text('from_document_id').notNull().references(() => documents.id, { onDelete: 'cascade' }),
   toDocumentId: text('to_document_id').notNull().references(() => documents.id, { onDelete: 'cascade' }),
+  familyId: text('family_id').notNull().references(() => documentLinkFamilies.id, { onDelete: 'cascade' }),
   position: documentLinkPositionEnum('position').notNull(),
   ordinal: integer('ordinal'),
   createdAt: timestamp('created_at').defaultNow().notNull(),
@@ -304,18 +338,19 @@ export const documentLinks = pgTable('document_links', {
 }, (table) => ({
   fromDocumentIdIdx: index('document_links_from_document_id_idx').on(table.fromDocumentId),
   toDocumentIdIdx: index('document_links_to_document_id_idx').on(table.toDocumentId),
-  // Each document has at most one outgoing `before` and one outgoing `after`.
-  fromPositionUniq: uniqueIndex('document_links_from_position_uniq').on(table.fromDocumentId, table.position),
-  // Branching prevention: each document can be the target of at most one
-  // incoming link per direction. Combined with `fromPositionUniq` this means
-  // any document has at most one previous and at most one next.
-  toPositionUniq: uniqueIndex('document_links_to_position_uniq').on(table.toDocumentId, table.position),
-  edgeUniq: uniqueIndex('document_links_edge_uniq').on(table.fromDocumentId, table.toDocumentId, table.position),
+  familyIdIdx: index('document_links_family_id_idx').on(table.familyId),
+  // Each document has at most one outgoing `before` and one outgoing `after` per family.
+  fromPositionFamilyUniq: uniqueIndex('document_links_from_position_family_uniq').on(table.fromDocumentId, table.position, table.familyId),
+  // Branching prevention per family: each document can be the target of at most one
+  // incoming link per direction per family.
+  toPositionFamilyUniq: uniqueIndex('document_links_to_position_family_uniq').on(table.toDocumentId, table.position, table.familyId),
+  edgeFamilyUniq: uniqueIndex('document_links_edge_family_uniq').on(table.fromDocumentId, table.toDocumentId, table.position, table.familyId),
 }));
 
 export const insertDocumentLinkSchema = z.object({
   fromDocumentId: z.string().min(1, 'fromDocumentId is required'),
   toDocumentId: z.string().min(1, 'toDocumentId is required'),
+  familyId: z.string().min(1, 'familyId is required'),
   position: z.enum(['before', 'after']),
   ordinal: z.number().int().optional().nullable(),
 });

@@ -266,7 +266,7 @@ describe('document-link-service: scoreCandidate', () => {
     // cleared via the equivalent representation.
     enqueue([]); // outgoing delete returning
     enqueue([{ id: 'l1' }]); // incoming delete returning
-    const removed = await deleteDocumentLink({ fromDocumentId: 'A', position: 'before' });
+    const removed = await deleteDocumentLink({ fromDocumentId: 'A', position: 'before', familyId: 'fam-1' });
     expect(removed).toBe(true);
     expect(deleteLog).toHaveLength(2);
   });
@@ -396,10 +396,12 @@ describe('document-link-service: scoreCandidate', () => {
     deleteLog.length = 0;
     const from = baseDoc({ id: 'A', buildingId: 'b1', residenceId: 'r1' });
     const to = baseDoc({ id: 'B', buildingId: 'b1', residenceId: 'r1' });
-    // loadDocument(A), loadDocument(B), then 4 deletes (no return values
-    // consumed), then insert returning the new row.
+    const fakeFamily = { id: 'fam-1', name: 'Financial', isSystem: true, organizationId: null, description: null, source: 'koveo', createdAt: new Date(), updatedAt: new Date() };
+    // Promise.all([loadDocument(A), loadDocument(B), loadFamily(fam-1)]) consume 3 queue slots.
+    // Then 4 deletes (no queue consumption), then insert returning the new row.
     enqueue([from]);
     enqueue([to]);
+    enqueue([fakeFamily]);
     const insertedRow = {
       id: 'link-1',
       fromDocumentId: 'A',
@@ -414,6 +416,7 @@ describe('document-link-service: scoreCandidate', () => {
     const row = await upsertDocumentLink({
       fromDocumentId: 'A',
       toDocumentId: 'B',
+      familyId: 'fam-1',
       position: 'after',
       ordinal: null,
     });
@@ -544,7 +547,7 @@ describe('document-link-service: resolveChain', () => {
   it('returns null when the seed document does not exist', async () => {
     queue.length = 0;
     enqueue([]); // loadDocument(seed)
-    const chain = await resolveChain('missing');
+    const chain = await resolveChain('missing', 'fam-1');
     expect(chain).toBeNull();
   });
 
@@ -556,7 +559,7 @@ describe('document-link-service: resolveChain', () => {
     enqueue([]); // walk back: incoming 'after' empty
     enqueue([]); // walk forward: outgoing 'after' empty
     enqueue([]); // walk forward: incoming 'before' empty
-    const chain = await resolveChain('solo');
+    const chain = await resolveChain('solo', 'fam-1');
     expect(chain?.map((d) => d.id)).toEqual(['solo']);
   });
 
@@ -586,7 +589,7 @@ describe('document-link-service: resolveChain', () => {
     enqueue([]); // walk forward from D: outgoing 'after' empty
     enqueue([]); // walk forward from D: incoming 'before' empty
 
-    const chain = await resolveChain('C');
+    const chain = await resolveChain('C', 'fam-1');
     expect(chain?.map((x) => x.id)).toEqual(['A', 'B', 'C', 'D']);
   });
 });
@@ -595,14 +598,14 @@ describe('document-link-service: reorderChain', () => {
   it('rejects duplicate ids before touching the database', async () => {
     queue.length = 0;
     deleteLog.length = 0;
-    await expect(reorderChain(['A', 'B', 'A'])).rejects.toBeInstanceOf(DocumentLinkValidationError);
+    await expect(reorderChain(['A', 'B', 'A'], 'fam-1')).rejects.toBeInstanceOf(DocumentLinkValidationError);
     expect(deleteLog).toHaveLength(0);
   });
 
   it('rejects when a referenced document is missing', async () => {
     queue.length = 0;
     enqueue([baseDoc({ id: 'A', buildingId: 'b1', residenceId: null })]); // only one row returned for two ids
-    await expect(reorderChain(['A', 'B'])).rejects.toBeInstanceOf(DocumentLinkValidationError);
+    await expect(reorderChain(['A', 'B'], 'fam-1')).rejects.toBeInstanceOf(DocumentLinkValidationError);
   });
 
   it('rejects when chain documents span different scopes', async () => {
@@ -611,7 +614,7 @@ describe('document-link-service: reorderChain', () => {
       baseDoc({ id: 'A', buildingId: 'b1', residenceId: null }),
       baseDoc({ id: 'B', buildingId: 'b2', residenceId: null }),
     ]);
-    await expect(reorderChain(['A', 'B'])).rejects.toBeInstanceOf(DocumentLinkValidationError);
+    await expect(reorderChain(['A', 'B'], 'fam-1')).rejects.toBeInstanceOf(DocumentLinkValidationError);
   });
 
   it('clears existing links and inserts N-1 sequential after links', async () => {
@@ -622,7 +625,7 @@ describe('document-link-service: reorderChain', () => {
       baseDoc({ id: 'B', buildingId: 'b1', residenceId: null }),
       baseDoc({ id: 'C', buildingId: 'b1', residenceId: null }),
     ]);
-    await reorderChain(['A', 'B', 'C']);
+    await reorderChain(['A', 'B', 'C'], 'fam-1');
     // The transaction performs exactly one bulk delete and one bulk insert.
     expect(deleteLog).toHaveLength(1);
   });
@@ -631,14 +634,14 @@ describe('document-link-service: reorderChain', () => {
     queue.length = 0;
     deleteLog.length = 0;
     enqueue([baseDoc({ id: 'A', buildingId: 'b1', residenceId: null })]);
-    await reorderChain(['A']);
+    await reorderChain(['A'], 'fam-1');
     expect(deleteLog).toHaveLength(1);
   });
 
   it('returns immediately for an empty list without touching the database', async () => {
     queue.length = 0;
     deleteLog.length = 0;
-    await reorderChain([]);
+    await reorderChain([], 'fam-1');
     expect(deleteLog).toHaveLength(0);
   });
 });
@@ -656,7 +659,7 @@ describe('document-link-service: removeFromChain', () => {
     enqueue([{ id: 'l-next', toDocumentId: 'N', fromDocumentId: 'D', position: 'after' }]);
     enqueue([prev]);
     enqueue([next]);
-    const result = await removeFromChain('D');
+    const result = await removeFromChain('D', 'fam-1');
     expect(result.previous?.id).toBe('P');
     expect(result.next?.id).toBe('N');
     // 1 bulk delete (touching D) + 4 collision-clear deletes around the
@@ -672,7 +675,7 @@ describe('document-link-service: removeFromChain', () => {
     enqueue([]); // outgoing 'after' empty
     enqueue([prev]);
     enqueue([]); // incoming 'before' for next side: empty
-    const result = await removeFromChain('D');
+    const result = await removeFromChain('D', 'fam-1');
     expect(result.previous?.id).toBe('P');
     expect(result.next).toBeNull();
     // Only the bulk delete; no stitching pass.
@@ -686,7 +689,7 @@ describe('document-link-service: removeFromChain', () => {
     enqueue([]); // outgoing 'after'
     enqueue([]); // incoming 'after' (prev side fallback)
     enqueue([]); // incoming 'before' (next side fallback)
-    const result = await removeFromChain('D');
+    const result = await removeFromChain('D', 'fam-1');
     expect(result.previous).toBeNull();
     expect(result.next).toBeNull();
     expect(deleteLog).toHaveLength(1);

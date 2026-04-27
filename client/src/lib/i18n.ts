@@ -4180,6 +4180,28 @@ export interface Translations {
   dtNameRequired: string;
   dtKoveoTagLabel: string;
   dtKoveoTagHelper: string;
+  lfSectionHeading: string;
+  lfSectionDescription: string;
+  lfCreateButton: string;
+  lfSystemCardTitle: string;
+  lfCustomCardTitle: string;
+  lfDialogEditTitle: string;
+  lfDialogNewTitle: string;
+  lfDialogDescription: string;
+  lfNameLabel: string;
+  lfDescriptionLabel: string;
+  lfDescriptionPlaceholder: string;
+  lfKoveoFamilyLabel: string;
+  lfKoveoFamilyHelper: string;
+  lfCreateSubmitButton: string;
+  lfToastCreatedTitle: string;
+  lfToastUpdatedTitle: string;
+  lfToastDeletedTitle: string;
+  lfToastErrorTitle: string;
+  lfDeleteConfirm: string;
+  linkFamilyLabel: string;
+  linkFamilyPlaceholder: string;
+  linkFamilyNone: string;
   ihGlobalSearchPlaceholder: string;
   pdvFailedToLoadDashboard: string;
   pdvSelectBuildingForDashboard: string;
@@ -8401,6 +8423,28 @@ export const translations: Record<Language, Translations> = {
     dtNameRequired: 'Name required',
     dtKoveoTagLabel: 'Official Koveo tag — available to all organizations',
     dtKoveoTagHelper: 'When enabled, this tag becomes a system tag visible to every organization.',
+    lfSectionHeading: 'Link Families',
+    lfSectionDescription: 'Link families group documents into independent reading sequences. A document can belong to multiple families (e.g. Financial, AGA). In the viewer, ← / → navigates within the active family and ↑ / ↓ switches between families.',
+    lfCreateButton: 'New family',
+    lfSystemCardTitle: 'Koveo families',
+    lfCustomCardTitle: 'Custom families',
+    lfDialogEditTitle: 'Edit link family',
+    lfDialogNewTitle: 'New link family',
+    lfDialogDescription: 'A link family defines an independent sequence of documents that can be navigated with ← / →.',
+    lfNameLabel: 'Name',
+    lfDescriptionLabel: 'Description',
+    lfDescriptionPlaceholder: 'Optional description…',
+    lfKoveoFamilyLabel: 'Koveo system family',
+    lfKoveoFamilyHelper: 'System families are seeded by Koveo and visible to all organizations.',
+    lfCreateSubmitButton: 'Create',
+    lfToastCreatedTitle: 'Family created',
+    lfToastUpdatedTitle: 'Family updated',
+    lfToastDeletedTitle: 'Family deleted',
+    lfToastErrorTitle: 'Error',
+    lfDeleteConfirm: 'Delete family "{name}"?',
+    linkFamilyLabel: 'Family',
+    linkFamilyPlaceholder: 'Select a family…',
+    linkFamilyNone: 'No families available',
     ihGlobalSearchPlaceholder: 'Search elements by name, UNIFORMAT code, or description...',
     pdvFailedToLoadDashboard: 'Failed to load dashboard analytics. Please try again.',
     pdvSelectBuildingForDashboard: 'Please select a building to view its project dashboard.',
@@ -12627,6 +12671,28 @@ export const translations: Record<Language, Translations> = {
     dtNameRequired: 'Nom requis',
     dtKoveoTagLabel: 'Étiquette Koveo officielle — disponible pour toutes les organisations',
     dtKoveoTagHelper: 'Lorsqu\'activée, cette étiquette devient une étiquette système visible par toutes les organisations.',
+    lfSectionHeading: 'Familles de liens',
+    lfSectionDescription: 'Les familles de liens regroupent des documents en séquences de lecture indépendantes. Un document peut appartenir à plusieurs familles (ex. : Financier, AGA). Dans le visualiseur, ← / → navigue au sein de la famille active et ↑ / ↓ change de famille.',
+    lfCreateButton: 'Nouvelle famille',
+    lfSystemCardTitle: 'Familles Koveo',
+    lfCustomCardTitle: 'Familles personnalisées',
+    lfDialogEditTitle: 'Modifier la famille de liens',
+    lfDialogNewTitle: 'Nouvelle famille de liens',
+    lfDialogDescription: 'Une famille de liens définit une séquence indépendante de documents navigable avec ← / →.',
+    lfNameLabel: 'Nom',
+    lfDescriptionLabel: 'Description',
+    lfDescriptionPlaceholder: 'Description facultative…',
+    lfKoveoFamilyLabel: 'Famille système Koveo',
+    lfKoveoFamilyHelper: 'Les familles système sont générées par Koveo et visibles par toutes les organisations.',
+    lfCreateSubmitButton: 'Créer',
+    lfToastCreatedTitle: 'Famille créée',
+    lfToastUpdatedTitle: 'Famille mise à jour',
+    lfToastDeletedTitle: 'Famille supprimée',
+    lfToastErrorTitle: 'Erreur',
+    lfDeleteConfirm: 'Supprimer la famille « {name} » ?',
+    linkFamilyLabel: 'Famille',
+    linkFamilyPlaceholder: 'Sélectionner une famille…',
+    linkFamilyNone: 'Aucune famille disponible',
     ihGlobalSearchPlaceholder: 'Rechercher des éléments par nom, code UNIFORMAT ou description...',
     pdvFailedToLoadDashboard: 'Échec du chargement des analyses du tableau de bord. Veuillez réessayer.',
     pdvSelectBuildingForDashboard: 'Veuillez sélectionner un immeuble pour consulter son tableau de bord de projets.',

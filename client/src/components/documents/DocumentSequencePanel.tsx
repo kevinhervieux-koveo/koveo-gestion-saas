@@ -18,49 +18,66 @@ interface ChainDocument {
 
 interface ChainResponse {
   currentId: string;
+  familyId: string;
   documents: ChainDocument[];
 }
 
 interface DocumentSequencePanelProps {
   documentId: string;
+  familyId: string;
+  familyName?: string;
   onNavigate?: (documentId: string) => void;
   className?: string;
 }
 
 /**
  * Drag-and-drop editor for the explicit reading sequence of documents that
- * `documentId` belongs to. Uses native HTML5 drag-and-drop (no extra deps)
- * and persists changes via the batch reorder endpoint, with optimistic UI
- * so the new order is reflected immediately on drop.
+ * `documentId` belongs to within `familyId`. Uses native HTML5 drag-and-drop
+ * and persists changes via the batch reorder endpoint with optimistic UI.
  */
-export function DocumentSequencePanel({ documentId, onNavigate, className }: DocumentSequencePanelProps) {
+export function DocumentSequencePanel({
+  documentId,
+  familyId,
+  familyName,
+  onNavigate,
+  className,
+}: DocumentSequencePanelProps) {
   const { t } = useLanguage();
   const { toast } = useToast();
 
   const { data, isLoading } = useQuery<ChainResponse>({
-    queryKey: ['/api/documents', documentId, 'chain'],
+    queryKey: ['/api/documents', documentId, 'chain', familyId],
+    queryFn: async () => {
+      const res = await fetch(
+        `/api/documents/${documentId}/chain?familyId=${encodeURIComponent(familyId)}`,
+        { credentials: 'include' },
+      );
+      if (!res.ok) throw new Error('Failed to load chain');
+      return res.json();
+    },
+    enabled: !!familyId,
   });
 
   const [localOrder, setLocalOrder] = useState<ChainDocument[] | null>(null);
   const [draggingId, setDraggingId] = useState<string | null>(null);
   const [dragOverId, setDragOverId] = useState<string | null>(null);
 
-  // Server-side state is source of truth: reset our local copy whenever the
-  // chain we receive from the API changes (post-mutation or initial load).
   useEffect(() => {
     if (data?.documents) setLocalOrder(data.documents);
   }, [data?.documents]);
 
   const reorderMutation = useMutation({
     mutationFn: async (orderedIds: string[]) => {
-      return apiRequest('POST', `/api/documents/${documentId}/chain/reorder`, { orderedIds });
+      return apiRequest('POST', `/api/documents/${documentId}/chain/reorder`, {
+        orderedIds,
+        familyId,
+      });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/documents', documentId, 'chain'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents', documentId, 'chain', familyId] });
       queryClient.invalidateQueries({ queryKey: ['/api/documents', documentId, 'neighbors'] });
     },
     onError: (err: any) => {
-      // Roll back to the server's last-known order on error.
       if (data?.documents) setLocalOrder(data.documents);
       toast({
         title: t('chainReorderErrorTitle') || 'Reorder failed',
@@ -72,14 +89,12 @@ export function DocumentSequencePanel({ documentId, onNavigate, className }: Doc
 
   const removeMutation = useMutation({
     mutationFn: async (idToRemove: string) => {
-      return apiRequest('POST', `/api/documents/${idToRemove}/chain/remove`, {});
+      return apiRequest('POST', `/api/documents/${idToRemove}/chain/remove`, { familyId });
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['/api/documents', documentId, 'chain'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/documents', documentId, 'chain', familyId] });
       queryClient.invalidateQueries({ queryKey: ['/api/documents', documentId, 'neighbors'] });
-      toast({
-        title: t('chainRemoveSuccessTitle') || 'Removed from sequence',
-      });
+      toast({ title: t('chainRemoveSuccessTitle') || 'Removed from sequence' });
     },
     onError: (err: any) => {
       toast({
@@ -106,7 +121,9 @@ export function DocumentSequencePanel({ documentId, onNavigate, className }: Doc
       <div className={className} data-testid="document-sequence-panel-empty">
         <div className="flex items-center gap-2 p-3 text-sm text-muted-foreground">
           <ListOrdered className="w-4 h-4" />
-          <span>{t('chainPanelEmpty') || 'No sequence yet — link a previous or next document to start one.'}</span>
+          <span>
+            {t('chainPanelEmpty') || 'No sequence yet — link a previous or next document to start one.'}
+          </span>
         </div>
       </div>
     );
@@ -120,7 +137,6 @@ export function DocumentSequencePanel({ documentId, onNavigate, className }: Doc
   const handleDragStart = (id: string) => (e: React.DragEvent) => {
     setDraggingId(id);
     e.dataTransfer.effectAllowed = 'move';
-    // Required for Firefox to actually start the drag.
     e.dataTransfer.setData('text/plain', id);
   };
 
@@ -151,7 +167,9 @@ export function DocumentSequencePanel({ documentId, onNavigate, className }: Doc
     <div className={className} data-testid="document-sequence-panel">
       <div className="flex items-center gap-2 px-3 py-2 border-b">
         <ListOrdered className="w-4 h-4" />
-        <h3 className="text-sm font-medium">{t('chainPanelTitle') || 'Sequence'}</h3>
+        <h3 className="text-sm font-medium">
+          {familyName ?? t('chainPanelTitle') ?? 'Sequence'}
+        </h3>
         {reorderMutation.isPending && <Loader2 className="w-3.5 h-3.5 animate-spin text-muted-foreground" />}
       </div>
       <ul className="divide-y" data-testid="document-sequence-list">
@@ -195,7 +213,6 @@ export function DocumentSequencePanel({ documentId, onNavigate, className }: Doc
               >
                 <div className="truncate text-sm">{doc.name}</div>
                 {(() => {
-                  // effectiveDate is date-only — keep parseDateOnlyLoose to avoid the UTC-midnight off-by-one (#1151).
                   const effective = parseDateOnlyLoose(doc.effectiveDate);
                   if (!effective) return null;
                   return (
