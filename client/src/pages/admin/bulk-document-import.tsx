@@ -213,6 +213,24 @@ const SUB_CATEGORY_LABEL_FR: Record<string, string> = {
 };
 
 /**
+ * Localised label for an AI confidence value, derived from the shared
+ * `bandForConfidence` thresholds (≥0.80 → High, ≥0.50 → Medium, <0.50 →
+ * Low). Returns null when the confidence is not a usable number so
+ * callers can omit the band suffix entirely instead of rendering an
+ * empty separator (Task #1358).
+ */
+function confidenceBandLabel(
+  confidence: number | null | undefined,
+  isFr: boolean,
+): string | null {
+  if (confidence == null || Number.isNaN(confidence)) return null;
+  const band = bandForConfidence(confidence);
+  if (band === 'high') return isFr ? 'Élevée' : 'High';
+  if (band === 'medium') return isFr ? 'Moyenne' : 'Medium';
+  return isFr ? 'Faible' : 'Low';
+}
+
+/**
  * Given all session items and an item ID, return the ordered list of
  * item IDs that will end up in the merged PDF (lead first, then siblings).
  * Uses the stored mergeWithItemIds list when available (Task #856);
@@ -5554,17 +5572,22 @@ export default function BulkDocumentImportPage() {
                                               </Label>
                                               {item.residenceAiSuggestedId
                                                 && reassignResidenceId === item.residenceAiSuggestedId
-                                                && !item.residenceAiConfirmed && (
-                                                <span
-                                                  className="flex items-center gap-1 text-[11px] text-violet-700 dark:text-violet-300"
-                                                  data-testid={`reassign-residence-ai-hint-${item.id}`}
-                                                >
-                                                  <Sparkles className="h-3 w-3" />
-                                                  {isFr
-                                                    ? `Suggestion de l'IA : ${residencesById.get(item.residenceAiSuggestedId) ?? item.residenceAiSuggestedId.slice(0, 8)}`
-                                                    : `AI suggestion: ${residencesById.get(item.residenceAiSuggestedId) ?? item.residenceAiSuggestedId.slice(0, 8)}`}
-                                                </span>
-                                              )}
+                                                && !item.residenceAiConfirmed && (() => {
+                                                const aiName = residencesById.get(item.residenceAiSuggestedId) ?? item.residenceAiSuggestedId.slice(0, 8);
+                                                const bandLabel = confidenceBandLabel(item.residenceConfidence, isFr);
+                                                const bandSuffix = bandLabel ? ` · ${bandLabel}` : '';
+                                                return (
+                                                  <span
+                                                    className="flex items-center gap-1 text-[11px] text-violet-700 dark:text-violet-300"
+                                                    data-testid={`reassign-residence-ai-hint-${item.id}`}
+                                                  >
+                                                    <Sparkles className="h-3 w-3" />
+                                                    {isFr
+                                                      ? `Suggestion de l'IA : ${aiName}${bandSuffix}`
+                                                      : `AI suggestion: ${aiName}${bandSuffix}`}
+                                                  </span>
+                                                );
+                                              })()}
                                               <Select
                                                 value={reassignResidenceId}
                                                 onValueChange={setReassignResidenceId}
@@ -5639,17 +5662,22 @@ export default function BulkDocumentImportPage() {
                                             </Label>
                                             {item.residenceAiSuggestedId
                                               && residencePickerValue === item.residenceAiSuggestedId
-                                              && !item.residenceAiConfirmed && (
-                                              <span
-                                                className="flex items-center gap-1 text-[11px] text-violet-700 dark:text-violet-300"
-                                                data-testid={`residence-picker-ai-hint-${item.id}`}
-                                              >
-                                                <Sparkles className="h-3 w-3" />
-                                                {isFr
-                                                  ? `Suggestion de l'IA : ${residencesById.get(item.residenceAiSuggestedId) ?? item.residenceAiSuggestedId.slice(0, 8)}`
-                                                  : `AI suggestion: ${residencesById.get(item.residenceAiSuggestedId) ?? item.residenceAiSuggestedId.slice(0, 8)}`}
-                                              </span>
-                                            )}
+                                              && !item.residenceAiConfirmed && (() => {
+                                              const aiName = residencesById.get(item.residenceAiSuggestedId) ?? item.residenceAiSuggestedId.slice(0, 8);
+                                              const bandLabel = confidenceBandLabel(item.residenceConfidence, isFr);
+                                              const bandSuffix = bandLabel ? ` · ${bandLabel}` : '';
+                                              return (
+                                                <span
+                                                  className="flex items-center gap-1 text-[11px] text-violet-700 dark:text-violet-300"
+                                                  data-testid={`residence-picker-ai-hint-${item.id}`}
+                                                >
+                                                  <Sparkles className="h-3 w-3" />
+                                                  {isFr
+                                                    ? `Suggestion de l'IA : ${aiName}${bandSuffix}`
+                                                    : `AI suggestion: ${aiName}${bandSuffix}`}
+                                                </span>
+                                              );
+                                            })()}
                                             <Select
                                               value={residencePickerValue}
                                               onValueChange={setResidencePickerValue}
