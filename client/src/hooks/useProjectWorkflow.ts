@@ -334,6 +334,13 @@ export function useUpdateProjectDetails() {
         queryKey: ['/api/maintenance/projects', projectId] 
       });
 
+      // Task #1275: financialYear changes affect budget forecasts/dashboards/
+      // reports, which compute on demand from maintenance_projects.financial_year.
+      // Invalidate dependent caches so charts refetch after a FY edit.
+      queryClient.invalidateQueries({ queryKey: ['/api/budgets/forecast'] });
+      queryClient.invalidateQueries({ queryKey: ['budgetForecast'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/maintenance/projects'] });
+
       toast({
         title: 'Project Updated',
         description: 'Project details have been updated successfully',

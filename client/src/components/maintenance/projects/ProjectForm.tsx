@@ -306,6 +306,20 @@ export function ProjectForm({
         });
       }
 
+      // Budgets, dashboards, and reports group project costs by
+      // `maintenance_projects.financialYear` (and `plannedStartDate`).
+      // The forecast endpoint reads those fields on demand — there are no
+      // stored allocation rows to recompute — so we just invalidate every
+      // forecast cache so the next read picks up the new values.
+      queryClient.invalidateQueries({ queryKey: ['/api/budgets/forecast'] });
+      if (actualBuildingId) {
+        queryClient.invalidateQueries({
+          queryKey: ['budgetForecast', actualBuildingId],
+        });
+      } else {
+        queryClient.invalidateQueries({ queryKey: ['budgetForecast'] });
+      }
+
       // Also invalidate evaluation suggestions if this was created from one
       if (evaluationSuggestion) {
         queryClient.invalidateQueries({
@@ -712,6 +726,33 @@ export function ProjectForm({
                 </FormControl>
                 <FormDescription>
                   {t('projectFormTotalBudgetDesc')}
+                </FormDescription>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+
+          <FormField
+            control={form.control}
+            name="financialYear"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>{t('projectFormFinancialYearLabel')}</FormLabel>
+                <FormControl>
+                  <Input
+                    type="number"
+                    placeholder="2024"
+                    min="2000"
+                    max="2100"
+                    data-testid="input-project-financial-year"
+                    value={field.value ?? ''}
+                    onChange={(e) =>
+                      field.onChange(e.target.value ? parseInt(e.target.value, 10) : undefined)
+                    }
+                  />
+                </FormControl>
+                <FormDescription>
+                  {t('projectFormFinancialYearDescStandard')}
                 </FormDescription>
                 <FormMessage />
               </FormItem>

@@ -3308,6 +3308,13 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         }
       }
       
+      // Note (task #1275): `financialYear` flows through `...validation.data`
+      // and is persisted as-is. Budget forecasts, dashboards, and reports
+      // group project costs by `maintenance_projects.financialYear` (and
+      // `plannedStartDate`) on demand — no stored allocation/spread rows
+      // exist, so the next forecast read picks up the new year automatically.
+      // The client invalidates `/api/budgets/forecast` + `budgetForecast`
+      // caches after this PUT so the UI refetches against the new value.
       const updateData: any = {
         ...validation.data,
         planned_start_date: validation.data.plannedStartDate ? validation.data.plannedStartDate.toISOString().split('T')[0] : undefined,
@@ -3378,6 +3385,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         priority: z.enum(['low', 'medium', 'high', 'critical']).optional(),
         type: z.string().optional(),
         status: z.enum(['planned', 'submission', 'pre_work', 'in_progress', 'post_work', 'completed']).optional(),
+        financialYear: z.number().int().min(2000).max(2100).optional(),
       }).safeParse(req.body);
       
       if (!patchValidation.success) {
@@ -3443,6 +3451,14 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
       }
       if (patchValidation.data.status !== undefined) {
         updateData.status = patchValidation.data.status;
+      }
+      // Task #1275: financialYear is editable on existing projects.
+      // Budget forecasts/dashboards/reports compute on demand from
+      // maintenance_projects.financial_year (see server/api/budgets.ts), so
+      // simply persisting the new value is sufficient — there are no stored
+      // allocation rows to migrate.
+      if (patchValidation.data.financialYear !== undefined) {
+        updateData.financialYear = patchValidation.data.financialYear;
       }
       
       const [updatedProject] = await db

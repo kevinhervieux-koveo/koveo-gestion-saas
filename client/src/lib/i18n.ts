@@ -78,6 +78,7 @@ export interface Translations {
   projectFormBudgetDescQuick: string;
   projectFormFinancialYearLabel: string;
   projectFormFinancialYearDescQuick: string;
+  projectFormFinancialYearDescStandard: string;
   projectFormProjectDateLabel: string;
   projectFormProjectDateDesc: string;
   projectFormProjectNumberLabel: string;
@@ -6474,6 +6475,7 @@ export const translations: Record<Language, Translations> = {
     projectFormBudgetDescQuick: 'Project budget in dollars',
     projectFormFinancialYearLabel: 'Financial Year',
     projectFormFinancialYearDescQuick: 'Budget assignment year',
+    projectFormFinancialYearDescStandard: 'Year this project counts against in budget forecasts and reports.',
     projectFormProjectDateLabel: 'Project Date',
     projectFormProjectDateDesc: 'Target completion date for the project',
     projectFormProjectNumberLabel: 'Project Number',
@@ -10659,6 +10661,7 @@ export const translations: Record<Language, Translations> = {
     projectFormBudgetDescQuick: 'Budget du projet en dollars',
     projectFormFinancialYearLabel: 'Année financière',
     projectFormFinancialYearDescQuick: 'Année d\'attribution du budget',
+    projectFormFinancialYearDescStandard: 'Année à laquelle ce projet est imputé dans les prévisions budgétaires et les rapports.',
     projectFormProjectDateLabel: 'Date du projet',
     projectFormProjectDateDesc: 'Date d\'achèvement cible du projet',
     projectFormProjectNumberLabel: 'Numéro de projet',
