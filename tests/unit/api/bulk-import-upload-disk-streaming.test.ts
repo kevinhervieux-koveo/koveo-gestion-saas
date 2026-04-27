@@ -304,7 +304,8 @@ describe('Task #1061 — bulk-import upload streams files off disk', () => {
       .attach('files', PNG_BODY, { filename: 'meter.png', contentType: 'image/png' });
 
     expect(res.status).toBe(201);
-    const items = res.body as Array<Record<string, any>>;
+    expect(res.body.skippedExisting).toBe(0);
+    const items = res.body.items as Array<Record<string, any>>;
     expect(items).toHaveLength(3);
     items.forEach((row) => {
       expect(row.sessionId).toBe(SESSION_ID);
@@ -321,7 +322,7 @@ describe('Task #1061 — bulk-import upload streams files off disk', () => {
       .attach('files', PDF_BODY_B, { filename: 'lease-b.pdf', contentType: 'application/pdf' });
 
     expect(res.status).toBe(201);
-    const items = res.body as Array<Record<string, any>>;
+    const items = res.body.items as Array<Record<string, any>>;
     const a = items.find((r) => r.originalName === 'lease-a.pdf');
     const b = items.find((r) => r.originalName === 'lease-b.pdf');
     expect(a.contentHash).toBe(expectedHash(PDF_BODY_A));
@@ -336,7 +337,7 @@ describe('Task #1061 — bulk-import upload streams files off disk', () => {
       .attach('files', PDF_BODY_A, { filename: 'lease-a.pdf', contentType: 'application/pdf' });
 
     expect(res.status).toBe(201);
-    const item = (res.body as Array<Record<string, any>>)[0];
+    const item = (res.body.items as Array<Record<string, any>>)[0];
 
     const expected = nodePath.join(SESSION_DIR, `${expectedHash(PDF_BODY_A)}_lease-a.pdf`);
     expect(item.stagedPath).toBe(expected);
@@ -349,7 +350,7 @@ describe('Task #1061 — bulk-import upload streams files off disk', () => {
       .post(`/api/admin/bulk-import/sessions/${SESSION_ID}/items`)
       .attach('files', PDF_BODY_B, { filename: 'lease-b.pdf', contentType: 'application/pdf' });
     expect(upload.status).toBe(201);
-    const item = (upload.body as Array<Record<string, any>>)[0];
+    const item = (upload.body.items as Array<Record<string, any>>)[0];
 
     const stream = await request(app)
       .get(`/api/admin/bulk-import/items/${item.id}/file`)
