@@ -4,9 +4,15 @@
  *              direct UI proxies for both the override-set and override-clear
  *              transitions, so a future regression that accidentally drops
  *              one of the two clearing branches can no longer pass vacuously.
+ * Task #1395 — Extended with Suite D to lock down the THIRD clearing branch:
+ *              `setLinkingDecision.onError` must also empty `linkingOverrides`
+ *              when the batch-set POST resolves with a 4xx/5xx.  Without this
+ *              coverage, removing the `setLinkingOverrides(new Map())` line
+ *              in onError would leave admins staring at a stale optimistic
+ *              chain after a failed save while the destructive toast fires.
  *
  * Root cause (recap): the Linking step keeps optimistic chain edits in a
- * React state Map (`linkingOverrides`).  Two events must clear that Map so
+ * React state Map (`linkingOverrides`).  Three events must clear that Map so
  * the UI reverts to server truth:
  *
  *   A. A linking run-all completes (the server has recomputed all chains).
@@ -17,6 +23,11 @@
  *
  *   B. The admin clicks "Retry step from scratch" and the resetStep mutation
  *      resolves.
+ *
+ *   C. The batch-set-linking-decisions POST fails (transactional endpoint,
+ *      so an error means nothing was written): onError clears the optimistic
+ *      override AND fires a destructive "Failed to update linking chain"
+ *      toast so the admin sees the real persisted chain again.
  *
  * These tests mount the real page with a two-item chain (HEAD → TAIL), use
  * the keyboard DnD shortcut to create an observable optimistic override
@@ -148,8 +159,12 @@ let linkingFinishedAt: string | null = '2024-01-01T00:01:00.000Z';
  * When set, the batch-set-linking-decisions POST will hang until this
  * resolve function is called.  Allows tests to keep the override in
  * `linkingOverrides` while triggering a finishedAt poll.
+ *
+ * Task #1395: optionally accepts a custom Response so the error-rollback
+ * suite can resolve the POST with a 4xx/5xx and exercise the
+ * `setLinkingDecision.onError` clearing branch.  Defaults to a 200 OK.
  */
-let resolvePendingPost: (() => void) | undefined;
+let resolvePendingPost: ((response?: Response) => void) | undefined;
 
 function buildItemShape(id: string, before: string | null, after: string | null) {
   return {
@@ -335,8 +350,11 @@ const fetchMock = jest.fn(
     ) {
       // Hang the POST so the normal onSuccess clearing does NOT fire.
       // Tests that need the POST to resolve can call resolvePendingPost().
+      // Task #1395: pass a custom (error) Response to resolve with a 4xx/5xx
+      // and exercise the setLinkingDecision.onError clearing branch.
       return new Promise<Response>((resolve) => {
-        resolvePendingPost = () => resolve(jsonResponse({ ok: true }));
+        resolvePendingPost = (response) =>
+          resolve(response ?? jsonResponse({ ok: true }));
       });
     }
 
@@ -737,5 +755,145 @@ describe('Task #1372 — linkingOverrides cleared on resetStep success', () => {
           ? JSON.parse(new TextDecoder().decode(lastBody))
           : lastBody;
     expect(parsedBody).toEqual({ step: 'linking' });
+  });
+});
+
+// -----------------------------------------------------------------------------
+// Suite D — Task #1395 — setLinkingDecision.onError clears linkingOverrides.
+//
+// The batch-set-linking-decisions endpoint is transactional: a 4xx/5xx
+// response means nothing was written on the server.  When that happens the
+// admin's optimistic chain edit MUST be rolled back so they see the real
+// persisted chain — otherwise the destructive "Failed to update linking
+// chain" toast contradicts what the page is still showing.
+//
+// The clearing line lives in `setLinkingDecision.onError` (~line 3789 of
+// `client/src/pages/admin/bulk-document-import.tsx`).  The other two
+// clearing branches (finishedAt advance, resetStep success) are covered by
+// Suites A/B/C above; this suite covers the error path directly so a
+// regression that drops the `setLinkingOverrides(new Map())` call from
+// onError can no longer pass.
+//
+// Scenario:
+//   - linking run done (finishedAt = T1)
+//   - admin makes an optimistic override (keyboard DnD → HEAD standalone)
+//   - batch-set POST is hanging → override persists in linkingOverrides
+//   - resolve the POST with HTTP 500 → setLinkingDecision.onError fires
+//   - destructive "Failed to update linking chain" toast appears
+//   - chain reverts to server state (HEAD→TAIL group reappears)
+//   - standalone "Manual" badge disappears (direct proxy that
+//     linkingOverrides was emptied by the onError handler)
+// -----------------------------------------------------------------------------
+
+describe('Task #1395 — linkingOverrides cleared on setLinkingDecision error rollback', () => {
+  it('reverts chain to server state and toasts when the batch-set POST resolves with a 5xx', async () => {
+    linkingFinishedAt = '2024-01-01T00:01:00.000Z';
+    renderPage();
+
+    // Wait for the chain group to appear (server state: HEAD→TAIL).
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(`linking-group-${ITEM_HEAD}`),
+      ).toBeInTheDocument();
+    }, { timeout: 8000 });
+
+    // Verify initial state: HEAD is at position 1 in the 2-item chain and
+    // the manual badge is absent (linkingOverrides is empty at start).
+    expect(
+      screen.getByTestId(`linking-row-position-${ITEM_HEAD}`),
+    ).toHaveTextContent('1');
+    expect(hasManualBadge(ITEM_HEAD)).toBe(false);
+    expect(hasManualBadge(ITEM_TAIL)).toBe(false);
+
+    // Create an optimistic override: make HEAD standalone.  The batch-set
+    // POST is hanging.  Helper throws on no-op.
+    await makeHeadStandaloneViaKeyboard();
+
+    // Override-set proxy: the standalone "Manual" badge appears for HEAD,
+    // confirming linkingOverrides.has(HEAD) is now true.  The 2-item group
+    // card disappears since both items are now standalone in the override.
+    await waitFor(() => {
+      expect(hasManualBadge(ITEM_HEAD)).toBe(true);
+    }, { timeout: 4000 });
+    expect(
+      screen.queryByTestId(`linking-group-${ITEM_HEAD}`),
+    ).not.toBeInTheDocument();
+
+    // The hanging POST means setLinkingDecision.onSuccess hasn't cleared
+    // overrides — confirm the override is still alive immediately before
+    // we resolve the POST with an error.  Without this, a flake that
+    // resolved the POST early could let the onError-clear assertion pass
+    // for the wrong reason.
+    expect(resolvePendingPost).toBeDefined();
+    expect(hasManualBadge(ITEM_HEAD)).toBe(true);
+
+    // Sanity: no destructive toast has fired yet.
+    const destructiveTitleEn = 'Failed to update linking chain';
+    const destructiveCallsBefore = mockToast.mock.calls.filter(
+      ([arg]) =>
+        arg &&
+        typeof arg === 'object' &&
+        (arg as { title?: unknown }).title === destructiveTitleEn,
+    );
+    expect(destructiveCallsBefore.length).toBe(0);
+
+    // Resolve the hanging POST with HTTP 500.  apiRequest's throwIfResNotOk
+    // will throw an ApiError, which routes the mutation through onError.
+    await act(async () => {
+      resolvePendingPost!(
+        jsonResponse({ message: 'simulated server failure' }, 500),
+      );
+      for (let i = 0; i < 8; i++) await Promise.resolve();
+    });
+    resolvePendingPost = undefined;
+
+    // The onError handler:
+    //   1. calls setLinkingOverrides(new Map())  ← the line we are guarding
+    //   2. invalidates the lite query (refetch returns server state)
+    //   3. fires the destructive toast
+    //
+    // → Chain reverts to HEAD→TAIL server state AND manual badge is gone.
+    await waitFor(() => {
+      const headPos = screen.queryByTestId(`linking-row-position-${ITEM_HEAD}`);
+      expect(headPos).toBeInTheDocument();
+      // Position "1" confirms HEAD is the first item in a multi-item chain
+      // again (i.e. the optimistic standalone state was rolled back).
+      expect(headPos).toHaveTextContent('1');
+    }, { timeout: 5000 });
+
+    // Override-clear proxy: the manual badge MUST be gone now.  This is the
+    // strongest assertion that the React state Map was actually emptied by
+    // the onError branch — not just that the chain happens to render the
+    // server state again for some other reason.
+    expect(hasManualBadge(ITEM_HEAD)).toBe(false);
+    expect(hasManualBadge(ITEM_TAIL)).toBe(false);
+
+    // The 2-item group card must reappear, confirming both items are
+    // re-linked into the persisted chain.
+    expect(
+      screen.queryByTestId(`linking-group-${ITEM_HEAD}`),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByTestId(`linking-row-position-${ITEM_TAIL}`),
+    ).toBeInTheDocument();
+
+    // Destructive toast must have fired with the English title (the page
+    // was rendered with `language: 'en'`).  Asserting the variant is
+    // 'destructive' locks down that this is the failure-path toast and not
+    // some unrelated success toast.
+    await waitFor(() => {
+      const destructiveCalls = mockToast.mock.calls.filter(
+        ([arg]) =>
+          arg &&
+          typeof arg === 'object' &&
+          (arg as { title?: unknown }).title === destructiveTitleEn,
+      );
+      expect(destructiveCalls.length).toBeGreaterThanOrEqual(1);
+      const lastDestructive = destructiveCalls[destructiveCalls.length - 1][0] as {
+        variant?: string;
+        title?: string;
+      };
+      expect(lastDestructive.variant).toBe('destructive');
+    }, { timeout: 4000 });
   });
 });
