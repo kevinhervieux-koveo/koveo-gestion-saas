@@ -815,6 +815,12 @@ export const HEAVY_LAZY_MOUNTS: readonly HeavyLazyMountSpec[] = [
     loader: async () => (await import('./api/bulk-import')).registerBulkImportRoutes,
     modulePath: 'server/api/bulk-import',
   },
+  {
+    name: 'admin-kpi',
+    matcher: '/api/admin/kpi',
+    loader: async () => (await import('./api/kpi')).registerKpiRoutes,
+    modulePath: 'server/api/kpi',
+  },
   // Task #489: defer the six largest eager registrars. Each one previously
   // sat on `CHEAP_HEAVY_ALLOWLIST` despite pulling in heavy dependency
   // graphs (bcrypt, drizzle query builders, validators, cache stores).

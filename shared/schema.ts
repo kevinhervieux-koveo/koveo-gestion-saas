@@ -26,6 +26,7 @@ export * from './schemas/infrastructure';
 export * from './schemas/maintenance';
 export * from './schemas/bill-number';
 export * from './schemas/bulk-import';
+export * from './schemas/kpi';
 
 // For backward compatibility, we also export commonly used tables and types
 // These are the most frequently imported items across the codebase

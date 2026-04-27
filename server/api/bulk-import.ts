@@ -38,6 +38,10 @@ import {
   upsertDocumentLink,
   DocumentLinkValidationError,
 } from '../services/document-link-service';
+import {
+  recordKpiEvent,
+  classifyFilenameSuggestionOutcome,
+} from '../services/kpi';
 import { logDebug, logError, logInfo, logWarn } from '../utils/logger';
 import {
   AI_DEGRADED_FAILURE_RATE_THRESHOLD,
@@ -5798,6 +5802,12 @@ export function registerBulkImportRoutes(app: Express): void {
      * Index 0 = pages 1..splitAtPage, index 1 = pages splitAtPage+1..end.
      */
     splitFinalNames: z.tuple([z.string().max(210), z.string().max(210)]).optional(),
+    /**
+     * Optional UI language tag (`'en'` / `'fr'`) so the filename-suggestion
+     * KPI (Task #1406) can break the accept rate down per language. Pure
+     * telemetry — never affects the decision logic.
+     */
+    uiLanguage: z.string().max(8).optional(),
   });
   app.post(
     '/api/admin/bulk-import/items/:id/set-sorting-decision',
@@ -5821,6 +5831,7 @@ export function registerBulkImportRoutes(app: Express): void {
           draft: isDraft,
           finalFileName: rawFinalFileName,
           splitFinalNames: rawSplitFinalNames,
+          uiLanguage,
         } = setSortingDecisionSchema.parse(req.body);
 
         const [item] = await db
@@ -6088,6 +6099,58 @@ export function registerBulkImportRoutes(app: Express): void {
         // NON-DRAFT MODE — existing accept / reject / manual flow.
         // -----------------------------------------------------------------
 
+        // Task #1406 — fire-and-forget telemetry that captures whether the
+        // admin kept / edited / cleared the AI-suggested filename when
+        // committing a sorting decision. Pulled out into a closure so each
+        // success path (keep / merge / split) records the same shape.
+        const branchDecisionForKpi =
+          (item.branchDecision ?? {}) as Record<string, unknown>;
+        const aiSuggestedFinal =
+          typeof branchDecisionForKpi.suggestedFinalFileName === 'string'
+            ? (branchDecisionForKpi.suggestedFinalFileName as string)
+            : null;
+        const aiSuggestedSplit = Array.isArray(
+          branchDecisionForKpi.suggestedSplitFinalNames,
+        )
+          ? (branchDecisionForKpi.suggestedSplitFinalNames as string[])
+          : null;
+        const branchForKpi =
+          typeof branchDecisionForKpi.branch === 'string'
+            ? (branchDecisionForKpi.branch as string)
+            : null;
+        const subCategoryForKpi =
+          typeof branchDecisionForKpi.subCategory === 'string'
+            ? (branchDecisionForKpi.subCategory as string)
+            : null;
+        const recordRenameKpi = (
+          decision: 'keep' | 'merge' | 'split',
+          finals: { value: string | null; aiSuggestion: string | null; part?: number }[],
+        ) => {
+          for (const f of finals) {
+            const outcome = classifyFilenameSuggestionOutcome(
+              f.aiSuggestion,
+              f.value,
+            );
+            void recordKpiEvent({
+              metricKey: schema.BULK_IMPORT_FILENAME_METRIC_KEY,
+              outcome,
+              userId: req.user?.id ?? null,
+              dimensions: {
+                decision,
+                branch: branchForKpi,
+                subCategory: subCategoryForKpi,
+                mimeType: item.mimeType ?? null,
+                language: uiLanguage ?? null,
+                ...(typeof f.part === 'number' && { part: f.part }),
+              },
+              payload: {
+                sessionId: item.sessionId,
+                itemId: item.id,
+              },
+            });
+          }
+        };
+
         if (action === 'reject') {
           // When rejecting a previously-drafted split, clean up the parts.
           const prevSplitIds = Array.isArray(existing.splitIntoItemIds)
@@ -6331,6 +6394,15 @@ export function registerBulkImportRoutes(app: Express): void {
             }
           }
 
+          recordRenameKpi('merge', [
+            {
+              value:
+                sanitizedFinalFileName !== undefined
+                  ? sanitizedFinalFileName
+                  : (updatedItem.finalFileName ?? null),
+              aiSuggestion: aiSuggestedFinal,
+            },
+          ]);
           logDebug('[bulk-import] route exit POST set-sorting-decision ok (merge)', {
             metadata: {
               itemId: item.id,
@@ -6435,6 +6507,18 @@ export function registerBulkImportRoutes(app: Express): void {
               })
               .where(eq(schema.bulkImportItems.id, item.id))
               .returning();
+            recordRenameKpi('split', [
+              {
+                value: part1FinalFileName,
+                aiSuggestion: aiSuggestedSplit?.[0] ?? null,
+                part: 0,
+              },
+              {
+                value: part2FinalFileName,
+                aiSuggestion: aiSuggestedSplit?.[1] ?? null,
+                part: 1,
+              },
+            ]);
             logDebug('[bulk-import] route exit POST set-sorting-decision ok (split/re-slice)', {
               metadata: { itemId: item.id, sessionId: _capturedSessionId, action, splitAtPage: splitPage, status: 200, durationMs: Date.now() - t0 },
             });
@@ -6466,6 +6550,18 @@ export function registerBulkImportRoutes(app: Express): void {
                 finalFileName: part2FinalFileName || null,
                 sortingDecision: { ...partDecisionBase },
               });
+            recordRenameKpi('split', [
+              {
+                value: part1FinalFileName || sanitizedFinalFileName || null,
+                aiSuggestion: aiSuggestedSplit?.[0] ?? null,
+                part: 0,
+              },
+              {
+                value: part2FinalFileName,
+                aiSuggestion: aiSuggestedSplit?.[1] ?? null,
+                part: 1,
+              },
+            ]);
             logDebug('[bulk-import] route exit POST set-sorting-decision ok (split/new-parts)', {
               metadata: { itemId: item.id, sessionId: _capturedSessionId, action, splitAtPage: splitPage, status: 200, durationMs: Date.now() - t0 },
             });
@@ -6483,6 +6579,15 @@ export function registerBulkImportRoutes(app: Express): void {
           })
           .where(eq(schema.bulkImportItems.id, item.id))
           .returning();
+        recordRenameKpi(effectiveDecision === 'merge' ? 'merge' : 'keep', [
+          {
+            value:
+              sanitizedFinalFileName !== undefined
+                ? sanitizedFinalFileName
+                : (updated.finalFileName ?? null),
+            aiSuggestion: aiSuggestedFinal,
+          },
+        ]);
         logDebug('[bulk-import] route exit POST set-sorting-decision ok (keep)', {
           metadata: { itemId: item.id, sessionId: _capturedSessionId, action, decision: effectiveDecision, status: 200, durationMs: Date.now() - t0 },
         });

@@ -2,9 +2,9 @@
   "generatedBy": "scripts/generate-route-manifest.ts",
   "description": "Auto-generated inventory of all routes reachable through server/routes.ts. Regenerate with `npx tsx scripts/generate-route-manifest.ts` whenever routes change. The drift guard in tests/security/route-manifest-drift.test.ts fails the build if a new write endpoint is added without updating this manifest, or if a write endpoint is registered outside the /api/* global demo-security mount.",
   "totals": {
-    "allRoutes": 76,
-    "writeRoutes": 39,
-    "apiWriteRoutes": 32
+    "allRoutes": 80,
+    "writeRoutes": 42,
+    "apiWriteRoutes": 35
   },
   "routes": [
     {
@@ -36,6 +36,26 @@
       "method": "POST",
       "path": "/api/contacts",
       "file": "api/contacts.ts"
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/document-link-families/:id",
+      "file": "api/document-link-families.ts"
+    },
+    {
+      "method": "GET",
+      "path": "/api/document-link-families",
+      "file": "api/document-link-families.ts"
+    },
+    {
+      "method": "PATCH",
+      "path": "/api/document-link-families/:id",
+      "file": "api/document-link-families.ts"
+    },
+    {
+      "method": "POST",
+      "path": "/api/document-link-families",
+      "file": "api/document-link-families.ts"
     },
     {
       "method": "DELETE",

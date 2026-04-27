@@ -3293,7 +3293,7 @@ export default function BulkDocumentImportPage() {
       const res = await apiRequest(
         'POST',
         `/api/admin/bulk-import/items/${itemId}/set-sorting-decision`,
-        { action, decision, mergeWithItemId, mergeWithItemIds, splitAtPage },
+        { action, decision, mergeWithItemId, mergeWithItemIds, splitAtPage, uiLanguage: language },
       );
       return res.json();
     },

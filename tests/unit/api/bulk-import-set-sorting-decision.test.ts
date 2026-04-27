@@ -178,6 +178,13 @@ jest.mock('../../../server/services/document-service', () => ({
   documentService: {},
 }));
 
+// Task #1406: stub out KPI telemetry so its db.insert(kpiEvents) calls
+// don't leak into the bulk-import `insertedItems` capture.
+jest.mock('../../../server/services/kpi', () => ({
+  recordKpiEvent: jest.fn(),
+  classifyFilenameSuggestionOutcome: jest.fn(() => 'verbatim'),
+}));
+
 jest.mock('../../../server/utils/logger', () => ({
   logError: jest.fn(),
   logInfo: jest.fn(),

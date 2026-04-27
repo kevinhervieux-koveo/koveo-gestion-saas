@@ -1713,7 +1713,31 @@ export interface Translations {
   navQualityAssurance: string;
   navLaw25Compliance: string;
   navBulkDocumentImport: string;
+  navKpiDashboard: string;
   navImpersonationLog: string;
+  kpiDashboardTitle: string;
+  kpiDashboardSubtitle: string;
+  kpiBulkImportFilenameTitle: string;
+  kpiBulkImportFilenameDescription: string;
+  kpiByLanguage: string;
+  kpiByBranchType: string;
+  kpiOverall: string;
+  kpiAcceptRate: string;
+  kpiTotalDecisions: string;
+  kpiVerbatim: string;
+  kpiEdited: string;
+  kpiCleared: string;
+  kpiNoSuggestion: string;
+  kpiLanguage: string;
+  kpiBranchType: string;
+  kpiNoData: string;
+  kpiLoadFailed: string;
+  kpiBranchKeep: string;
+  kpiBranchMerge: string;
+  kpiBranchSplit: string;
+  kpiLangEnglish: string;
+  kpiLangFrench: string;
+  kpiLangUnknown: string;
   rbacPermissions: string;
   modernPropertyManagement: string;
   comprehensivePropertyManagement: string;
@@ -5639,7 +5663,31 @@ export const translations: Record<Language, Translations> = {
     navQualityAssurance: 'Quality Assurance',
     navLaw25Compliance: 'Law 25 Compliance',
     navBulkDocumentImport: 'Bulk Document Import',
+    navKpiDashboard: 'KPI Dashboard',
     navImpersonationLog: 'Impersonation Log',
+    kpiDashboardTitle: 'KPI Dashboard',
+    kpiDashboardSubtitle: 'Operational metrics aggregated from product telemetry.',
+    kpiBulkImportFilenameTitle: 'Bulk import — AI filename suggestions',
+    kpiBulkImportFilenameDescription: 'Acceptance of AI-suggested filenames during the bulk-document-import sorting step.',
+    kpiByLanguage: 'By UI language',
+    kpiByBranchType: 'By branch type',
+    kpiOverall: 'Overall',
+    kpiAcceptRate: 'Accept rate',
+    kpiTotalDecisions: 'Decisions',
+    kpiVerbatim: 'Verbatim',
+    kpiEdited: 'Edited',
+    kpiCleared: 'Cleared',
+    kpiNoSuggestion: 'No suggestion',
+    kpiLanguage: 'Language',
+    kpiBranchType: 'Branch type',
+    kpiNoData: 'No telemetry recorded yet.',
+    kpiLoadFailed: 'Failed to load KPI data.',
+    kpiBranchKeep: 'Keep',
+    kpiBranchMerge: 'Merge',
+    kpiBranchSplit: 'Split',
+    kpiLangEnglish: 'English',
+    kpiLangFrench: 'French',
+    kpiLangUnknown: 'Unknown',
     rbacPermissions: 'RBAC Permissions',
     modernPropertyManagement: 'Modern Property Management',
     comprehensivePropertyManagement: 'Comprehensive property management solution designed specifically for Quebec residential communities',
@@ -9787,7 +9835,31 @@ export const translations: Record<Language, Translations> = {
     navQualityAssurance: 'Assurance qualité',
     navLaw25Compliance: 'Conformité Loi 25',
     navBulkDocumentImport: 'Importation de documents en masse',
+    navKpiDashboard: 'Tableau de bord KPI',
     navImpersonationLog: "Journal d'usurpation d'identité",
+    kpiDashboardTitle: 'Tableau de bord KPI',
+    kpiDashboardSubtitle: 'Mesures opérationnelles agrégées à partir de la télémétrie produit.',
+    kpiBulkImportFilenameTitle: 'Import en masse — suggestions de noms IA',
+    kpiBulkImportFilenameDescription: "Acceptation des noms de fichiers suggérés par l'IA pendant l'étape de tri de l'import en masse.",
+    kpiByLanguage: "Par langue d'interface",
+    kpiByBranchType: 'Par type de branche',
+    kpiOverall: 'Global',
+    kpiAcceptRate: "Taux d'acceptation",
+    kpiTotalDecisions: 'Décisions',
+    kpiVerbatim: 'Tel quel',
+    kpiEdited: 'Modifié',
+    kpiCleared: 'Effacé',
+    kpiNoSuggestion: 'Aucune suggestion',
+    kpiLanguage: 'Langue',
+    kpiBranchType: 'Type de branche',
+    kpiNoData: 'Aucune télémétrie enregistrée pour le moment.',
+    kpiLoadFailed: 'Échec du chargement des KPI.',
+    kpiBranchKeep: 'Garder',
+    kpiBranchMerge: 'Fusionner',
+    kpiBranchSplit: 'Diviser',
+    kpiLangEnglish: 'Anglais',
+    kpiLangFrench: 'Français',
+    kpiLangUnknown: 'Inconnu',
     rbacPermissions: 'Permissions RBAC',
     modernPropertyManagement: 'Gestion immobilière moderne',
     forQuebec: 'pour le Québec',
