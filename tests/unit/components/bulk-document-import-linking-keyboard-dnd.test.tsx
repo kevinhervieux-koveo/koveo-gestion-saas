@@ -790,3 +790,291 @@ describe('BulkDocumentImportPage — Linking keyboard reorders announce to scree
     });
   });
 });
+
+// =============================================================================
+// 4. Task #1256 — ArrowRight 'join next group' keyboard shortcut
+// =============================================================================
+//
+// The Linking handler also supports ArrowRight, which moves the focused row
+// into the *next* visual group below it. Two branches must be covered:
+//
+//   a) Grouped item: the row already belongs to a chain → it joins the
+//      group immediately after its current group (`groups[idx + 1]`).
+//   b) Standalone item: the row has no current group → it joins the first
+//      group whose head appears below it in the flat items list.
+//
+// In both branches the handler delegates to `handleLinkingDrop(itemId,
+// nextGroup.tail.id, 'after')`, which in turn calls into
+// `computeLinkingDropChanges` with `position: 'after'` on the tail of the
+// destination chain. The tests below assert both the visible result (via
+// the `linking-row-position-*` indicators inside the destination card)
+// and the helper-call shape (so the keyboard path can't drift away from
+// the mouse path).
+//
+// Fixture IDs are kept distinct from the §1/§2 fixtures so it is obvious
+// at a glance which IDs belong to which scenario.
+
+const ITEM_A1 = 'item-a1-aaaa';
+const ITEM_A2 = 'item-a2-aaaa';
+const ITEM_B1 = 'item-b1-bbbb';
+const ITEM_B2 = 'item-b2-bbbb';
+const ITEM_STANDALONE = 'item-solo-sss';
+
+/**
+ * Two-chain fixture: chain A (A1 → A2) appears before chain B (B1 → B2)
+ * in the flat items list, so chain A is `groups[0]` and chain B is
+ * `groups[1]`. ArrowRight on a chain-A row therefore joins chain B.
+ */
+function twoChainFixture(): ItemFixture[] {
+  return [
+    {
+      id: ITEM_A1,
+      originalName: 'a-page-1.pdf',
+      linkingBeforeItemId: null,
+      linkingAfterItemId: ITEM_A2,
+      linkingManualOverride: false,
+    },
+    {
+      id: ITEM_A2,
+      originalName: 'a-page-2.pdf',
+      linkingBeforeItemId: ITEM_A1,
+      linkingAfterItemId: null,
+      linkingManualOverride: false,
+    },
+    {
+      id: ITEM_B1,
+      originalName: 'b-page-1.pdf',
+      linkingBeforeItemId: null,
+      linkingAfterItemId: ITEM_B2,
+      linkingManualOverride: false,
+    },
+    {
+      id: ITEM_B2,
+      originalName: 'b-page-2.pdf',
+      linkingBeforeItemId: ITEM_B1,
+      linkingAfterItemId: null,
+      linkingManualOverride: false,
+    },
+  ];
+}
+
+/**
+ * Standalone-then-chain fixture: a single unlinked item appears first in
+ * the flat list, followed by a chain B (B1 → B2). ArrowRight on the
+ * standalone row should make it join chain B (the first group whose head
+ * appears below it in the flat list).
+ */
+function standaloneThenChainFixture(): ItemFixture[] {
+  return [
+    {
+      id: ITEM_STANDALONE,
+      originalName: 'solo.pdf',
+      linkingBeforeItemId: null,
+      linkingAfterItemId: null,
+      linkingManualOverride: false,
+    },
+    {
+      id: ITEM_B1,
+      originalName: 'b-page-1.pdf',
+      linkingBeforeItemId: null,
+      linkingAfterItemId: ITEM_B2,
+      linkingManualOverride: false,
+    },
+    {
+      id: ITEM_B2,
+      originalName: 'b-page-2.pdf',
+      linkingBeforeItemId: ITEM_B1,
+      linkingAfterItemId: null,
+      linkingManualOverride: false,
+    },
+  ];
+}
+
+describe("BulkDocumentImportPage — Linking keyboard ArrowRight 'join next group' (Task #1256)", () => {
+  it('ArrowRight on a chain row moves it into the next chain (grouped branch)', async () => {
+    items = twoChainFixture();
+
+    renderPage();
+    // Sanity: both chains render as their own group cards, keyed by head.
+    const chainA = await screen.findByTestId(`linking-group-${ITEM_A1}`, undefined, {
+      timeout: 4000,
+    });
+    const chainB = await screen.findByTestId(`linking-group-${ITEM_B1}`, undefined, {
+      timeout: 4000,
+    });
+    await flushAsyncEffects();
+
+    expect(getRenderedChainOrder(chainA)).toEqual([ITEM_A1, ITEM_A2]);
+    expect(getRenderedChainOrder(chainB)).toEqual([ITEM_B1, ITEM_B2]);
+
+    // Focus the tail of chain A and press ArrowRight: A2 should leave
+    // chain A and become the new tail of chain B. Chain A then has only
+    // A1 left, which collapses to a standalone row.
+    const a2Handle = screen.getByTestId(`linking-drag-handle-${ITEM_A2}`);
+    await act(async () => {
+      a2Handle.focus();
+      fireEvent.keyDown(a2Handle, { key: 'ArrowRight' });
+    });
+    await flushAsyncEffects();
+
+    // Chain B now contains [B1, B2, A2].
+    const updatedChainB = screen.getByTestId(`linking-group-${ITEM_B1}`);
+    expect(getRenderedChainOrder(updatedChainB)).toEqual([
+      ITEM_B1,
+      ITEM_B2,
+      ITEM_A2,
+    ]);
+
+    // Position indicators reflect the new chain-B order.
+    expect(
+      screen.getByTestId(`linking-row-position-${ITEM_B1}`),
+    ).toHaveTextContent('1/3');
+    expect(
+      screen.getByTestId(`linking-row-position-${ITEM_B2}`),
+    ).toHaveTextContent('2/3');
+    expect(
+      screen.getByTestId(`linking-row-position-${ITEM_A2}`),
+    ).toHaveTextContent('3/3');
+
+    // Chain A no longer renders as a group card (only A1 remains, which
+    // is now standalone and rendered outside any `linking-group-*` card).
+    expect(screen.queryByTestId(`linking-group-${ITEM_A1}`)).toBeNull();
+    expect(screen.queryByTestId(`linking-group-${ITEM_A2}`)).toBeNull();
+    const a1Row = screen.getByTestId(`linking-row-${ITEM_A1}`);
+    expect(a1Row).toBeInTheDocument();
+    expect(updatedChainB.contains(a1Row)).toBe(false);
+  });
+
+  it('ArrowRight on a standalone row moves it into the first chain below it (standalone branch)', async () => {
+    items = standaloneThenChainFixture();
+
+    renderPage();
+    // Chain B is the only group card; the standalone row renders outside.
+    const chainB = await screen.findByTestId(`linking-group-${ITEM_B1}`, undefined, {
+      timeout: 4000,
+    });
+    await flushAsyncEffects();
+
+    expect(getRenderedChainOrder(chainB)).toEqual([ITEM_B1, ITEM_B2]);
+    const soloRow = screen.getByTestId(`linking-row-${ITEM_STANDALONE}`);
+    expect(soloRow).toBeInTheDocument();
+    expect(chainB.contains(soloRow)).toBe(false);
+
+    // Focus the standalone row's drag handle and press ArrowRight.
+    const soloHandle = screen.getByTestId(
+      `linking-drag-handle-${ITEM_STANDALONE}`,
+    );
+    await act(async () => {
+      soloHandle.focus();
+      fireEvent.keyDown(soloHandle, { key: 'ArrowRight' });
+    });
+    await flushAsyncEffects();
+
+    // The standalone item joins chain B as its new tail: [B1, B2, SOLO].
+    const updatedChainB = screen.getByTestId(`linking-group-${ITEM_B1}`);
+    expect(getRenderedChainOrder(updatedChainB)).toEqual([
+      ITEM_B1,
+      ITEM_B2,
+      ITEM_STANDALONE,
+    ]);
+
+    expect(
+      screen.getByTestId(`linking-row-position-${ITEM_B1}`),
+    ).toHaveTextContent('1/3');
+    expect(
+      screen.getByTestId(`linking-row-position-${ITEM_B2}`),
+    ).toHaveTextContent('2/3');
+    expect(
+      screen.getByTestId(`linking-row-position-${ITEM_STANDALONE}`),
+    ).toHaveTextContent('3/3');
+  });
+
+  it('ArrowRight delegates to computeLinkingDropChanges targeting the next group\'s tail with position="after"', async () => {
+    items = twoChainFixture();
+
+    renderPage();
+    await screen.findByTestId(`linking-group-${ITEM_A1}`, undefined, {
+      timeout: 4000,
+    });
+    await screen.findByTestId(`linking-group-${ITEM_B1}`, undefined, {
+      timeout: 4000,
+    });
+    await flushAsyncEffects();
+
+    // Resolving the chains during render itself triggers helper calls;
+    // clear here so we only assert against the keyboard event below.
+    computeLinkingDropChangesSpy.mockClear();
+    computeLinkingMakeStandaloneChangesSpy.mockClear();
+
+    const a2Handle = screen.getByTestId(`linking-drag-handle-${ITEM_A2}`);
+    await act(async () => {
+      a2Handle.focus();
+      fireEvent.keyDown(a2Handle, { key: 'ArrowRight' });
+    });
+    await flushAsyncEffects();
+
+    // The keyboard path must call the same pure helper as the mouse
+    // path, with the dragged id, the *tail* of the next group as the
+    // drop target, and `position: 'after'`.
+    expect(computeLinkingDropChangesSpy).toHaveBeenCalled();
+    const [dragId, targetId, position, getEffective] =
+      computeLinkingDropChangesSpy.mock.calls[0] as [
+        string,
+        string,
+        'before' | 'after',
+        (id: string) => unknown,
+      ];
+    expect(dragId).toBe(ITEM_A2);
+    expect(targetId).toBe(ITEM_B2);
+    expect(position).toBe('after');
+    expect(typeof getEffective).toBe('function');
+
+    // ArrowRight is a reorder, not a detach: the standalone helper must
+    // not be involved.
+    expect(computeLinkingMakeStandaloneChangesSpy).not.toHaveBeenCalled();
+  });
+
+  it('ArrowRight is a no-op when the focused row is in the last (or only) group', async () => {
+    // Single chain only: chain B exists, no chain after it.
+    items = [
+      {
+        id: ITEM_B1,
+        originalName: 'b-page-1.pdf',
+        linkingBeforeItemId: null,
+        linkingAfterItemId: ITEM_B2,
+        linkingManualOverride: false,
+      },
+      {
+        id: ITEM_B2,
+        originalName: 'b-page-2.pdf',
+        linkingBeforeItemId: ITEM_B1,
+        linkingAfterItemId: null,
+        linkingManualOverride: false,
+      },
+    ];
+
+    renderPage();
+    const chainB = await screen.findByTestId(`linking-group-${ITEM_B1}`, undefined, {
+      timeout: 4000,
+    });
+    await flushAsyncEffects();
+
+    expect(getRenderedChainOrder(chainB)).toEqual([ITEM_B1, ITEM_B2]);
+
+    computeLinkingDropChangesSpy.mockClear();
+    computeLinkingMakeStandaloneChangesSpy.mockClear();
+
+    const b1Handle = screen.getByTestId(`linking-drag-handle-${ITEM_B1}`);
+    await act(async () => {
+      b1Handle.focus();
+      fireEvent.keyDown(b1Handle, { key: 'ArrowRight' });
+    });
+    await flushAsyncEffects();
+
+    // No next group exists → handler short-circuits without calling the
+    // drop helper, and the chain order stays the same.
+    expect(computeLinkingDropChangesSpy).not.toHaveBeenCalled();
+    expect(computeLinkingMakeStandaloneChangesSpy).not.toHaveBeenCalled();
+    expect(getRenderedChainOrder(chainB)).toEqual([ITEM_B1, ITEM_B2]);
+  });
+});
