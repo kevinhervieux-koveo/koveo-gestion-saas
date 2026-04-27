@@ -52,7 +52,6 @@ import {
   ChevronLeft,
   ChevronRight,
   ArrowLeft,
-  Wrench,
 } from 'lucide-react';
 import { Textarea } from '@/components/ui/textarea';
 import { useForm } from 'react-hook-form';
@@ -66,7 +65,7 @@ import { Link, useLocation } from 'wouter';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
 import { useAuth } from '@/hooks/use-auth';
 import { PaginationControls } from '@/components/common/PaginationControls';
-import { MAINTENANCE_CATEGORY_VALUES } from '@shared/schemas/operations';
+import { MaintenanceRequestDialog } from '@/components/maintenance/MaintenanceRequestDialog';
 
 /**
  * Residence data structure
@@ -115,196 +114,6 @@ const contactFormSchema = z.object({
 });
 
 type ContactFormData = z.infer<typeof contactFormSchema>;
-
-// Maintenance request form (Task #1277). Drives the 9-value category list
-// off MAINTENANCE_CATEGORY_VALUES so the UI can never go out of sync with
-// the DB CHECK constraint or the MCP `create_maintenance_request` tool.
-const maintenanceRequestFormSchema = z.object({
-  title: z
-    .string()
-    .trim()
-    .min(1, 'Title is required')
-    .max(200, 'Title must be 200 characters or fewer'),
-  description: z
-    .string()
-    .trim()
-    .min(1, 'Description is required')
-    .max(5000, 'Description must be 5000 characters or fewer'),
-  category: z.enum(MAINTENANCE_CATEGORY_VALUES),
-  priority: z.enum(['low', 'medium', 'high', 'urgent', 'emergency']).default('medium'),
-});
-
-type MaintenanceRequestFormData = z.infer<typeof maintenanceRequestFormSchema>;
-
-function MaintenanceRequestDialog({ residenceId, unitNumber }: { residenceId: string; unitNumber: string }) {
-  const { toast } = useToast();
-  const [open, setOpen] = useState(false);
-  const form = useForm<MaintenanceRequestFormData>({
-    resolver: zodResolver(maintenanceRequestFormSchema),
-    defaultValues: {
-      title: '',
-      description: '',
-      category: 'general',
-      priority: 'medium',
-    },
-  });
-
-  const submitMutation = useMutation({
-    mutationFn: async (data: MaintenanceRequestFormData) => {
-      return apiRequest('POST', '/api/maintenance-requests', {
-        residenceId,
-        ...data,
-      });
-    },
-    onSuccess: () => {
-      toast({
-        title: 'Maintenance request submitted',
-        description: `Your request for unit ${unitNumber} has been received.`,
-      });
-      queryClient.invalidateQueries({ queryKey: ['/api/maintenance-requests'] });
-      form.reset();
-      setOpen(false);
-    },
-    onError: (err) => handleApiError(err),
-  });
-
-  return (
-    <Dialog
-      open={open}
-      onOpenChange={(next) => {
-        setOpen(next);
-        if (!next) form.reset();
-      }}
-    >
-      <DialogTrigger asChild>
-        <Button
-          variant='outline'
-          size='sm'
-          className='w-full justify-start'
-          data-testid={`button-submit-maintenance-${residenceId}`}
-        >
-          <Wrench className='w-4 h-4 mr-2' />
-          Submit maintenance request
-        </Button>
-      </DialogTrigger>
-      <DialogContent className='sm:max-w-md'>
-        <DialogHeader>
-          <DialogTitle>Submit a maintenance request</DialogTitle>
-          <DialogDescription>
-            Report an issue for unit {unitNumber}. Your manager will be notified.
-          </DialogDescription>
-        </DialogHeader>
-        <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit((data) => submitMutation.mutate(data))}
-            className='space-y-4'
-          >
-            <FormField
-              control={form.control}
-              name='title'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Title</FormLabel>
-                  <FormControl>
-                    <Input
-                      {...field}
-                      placeholder='e.g. Leaking kitchen faucet'
-                      data-testid='input-maintenance-title'
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='category'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Category</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger data-testid='select-maintenance-category'>
-                        <SelectValue placeholder='Select a category' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      {MAINTENANCE_CATEGORY_VALUES.map((value) => (
-                        <SelectItem key={value} value={value}>
-                          {value.charAt(0).toUpperCase() + value.slice(1)}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='priority'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Priority</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value}>
-                    <FormControl>
-                      <SelectTrigger data-testid='select-maintenance-priority'>
-                        <SelectValue placeholder='Select a priority' />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent>
-                      <SelectItem value='low'>Low</SelectItem>
-                      <SelectItem value='medium'>Medium</SelectItem>
-                      <SelectItem value='high'>High</SelectItem>
-                      <SelectItem value='urgent'>Urgent</SelectItem>
-                      <SelectItem value='emergency'>Emergency</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name='description'
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Description</FormLabel>
-                  <FormControl>
-                    <Textarea
-                      {...field}
-                      rows={4}
-                      placeholder='Describe the issue in detail'
-                      data-testid='textarea-maintenance-description'
-                    />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <DialogFooter>
-              <Button
-                type='button'
-                variant='outline'
-                onClick={() => setOpen(false)}
-                disabled={submitMutation.isPending}
-              >
-                Cancel
-              </Button>
-              <Button
-                type='submit'
-                disabled={submitMutation.isPending}
-                data-testid='button-confirm-submit-maintenance'
-              >
-                {submitMutation.isPending ? 'Submitting...' : 'Submit'}
-              </Button>
-            </DialogFooter>
-          </form>
-        </Form>
-      </DialogContent>
-    </Dialog>
-  );
-}
 
 /**
  * Props for the residence page inner component

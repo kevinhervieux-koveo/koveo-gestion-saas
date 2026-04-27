@@ -3,9 +3,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Button } from '@/components/ui/button';
 import { Header } from '@/components/layout/header';
 import { useLanguage } from '@/hooks/use-language';
+import { useAuth } from '@/hooks/use-auth';
 import { useQuery } from '@tanstack/react-query';
 import { apiRequest } from '@/lib/queryClient';
 import { DocumentCard } from '@/components/document-management';
+import { MaintenanceRequestDialog } from '@/components/maintenance/MaintenanceRequestDialog';
 import { useState } from 'react';
 import {
   Home,
@@ -22,7 +24,23 @@ import {
 export default function ResidentsDashboard() {
   const { t } = useLanguage();
   const { language } = useLanguage();
-  // Modal state removed - using simple document opening instead
+  const { user } = useAuth();
+
+  // Fetch the resident's assigned residences (needed for the maintenance dialog)
+  const { data: residences = [] } = useQuery({
+    queryKey: ['/api/users/residences', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      const response = await fetch(`/api/users/${user.id}/residences`, {
+        credentials: 'include',
+      });
+      if (!response.ok) return [];
+      return response.json();
+    },
+    enabled: !!user?.id,
+  });
+
+  const primaryResidence = residences[0] ?? null;
 
   // Fetch recent documents (limit to 3 for dashboard)
   const { data: documents = [] } = useQuery({
@@ -93,14 +111,30 @@ export default function ResidentsDashboard() {
               </CardContent>
             </Card>
 
-            <Card className='cursor-pointer hover:shadow-md transition-shadow'>
+            <Card className='hover:shadow-md transition-shadow'>
               <CardHeader className='flex flex-row items-center justify-between space-y-0 pb-2'>
                 <CardTitle className='text-sm font-medium'>Maintenance</CardTitle>
                 <Wrench className='h-4 w-4 text-muted-foreground' />
               </CardHeader>
-              <CardContent>
-                <div className='text-2xl font-bold'>1</div>
-                <p className='text-xs text-muted-foreground'>Active request</p>
+              <CardContent className='space-y-2'>
+                <p className='text-xs text-muted-foreground'>Submit a new request</p>
+                {primaryResidence ? (
+                  <MaintenanceRequestDialog
+                    residenceId={primaryResidence.id}
+                    unitNumber={primaryResidence.unitNumber}
+                    trigger={
+                      <button
+                        className='flex items-center gap-1 text-xs text-primary underline-offset-2 hover:underline'
+                        data-testid='dashboard-submit-maintenance'
+                      >
+                        <Wrench className='w-3 h-3' />
+                        {t('submitMaintenanceRequest')}
+                      </button>
+                    }
+                  />
+                ) : (
+                  <p className='text-xs text-muted-foreground'>No residence linked</p>
+                )}
               </CardContent>
             </Card>
 

@@ -1,12 +1,12 @@
 /**
- * Resident maintenance request REST endpoint — Task #1277.
+ * Resident maintenance request REST endpoint — Task #1277 / #1314.
  *
  * Maintenance requests can already be created by the AI assistant via the
  * MCP `create_maintenance_request` tool. Until this task there was no REST
  * endpoint or UI form, which meant residents could only file requests by
  * asking the assistant. This module adds POST /api/maintenance-requests so
- * the resident-facing form (see `client/src/pages/residents/residence.tsx`)
- * has a real backend to talk to.
+ * the resident-facing form (see `client/src/pages/residents/residence.tsx`
+ * and the dashboard) has a real backend to talk to.
  *
  * The endpoint mirrors the residence-scope guard the MCP tool already
  * enforces:
@@ -20,12 +20,16 @@
  * by migration 0009_maintenance_category_check.sql), so an invalid category
  * is rejected by Zod with a 400 before we ever touch the database — no
  * surface can drift away from the canonical 9-value enum.
+ *
+ * Persistence is routed through `storage.createMaintenanceRequest()` so the
+ * storage layer (cache invalidation, MemStorage in tests) stays consistent
+ * with manager-side flows.
  */
 import type { Express } from 'express';
-import { db } from '../../db';
 import { requireAuth } from '../../auth';
 import { canUserAccessResidence } from '../../rbac';
-import { maintenanceRequests, insertMaintenanceRequestSchema } from '../../../shared/schemas/operations';
+import { insertMaintenanceRequestSchema } from '../../../shared/schemas/operations';
+import { storage } from '../../storage';
 import { z } from 'zod';
 
 // `insertMaintenanceRequestSchema.priority` is `z.string().default('medium')`,
@@ -37,6 +41,12 @@ const PRIORITY_VALUES = ['low', 'medium', 'high', 'urgent', 'emergency'] as cons
 type MaintenancePriority = (typeof PRIORITY_VALUES)[number];
 const prioritySchema = z.enum(PRIORITY_VALUES).default('medium');
 
+// Max 3 images; each image string (base64 data URL) must not exceed ~10 MB
+// encoded — 10 * 1024 * 1024 * (4/3) ≈ 13_981_013 characters. We use
+// 14_000_000 as a round cap that gracefully covers a ~10 MB raw image.
+const MAX_IMAGE_COUNT = 3;
+const MAX_IMAGE_STRING_LENGTH = 14_000_000;
+
 const restCreateSchema = insertMaintenanceRequestSchema
   .omit({
     submittedBy: true,
@@ -45,6 +55,17 @@ const restCreateSchema = insertMaintenanceRequestSchema
   })
   .extend({
     priority: prioritySchema,
+    images: z
+      .array(
+        z
+          .string()
+          .max(
+            MAX_IMAGE_STRING_LENGTH,
+            `Each image must not exceed ${MAX_IMAGE_STRING_LENGTH} characters`
+          )
+      )
+      .max(MAX_IMAGE_COUNT, `At most ${MAX_IMAGE_COUNT} images are allowed`)
+      .optional(),
   });
 
 export default function register(app: Express): void {
@@ -73,18 +94,15 @@ export default function register(app: Express): void {
       }
 
       const priority: MaintenancePriority = data.priority ?? 'medium';
-      const [row] = await db
-        .insert(maintenanceRequests)
-        .values({
-          residenceId: data.residenceId,
-          title: data.title,
-          description: data.description,
-          category: data.category,
-          priority,
-          submittedBy: user.id,
-          status: 'submitted',
-        })
-        .returning();
+      const row = await storage.createMaintenanceRequest({
+        residenceId: data.residenceId,
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        priority,
+        submittedBy: user.id,
+        images: data.images && data.images.length > 0 ? data.images : undefined,
+      });
 
       return res.status(201).json(row);
     } catch (err: any) {

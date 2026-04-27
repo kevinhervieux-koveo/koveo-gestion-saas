@@ -9,7 +9,11 @@ import { eq, desc, and, or, gte, lte, count, like, inArray, isNull, sql, notInAr
 import { db } from './db';
 import crypto from 'crypto';
 import * as schema from '@shared/schema';
+import type { InsertMaintenanceRequest, MaintenanceRequest } from '@shared/schemas/operations';
+import { maintenancePriorityEnum } from '@shared/schemas/operations';
 import { logDebug, logInfo, logWarn, logError } from './utils/logger';
+
+type MaintenancePriorityValue = (typeof maintenancePriorityEnum.enumValues)[number];
 import type {
   User,
   InsertUser,
@@ -1829,6 +1833,28 @@ export class OptimizedDatabaseStorage implements IStorage {
           .where(eq(schema.maintenanceRequests.residenceId, residenceId))
           .orderBy(desc(schema.maintenanceRequests.createdAt))
     );
+  }
+
+  /**
+   * Creates a new maintenance request — resident self-service path (Task #1314).
+   * Invalidates the maintenance cache so the manager queue picks it up immediately.
+   */
+  async createMaintenanceRequest(data: InsertMaintenanceRequest): Promise<MaintenanceRequest> {
+    const [row] = await db
+      .insert(schema.maintenanceRequests)
+      .values({
+        residenceId: data.residenceId,
+        title: data.title,
+        description: data.description,
+        category: data.category,
+        priority: (data.priority ?? 'medium') as MaintenancePriorityValue,
+        submittedBy: data.submittedBy ?? null,
+        status: 'submitted',
+        ...(data.images && data.images.length > 0 ? { images: data.images } : {}),
+      })
+      .returning();
+    CacheInvalidator.invalidate('maintenance');
+    return row as MaintenanceRequest;
   }
 
   // Missing Organization operations

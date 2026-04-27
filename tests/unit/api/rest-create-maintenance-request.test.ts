@@ -1,12 +1,18 @@
 /**
- * Resident maintenance request REST endpoint — Task #1277.
+ * Resident maintenance request REST endpoint — Task #1277 / #1314.
  *
  * Walks the contract documented on `server/api/auto/maintenance-requests.ts`:
  *   - 400 when `category` is not one of `MAINTENANCE_CATEGORY_VALUES`
  *     (the same enum the MCP `create_maintenance_request` tool and the DB
  *     CHECK constraint enforce — keeps every surface in sync), and
  *   - 201 + the inserted row when a tenant linked to the residence submits
- *     a valid request.
+ *     a valid request,
+ *   - 403 when the caller cannot access the residence,
+ *   - 400 when the images array exceeds count or per-image size limits.
+ *
+ * Task #1314: persistence is now routed through
+ * `storage.createMaintenanceRequest()` so the storage layer (cache
+ * invalidation, MemStorage in tests) stays consistent with manager-side flows.
  */
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import express, { type Express } from 'express';
@@ -15,60 +21,56 @@ import request from 'supertest';
 jest.mock('drizzle-orm', () => require('../../manual-mocks/drizzle-orm'));
 jest.mock('drizzle-orm/pg-core', () => require('../../manual-mocks/drizzle-orm/pg-core'));
 
-let insertCallCount = 0;
-let lastInsertValues: any = null;
-const mockDb: any = {
-  select: jest.fn(),
-  insert: jest.fn().mockImplementation(() => {
-    insertCallCount++;
+// ── Storage mock ────────────────────────────────────────────────────────────
+// The endpoint now routes through storage.createMaintenanceRequest() rather
+// than db.insert() directly, so mock the storage module.
+let storageCreateCallCount = 0;
+let lastStorageCreateArgs: any = null;
+let storageCreateShouldThrow = false;
+
+const mockStorage = {
+  createMaintenanceRequest: jest.fn(async (data: any) => {
+    storageCreateCallCount++;
+    lastStorageCreateArgs = data;
+    if (storageCreateShouldThrow) throw new Error('DB error');
     return {
-      values: (vals: any) => {
-        lastInsertValues = vals;
-        return {
-          returning: () =>
-            Promise.resolve([
-              {
-                id: 'mr-1',
-                ...vals,
-                status: 'submitted',
-                createdAt: new Date(),
-                updatedAt: new Date(),
-              },
-            ]),
-        };
-      },
+      id: 'mr-1',
+      ...data,
+      status: 'submitted',
+      assignedTo: null,
+      estimatedCost: null,
+      actualCost: null,
+      scheduledDate: null,
+      completedDate: null,
+      notes: null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
     };
   }),
 };
 
-jest.mock('../../../server/db', () => ({ db: mockDb }));
+jest.mock('../../../server/storage', () => ({
+  storage: mockStorage,
+}));
 
+// ── Auth mock ───────────────────────────────────────────────────────────────
 let currentTestUser: any = null;
 const mockRequireAuth = (req: any, _res: any, next: any) => {
   req.user = currentTestUser;
   next();
 };
-// Mock every path Jest may resolve `requireAuth` through:
-//   - the test-relative path (covered by moduleNameMapper → __mocks__/server/auth.ts), and
-//   - the route-relative path `../../auth` from `server/api/auto/maintenance-requests.ts`
-//     which is NOT covered by moduleNameMapper and would otherwise pull the real
-//     `server/auth.ts`. Mocking by absolute path catches it.
 jest.mock('../../../server/auth', () => ({
   requireAuth: mockRequireAuth,
 }));
 jest.mock('../../../server/auth/index', () => ({
   requireAuth: mockRequireAuth,
 }));
-// `server/api/auto/maintenance-requests.ts` imports `../../auth`. That path
-// is NOT covered by the `moduleNameMapper` rules in `jest.config.cjs` (which
-// only map `../auth`, `../../server/auth`, and `../../../server/auth`), so
-// the real `server/auth.ts` would otherwise be loaded. Mock the real file
-// path explicitly so the route's import resolves to our pass-through.
 jest.mock(
   require('path').resolve(__dirname, '../../../server/auth.ts'),
   () => ({ requireAuth: mockRequireAuth }),
 );
 
+// ── RBAC mock ────────────────────────────────────────────────────────────────
 let canAccess = true;
 jest.mock('../../../server/rbac', () => ({
   canUserAccessResidence: jest.fn(async () => canAccess),
@@ -79,7 +81,9 @@ import register from '../../../server/api/auto/maintenance-requests';
 function buildApp(user: any): Express {
   currentTestUser = user;
   const app = express();
-  app.use(express.json());
+  // Use a generous body limit so Zod's per-image constraint (not the body
+  // parser) is what enforces the image size cap in the validation tests.
+  app.use(express.json({ limit: '50mb' }));
   register(app);
   return app;
 }
@@ -88,12 +92,14 @@ const VALID_RESIDENCE_ID = '11111111-1111-4111-8111-111111111111';
 
 describe('POST /api/maintenance-requests', () => {
   beforeEach(() => {
-    insertCallCount = 0;
-    lastInsertValues = null;
+    storageCreateCallCount = 0;
+    lastStorageCreateArgs = null;
+    storageCreateShouldThrow = false;
     canAccess = true;
+    mockStorage.createMaintenanceRequest.mockClear();
   });
 
-  it('rejects an invalid category with 400 and never touches the DB', async () => {
+  it('rejects an invalid category with 400 and never calls storage', async () => {
     const app = buildApp({ id: 'u-tenant', role: 'tenant' });
 
     const response = await request(app)
@@ -109,7 +115,7 @@ describe('POST /api/maintenance-requests', () => {
 
     expect(response.body.message).toBe('Invalid maintenance request');
     expect(response.body.errors).toBeDefined();
-    expect(insertCallCount).toBe(0);
+    expect(storageCreateCallCount).toBe(0);
   });
 
   it('returns 201 with the new row when a linked tenant submits a valid request', async () => {
@@ -126,15 +132,14 @@ describe('POST /api/maintenance-requests', () => {
       })
       .expect(201);
 
-    expect(insertCallCount).toBe(1);
-    expect(lastInsertValues).toMatchObject({
+    expect(storageCreateCallCount).toBe(1);
+    expect(lastStorageCreateArgs).toMatchObject({
       residenceId: VALID_RESIDENCE_ID,
       title: 'Leaky faucet',
       description: 'Kitchen tap drips constantly',
       category: 'plumbing',
       priority: 'high',
       submittedBy: 'u-tenant',
-      status: 'submitted',
     });
     expect(response.body).toMatchObject({
       id: 'mr-1',
@@ -144,7 +149,7 @@ describe('POST /api/maintenance-requests', () => {
     });
   });
 
-  it('rejects an invalid priority with 400 and never touches the DB', async () => {
+  it('rejects an invalid priority with 400 and never calls storage', async () => {
     const app = buildApp({ id: 'u-tenant', role: 'tenant' });
 
     const response = await request(app)
@@ -160,7 +165,7 @@ describe('POST /api/maintenance-requests', () => {
 
     expect(response.body.message).toBe('Invalid maintenance request');
     expect(response.body.errors).toBeDefined();
-    expect(insertCallCount).toBe(0);
+    expect(storageCreateCallCount).toBe(0);
   });
 
   it('returns 403 when the caller cannot access the residence (residence-scope guard)', async () => {
@@ -178,6 +183,68 @@ describe('POST /api/maintenance-requests', () => {
       .expect(403);
 
     expect(response.body.code).toBe('RESIDENCE_ACCESS_DENIED');
-    expect(insertCallCount).toBe(0);
+    expect(storageCreateCallCount).toBe(0);
+  });
+
+  it('accepts a request with a valid photo attachment and forwards images to storage', async () => {
+    const app = buildApp({ id: 'u-tenant', role: 'tenant' });
+    const fakeImage = 'data:image/jpeg;base64,/9j/fakebase64data';
+
+    const response = await request(app)
+      .post('/api/maintenance-requests')
+      .send({
+        residenceId: VALID_RESIDENCE_ID,
+        title: 'Crack in ceiling',
+        description: 'Large crack appeared after the storm',
+        category: 'general',
+        priority: 'high',
+        images: [fakeImage],
+      })
+      .expect(201);
+
+    expect(storageCreateCallCount).toBe(1);
+    expect(lastStorageCreateArgs.images).toEqual([fakeImage]);
+    expect(response.body.status).toBe('submitted');
+  });
+
+  it('rejects when more than 3 images are provided', async () => {
+    const app = buildApp({ id: 'u-tenant', role: 'tenant' });
+    const tooManyImages = ['img1', 'img2', 'img3', 'img4'];
+
+    const response = await request(app)
+      .post('/api/maintenance-requests')
+      .send({
+        residenceId: VALID_RESIDENCE_ID,
+        title: 'Crack in ceiling',
+        description: 'Large crack appeared after the storm',
+        category: 'general',
+        priority: 'medium',
+        images: tooManyImages,
+      })
+      .expect(400);
+
+    expect(response.body.message).toBe('Invalid maintenance request');
+    expect(storageCreateCallCount).toBe(0);
+  });
+
+  it('rejects when a single image string exceeds the size limit', async () => {
+    const app = buildApp({ id: 'u-tenant', role: 'tenant' });
+    // 14_000_001 characters is over the 14_000_000 limit
+    const oversizedImage = 'x'.repeat(14_000_001);
+
+    const response = await request(app)
+      .post('/api/maintenance-requests')
+      .send({
+        residenceId: VALID_RESIDENCE_ID,
+        title: 'Crack in ceiling',
+        description: 'Large crack appeared after the storm',
+        category: 'general',
+        priority: 'medium',
+        images: [oversizedImage],
+      })
+      .expect(400);
+
+    expect(response.body.message).toBe('Invalid maintenance request');
+    expect(storageCreateCallCount).toBe(0);
   });
 });

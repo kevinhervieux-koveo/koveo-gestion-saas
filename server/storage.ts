@@ -42,6 +42,8 @@ import {
   type InsertDemand,
   type DemandComment,
   type InsertDemandComment,
+  type MaintenanceRequest,
+  type InsertMaintenanceRequest,
 } from '@shared/schemas/operations';
 import { randomUUID } from 'crypto';
 import { stripPassword } from './db/queries/user-queries';
@@ -205,6 +207,7 @@ export interface IStorage {
   createInvitationAuditLog(_log: InsertInvitationAuditLog): Promise<InvitationAuditLog>;
   getCommentsByDemand(_demandId: string): Promise<DemandComment[]>;
   createDemandComment(_comment: InsertDemandComment): Promise<DemandComment>;
+  createMaintenanceRequest(_data: InsertMaintenanceRequest): Promise<MaintenanceRequest>;
 
   // Improvement suggestion operations
   clearNewSuggestions(): Promise<void>;
@@ -1148,6 +1151,25 @@ export class MemStorage implements IStorage {
     } as DemandComment;
   }
 
+  async createMaintenanceRequest(data: InsertMaintenanceRequest): Promise<MaintenanceRequest> {
+    const id = randomUUID();
+    return {
+      ...data,
+      id,
+      assignedTo: data.assignedTo ?? null,
+      priority: (data.priority ?? 'medium') as MaintenanceRequest['priority'],
+      status: 'submitted',
+      estimatedCost: null,
+      actualCost: null,
+      scheduledDate: data.scheduledDate ?? null,
+      completedDate: null,
+      notes: data.notes ?? null,
+      images: data.images ?? null,
+      createdAt: new Date(),
+      updatedAt: new Date(),
+    } as MaintenanceRequest;
+  }
+
 }
 
 // Import the database storage implementation
@@ -1785,6 +1807,10 @@ class ProductionFallbackStorage implements IStorage {
 
   async createDemandComment(comment: InsertDemandComment): Promise<DemandComment> {
     throw new Error('Not implemented in fallback');
+  }
+
+  async createMaintenanceRequest(data: InsertMaintenanceRequest): Promise<MaintenanceRequest> {
+    return this.dbStorage.createMaintenanceRequest(data);
   }
 
   async deleteActionableItem(id: string): Promise<boolean> {

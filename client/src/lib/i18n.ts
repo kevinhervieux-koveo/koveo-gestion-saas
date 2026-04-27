@@ -1088,6 +1088,15 @@ export interface Translations {
   cleaning: string;
   security: string;
   landscaping: string;
+  plumbing: string;
+  electrical: string;
+  hvac: string;
+  general: string;
+  elevator: string;
+  submitMaintenanceRequest: string;
+  managerWillBeNotified: string;
+  maintenancePhotoOptional: string;
+  maintenanceRequestSubmitted: string;
   professionalServices: string;
   repairs: string;
   supplies: string;
@@ -4958,6 +4967,15 @@ export const translations: Record<Language, Translations> = {
     cleaning: 'Cleaning',
     security: 'Security',
     landscaping: 'Landscaping',
+    plumbing: 'Plumbing',
+    electrical: 'Electrical',
+    hvac: 'HVAC',
+    general: 'General',
+    elevator: 'Elevator',
+    submitMaintenanceRequest: 'Submit a maintenance request',
+    managerWillBeNotified: 'Your manager will be notified.',
+    maintenancePhotoOptional: 'Photo (optional)',
+    maintenanceRequestSubmitted: 'Maintenance request submitted',
     professionalServices: 'Professional Services',
     repairs: 'Repairs',
     supplies: 'Supplies',
@@ -9080,6 +9098,15 @@ export const translations: Record<Language, Translations> = {
     cleaning: 'Nettoyage',
     security: 'Sécurité',
     landscaping: 'Aménagement paysager',
+    plumbing: 'Plomberie',
+    electrical: 'Électricité',
+    hvac: 'CVC',
+    general: 'Général',
+    elevator: 'Ascenseur',
+    submitMaintenanceRequest: 'Soumettre une demande d\'entretien',
+    managerWillBeNotified: 'Votre gestionnaire sera informé.',
+    maintenancePhotoOptional: 'Photo (facultatif)',
+    maintenanceRequestSubmitted: 'Demande d\'entretien soumise',
     professionalServices: 'Services professionnels',
     repairs: 'Réparations',
     supplies: 'Fournitures',
