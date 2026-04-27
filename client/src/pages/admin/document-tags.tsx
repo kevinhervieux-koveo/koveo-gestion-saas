@@ -464,6 +464,11 @@ export default function AdminDocumentTags() {
                 readOnly={!isSuperAdmin}
                 onEdit={isSuperAdmin ? openEditFamily : undefined}
                 onDelete={isSuperAdmin ? removeFamily : undefined}
+                loadingText={t('lfLoading')}
+                emptyText={t('lfEmpty')}
+                colName={t('lfColName')}
+                colDescription={t('lfColDescription')}
+                colActions={t('lfColActions')}
                 readOnlyText={t('dtReadOnly')}
               />
             </CardContent>
@@ -479,6 +484,11 @@ export default function AdminDocumentTags() {
                 isLoading={familiesLoading}
                 onEdit={openEditFamily}
                 onDelete={removeFamily}
+                loadingText={t('lfLoading')}
+                emptyText={t('lfEmpty')}
+                colName={t('lfColName')}
+                colDescription={t('lfColDescription')}
+                colActions={t('lfColActions')}
                 readOnlyText={t('dtReadOnly')}
               />
             </CardContent>
@@ -879,6 +889,11 @@ export function FamiliesTable({
   readOnly,
   onEdit,
   onDelete,
+  loadingText,
+  emptyText,
+  colName,
+  colDescription,
+  colActions,
   readOnlyText,
 }: {
   families: LinkFamily[];
@@ -886,18 +901,23 @@ export function FamiliesTable({
   readOnly?: boolean;
   onEdit?: (f: LinkFamily) => void;
   onDelete?: (f: LinkFamily) => void;
+  loadingText: string;
+  emptyText: string;
+  colName: string;
+  colDescription: string;
+  colActions: string;
   readOnlyText?: string;
 }) {
   const { t } = useLanguage();
-  if (isLoading) return <p className="text-muted-foreground">{t('dtLoading')}</p>;
-  if (families.length === 0) return <p className="text-muted-foreground">{t('dtEmpty')}</p>;
+  if (isLoading) return <p className="text-muted-foreground">{loadingText}</p>;
+  if (families.length === 0) return <p className="text-muted-foreground">{emptyText}</p>;
   return (
     <Table>
       <TableHeader>
         <TableRow>
-          <TableHead>{t('dtColName')}</TableHead>
-          <TableHead>{t('lfDescriptionLabel')}</TableHead>
-          <TableHead className="text-right">{t('dtColActions')}</TableHead>
+          <TableHead>{colName}</TableHead>
+          <TableHead>{colDescription}</TableHead>
+          <TableHead className="text-right">{colActions}</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>

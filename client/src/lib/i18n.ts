@@ -4235,6 +4235,11 @@ export interface Translations {
   lfSearchPlaceholder: string;
   lfSystemCardTitle: string;
   lfCustomCardTitle: string;
+  lfLoading: string;
+  lfEmpty: string;
+  lfColName: string;
+  lfColDescription: string;
+  lfColActions: string;
   lfDialogEditTitle: string;
   lfDialogNewTitle: string;
   lfDialogDescription: string;
@@ -8582,6 +8587,11 @@ export const translations: Record<Language, Translations> = {
     lfSearchPlaceholder: 'Search families…',
     lfSystemCardTitle: 'Koveo families',
     lfCustomCardTitle: 'Custom families',
+    lfLoading: 'Loading…',
+    lfEmpty: 'No families yet.',
+    lfColName: 'Name',
+    lfColDescription: 'Description',
+    lfColActions: 'Actions',
     lfDialogEditTitle: 'Edit link family',
     lfDialogNewTitle: 'New link family',
     lfDialogDescription: 'A link family defines an independent sequence of documents that can be navigated with ← / →.',
@@ -12934,6 +12944,11 @@ export const translations: Record<Language, Translations> = {
     lfSearchPlaceholder: 'Rechercher des familles…',
     lfSystemCardTitle: 'Familles Koveo',
     lfCustomCardTitle: 'Familles personnalisées',
+    lfLoading: 'Chargement…',
+    lfEmpty: 'Aucune famille pour le moment.',
+    lfColName: 'Nom',
+    lfColDescription: 'Description',
+    lfColActions: 'Actions',
     lfDialogEditTitle: 'Modifier la famille de liens',
     lfDialogNewTitle: 'Nouvelle famille de liens',
     lfDialogDescription: 'Une famille de liens définit une séquence indépendante de documents navigable avec ← / →.',
