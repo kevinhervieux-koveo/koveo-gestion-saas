@@ -11,6 +11,10 @@ import {
   insertDocumentTagSchema,
 } from '../../shared/schemas/documents';
 import { logError, logInfo } from '../utils/logger';
+import {
+  isKoveoSystemTag,
+  SYSTEM_TAG_DELETE_REFUSAL_MESSAGE,
+} from '../mcp/system-entity-guards';
 
 const tagInputSchema = insertDocumentTagSchema
   .pick({
@@ -228,8 +232,14 @@ export function registerDocumentTagRoutes(app: Express): void {
         if (!tag) {
           return res.status(404).json({ message: 'Tag not found' });
         }
-        if (tag.isSystem && user.role !== 'super_admin') {
-          return res.status(403).json({ message: 'Only super admins can delete Koveo system tags' });
+        // Koveo system tags must never be deleted from any surface,
+        // regardless of the caller's role (Task #1431) — including
+        // super_admin, matching the role-agnostic MCP delete guard
+        // (`refuseIfKoveoSystemTag`). This check runs BEFORE the per-org
+        // access check so an admin hitting the REST API directly gets
+        // the same refusal as every other role.
+        if (isKoveoSystemTag(tag)) {
+          return res.status(403).json({ message: SYSTEM_TAG_DELETE_REFUSAL_MESSAGE });
         }
         if (!tag.isSystem && user.role !== 'admin') {
           const orgIds = await getUserOrgIds(user.id);
