@@ -709,3 +709,244 @@ describe('Task #1372 — E2E bidirectional consistency: Drop with invisible stal
     expect(byDecisionId['d']!.beforeItemId).toBeNull();
   });
 });
+
+// ---------------------------------------------------------------------------
+// Task #1422 — Stale effective state bug.
+//
+// These tests cover the specific failure mode where a chain member's
+// getEffective() already reports (null, null) — because an optimistic
+// override from a previous failed batch set it that way — while the server's
+// persisted state still has non-null before/after pointers.  Without the fix,
+// the change computers silently skip that item, the batch omits its null/null
+// decision, and the server's bidirectional guard rejects the whole batch.
+//
+// The canonical scenario (from the bug report):
+//   Persisted: A.after = B, B.before = A
+//   Effective: A is (null, null)  [stale optimistic override]
+//   Admin clicks "Break chain" on [A, B]
+//   Pre-fix: no decision for A → server sees B.before=A but A.after=null → 409
+//   Post-fix: A gets a null/null decision → bidirectionally consistent batch
+// ---------------------------------------------------------------------------
+
+describe('Task #1422 — computeLinkingBreakGroupChanges stale effective state', () => {
+  it('emits null/null for a primary-set item whose effective state is (null,null) but persisted pointer is non-null', () => {
+    // Exact bug scenario: two-item chain A→B. A's effective state looks
+    // standalone (stale optimistic override), but persisted has A.after=B.
+    const persisted = makePersistedMap({
+      a: { after: 'b' },
+      b: { before: 'a' },
+    });
+    // Effective: A appears standalone, B still shows before=A.
+    const get = makeGetEffective({
+      a: {},
+      b: { before: 'a' },
+    });
+
+    const result = computeLinkingBreakGroupChanges(['a', 'b'], get, persisted);
+    const changes = byId(result);
+
+    // A must receive a null/null decision even though getEffective('a') = (null, null).
+    expect(changes['a']).toEqual({ itemId: 'a', beforeItemId: null, afterItemId: null });
+    // B also receives null/null.
+    expect(changes['b']).toEqual({ itemId: 'b', beforeItemId: null, afterItemId: null });
+    // The batch must be bidirectionally consistent.
+    const violations = findBidirectionalViolations(persisted, result);
+    expect(violations).toHaveLength(0);
+  });
+
+  it('emits null/null for all primary-set members even when all effective states appear standalone', () => {
+    // All three items look standalone via getEffective (complete stale state),
+    // but the persisted map has a fully linked chain.
+    const persisted = makePersistedMap({
+      a: { after: 'b' },
+      b: { before: 'a', after: 'c' },
+      c: { before: 'b' },
+    });
+    const get = makeGetEffective({ a: {}, b: {}, c: {} });
+
+    const result = computeLinkingBreakGroupChanges(['a', 'b', 'c'], get, persisted);
+    const changes = byId(result);
+
+    expect(changes['a']).toEqual({ itemId: 'a', beforeItemId: null, afterItemId: null });
+    expect(changes['b']).toEqual({ itemId: 'b', beforeItemId: null, afterItemId: null });
+    expect(changes['c']).toEqual({ itemId: 'c', beforeItemId: null, afterItemId: null });
+    const violations = findBidirectionalViolations(persisted, result);
+    expect(violations).toHaveLength(0);
+  });
+
+  it('does not emit a null/null for an item whose persisted state is also (null,null)', () => {
+    // A is genuinely standalone both in effective and persisted state.
+    // Only B→C are actually linked. Break-group on [a,b,c] should not emit
+    // an unnecessary decision for A.
+    const persisted = makePersistedMap({
+      a: { before: null, after: null },
+      b: { after: 'c' },
+      c: { before: 'b' },
+    });
+    const get = makeGetEffective({
+      a: {},
+      b: { after: 'c' },
+      c: { before: 'b' },
+    });
+
+    const result = computeLinkingBreakGroupChanges(['a', 'b', 'c'], get, persisted);
+    const changes = byId(result);
+
+    // A should not appear — it's genuinely a no-op.
+    expect(changes['a']).toBeUndefined();
+    expect(changes['b']).toEqual({ itemId: 'b', beforeItemId: null, afterItemId: null });
+    expect(changes['c']).toEqual({ itemId: 'c', beforeItemId: null, afterItemId: null });
+  });
+
+  it('coexists with the stale-neighbor sweep in the same batch and stays bidirectionally consistent', () => {
+    // Persisted: a→b→c→d. UI effective: a appears standalone (stale override),
+    // b→c is visible, d is invisible (not in effective chain).
+    // Break-group on [a,b,c]: a must get null/null (stale effective), d must
+    // get null/null (stale invisible neighbor correction).
+    const persisted = makePersistedMap({
+      a: { after: 'b' },
+      b: { before: 'a', after: 'c' },
+      c: { before: 'b', after: 'd' },
+      d: { before: 'c' },
+    });
+    const get = makeGetEffective({
+      a: {},
+      b: { after: 'c' },
+      c: { before: 'b' },
+    });
+
+    const result = computeLinkingBreakGroupChanges(['a', 'b', 'c'], get, persisted);
+    const changes = byId(result);
+
+    // Primary set (a was stale-effective, b and c are normal).
+    expect(changes['a']).toEqual({ itemId: 'a', beforeItemId: null, afterItemId: null });
+    expect(changes['b']).toEqual({ itemId: 'b', beforeItemId: null, afterItemId: null });
+    expect(changes['c']).toEqual({ itemId: 'c', beforeItemId: null, afterItemId: null });
+    // Stale-neighbor sweep correction.
+    expect(changes['d']).toEqual({ itemId: 'd', beforeItemId: null, afterItemId: null });
+    // Full batch is bidirectionally consistent.
+    const violations = findBidirectionalViolations(persisted, result);
+    expect(violations).toHaveLength(0);
+  });
+});
+
+describe('Task #1422 — computeLinkingMakeStandaloneChanges stale effective state', () => {
+  it('emits null/null for dragId whose effective state is (null,null) but persisted pointer is non-null', () => {
+    // dragId=a has stale optimistic override reporting it as standalone, but
+    // persisted has a.after=b, b.before=a.
+    const persisted = makePersistedMap({
+      a: { after: 'b' },
+      b: { before: 'a' },
+    });
+    const get = makeGetEffective({
+      a: {},   // stale: looks standalone
+      b: { before: 'a' },
+    });
+
+    const result = computeLinkingMakeStandaloneChanges('a', get, persisted);
+    const changes = byId(result);
+
+    // a must receive null/null even though getEffective('a') = (null, null).
+    expect(changes['a']).toEqual({ itemId: 'a', beforeItemId: null, afterItemId: null });
+    // The sweep must also correct b (persisted b.before=a, but a is now null/null).
+    expect(changes['b']).toEqual({ itemId: 'b', beforeItemId: null, afterItemId: null });
+    // Bidirectionally consistent.
+    const violations = findBidirectionalViolations(persisted, result);
+    expect(violations).toHaveLength(0);
+  });
+
+  it('still returns empty array when both effective and persisted are (null,null)', () => {
+    // Truly standalone in both views — must remain a no-op.
+    const persisted = makePersistedMap({ a: {} });
+    const get = makeGetEffective({ a: {} });
+
+    expect(computeLinkingMakeStandaloneChanges('a', get, persisted)).toEqual([]);
+  });
+
+  it('emits null/null for dragId and stale sweep neighbors when effective is stale', () => {
+    // Persisted: x→a→b→c. Effective: a looks standalone (stale), b→c visible.
+    // Making a standalone: a needs null/null, and x (invisible, x.after=a) needs sweep correction.
+    const persisted = makePersistedMap({
+      x: { after: 'a' },
+      a: { before: 'x', after: 'b' },
+      b: { before: 'a', after: 'c' },
+      c: { before: 'b' },
+    });
+    const get = makeGetEffective({
+      a: {},  // stale: looks standalone
+      b: { after: 'c' },
+      c: { before: 'b' },
+    });
+
+    const result = computeLinkingMakeStandaloneChanges('a', get, persisted);
+    const changes = byId(result);
+
+    // a gets null/null.
+    expect(changes['a']).toEqual({ itemId: 'a', beforeItemId: null, afterItemId: null });
+    // x (invisible): persisted x.after=a, but a is now null → x.after=null.
+    expect(changes['x']).toEqual({ itemId: 'x', beforeItemId: null, afterItemId: null });
+    // Bidirectionally consistent.
+    const violations = findBidirectionalViolations(persisted, result);
+    expect(violations).toHaveLength(0);
+  });
+});
+
+describe('Task #1422 — computeLinkingDropChanges stale effective state', () => {
+  it('emits a real change for a chain member whose getEffective already matches target but persisted does not', () => {
+    // Scenario: persisted chain is a→b→c. Effective state has a stale override
+    // that already shows a as {before:null, after:c} (skipping b), but the
+    // persisted state still has a.after=b and b.before=a.
+    // Admin drops standalone x after a. The change computer must include `a` in
+    // the output (changing a.after from b→x per the persisted state), not skip
+    // it because getEffective already reports a.after=c.
+    const persisted = makePersistedMap({
+      a: { after: 'b' },
+      b: { before: 'a', after: 'c' },
+      c: { before: 'b' },
+      x: {},
+    });
+    // Effective: a already looks like {before:null, after:'x'} as if drop done
+    // (stale optimistic override from a previous attempt).
+    const get = makeGetEffective({
+      a: { after: 'x' },
+      x: { before: 'a' },
+      b: { after: 'c' },
+      c: { before: 'b' },
+    });
+
+    // Drop x after a again.  With persistedPointerMap provided, dedup uses
+    // persisted state, so the change for a (persisted a.after=b ≠ proposed x)
+    // is not silently dropped.
+    const result = computeLinkingDropChanges('x', 'a', 'after', get, persisted);
+    const changes = byId(result);
+
+    // a must appear because persisted a.after=b but proposed a.after=x.
+    expect(changes['a']).toBeDefined();
+    expect(changes['a']!.afterItemId).toBe('x');
+    // x must appear.
+    expect(changes['x']).toBeDefined();
+    expect(changes['x']!.beforeItemId).toBe('a');
+    // The batch is bidirectionally consistent.
+    const violations = findBidirectionalViolations(persisted, result);
+    expect(violations).toHaveLength(0);
+  });
+
+  it('does not re-emit an entry that is already consistent with the persisted state', () => {
+    // Normal case: no override, getEffective matches persisted. A change that
+    // maps to the persisted value exactly must still be suppressed (no-op).
+    const persisted = makePersistedMap({
+      a: { after: 'b' },
+      b: { before: 'a' },
+    });
+    const get = makeGetEffective({
+      a: { after: 'b' },
+      b: { before: 'a' },
+    });
+    // Drop b before a → swaps them → both get new values, neither matches persisted.
+    const result = computeLinkingDropChanges('b', 'a', 'before', get, persisted);
+    const changes = byId(result);
+    // Both items changed relative to persisted state.
+    expect(changes['b']).toEqual({ itemId: 'b', beforeItemId: null, afterItemId: 'a' });
+    expect(changes['a']).toEqual({ itemId: 'a', beforeItemId: 'b', afterItemId: null });
+  });
+});

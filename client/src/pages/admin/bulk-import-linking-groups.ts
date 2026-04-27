@@ -317,9 +317,21 @@ export function computeLinkingDropChanges(
       out.push({ itemId: id, beforeItemId: v.beforeItemId, afterItemId: v.afterItemId });
       continue;
     }
-    const eff = getEffective(id);
-    if (eff.before !== v.beforeItemId || eff.after !== v.afterItemId) {
-      out.push({ itemId: id, beforeItemId: v.beforeItemId, afterItemId: v.afterItemId });
+    // Task #1422: When a persistedPointerMap is provided, compare against the
+    // persisted server state rather than getEffective() to avoid silently
+    // dropping a real persisted-state change for a chain member whose optimistic
+    // override already reports the target value but the server has a different
+    // pointer stored.
+    if (persistedPointerMap) {
+      const p = persistedPointerMap.get(id);
+      if (!p || p.before !== v.beforeItemId || p.after !== v.afterItemId) {
+        out.push({ itemId: id, beforeItemId: v.beforeItemId, afterItemId: v.afterItemId });
+      }
+    } else {
+      const eff = getEffective(id);
+      if (eff.before !== v.beforeItemId || eff.after !== v.afterItemId) {
+        out.push({ itemId: id, beforeItemId: v.beforeItemId, afterItemId: v.afterItemId });
+      }
     }
   }
   return out;
@@ -343,7 +355,15 @@ export function computeLinkingMakeStandaloneChanges(
   persistedPointerMap?: Map<string, LinkingEffective>,
 ): LinkingChange[] {
   const eff = getEffective(dragId);
-  if (!eff.before && !eff.after) return [];
+  // Task #1422: Only short-circuit when the item is already standalone in
+  // BOTH the effective (override-walked) view AND the persisted server state.
+  // If the effective state says (null, null) but the server still has non-null
+  // pointers (stale optimistic override), we must still emit a null/null
+  // decision for dragId and let the sweep correct its persisted neighbors.
+  if (!eff.before && !eff.after) {
+    const persisted = persistedPointerMap?.get(dragId);
+    if (!persisted || (!persisted.before && !persisted.after)) return [];
+  }
 
   const changes = new Map<string, { beforeItemId: string | null; afterItemId: string | null }>();
   const set = (id: string, b: string | null, a: string | null) =>
@@ -398,7 +418,17 @@ export function computeLinkingBreakGroupChanges(
   const changesMap = new Map<string, { beforeItemId: string | null; afterItemId: string | null }>();
   for (const id of itemIds) {
     const eff = getEffective(id);
-    if (eff.before === null && eff.after === null) continue;
+    // Task #1422: When a persistedPointerMap is provided, only skip this item
+    // if BOTH the effective (override-walked) state AND the persisted server
+    // state are already (null, null).  A stale optimistic override can make an
+    // item look standalone on the client while the server still has non-null
+    // before/after pointers; without this check, no null/null decision is sent
+    // for that item and the server's bidirectional guard rejects the batch.
+    if (eff.before === null && eff.after === null) {
+      if (!persistedPointerMap) continue;
+      const persisted = persistedPointerMap.get(id);
+      if (!persisted || (persisted.before === null && persisted.after === null)) continue;
+    }
     changesMap.set(id, { beforeItemId: null, afterItemId: null });
   }
 
