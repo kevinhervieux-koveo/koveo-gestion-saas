@@ -106,14 +106,24 @@ export type KpiEvent = typeof kpiEvents.$inferSelect;
 export type InsertKpiEvent = z.infer<typeof insertKpiEventSchema>;
 
 /**
- * Outcome vocabulary for the bulk-import filename-suggestion metric.
- * Re-exported so the recorder, aggregator, and dashboard agree on the
- * exact string set.
+ * Shared outcome vocabulary used by every bulk-import KPI that
+ * compares one AI suggestion to one admin-final value (filename,
+ * residence, effective date, branch destination, tag set).
+ *
+ * - `verbatim`               — admin kept the AI suggestion exactly.
+ * - `edited`                 — AI suggested X, admin saved Y (Y ≠ X).
+ * - `cleared`                — AI suggested something, admin cleared
+ *                              the field so we have no committed value.
+ * - `manual_no_suggestion`   — AI returned no suggestion, admin
+ *                              picked one anyway.
+ * - `empty_no_suggestion`    — AI returned no suggestion and admin
+ *                              left the field empty.
+ *
+ * Pulled out into a shared union so the dashboard can render every
+ * metric with the same five-tile summary and the aggregator never
+ * needs a per-metric cast.
  */
-export const BULK_IMPORT_FILENAME_METRIC_KEY =
-  'bulk_import.filename_suggestion';
-
-export const BULK_IMPORT_FILENAME_OUTCOMES = [
+export const BULK_IMPORT_AI_ACCEPT_OUTCOMES = [
   'verbatim',
   'edited',
   'cleared',
@@ -121,5 +131,95 @@ export const BULK_IMPORT_FILENAME_OUTCOMES = [
   'empty_no_suggestion',
 ] as const;
 
-export type BulkImportFilenameOutcome =
-  (typeof BULK_IMPORT_FILENAME_OUTCOMES)[number];
+export type BulkImportAiAcceptOutcome =
+  (typeof BULK_IMPORT_AI_ACCEPT_OUTCOMES)[number];
+
+/**
+ * Filename-suggestion metric (Task #1406). Emitted by the
+ * `set-sorting-decision` route when the admin commits a sorting
+ * decision. See {@link BULK_IMPORT_AI_ACCEPT_OUTCOMES} for the
+ * outcome vocabulary.
+ */
+export const BULK_IMPORT_FILENAME_METRIC_KEY =
+  'bulk_import.filename_suggestion';
+
+export const BULK_IMPORT_FILENAME_OUTCOMES = BULK_IMPORT_AI_ACCEPT_OUTCOMES;
+export type BulkImportFilenameOutcome = BulkImportAiAcceptOutcome;
+
+/**
+ * Branch-destination metric (Task #1411). Emitted by the per-item
+ * commit route when an item is finalised. Compares the admin-saved
+ * `branchDecision.branch` against the AI's original branching pick
+ * (snapshotted as `branchAiSuggested` at branching-step time).
+ *
+ * Dimensions populated:
+ *   * `aiBranch`   — what the AI picked (`building_documents`, …).
+ *   * `branch`     — what the admin committed.
+ *   * `language`   — admin UI language at commit time (per-language
+ *                    breakdown in the dashboard).
+ */
+export const BULK_IMPORT_BRANCH_METRIC_KEY =
+  'bulk_import.branch_destination';
+
+/**
+ * Residence-pick metric (Task #1411). Emitted by the per-item commit
+ * route for items routed to `residence_documents`. Compares the
+ * admin-saved `branchDecision.residenceId` against the AI's original
+ * residence pick (`residenceAiSuggestedId`).
+ *
+ * Dimensions populated:
+ *   * `branch`     — always `residence_documents` (kept for shape parity).
+ *   * `language`   — admin UI language at commit time.
+ */
+export const BULK_IMPORT_RESIDENCE_METRIC_KEY =
+  'bulk_import.residence_pick';
+
+/**
+ * Effective-date metric (Task #1411). Emitted by the per-item commit
+ * route. Compares the admin-saved `identification.effectiveDate`
+ * against the AI's original date pick (`effectiveDateAiSuggested`,
+ * snapshotted at identification-step time).
+ *
+ * Dimensions populated:
+ *   * `branch`     — destination branch of the committed item.
+ *   * `language`   — admin UI language at commit time.
+ */
+export const BULK_IMPORT_EFFECTIVE_DATE_METRIC_KEY =
+  'bulk_import.effective_date';
+
+/**
+ * Tag-suggestion metric (Task #1411). Emitted by the per-item commit
+ * route. Compares the admin-saved tag UUID set
+ * (`identification.tags`) against the AI's original tag pick
+ * (`identification.aiSuggestedTagIds`).
+ *
+ * Set comparison:
+ *   * `verbatim`              — both sets non-empty AND identical.
+ *   * `edited`                — both sets non-empty AND not identical.
+ *   * `cleared`               — AI suggested ≥1 tag, admin saved 0.
+ *   * `manual_no_suggestion`  — AI suggested 0, admin saved ≥1.
+ *   * `empty_no_suggestion`   — both empty.
+ *
+ * Dimensions populated:
+ *   * `branch`     — destination branch of the committed item.
+ *   * `language`   — admin UI language at commit time.
+ */
+export const BULK_IMPORT_TAG_METRIC_KEY = 'bulk_import.tag_suggestion';
+
+/**
+ * All bulk-import KPI metric keys that share the
+ * {@link BULK_IMPORT_AI_ACCEPT_OUTCOMES} vocabulary. Used by the
+ * generic aggregator + dashboard renderer so adding a new metric only
+ * requires picking a fresh key, declaring it here, and instrumenting
+ * the right code path.
+ */
+export const BULK_IMPORT_AI_METRIC_KEYS = [
+  BULK_IMPORT_FILENAME_METRIC_KEY,
+  BULK_IMPORT_BRANCH_METRIC_KEY,
+  BULK_IMPORT_RESIDENCE_METRIC_KEY,
+  BULK_IMPORT_EFFECTIVE_DATE_METRIC_KEY,
+  BULK_IMPORT_TAG_METRIC_KEY,
+] as const;
+
+export type BulkImportAiMetricKey =
+  (typeof BULK_IMPORT_AI_METRIC_KEYS)[number];

@@ -57,10 +57,28 @@ interface OrganizationOption {
   name: string;
 }
 
-const BRANCH_KEYS: Record<string, 'kpiBranchKeep' | 'kpiBranchMerge' | 'kpiBranchSplit'> = {
+/**
+ * Static label map for the "branch type" breakdown column. Covers
+ * both the sorting-step decision values (`keep`/`merge`/`split` —
+ * still surfaced by the filename KPI when it's joined to a sorting
+ * decision) and the document-destination values
+ * (`building_documents`, `residence_documents`) emitted by every
+ * Task #1411 commit-time KPI. Missing keys fall through to the raw
+ * dimension string so a new branch never silently disappears.
+ */
+const BRANCH_KEYS: Record<
+  string,
+  | 'kpiBranchKeep'
+  | 'kpiBranchMerge'
+  | 'kpiBranchSplit'
+  | 'kpiBranchBuildingDocuments'
+  | 'kpiBranchResidenceDocuments'
+> = {
   keep: 'kpiBranchKeep',
   merge: 'kpiBranchMerge',
   split: 'kpiBranchSplit',
+  building_documents: 'kpiBranchBuildingDocuments',
+  residence_documents: 'kpiBranchResidenceDocuments',
 };
 
 const LANGUAGE_KEYS: Record<string, 'kpiLangEnglish' | 'kpiLangFrench' | 'kpiLangUnknown'> = {
@@ -119,6 +137,18 @@ interface FilterState {
   organizationId: string;
 }
 
+function startOfDayIso(d: Date): string {
+  const copy = new Date(d);
+  copy.setHours(0, 0, 0, 0);
+  return copy.toISOString();
+}
+
+function endOfDayIso(d: Date): string {
+  const copy = new Date(d);
+  copy.setHours(23, 59, 59, 999);
+  return copy.toISOString();
+}
+
 /** Build the query string the backend expects from the current filters. */
 function buildQueryString(filters: FilterState): string {
   const params = new URLSearchParams();
@@ -135,17 +165,61 @@ function buildQueryString(filters: FilterState): string {
   return qs ? `?${qs}` : '';
 }
 
-function startOfDayIso(d: Date): string {
-  const copy = new Date(d);
-  copy.setHours(0, 0, 0, 0);
-  return copy.toISOString();
+/**
+ * One KPI metric to render on the dashboard. Adding a new bulk-import
+ * metric is a one-line entry in {@link KPI_CARDS} below — the layout,
+ * loading/empty/error states, and per-(language, branch) breakdown
+ * tables are all factored into {@link KpiAggregateCard}.
+ */
+interface KpiCardSpec {
+  endpoint: string;
+  testId: string;
+  titleKey:
+    | 'kpiBulkImportFilenameTitle'
+    | 'kpiBulkImportBranchTitle'
+    | 'kpiBulkImportResidenceTitle'
+    | 'kpiBulkImportEffectiveDateTitle'
+    | 'kpiBulkImportTagsTitle';
+  descriptionKey:
+    | 'kpiBulkImportFilenameDescription'
+    | 'kpiBulkImportBranchDescription'
+    | 'kpiBulkImportResidenceDescription'
+    | 'kpiBulkImportEffectiveDateDescription'
+    | 'kpiBulkImportTagsDescription';
 }
 
-function endOfDayIso(d: Date): string {
-  const copy = new Date(d);
-  copy.setHours(23, 59, 59, 999);
-  return copy.toISOString();
-}
+const KPI_CARDS: KpiCardSpec[] = [
+  {
+    endpoint: '/api/admin/kpi/bulk-import-filename-suggestions',
+    testId: 'kpi-bulk-import-filename-card',
+    titleKey: 'kpiBulkImportFilenameTitle',
+    descriptionKey: 'kpiBulkImportFilenameDescription',
+  },
+  {
+    endpoint: '/api/admin/kpi/bulk-import-branch-destinations',
+    testId: 'kpi-bulk-import-branch-card',
+    titleKey: 'kpiBulkImportBranchTitle',
+    descriptionKey: 'kpiBulkImportBranchDescription',
+  },
+  {
+    endpoint: '/api/admin/kpi/bulk-import-residence-picks',
+    testId: 'kpi-bulk-import-residence-card',
+    titleKey: 'kpiBulkImportResidenceTitle',
+    descriptionKey: 'kpiBulkImportResidenceDescription',
+  },
+  {
+    endpoint: '/api/admin/kpi/bulk-import-effective-dates',
+    testId: 'kpi-bulk-import-effective-date-card',
+    titleKey: 'kpiBulkImportEffectiveDateTitle',
+    descriptionKey: 'kpiBulkImportEffectiveDateDescription',
+  },
+  {
+    endpoint: '/api/admin/kpi/bulk-import-tag-suggestions',
+    testId: 'kpi-bulk-import-tags-card',
+    titleKey: 'kpiBulkImportTagsTitle',
+    descriptionKey: 'kpiBulkImportTagsDescription',
+  },
+];
 
 export default function KpiDashboardPage() {
   const { t } = useLanguage();
@@ -168,54 +242,13 @@ export default function KpiDashboardPage() {
     queryKey: ['/api/organizations'],
   });
 
-  const { data, isLoading, isError } = useQuery<AggregateResponse>({
-    queryKey: ['/api/admin/kpi/bulk-import-filename-suggestions', queryString],
-    enabled: queryEnabled,
-    queryFn: async () => {
-      const res = await fetch(
-        `/api/admin/kpi/bulk-import-filename-suggestions${queryString}`,
-        { credentials: 'include' },
-      );
-      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
-      return (await res.json()) as AggregateResponse;
-    },
-  });
-
-  const rows = data?.rows ?? [];
-
-  const byLanguage = new Map<string, AggregateRow[]>();
-  const byBranch = new Map<string, AggregateRow[]>();
-  for (const r of rows) {
-    const langKey = r.language ?? '';
-    const branchKey = r.branch ?? '';
-    if (!byLanguage.has(langKey)) byLanguage.set(langKey, []);
-    byLanguage.get(langKey)!.push(r);
-    if (!byBranch.has(branchKey)) byBranch.set(branchKey, []);
-    byBranch.get(branchKey)!.push(r);
-  }
-
-  const overall = summariseGroup(rows);
-
-  const languageRows = Array.from(byLanguage.entries())
-    .map(([lang, group]) => ({ lang, summary: summariseGroup(group) }))
-    .sort((a, b) => b.summary.total - a.summary.total);
-  const branchRows = Array.from(byBranch.entries())
-    .map(([branch, group]) => ({ branch, summary: summariseGroup(group) }))
-    .sort((a, b) => b.summary.total - a.summary.total);
-
-  const renderLanguageLabel = (lang: string): string => {
-    const key = LANGUAGE_KEYS[lang];
-    return key ? t(key) : t('kpiLangUnknown');
-  };
-  const renderBranchLabel = (branch: string): string => {
-    const key = BRANCH_KEYS[branch];
-    return key ? t(key) : branch || '—';
-  };
-
   return (
     <div className="flex flex-col h-full">
       <Header title={t('kpiDashboardTitle')} subtitle={t('kpiDashboardSubtitle')} />
-      <div className="flex-1 overflow-y-auto p-6 space-y-6" data-testid="kpi-dashboard-page">
+      <div
+        className="flex-1 overflow-y-auto p-6 space-y-6"
+        data-testid="kpi-dashboard-page"
+      >
         <Card data-testid="kpi-filters-card">
           <CardHeader>
             <CardTitle>{t('kpiFiltersTitle')}</CardTitle>
@@ -343,100 +376,172 @@ export default function KpiDashboardPage() {
           </CardContent>
         </Card>
 
-        <Card data-testid="kpi-bulk-import-filename-card">
-          <CardHeader>
-            <CardTitle>{t('kpiBulkImportFilenameTitle')}</CardTitle>
-            <CardDescription>{t('kpiBulkImportFilenameDescription')}</CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {!queryEnabled ? (
-              <p className="text-muted-foreground" data-testid="kpi-pending-range">
-                {t('kpiPickRangeHint')}
-              </p>
-            ) : isLoading ? (
-              <div className="space-y-2">
-                <Skeleton className="h-8 w-1/3" />
-                <Skeleton className="h-32 w-full" />
-                <Skeleton className="h-32 w-full" />
-              </div>
-            ) : isError ? (
-              <p className="text-destructive" data-testid="kpi-load-error">
-                {t('kpiLoadFailed')}
-              </p>
-            ) : rows.length === 0 ? (
-              <p className="text-muted-foreground" data-testid="kpi-empty-state">
-                {t('kpiNoData')}
-              </p>
-            ) : (
-              <>
-                <div
-                  className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"
-                  data-testid="kpi-overall-summary"
-                >
-                  <SummaryTile
-                    label={t('kpiAcceptRate')}
-                    value={formatRate(overall.acceptRate, overall.acceptRateSampleSize)}
-                    testId="kpi-tile-accept-rate"
-                  />
-                  <SummaryTile
-                    label={t('kpiTotalDecisions')}
-                    value={String(overall.total)}
-                    testId="kpi-tile-total"
-                  />
-                  <SummaryTile
-                    label={t('kpiVerbatim')}
-                    value={String(overall.totals.verbatim)}
-                    testId="kpi-tile-verbatim"
-                  />
-                  <SummaryTile
-                    label={t('kpiEdited')}
-                    value={String(overall.totals.edited)}
-                    testId="kpi-tile-edited"
-                  />
-                  <SummaryTile
-                    label={t('kpiCleared')}
-                    value={String(overall.totals.cleared)}
-                    testId="kpi-tile-cleared"
-                  />
-                  <SummaryTile
-                    label={t('kpiNoSuggestion')}
-                    value={String(
-                      overall.totals.manual_no_suggestion +
-                        overall.totals.empty_no_suggestion,
-                    )}
-                    testId="kpi-tile-no-suggestion"
-                  />
-                </div>
-
-                <BreakdownTable
-                  title={t('kpiByLanguage')}
-                  groupHeader={t('kpiLanguage')}
-                  rows={languageRows.map((r) => ({
-                    label: renderLanguageLabel(r.lang),
-                    summary: r.summary,
-                    testId: `kpi-row-language-${r.lang || 'unknown'}`,
-                  }))}
-                  t={t}
-                  testId="kpi-table-by-language"
-                />
-
-                <BreakdownTable
-                  title={t('kpiByBranchType')}
-                  groupHeader={t('kpiBranchType')}
-                  rows={branchRows.map((r) => ({
-                    label: renderBranchLabel(r.branch),
-                    summary: r.summary,
-                    testId: `kpi-row-branch-${r.branch || 'unknown'}`,
-                  }))}
-                  t={t}
-                  testId="kpi-table-by-branch"
-                />
-              </>
-            )}
-          </CardContent>
-        </Card>
+        {KPI_CARDS.map((card) => (
+          <KpiAggregateCard
+            key={card.endpoint}
+            spec={card}
+            queryString={queryString}
+            queryEnabled={queryEnabled}
+          />
+        ))}
       </div>
     </div>
+  );
+}
+
+interface KpiAggregateCardProps {
+  spec: KpiCardSpec;
+  queryString: string;
+  queryEnabled: boolean;
+}
+
+function KpiAggregateCard({ spec, queryString, queryEnabled }: KpiAggregateCardProps) {
+  const { t } = useLanguage();
+  const { data, isLoading, isError } = useQuery<AggregateResponse>({
+    queryKey: [spec.endpoint, queryString],
+    enabled: queryEnabled,
+    queryFn: async () => {
+      const res = await fetch(`${spec.endpoint}${queryString}`, {
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error(`Request failed: ${res.status}`);
+      return (await res.json()) as AggregateResponse;
+    },
+  });
+
+  const rows = data?.rows ?? [];
+
+  const byLanguage = new Map<string, AggregateRow[]>();
+  const byBranch = new Map<string, AggregateRow[]>();
+  for (const r of rows) {
+    const langKey = r.language ?? '';
+    const branchKey = r.branch ?? '';
+    if (!byLanguage.has(langKey)) byLanguage.set(langKey, []);
+    byLanguage.get(langKey)!.push(r);
+    if (!byBranch.has(branchKey)) byBranch.set(branchKey, []);
+    byBranch.get(branchKey)!.push(r);
+  }
+
+  const overall = summariseGroup(rows);
+
+  const languageRows = Array.from(byLanguage.entries())
+    .map(([lang, group]) => ({ lang, summary: summariseGroup(group) }))
+    .sort((a, b) => b.summary.total - a.summary.total);
+  const branchRows = Array.from(byBranch.entries())
+    .map(([branch, group]) => ({ branch, summary: summariseGroup(group) }))
+    .sort((a, b) => b.summary.total - a.summary.total);
+
+  const renderLanguageLabel = (lang: string): string => {
+    const key = LANGUAGE_KEYS[lang];
+    return key ? t(key) : t('kpiLangUnknown');
+  };
+  const renderBranchLabel = (branch: string): string => {
+    const key = BRANCH_KEYS[branch];
+    return key ? t(key) : branch || '—';
+  };
+
+  return (
+    <Card data-testid={spec.testId}>
+      <CardHeader>
+        <CardTitle>{t(spec.titleKey)}</CardTitle>
+        <CardDescription>{t(spec.descriptionKey)}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-6">
+        {!queryEnabled ? (
+          <p
+            className="text-muted-foreground"
+            data-testid={`${spec.testId}-pending-range`}
+          >
+            {t('kpiPickRangeHint')}
+          </p>
+        ) : isLoading ? (
+          <div className="space-y-2">
+            <Skeleton className="h-8 w-1/3" />
+            <Skeleton className="h-32 w-full" />
+            <Skeleton className="h-32 w-full" />
+          </div>
+        ) : isError ? (
+          <p
+            className="text-destructive"
+            data-testid={`${spec.testId}-load-error`}
+          >
+            {t('kpiLoadFailed')}
+          </p>
+        ) : rows.length === 0 ? (
+          <p
+            className="text-muted-foreground"
+            data-testid={`${spec.testId}-empty-state`}
+          >
+            {t('kpiNoData')}
+          </p>
+        ) : (
+          <>
+            <div
+              className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-3"
+              data-testid={`${spec.testId}-overall-summary`}
+            >
+              <SummaryTile
+                label={t('kpiAcceptRate')}
+                value={formatRate(overall.acceptRate, overall.acceptRateSampleSize)}
+                testId={`${spec.testId}-tile-accept-rate`}
+              />
+              <SummaryTile
+                label={t('kpiTotalDecisions')}
+                value={String(overall.total)}
+                testId={`${spec.testId}-tile-total`}
+              />
+              <SummaryTile
+                label={t('kpiVerbatim')}
+                value={String(overall.totals.verbatim)}
+                testId={`${spec.testId}-tile-verbatim`}
+              />
+              <SummaryTile
+                label={t('kpiEdited')}
+                value={String(overall.totals.edited)}
+                testId={`${spec.testId}-tile-edited`}
+              />
+              <SummaryTile
+                label={t('kpiCleared')}
+                value={String(overall.totals.cleared)}
+                testId={`${spec.testId}-tile-cleared`}
+              />
+              <SummaryTile
+                label={t('kpiNoSuggestion')}
+                value={String(
+                  overall.totals.manual_no_suggestion +
+                    overall.totals.empty_no_suggestion,
+                )}
+                testId={`${spec.testId}-tile-no-suggestion`}
+              />
+            </div>
+
+            <BreakdownTable
+              title={t('kpiByLanguage')}
+              groupHeader={t('kpiLanguage')}
+              rows={languageRows.map((r) => ({
+                label: renderLanguageLabel(r.lang),
+                summary: r.summary,
+                testId: `${spec.testId}-row-language-${r.lang || 'unknown'}`,
+              }))}
+              t={t}
+              testId={`${spec.testId}-table-by-language`}
+            />
+
+            <BreakdownTable
+              title={t('kpiByBranchType')}
+              groupHeader={t('kpiBranchType')}
+              rows={branchRows.map((r) => ({
+                label: renderBranchLabel(r.branch),
+                summary: r.summary,
+                testId: `${spec.testId}-row-branch-${r.branch || 'unknown'}`,
+              }))}
+              t={t}
+              testId={`${spec.testId}-table-by-branch`}
+            />
+          </>
+        )}
+      </CardContent>
+    </Card>
   );
 }
 

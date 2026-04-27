@@ -2581,10 +2581,17 @@ export default function BulkDocumentImportPage() {
       action: 'screen' | 'sort' | 'branch' | 'identify' | 'link' | 'commit';
     }) => {
       debugLog('runStep start', { itemId, action, sessionId });
+      // Task #1411 — pipe the admin's UI language through to the
+      // commit endpoint so the four KPI events emitted server-side
+      // (branch destination, residence pick, effective date, tag
+      // suggestion) carry a per-locale dimension on
+      // /admin/kpi-dashboard. Other actions don't read uiLanguage on
+      // the server, so sending it here is harmless.
+      const body = action === 'commit' ? { uiLanguage: language } : {};
       const res = await apiRequest(
         'POST',
         `/api/admin/bulk-import/items/${itemId}/${action}`,
-        {},
+        body,
       );
       return res.json();
     },

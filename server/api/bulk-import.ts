@@ -41,6 +41,8 @@ import {
 import {
   recordKpiEvent,
   classifyFilenameSuggestionOutcome,
+  classifyAiAcceptOutcome,
+  classifyTagSuggestionOutcome,
 } from '../services/kpi';
 import { logDebug, logError, logInfo, logWarn } from '../utils/logger';
 import {
@@ -1907,6 +1909,13 @@ async function processItemForStep(
           ? result.residenceId
           : null,
       residenceAiConfirmed: false,
+      // Task #1411 — snapshot the AI's original branch + sub-category
+      // pick so the per-item commit endpoint can emit a
+      // `bulk_import.branch_destination` KPI even after the admin
+      // overrides `branch` via reassign / reassign-bulk.
+      branchAiSuggested: result.branch ?? null,
+      subCategoryAiSuggested:
+        (result as { subCategory?: string | null }).subCategory ?? null,
     };
     // Gate: don't promote to `branched` if destination is residence_documents
     // but no residenceId was resolved. The admin must pick one via the
@@ -2004,6 +2013,13 @@ async function processItemForStep(
       ...(result as unknown as Record<string, unknown>),
       tags: resolvedTagIds,
       aiSuggestedTagIds: resolvedTagIds,
+      // Task #1411 — snapshot the AI's original effective-date pick so
+      // the per-item commit endpoint can emit an
+      // `bulk_import.effective_date` KPI even after the admin
+      // overrides `effectiveDate` via set-effective-date. We snapshot
+      // the raw string (YYYY-MM-DD or null) the AI returned so the
+      // classifier can compare strings without tz/format drift.
+      effectiveDateAiSuggested: result.effectiveDate ?? null,
     };
 
     const [updated] = await db
@@ -8520,6 +8536,14 @@ export function registerBulkImportRoutes(app: Express): void {
       logDebug('[bulk-import] route entry POST /api/admin/bulk-import/items/:id/commit', {
         metadata: { itemId, userId: req.user?.id },
       });
+      // Task #1411 — accept an optional UI-language hint from the
+      // wizard so the KPI events emitted at commit can be broken down
+      // per locale on /admin/kpi-dashboard. Validated softly: any
+      // non-string value collapses to null and the commit proceeds.
+      const uiLanguage =
+        typeof (req.body as { uiLanguage?: unknown } | undefined)?.uiLanguage === 'string'
+          ? ((req.body as { uiLanguage: string }).uiLanguage || null)
+          : null;
       try {
         const [item] = await db
           .select()
@@ -8746,6 +8770,141 @@ export function registerBulkImportRoutes(app: Express): void {
           })
           .where(eq(schema.bulkImportItems.id, item.id))
           .returning();
+
+        // -----------------------------------------------------------------
+        // Task #1411 — fire-and-forget KPI telemetry for the four
+        // remaining AI-suggested admin steps (branch destination,
+        // residence pick, effective date, tag suggestion). Recorded
+        // here at commit time so we capture the FINAL admin state,
+        // including verbatim cases where the admin never touched the
+        // field. Each event is independent so a failure on one will
+        // not affect the others or the response.
+        // -----------------------------------------------------------------
+        try {
+          const branchDecisionForKpi =
+            (item.branchDecision ?? {}) as Record<string, unknown>;
+          const identForKpi =
+            (item.identification ?? {}) as Record<string, unknown>;
+
+          // 1. Branch destination — string compare AI's snapshotted
+          //    branch pick against whatever the admin committed.
+          const aiBranch =
+            typeof branchDecisionForKpi.branchAiSuggested === 'string'
+              ? (branchDecisionForKpi.branchAiSuggested as string)
+              : null;
+          void recordKpiEvent({
+            metricKey: schema.BULK_IMPORT_BRANCH_METRIC_KEY,
+            outcome: classifyAiAcceptOutcome(aiBranch, branch),
+            organizationId: session.organizationId ?? null,
+            userId: req.user?.id ?? null,
+            dimensions: {
+              branch,
+              aiBranch,
+              language: uiLanguage,
+            },
+            payload: {
+              sessionId: item.sessionId,
+              itemId: item.id,
+            },
+          });
+
+          // 2. Residence pick — only meaningful when EITHER the AI or
+          //    the admin landed on `residence_documents`. Outside of
+          //    that scope the residence picker is never shown so a
+          //    KPI row would be misleading. We compare UUID strings.
+          const aiResidenceId =
+            typeof branchDecisionForKpi.residenceAiSuggestedId === 'string'
+              ? (branchDecisionForKpi.residenceAiSuggestedId as string)
+              : null;
+          const residenceInScope =
+            aiBranch === 'residence_documents' ||
+            branch === 'residence_documents';
+          if (residenceInScope) {
+            void recordKpiEvent({
+              metricKey: schema.BULK_IMPORT_RESIDENCE_METRIC_KEY,
+              outcome: classifyAiAcceptOutcome(aiResidenceId, residenceId),
+              organizationId: session.organizationId ?? null,
+              userId: req.user?.id ?? null,
+              dimensions: {
+                branch: 'residence_documents',
+                language: uiLanguage,
+              },
+              payload: {
+                sessionId: item.sessionId,
+                itemId: item.id,
+              },
+            });
+          }
+
+          // 3. Effective date — string compare on the YYYY-MM-DD form
+          //    (snapshotted at identification time) against whatever
+          //    the admin committed under `identification.effectiveDate`.
+          const aiEffectiveDate =
+            typeof identForKpi.effectiveDateAiSuggested === 'string'
+              ? (identForKpi.effectiveDateAiSuggested as string)
+              : null;
+          const adminEffectiveDate =
+            typeof identForKpi.effectiveDate === 'string'
+              ? (identForKpi.effectiveDate as string)
+              : null;
+          void recordKpiEvent({
+            metricKey: schema.BULK_IMPORT_EFFECTIVE_DATE_METRIC_KEY,
+            outcome: classifyAiAcceptOutcome(
+              aiEffectiveDate,
+              adminEffectiveDate,
+            ),
+            organizationId: session.organizationId ?? null,
+            userId: req.user?.id ?? null,
+            dimensions: {
+              branch,
+              language: uiLanguage,
+            },
+            payload: {
+              sessionId: item.sessionId,
+              itemId: item.id,
+            },
+          });
+
+          // 4. Tag suggestion — set-equality on the tag UUIDs the AI
+          //    proposed (snapshotted in `aiSuggestedTagIds`) vs what
+          //    the admin actually committed (`identification.tags`).
+          const aiTagIds = Array.isArray(identForKpi.aiSuggestedTagIds)
+            ? (identForKpi.aiSuggestedTagIds as unknown[]).filter(
+                (t): t is string => typeof t === 'string' && t.length > 0,
+              )
+            : [];
+          const adminTagIds = Array.isArray(identForKpi.tags)
+            ? (identForKpi.tags as unknown[]).filter(
+                (t): t is string => typeof t === 'string' && t.length > 0,
+              )
+            : [];
+          void recordKpiEvent({
+            metricKey: schema.BULK_IMPORT_TAG_METRIC_KEY,
+            outcome: classifyTagSuggestionOutcome(aiTagIds, adminTagIds),
+            organizationId: session.organizationId ?? null,
+            userId: req.user?.id ?? null,
+            dimensions: {
+              branch,
+              language: uiLanguage,
+            },
+            payload: {
+              sessionId: item.sessionId,
+              itemId: item.id,
+              aiTagCount: aiTagIds.length,
+              adminTagCount: adminTagIds.length,
+            },
+          });
+        } catch (kpiErr) {
+          // Telemetry must never break the commit response; swallow.
+          logWarn('[bulk-import] commit KPI emission failed', {
+            metadata: {
+              itemId: item.id,
+              error:
+                kpiErr instanceof Error ? kpiErr.message : String(kpiErr),
+            },
+          });
+        }
+
         logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/commit ok', {
           metadata: {
             itemId: item.id,

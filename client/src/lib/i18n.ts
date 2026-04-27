@@ -1719,6 +1719,14 @@ export interface Translations {
   kpiDashboardSubtitle: string;
   kpiBulkImportFilenameTitle: string;
   kpiBulkImportFilenameDescription: string;
+  kpiBulkImportBranchTitle: string;
+  kpiBulkImportBranchDescription: string;
+  kpiBulkImportResidenceTitle: string;
+  kpiBulkImportResidenceDescription: string;
+  kpiBulkImportEffectiveDateTitle: string;
+  kpiBulkImportEffectiveDateDescription: string;
+  kpiBulkImportTagsTitle: string;
+  kpiBulkImportTagsDescription: string;
   kpiByLanguage: string;
   kpiByBranchType: string;
   kpiOverall: string;
@@ -1735,6 +1743,8 @@ export interface Translations {
   kpiBranchKeep: string;
   kpiBranchMerge: string;
   kpiBranchSplit: string;
+  kpiBranchBuildingDocuments: string;
+  kpiBranchResidenceDocuments: string;
   kpiLangEnglish: string;
   kpiLangFrench: string;
   kpiLangUnknown: string;
@@ -5682,6 +5692,14 @@ export const translations: Record<Language, Translations> = {
     kpiDashboardSubtitle: 'Operational metrics aggregated from product telemetry.',
     kpiBulkImportFilenameTitle: 'Bulk import — AI filename suggestions',
     kpiBulkImportFilenameDescription: 'Acceptance of AI-suggested filenames during the bulk-document-import sorting step.',
+    kpiBulkImportBranchTitle: 'Bulk import — AI branch destination',
+    kpiBulkImportBranchDescription: 'Acceptance of the AI-suggested destination branch (building vs residence documents) during the branching step.',
+    kpiBulkImportResidenceTitle: 'Bulk import — AI residence pick',
+    kpiBulkImportResidenceDescription: 'Acceptance of the AI-suggested residence for items routed to residence documents.',
+    kpiBulkImportEffectiveDateTitle: 'Bulk import — AI effective date',
+    kpiBulkImportEffectiveDateDescription: 'Acceptance of the AI-suggested effective date during the identification step.',
+    kpiBulkImportTagsTitle: 'Bulk import — AI tag suggestions',
+    kpiBulkImportTagsDescription: 'Acceptance of the AI-suggested tag set during the identification step (set comparison).',
     kpiByLanguage: 'By UI language',
     kpiByBranchType: 'By branch type',
     kpiOverall: 'Overall',
@@ -5698,6 +5716,8 @@ export const translations: Record<Language, Translations> = {
     kpiBranchKeep: 'Keep',
     kpiBranchMerge: 'Merge',
     kpiBranchSplit: 'Split',
+    kpiBranchBuildingDocuments: 'Building documents',
+    kpiBranchResidenceDocuments: 'Residence documents',
     kpiLangEnglish: 'English',
     kpiLangFrench: 'French',
     kpiLangUnknown: 'Unknown',
@@ -9867,6 +9887,14 @@ export const translations: Record<Language, Translations> = {
     kpiDashboardSubtitle: 'Mesures opérationnelles agrégées à partir de la télémétrie produit.',
     kpiBulkImportFilenameTitle: 'Import en masse — suggestions de noms IA',
     kpiBulkImportFilenameDescription: "Acceptation des noms de fichiers suggérés par l'IA pendant l'étape de tri de l'import en masse.",
+    kpiBulkImportBranchTitle: 'Import en masse — branche de destination IA',
+    kpiBulkImportBranchDescription: "Acceptation de la branche de destination suggérée par l'IA (documents d'immeuble ou de résidence) pendant l'étape de branchement.",
+    kpiBulkImportResidenceTitle: 'Import en masse — sélection de résidence IA',
+    kpiBulkImportResidenceDescription: "Acceptation de la résidence suggérée par l'IA pour les éléments dirigés vers les documents de résidence.",
+    kpiBulkImportEffectiveDateTitle: "Import en masse — date d'entrée en vigueur IA",
+    kpiBulkImportEffectiveDateDescription: "Acceptation de la date d'entrée en vigueur suggérée par l'IA pendant l'étape d'identification.",
+    kpiBulkImportTagsTitle: "Import en masse — suggestions d'étiquettes IA",
+    kpiBulkImportTagsDescription: "Acceptation de l'ensemble d'étiquettes suggéré par l'IA pendant l'étape d'identification (comparaison d'ensembles).",
     kpiByLanguage: "Par langue d'interface",
     kpiByBranchType: 'Par type de branche',
     kpiOverall: 'Global',
@@ -9883,6 +9911,8 @@ export const translations: Record<Language, Translations> = {
     kpiBranchKeep: 'Garder',
     kpiBranchMerge: 'Fusionner',
     kpiBranchSplit: 'Diviser',
+    kpiBranchBuildingDocuments: "Documents d'immeuble",
+    kpiBranchResidenceDocuments: 'Documents de résidence',
     kpiLangEnglish: 'Anglais',
     kpiLangFrench: 'Français',
     kpiLangUnknown: 'Inconnu',
