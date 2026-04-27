@@ -6,6 +6,8 @@ import {
   timestamp,
   jsonb,
   integer,
+  real,
+  boolean,
   index,
   uniqueIndex,
   pgEnum,
@@ -13,7 +15,7 @@ import {
 import { z } from 'zod';
 import { buildings, residences } from './property';
 import { organizations, users } from './core';
-import { documents } from './documents';
+import { documents, documentLinkFamilies } from './documents';
 
 /**
  * Lifecycle of a bulk-import session as the admin walks through the five
@@ -227,6 +229,75 @@ export const clientExcludedFingerprints = pgTable(
     ),
   }),
 );
+
+/**
+ * Task #1425 — Many-to-many membership between a bulk-import item and a
+ * document-link family. Each row says "this item should be placed in this
+ * family, next to this neighbor document, at this position". Items can
+ * appear in multiple families (e.g. an AGM excerpt that is also part of a
+ * budget chain). Items with no rows in this table appear in the Unassigned
+ * bucket.
+ *
+ * `source` tracks how the membership was created:
+ *  - `'ai'`     — added automatically by the AI linking pass.
+ *  - `'manual'` — added or edited by an admin.
+ *
+ * `aiConfidence` is only set when `source = 'ai'`. `manualOverride` is
+ * true once an admin explicitly changed any field of an AI-created row.
+ */
+export const bulkImportItemFamilyMemberships = pgTable(
+  'bulk_import_item_family_memberships',
+  {
+    id: text('id').primaryKey().default(sql`gen_random_uuid()`),
+    itemId: text('item_id')
+      .notNull()
+      .references(() => bulkImportItems.id, { onDelete: 'cascade' }),
+    /** Null means "Unassigned" bucket (no family chosen yet). */
+    familyId: text('family_id').references(() => documentLinkFamilies.id, {
+      onDelete: 'set null',
+    }),
+    neighborDocumentId: text('neighbor_document_id').references(() => documents.id, {
+      onDelete: 'set null',
+    }),
+    position: text('position').$type<'before' | 'after' | null>(),
+    source: text('source').$type<'ai' | 'manual'>().notNull().default('manual'),
+    aiConfidence: real('ai_confidence'),
+    manualOverride: boolean('manual_override').notNull().default(false),
+    /** Short human-readable reason from the AI (or admin note). */
+    reason: text('reason'),
+    createdAt: timestamp('created_at').defaultNow().notNull(),
+    updatedAt: timestamp('updated_at').defaultNow().notNull(),
+  },
+  (table) => ({
+    itemFamilyUniq: uniqueIndex('bulk_import_item_family_memberships_item_family_uniq').on(
+      table.itemId,
+      table.familyId,
+    ),
+    itemIdx: index('bulk_import_item_family_memberships_item_idx').on(table.itemId),
+    familyNeighborIdx: index('bulk_import_item_family_memberships_family_neighbor_idx').on(
+      table.familyId,
+      table.neighborDocumentId,
+      table.position,
+    ),
+  }),
+);
+
+export const insertBulkImportItemFamilyMembershipSchema = z.object({
+  itemId: z.string().min(1),
+  familyId: z.string().nullable().optional(),
+  neighborDocumentId: z.string().nullable().optional(),
+  position: z.enum(['before', 'after']).nullable().optional(),
+  source: z.enum(['ai', 'manual']).default('manual'),
+  aiConfidence: z.number().min(0).max(1).nullable().optional(),
+  manualOverride: z.boolean().default(false),
+  reason: z.string().nullable().optional(),
+});
+
+export type BulkImportItemFamilyMembership =
+  typeof bulkImportItemFamilyMemberships.$inferSelect;
+export type InsertBulkImportItemFamilyMembership = z.infer<
+  typeof insertBulkImportItemFamilyMembershipSchema
+>;
 
 export const insertBulkImportSessionSchema = z.object({
   buildingId: z.string().min(1),

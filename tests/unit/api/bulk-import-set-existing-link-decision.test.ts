@@ -276,6 +276,11 @@ const mockDb: any = {
       }),
     })),
   })),
+
+  // Task #1425: needed by the membership upsert/clear side-effects.
+  delete: jest.fn((_table: any) => ({
+    where: jest.fn(() => Promise.resolve()),
+  })),
 };
 
 jest.mock('../../../server/db', () => ({ db: mockDb }));
@@ -601,6 +606,9 @@ describe('POST /api/admin/bulk-import/items/:id/set-existing-link-decision (Task
     // Task #1386: set-existing-link-decision must store the decision into
     // bulkImportItems.linkDecisions and never create new family/link rows.
     // The documentLinks row is only written at commit time.
+    // Task #1425: a membership-table upsert (bulk_import_item_family_memberships)
+    // IS now allowed as a side-effect, but document_link_families and document_links
+    // must never be inserted at decision time.
     seedItem('item-noins', { status: 'identified' });
     seedFamily('fam-1');
     seedDocument('doc-1', { buildingId: 'bldg-1', residenceId: null });
@@ -612,13 +620,14 @@ describe('POST /api/admin/bulk-import/items/:id/set-existing-link-decision (Task
       .send({ familyId: 'fam-1', neighborDocumentId: 'doc-1', position: 'after' })
       .expect(200);
 
-    // db.insert must never have been called for any table at decision time.
+    // db.insert must NEVER touch document_link_families or document_links at decision time.
     expect(insertedTables).not.toContain('document_link_families');
     expect(insertedTables).not.toContain('document_links');
-    expect(insertedTables).toHaveLength(0);
+    // Task #1425: the membership upsert (bulk_import_item_family_memberships) IS expected.
+    expect(insertedTables.filter((t) => t !== 'bulk_import_item_family_memberships')).toHaveLength(0);
   });
 
-  it('never calls db.insert even on the clear path', async () => {
+  it('never calls db.insert even on the clear path (Task #1425: delete-only side-effect)', async () => {
     seedItem('item-clr', {
       linkDecisions: { familyId: 'fam-old', beforeDocumentId: 'doc-old', afterDocumentId: null },
     });
@@ -628,6 +637,7 @@ describe('POST /api/admin/bulk-import/items/:id/set-existing-link-decision (Task
       .send({ familyId: null, neighborDocumentId: null, position: null })
       .expect(200);
 
+    // Clear path must not INSERT anything — it only DELETEs memberships as a side-effect.
     expect(insertedTables).toHaveLength(0);
   });
 });

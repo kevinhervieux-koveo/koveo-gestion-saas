@@ -73,6 +73,7 @@ import {
   Link2,
   Link2Off,
   Library,
+  FolderOpen,
 } from 'lucide-react';
 import { format, parseISO, isValid } from 'date-fns';
 import { StandaloneDatePicker } from '@/components/common/DatePickerField';
@@ -93,8 +94,9 @@ import {
   computeLinkingDropChanges,
   computeLinkingMakeStandaloneChanges,
   computeLinkingBreakGroupChanges,
+  resolveFamilyGroups,
 } from './bulk-import-linking-groups';
-import type { LinkingGroup } from './bulk-import-linking-groups';
+import type { LinkingGroup, FamilyGroup, FamilyMembership } from './bulk-import-linking-groups';
 import {
   AUTO_STEPS,
   NextStepBlock,
@@ -6294,8 +6296,42 @@ export default function BulkDocumentImportPage() {
                         const linkingGroupsData = currentStep === 'linking'
                           ? resolveLinkingGroups(visibleItems, linkingOverrides)
                           : { groups: [] as LinkingGroup<BulkImportItemLite>[], standaloneIds: new Set<string>() };
+
+                        // Task #1425: compute family groups (many-to-many item→family).
+                        // Each item contributes a synthetic single-membership entry built
+                        // from its persisted `linkingFamilyId` so that `resolveFamilyGroups`
+                        // can bucket items into named family cards + an Unassigned bucket.
+                        const familyGroupsData = currentStep === 'linking'
+                          ? resolveFamilyGroups(
+                              visibleItems.map((item) => ({
+                                id: item.id,
+                                memberships: item.linkingFamilyId
+                                  ? ([{
+                                      id: `${item.id}::${item.linkingFamilyId}`,
+                                      itemId: item.id,
+                                      familyId: item.linkingFamilyId,
+                                      familyName: item.linkingFamilyName,
+                                      neighborDocumentId: item.linkingBeforeDocumentId ?? item.linkingAfterDocumentId,
+                                      position: item.linkingNeighborPosition,
+                                      source: item.linkingManualOverride ? 'manual' : 'ai',
+                                      manualOverride: item.linkingManualOverride,
+                                      aiConfidence: item.linkingConfidence,
+                                      reason: item.linkingReason,
+                                    } satisfies FamilyMembership])
+                                  : [],
+                                _item: item,
+                              })),
+                            )
+                          : { groups: [] as FamilyGroup[], unassignedItems: [] as Array<{ id: string; memberships: FamilyMembership[]; _item: BulkImportItemLite }> };
+
                         const linkingGroupAllMemberIds = new Set<string>();
                         if (currentStep === 'linking') {
+                          // Task #1425: items assigned to a named family are NOT shown in
+                          // the top-level flat list – they appear inside their family group.
+                          for (const grp of familyGroupsData.groups) {
+                            for (const it of grp.items) linkingGroupAllMemberIds.add(it.id);
+                          }
+                          // Keep legacy chain group members hidden too (backward compat).
                           for (const grp of linkingGroupsData.groups) {
                             for (const it of grp.items) linkingGroupAllMemberIds.add(it.id);
                           }
@@ -6513,287 +6549,329 @@ export default function BulkDocumentImportPage() {
                         </div>
                       )}
 
-                      {/* Linking group cards: render groups assembled from server state
-                          (in-session beforeItemId/afterItemId links). DnD creation of new
-                          in-session chains is disabled per Task #1386; existing chains from
-                          prior sessions are shown read-only so admins can break them if needed. */}
-                      {currentStep === 'linking' && linkingGroupsData.groups.map((group) => (
-                        <div
-                          key={group.id}
-                          data-testid={`linking-group-${group.id}`}
-                          className="rounded-lg border-2 border-primary/30 bg-primary/5 dark:bg-primary/10 space-y-1.5 p-2 mb-2"
-                          onDragOver={(e) => {
-                            // Accept drops from any dragged item (including those in
-                            // other groups) so cross-group moves are possible.
-                            if (!linkingDragId) return;
-                            e.preventDefault();
-                          }}
-                          onDrop={(e) => {
-                            const srcId = linkingDragId ?? e.dataTransfer.getData('text/plain');
-                            if (!srcId) return;
-                            // No-op: item is already the last in this group.
-                            const lastItem = group.items[group.items.length - 1];
-                            if (srcId === lastItem.id) return;
-                            e.preventDefault();
-                            handleLinkingDrop(srcId, lastItem.id, 'after');
-                            setLinkingDragId(null);
-                            setLinkingDropTarget(null);
-                          }}
-                        >
-                          {/* Group header */}
-                          <div className="flex items-center gap-2 px-1 pb-0.5">
-                            <Link2 className="h-3.5 w-3.5 text-primary flex-shrink-0" />
-                            <span className="text-xs font-semibold text-primary">
-                              {isFr
-                                ? `Chaîne · ${group.items.length} fichier${group.items.length > 1 ? 's' : ''}`
-                                : `Chain · ${group.items.length} file${group.items.length > 1 ? 's' : ''}`}
-                            </span>
-                            {group.isManual && (
-                              <Badge
-                                variant="outline"
-                                className="text-[10px] border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300 ml-1"
-                              >
-                                {isFr ? 'Manuel' : 'Manual'}
-                              </Badge>
-                            )}
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              className="h-6 px-2 text-xs ml-auto"
-                              data-testid={`linking-break-group-${group.id}`}
-                              aria-label={isFr ? 'Dissocier la chaîne' : 'Break chain'}
-                              onClick={() =>
-                                handleLinkingBreakGroup(group.items.map((gi) => gi.id))
-                              }
-                            >
-                              <Link2Off className="h-3.5 w-3.5" />
-                              <span className="ml-1">
-                                {isFr ? 'Dissocier la chaîne' : 'Break chain'}
+                      {/* Task #1425: Family group cards — items grouped by the existing
+                          document family they are assigned to. Replaces the old in-session
+                          "Chain" concept (Task #1233/1386). One card per named family;
+                          items with no family assignment remain in the flat list below. */}
+                      {currentStep === 'linking' && familyGroupsData.groups.map((group) => {
+                        const famGroupItems = group.items.map((wrapped) => (wrapped as { id: string; memberships: FamilyMembership[]; _item: BulkImportItemLite })._item);
+                        const hasManual = group.items.some((wrapped) => {
+                          const m = group.membershipByItemId.get(wrapped.id);
+                          return m?.manualOverride;
+                        });
+                        return (
+                          <div
+                            key={group.familyId}
+                            data-testid={`family-group-${group.familyId}`}
+                            className="rounded-lg border-2 border-indigo-300/60 bg-indigo-50/60 dark:border-indigo-700/60 dark:bg-indigo-950/30 space-y-1.5 p-2 mb-2"
+                          >
+                            {/* Group header */}
+                            <div className="flex items-center gap-2 px-1 pb-0.5 flex-wrap">
+                              <FolderOpen className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+                              <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 truncate max-w-[16rem]">
+                                {group.familyName}
                               </span>
-                            </Button>
-                          </div>
-
-                          {/* Group item rows */}
-                          {group.items.map((groupItem, groupIdx) => {
-                            const grpDecision = getItemStepDecision(groupItem, 'linking');
-                            const grpIsExcluded = groupItem.status === 'rejected';
-                            const grpRetryPending =
-                              (runStep.isPending && runStep.variables?.itemId === groupItem.id);
-                            const grpTogglePending =
-                              (toggleExclude.isPending && toggleExclude.variables?.itemId === groupItem.id);
-                            const grpCanToggleExclude =
-                              groupItem.status !== 'committed' && groupItem.status !== 'duplicate';
-                            const GrpItemIcon = iconForMime(groupItem.mimeType);
-                            const grpIsDragging = linkingDragId === groupItem.id;
-                            const grpIsDropTarget = linkingDropTarget?.targetId === groupItem.id;
-                            return (
-                              <div
-                                key={groupItem.id}
-                                data-testid={`linking-row-${groupItem.id}`}
-                                draggable={!grpIsExcluded}
-                                className={[
-                                  'rounded border bg-background flex flex-col gap-1 p-2 transition-opacity',
-                                  grpIsDragging ? 'opacity-40' : '',
-                                  grpIsDropTarget && linkingDropTarget?.position === 'before'
-                                    ? 'border-t-2 border-t-primary'
-                                    : grpIsDropTarget && linkingDropTarget?.position === 'after'
-                                      ? 'border-b-2 border-b-primary'
-                                      : '',
-                                ].join(' ')}
-                                onDragStart={!grpIsExcluded ? (e) => {
-                                  setLinkingDragId(groupItem.id);
-                                  e.dataTransfer.effectAllowed = 'move';
-                                  e.dataTransfer.setData('text/plain', groupItem.id);
-                                  debugLog('linking: drag start (group)', { itemId: groupItem.id, sessionId });
-                                } : undefined}
-                                onDragEnd={() => {
-                                  setLinkingDragId(null);
-                                  setLinkingDropTarget(null);
-                                }}
-                                onDragOver={(e) => {
-                                  if (!linkingDragId || linkingDragId === groupItem.id || grpIsExcluded) return;
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  e.dataTransfer.dropEffect = 'move';
-                                  const rect = e.currentTarget.getBoundingClientRect();
-                                  const pos: 'before' | 'after' =
-                                    e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
-                                  if (
-                                    linkingDropTarget?.targetId !== groupItem.id ||
-                                    linkingDropTarget.position !== pos
-                                  ) {
-                                    setLinkingDropTarget({ targetId: groupItem.id, position: pos });
+                              <span className="text-xs text-indigo-500 dark:text-indigo-400">
+                                {isFr
+                                  ? `· ${famGroupItems.length} fichier${famGroupItems.length > 1 ? 's' : ''}`
+                                  : `· ${famGroupItems.length} file${famGroupItems.length > 1 ? 's' : ''}`}
+                              </span>
+                              {hasManual && (
+                                <Badge
+                                  variant="outline"
+                                  className="text-[10px] border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300"
+                                >
+                                  {isFr ? 'Manuel' : 'Manual'}
+                                </Badge>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 px-2 text-xs ml-auto"
+                                data-testid={`family-group-clear-all-${group.familyId}`}
+                                aria-label={isFr ? 'Retirer tous de cette famille' : 'Remove all from this family'}
+                                disabled={setExistingLinkDecision.isPending}
+                                onClick={() => {
+                                  for (const gi of famGroupItems) {
+                                    if (gi.status !== 'committed' && gi.status !== 'duplicate') {
+                                      setExistingLinkDecision.mutate({
+                                        itemId: gi.id,
+                                        familyId: null,
+                                        neighborDocumentId: null,
+                                        position: null,
+                                      });
+                                    }
                                   }
-                                }}
-                                onDragLeave={(e) => {
-                                  if (!e.currentTarget.contains(e.relatedTarget as Node)) {
-                                    if (linkingDropTarget?.targetId === groupItem.id)
-                                      setLinkingDropTarget(null);
-                                  }
-                                }}
-                                onDrop={(e) => {
-                                  e.preventDefault();
-                                  e.stopPropagation();
-                                  if (grpIsExcluded) return;
-                                  const srcId = linkingDragId ?? e.dataTransfer.getData('text/plain');
-                                  const pos = linkingDropTarget?.position ?? 'after';
-                                  setLinkingDragId(null);
-                                  setLinkingDropTarget(null);
-                                  if (!srcId || srcId === groupItem.id) return;
-                                  handleLinkingDrop(srcId, groupItem.id, pos);
                                 }}
                               >
-                                <div className="flex items-center gap-2 min-w-0">
-                                  {/* Keyboard-accessible drag handle */}
-                                  <button
-                                    type="button"
-                                    className={[
-                                      'flex-shrink-0 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded',
-                                      grpIsExcluded ? 'opacity-40 cursor-not-allowed' : 'cursor-grab active:cursor-grabbing',
-                                    ].join(' ')}
-                                    data-testid={`linking-drag-handle-${groupItem.id}`}
-                                    aria-label={isFr ? 'Déplacer (flèches clavier)' : 'Drag to reorder (arrow keys)'}
-                                    tabIndex={grpIsExcluded ? -1 : 0}
-                                    onKeyDown={!grpIsExcluded ? (e) => handleLinkingKeyDown(e, groupItem.id, group.id) : undefined}
-                                    aria-grabbed={grpIsDragging}
-                                  >
-                                    <GripVertical className="h-4 w-4" />
-                                  </button>
-                                  {/* Position indicator */}
-                                  <span
-                                    className="text-xs tabular-nums text-muted-foreground w-8 flex-shrink-0 text-right"
-                                    data-testid={`linking-row-position-${groupItem.id}`}
-                                    aria-label={`${groupIdx + 1} / ${group.items.length}`}
-                                  >
-                                    {groupIdx + 1}/{group.items.length}
-                                  </span>
-                                  {/* File icon + Filename (click to preview with chain navigation) */}
-                                  <button
-                                    type="button"
-                                    className="flex items-center gap-2 min-w-0 flex-1 text-left hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
-                                    data-testid={`item-preview-trigger-${groupItem.id}`}
-                                    onClick={() => setPreviewItem({
-                                      id: groupItem.id,
-                                      originalName: groupItem.originalName,
-                                      mimeType: groupItem.mimeType,
-                                      chainSiblings: group.items.map((gi) => ({
-                                        id: gi.id,
-                                        originalName: gi.originalName,
-                                        mimeType: gi.mimeType,
-                                      })),
-                                      chainIndex: groupIdx,
-                                    })}
-                                  >
-                                    <GrpItemIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                                    <span className="text-sm truncate">
-                                      {groupItem.originalName}
-                                    </span>
-                                  </button>
-                                  {/* Action buttons */}
-                                  <div
-                                    className="flex items-center gap-1 flex-shrink-0 ml-auto"
-                                    onClick={(e) => e.stopPropagation()}
-                                  >
-                                    {!grpIsExcluded && groupItem.status === 'linked' && (
-                                      <Button
-                                        size="sm"
-                                        variant="default"
-                                        className="h-7 text-xs"
-                                        onClick={() => runStep.mutate({ itemId: groupItem.id, action: 'commit' })}
-                                        disabled={grpRetryPending}
-                                        data-testid={`button-commit-${groupItem.id}`}
-                                      >
-                                        {isFr ? 'Sauvegarder' : 'Commit'}
-                                      </Button>
+                                <Link2Off className="h-3.5 w-3.5" />
+                                <span className="ml-1">
+                                  {isFr ? 'Retirer de la famille' : 'Remove from family'}
+                                </span>
+                              </Button>
+                            </div>
+
+                            {/* Group item rows */}
+                            {famGroupItems.map((groupItem) => {
+                              const m = group.membershipByItemId.get(groupItem.id);
+                              const grpDecision = getItemStepDecision(groupItem, 'linking');
+                              const grpIsExcluded = groupItem.status === 'rejected';
+                              const grpRetryPending =
+                                (runStep.isPending && runStep.variables?.itemId === groupItem.id);
+                              const grpTogglePending =
+                                (toggleExclude.isPending && toggleExclude.variables?.itemId === groupItem.id);
+                              const grpCanToggleExclude =
+                                groupItem.status !== 'committed' && groupItem.status !== 'duplicate';
+                              const GrpItemIcon = iconForMime(groupItem.mimeType);
+                              return (
+                                <div
+                                  key={groupItem.id}
+                                  data-testid={`linking-row-${groupItem.id}`}
+                                  className="rounded border bg-background flex flex-col gap-1 p-2"
+                                >
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    {/* File icon + filename */}
+                                    <button
+                                      type="button"
+                                      className="flex items-center gap-2 min-w-0 flex-1 text-left hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
+                                      data-testid={`item-preview-trigger-${groupItem.id}`}
+                                      onClick={() => setPreviewItem({
+                                        id: groupItem.id,
+                                        originalName: groupItem.originalName,
+                                        mimeType: groupItem.mimeType,
+                                        chainSiblings: famGroupItems.map((gi) => ({
+                                          id: gi.id,
+                                          originalName: gi.originalName,
+                                          mimeType: gi.mimeType,
+                                        })),
+                                        chainIndex: famGroupItems.indexOf(groupItem),
+                                      })}
+                                    >
+                                      <GrpItemIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                                      <span className="text-sm truncate">{groupItem.originalName}</span>
+                                    </button>
+                                    {/* Position within family */}
+                                    {m?.neighborDocumentId && m.position && (
+                                      <span className="text-xs text-muted-foreground flex-shrink-0 truncate max-w-[10rem]">
+                                        {m.position === 'after'
+                                          ? (isFr ? `Après: ${groupItem.linkingNeighborDocumentName ?? m.neighborDocumentId}` : `After: ${groupItem.linkingNeighborDocumentName ?? m.neighborDocumentId}`)
+                                          : (isFr ? `Avant: ${groupItem.linkingNeighborDocumentName ?? m.neighborDocumentId}` : `Before: ${groupItem.linkingNeighborDocumentName ?? m.neighborDocumentId}`)}
+                                      </span>
                                     )}
-                                    {!grpIsExcluded && (
-                                      <Button
-                                        size="sm"
-                                        variant="outline"
-                                        className="h-7 text-xs"
-                                        onClick={() => runStep.mutate({ itemId: groupItem.id, action: 'link' })}
-                                        disabled={grpRetryPending}
-                                        data-testid={`button-retry-linking-${groupItem.id}`}
-                                      >
-                                        {grpRetryPending
-                                          ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                          : <RotateCw className="h-3.5 w-3.5" />}
-                                        <span className="ml-1">{isFr ? 'Réessayer' : 'Retry'}</span>
-                                      </Button>
-                                    )}
-                                    {grpCanToggleExclude && (
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className="h-7 w-7 p-0"
-                                        onClick={() => toggleExclude.mutate({ itemId: groupItem.id, excluded: !grpIsExcluded })}
-                                        disabled={grpTogglePending}
-                                        aria-pressed={grpIsExcluded}
-                                        data-testid={`button-toggle-exclude-${groupItem.id}`}
-                                        title={grpIsExcluded ? (isFr ? 'Réinclure' : 'Re-include') : (isFr ? 'Exclure' : 'Exclude')}
-                                      >
-                                        {grpTogglePending
-                                          ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
-                                          : grpIsExcluded
-                                            ? <Eye className="h-3.5 w-3.5" />
-                                            : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
-                                      </Button>
+                                    {/* Action buttons */}
+                                    <div
+                                      className="flex items-center gap-1 flex-shrink-0 ml-auto"
+                                      onClick={(e) => e.stopPropagation()}
+                                    >
+                                      {!grpIsExcluded && groupItem.status === 'linked' && (
+                                        <Button
+                                          size="sm"
+                                          variant="default"
+                                          className="h-7 text-xs"
+                                          onClick={() => runStep.mutate({ itemId: groupItem.id, action: 'commit' })}
+                                          disabled={grpRetryPending}
+                                          data-testid={`button-commit-${groupItem.id}`}
+                                        >
+                                          {isFr ? 'Sauvegarder' : 'Commit'}
+                                        </Button>
+                                      )}
+                                      {!grpIsExcluded && (
+                                        <Button
+                                          size="sm"
+                                          variant="outline"
+                                          className="h-7 text-xs"
+                                          onClick={() => runStep.mutate({ itemId: groupItem.id, action: 'link' })}
+                                          disabled={grpRetryPending}
+                                          data-testid={`button-retry-linking-${groupItem.id}`}
+                                        >
+                                          {grpRetryPending
+                                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                            : <RotateCw className="h-3.5 w-3.5" />}
+                                          <span className="ml-1">{isFr ? 'Réessayer' : 'Retry'}</span>
+                                        </Button>
+                                      )}
+                                      {!grpIsExcluded && grpCanToggleExclude && (
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-7 px-2 text-xs"
+                                          onClick={() => setExistingLinkDecision.mutate({
+                                            itemId: groupItem.id,
+                                            familyId: null,
+                                            neighborDocumentId: null,
+                                            position: null,
+                                          })}
+                                          disabled={setExistingLinkDecision.isPending}
+                                          data-testid={`family-remove-${groupItem.id}`}
+                                          title={isFr ? 'Retirer de cette famille' : 'Remove from this family'}
+                                        >
+                                          <Link2Off className="h-3.5 w-3.5" />
+                                        </Button>
+                                      )}
+                                      {grpCanToggleExclude && (
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-7 w-7 p-0"
+                                          onClick={() => toggleExclude.mutate({ itemId: groupItem.id, excluded: !grpIsExcluded })}
+                                          disabled={grpTogglePending}
+                                          aria-pressed={grpIsExcluded}
+                                          data-testid={`button-toggle-exclude-${groupItem.id}`}
+                                          title={grpIsExcluded ? (isFr ? 'Réinclure' : 'Re-include') : (isFr ? 'Exclure' : 'Exclude')}
+                                        >
+                                          {grpTogglePending
+                                            ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                            : grpIsExcluded
+                                              ? <Eye className="h-3.5 w-3.5" />
+                                              : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                  {/* Badges row */}
+                                  <div className="flex items-center gap-2 flex-wrap pl-6">
+                                    {grpIsExcluded ? (
+                                      <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
+                                        {isFr ? 'Exclu' : 'Excluded'}
+                                      </Badge>
+                                    ) : (
+                                      <>
+                                        <FallbackReasonBadge
+                                          reason={grpDecision?.fallbackReason}
+                                          isFr={isFr}
+                                          retryCount={grpDecision?.retryCount}
+                                        />
+                                        {!grpDecision?.fallbackReason && (
+                                          <TextOnlyDegradedBadge
+                                            degraded={groupItem.linkingDegraded}
+                                            isFr={isFr}
+                                          />
+                                        )}
+                                        <ConfidenceBadge
+                                          value={grpDecision?.confidence}
+                                          fallbackReason={grpDecision?.fallbackReason}
+                                          isFr={isFr}
+                                        />
+                                        {m?.manualOverride && (
+                                          <Badge
+                                            variant="outline"
+                                            className="text-[10px] border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300"
+                                            data-testid={`linking-manual-tag-${groupItem.id}`}
+                                          >
+                                            {isFr ? 'Manuel' : 'Manual'}
+                                          </Badge>
+                                        )}
+                                      </>
                                     )}
                                   </div>
                                 </div>
-                                {/* Badges row */}
-                                <div className="flex items-center gap-2 flex-wrap pl-[5.5rem]">
-                                  {grpIsExcluded ? (
-                                    <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">
-                                      {isFr ? 'Exclu' : 'Excluded'}
-                                    </Badge>
-                                  ) : (
-                                    <>
-                                      <FallbackReasonBadge
-                                        reason={grpDecision?.fallbackReason}
-                                        isFr={isFr}
-                                        retryCount={grpDecision?.retryCount}
-                                      />
-                                      {!grpDecision?.fallbackReason && (
-                                        <TextOnlyDegradedBadge
-                                          degraded={groupItem.linkingDegraded}
-                                          isFr={isFr}
-                                        />
+                              );
+                            })}
+                          </div>
+                        );
+                      })}
+
+                      {/* Legacy in-session chain groups (backward compat: shown read-only
+                          for items processed before Task #1425 that still have in-session
+                          chain links). New items will only have family groups above. */}
+                      {currentStep === 'linking' && linkingGroupsData.groups
+                        .filter((grp) => !grp.items.some((gi) => familyGroupsData.groups.some((fg) => fg.items.some((fw) => fw.id === gi.id))))
+                        .map((group) => (
+                          <div
+                            key={group.id}
+                            data-testid={`linking-group-${group.id}`}
+                            className="rounded-lg border-2 border-primary/30 bg-primary/5 dark:bg-primary/10 space-y-1.5 p-2 mb-2"
+                          >
+                            <div className="flex items-center gap-2 px-1 pb-0.5">
+                              <Link2 className="h-3.5 w-3.5 text-primary flex-shrink-0" />
+                              <span className="text-xs font-semibold text-primary">
+                                {isFr
+                                  ? `Chaîne · ${group.items.length} fichier${group.items.length > 1 ? 's' : ''}`
+                                  : `Chain · ${group.items.length} file${group.items.length > 1 ? 's' : ''}`}
+                              </span>
+                              {group.isManual && (
+                                <Badge variant="outline" className="text-[10px] border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300 ml-1">
+                                  {isFr ? 'Manuel' : 'Manual'}
+                                </Badge>
+                              )}
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                className="h-6 px-2 text-xs ml-auto"
+                                data-testid={`linking-break-group-${group.id}`}
+                                aria-label={isFr ? 'Dissocier la chaîne' : 'Break chain'}
+                                onClick={() => handleLinkingBreakGroup(group.items.map((gi) => gi.id))}
+                              >
+                                <Link2Off className="h-3.5 w-3.5" />
+                                <span className="ml-1">{isFr ? 'Dissocier la chaîne' : 'Break chain'}</span>
+                              </Button>
+                            </div>
+                            {group.items.map((groupItem, groupIdx) => {
+                              const grpDecision = getItemStepDecision(groupItem, 'linking');
+                              const grpIsExcluded = groupItem.status === 'rejected';
+                              const grpRetryPending = (runStep.isPending && runStep.variables?.itemId === groupItem.id);
+                              const grpTogglePending = (toggleExclude.isPending && toggleExclude.variables?.itemId === groupItem.id);
+                              const grpCanToggleExclude = groupItem.status !== 'committed' && groupItem.status !== 'duplicate';
+                              const GrpItemIcon = iconForMime(groupItem.mimeType);
+                              return (
+                                <div key={groupItem.id} data-testid={`linking-row-${groupItem.id}`} className="rounded border bg-background flex flex-col gap-1 p-2">
+                                  <div className="flex items-center gap-2 min-w-0">
+                                    <span className="text-xs tabular-nums text-muted-foreground w-8 flex-shrink-0 text-right">{groupIdx + 1}/{group.items.length}</span>
+                                    <button type="button" className="flex items-center gap-2 min-w-0 flex-1 text-left hover:underline" data-testid={`item-preview-trigger-${groupItem.id}`}
+                                      onClick={() => setPreviewItem({ id: groupItem.id, originalName: groupItem.originalName, mimeType: groupItem.mimeType, chainSiblings: group.items.map((gi) => ({ id: gi.id, originalName: gi.originalName, mimeType: gi.mimeType })), chainIndex: groupIdx })}>
+                                      <GrpItemIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                                      <span className="text-sm truncate">{groupItem.originalName}</span>
+                                    </button>
+                                    <div className="flex items-center gap-1 flex-shrink-0 ml-auto" onClick={(e) => e.stopPropagation()}>
+                                      {!grpIsExcluded && groupItem.status === 'linked' && (
+                                        <Button size="sm" variant="default" className="h-7 text-xs" onClick={() => runStep.mutate({ itemId: groupItem.id, action: 'commit' })} disabled={grpRetryPending} data-testid={`button-commit-${groupItem.id}`}>{isFr ? 'Sauvegarder' : 'Commit'}</Button>
                                       )}
-                                      <ConfidenceBadge
-                                        value={grpDecision?.confidence}
-                                        fallbackReason={grpDecision?.fallbackReason}
-                                        isFr={isFr}
-                                      />
-                                      {groupItem.linkingManualOverride && (
-                                        <Badge
-                                          variant="outline"
-                                          className="text-[10px] border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300"
-                                          data-testid={`linking-manual-tag-${groupItem.id}`}
-                                        >
-                                          {isFr ? 'Manuel' : 'Manual'}
-                                        </Badge>
+                                      {!grpIsExcluded && (
+                                        <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => runStep.mutate({ itemId: groupItem.id, action: 'link' })} disabled={grpRetryPending} data-testid={`button-retry-linking-${groupItem.id}`}>
+                                          {grpRetryPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <RotateCw className="h-3.5 w-3.5" />}
+                                          <span className="ml-1">{isFr ? 'Réessayer' : 'Retry'}</span>
+                                        </Button>
                                       )}
-                                    </>
-                                  )}
+                                      {grpCanToggleExclude && (
+                                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0" onClick={() => toggleExclude.mutate({ itemId: groupItem.id, excluded: !grpIsExcluded })} disabled={grpTogglePending} aria-pressed={grpIsExcluded} data-testid={`button-toggle-exclude-${groupItem.id}`} title={grpIsExcluded ? (isFr ? 'Réinclure' : 'Re-include') : (isFr ? 'Exclure' : 'Exclude')}>
+                                          {grpTogglePending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : grpIsExcluded ? <Eye className="h-3.5 w-3.5" /> : <EyeOff className="h-3.5 w-3.5 text-muted-foreground" />}
+                                        </Button>
+                                      )}
+                                    </div>
+                                  </div>
+                                  <div className="flex items-center gap-2 flex-wrap pl-[5.5rem]">
+                                    {grpIsExcluded ? (
+                                      <Badge variant="outline" className="border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200">{isFr ? 'Exclu' : 'Excluded'}</Badge>
+                                    ) : (
+                                      <>
+                                        <FallbackReasonBadge reason={grpDecision?.fallbackReason} isFr={isFr} retryCount={grpDecision?.retryCount} />
+                                        {!grpDecision?.fallbackReason && <TextOnlyDegradedBadge degraded={groupItem.linkingDegraded} isFr={isFr} />}
+                                        <ConfidenceBadge value={grpDecision?.confidence} fallbackReason={grpDecision?.fallbackReason} isFr={isFr} />
+                                        {groupItem.linkingManualOverride && (
+                                          <Badge variant="outline" className="text-[10px] border-slate-300 bg-slate-50 text-slate-700 dark:border-slate-600 dark:bg-slate-900 dark:text-slate-300" data-testid={`linking-manual-tag-${groupItem.id}`}>{isFr ? 'Manuel' : 'Manual'}</Badge>
+                                        )}
+                                      </>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      ))}
+                              );
+                            })}
+                          </div>
+                        ))}
 
                       {/* Task #1386: DnD drop zone removed — linking now uses
                           existing-family picker only, no in-session reordering. */}
 
-                      {displayedTopLevelItems.length === 0 && (linkingGroupsData.groups.length === 0 || currentStep === 'linking') && (
+                      {displayedTopLevelItems.length === 0 && (
+                        familyGroupsData.groups.length === 0 && linkingGroupsData.groups.length === 0 || currentStep !== 'linking'
+                      ) && (
                         <p className="text-sm text-muted-foreground" data-testid={`empty-state-${currentStep}`}>
                           {hideReady && topLevelItems.length > 0
                             ? (isFr ? "Tous les fichiers sont prêts pour l'étape suivante." : 'All files are ready for the next step.')
                             : (isFr ? 'Aucun fichier' : 'No items')}
                         </p>
                       )}
-                      {displayedTopLevelItems.length === 0 && linkingGroupsData.groups.length > 0 && currentStep === 'linking' && (
+                      {displayedTopLevelItems.length === 0 && (familyGroupsData.groups.length > 0 || linkingGroupsData.groups.length > 0) && currentStep === 'linking' && (
                         <p className="text-sm text-muted-foreground" data-testid={`empty-state-${currentStep}-standalone`}>
                           {isFr ? 'Aucun fichier autonome' : 'No standalone files'}
                         </p>

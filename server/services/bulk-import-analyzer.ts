@@ -224,6 +224,15 @@ export interface IdentificationResult extends AnalyzerConfidence {
   metadata: Record<string, unknown>;
 }
 
+/** Task #1425: one family placement returned by the AI or set manually. */
+export interface FamilyMembershipSuggestion {
+  familyId: string;
+  neighborDocumentId: string;
+  position: 'before' | 'after';
+  confidence: number;
+  reason?: string;
+}
+
 export interface LinkSuggestion extends AnalyzerConfidence {
   beforeItemId?: string;
   afterItemId?: string;
@@ -233,6 +242,8 @@ export interface LinkSuggestion extends AnalyzerConfidence {
   familyId?: string | null;
   neighborDocumentId?: string | null;
   position?: 'before' | 'after' | null;
+  /** Task #1425: multi-family memberships. When present, use this instead of the single-family fields. */
+  memberships?: FamilyMembershipSuggestion[];
 }
 
 /** Task #1386: an existing document that can serve as a linking candidate. */
@@ -1521,7 +1532,7 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.${
     // non-empty one — the prompt switches to existing-library mode so the AI
     // never returns beforeItemId/afterItemId (session-chain fallback). When
     // no candidates are available the AI is expected to return low confidence
-    // and leave familyId/neighborDocumentId/position as null.
+    // and leave memberships as an empty array.
     const hasExistingCandidates = Array.isArray(input.existingCandidates);
 
     let prompt: string;
@@ -1539,7 +1550,7 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.${
               : String(c.effectiveDate))
           : null,
       }));
-      prompt = `You are helping to link an imported document to an existing document chain in the Koveo document library.
+      prompt = `You are helping to link an imported document to one or more existing document chains in the Koveo document library.
 
 Document being imported: "${input.originalName}"
 ${folderHintLine ? `${folderHintLine}\n` : ''}
@@ -1547,16 +1558,22 @@ Existing documents available to link to (from the live library):
 ${JSON.stringify(candidateList, null, 2)}
 
 Instructions:
-- If you find a strong match (confidence ≥ 0.7), pick exactly one existing document from the list above.
+- A document may legitimately belong to MULTIPLE families (e.g. meeting minutes that are also part of a financial chain). Return one entry per matching family.
+- For each match with confidence ≥ 0.7, include an entry in the memberships array.
 - Use 'position': 'before' if the imported document comes BEFORE the candidate (imported is earlier), 'after' if it comes AFTER (imported is later).
 - Only use canLinkBefore=true candidates for position='before', only canLinkAfter=true candidates for position='after'.
 - Do NOT create a new family — only use the families already present in the list.
-- If no good match exists, return confidence < 0.5 and leave familyId/neighborDocumentId/position as null.
+- If no good match exists for a family, omit it from the memberships array entirely.
+- If no matches at all, return an empty memberships array with overall confidence < 0.5.
 
 Return JSON: {
-  familyId: string | null,
-  neighborDocumentId: string | null,
-  position: 'before' | 'after' | null,
+  memberships: Array<{
+    familyId: string,
+    neighborDocumentId: string,
+    position: 'before' | 'after',
+    confidence: number,
+    reason: string
+  }>,
   reason: string,
   confidence: number
 }`;
@@ -1568,6 +1585,14 @@ relatedItemIds: string[], reason: string, confidence: number }.`;
     }
 
     type ExistingLinkRaw = {
+      memberships?: Array<{
+        familyId?: string;
+        neighborDocumentId?: string;
+        position?: string;
+        confidence?: number;
+        reason?: string;
+      }>;
+      /** Legacy single-family fallback (Task #1386) — tolerated from older prompts. */
       familyId?: string | null;
       neighborDocumentId?: string | null;
       position?: string | null;
@@ -1594,16 +1619,53 @@ relatedItemIds: string[], reason: string, confidence: number }.`;
 
     if (hasExistingCandidates) {
       const er = raw as ExistingLinkRaw;
-      const rawFamilyId = typeof er.familyId === 'string' ? er.familyId : null;
-      const rawNeighborDocumentId = typeof er.neighborDocumentId === 'string' ? er.neighborDocumentId : null;
-      const rawPosition = er.position === 'before' || er.position === 'after' ? er.position : null;
+      const overallReason = typeof er.reason === 'string' ? er.reason : '';
+      const overallConf = clampConfidence(er.confidence);
+
+      // Task #1425: parse the new memberships[] array, with fallback to the
+      // legacy single-family shape so sessions analysed before this deploy
+      // still surface their single membership correctly.
+      let memberships: FamilyMembershipSuggestion[] = [];
+      if (Array.isArray(er.memberships)) {
+        for (const m of er.memberships) {
+          if (
+            typeof m.familyId === 'string' && m.familyId &&
+            typeof m.neighborDocumentId === 'string' && m.neighborDocumentId &&
+            (m.position === 'before' || m.position === 'after')
+          ) {
+            memberships.push({
+              familyId: m.familyId,
+              neighborDocumentId: m.neighborDocumentId,
+              position: m.position,
+              confidence: clampConfidence(m.confidence),
+              reason: typeof m.reason === 'string' ? m.reason : overallReason,
+            });
+          }
+        }
+      } else if (typeof er.familyId === 'string' && er.familyId &&
+                 typeof er.neighborDocumentId === 'string' && er.neighborDocumentId &&
+                 (er.position === 'before' || er.position === 'after')) {
+        // Legacy single-family response — wrap it.
+        memberships = [{
+          familyId: er.familyId,
+          neighborDocumentId: er.neighborDocumentId,
+          position: er.position,
+          confidence: overallConf,
+          reason: overallReason,
+        }];
+      }
+
+      // Derive the legacy single-membership fields from the best membership
+      // for backward compat with callers that still read them directly.
+      const best = memberships[0] ?? null;
       return {
         relatedItemIds: [],
-        reason: typeof er.reason === 'string' ? er.reason : '',
-        confidence: clampConfidence(er.confidence),
-        familyId: rawFamilyId,
-        neighborDocumentId: rawNeighborDocumentId,
-        position: rawPosition,
+        reason: overallReason,
+        confidence: overallConf,
+        familyId: best?.familyId ?? null,
+        neighborDocumentId: best?.neighborDocumentId ?? null,
+        position: best?.position ?? null,
+        memberships,
         degraded,
         fallbackReason,
         retryCount,

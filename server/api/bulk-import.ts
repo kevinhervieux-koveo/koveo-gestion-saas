@@ -2102,6 +2102,45 @@ async function processItemForStep(
       })
       .where(eq(schema.bulkImportItems.id, item.id))
       .returning();
+
+    // Task #1425: persist each AI membership to bulk_import_item_family_memberships.
+    // Delete any previous AI-sourced memberships for this item first (retry path),
+    // then insert the fresh set. Manual memberships are preserved.
+    const aiMemberships = result.memberships ?? [];
+    try {
+      // Remove existing AI memberships for this item so a retry starts clean.
+      await db
+        .delete(schema.bulkImportItemFamilyMemberships)
+        .where(
+          and(
+            eq(schema.bulkImportItemFamilyMemberships.itemId, item.id),
+            eq(schema.bulkImportItemFamilyMemberships.source, 'ai'),
+          ),
+        );
+      if (aiMemberships.length > 0) {
+        const now = new Date();
+        await db
+          .insert(schema.bulkImportItemFamilyMemberships)
+          .values(
+            aiMemberships.map((m) => ({
+              itemId: item.id,
+              familyId: m.familyId,
+              neighborDocumentId: m.neighborDocumentId,
+              position: m.position,
+              source: 'ai' as const,
+              aiConfidence: m.confidence,
+              manualOverride: false,
+              reason: m.reason ?? null,
+              updatedAt: now,
+            })),
+          )
+          .onConflictDoNothing();
+      }
+    } catch (membershipErr) {
+      // Non-fatal: log but don't block item commit progression.
+      logError('[bulk-import] processItemForStep: failed to persist AI memberships', membershipErr as Error);
+    }
+
     logDebug('[bulk-import] processItemForStep decision', {
       metadata: {
         step: 'linking',
@@ -2113,6 +2152,7 @@ async function processItemForStep(
         familyId: result.familyId ?? null,
         neighborDocumentId: result.neighborDocumentId ?? null,
         position: result.position ?? null,
+        membershipCount: aiMemberships.length,
         conf: result.confidence,
         fallback: result.fallbackReason ?? null,
       },
@@ -7274,6 +7314,115 @@ export function registerBulkImportRoutes(app: Express): void {
    * Returns a structured `errorCode` on validation failure so the
    * frontend can map it to an EN/FR inline error.
    */
+  /**
+   * Task #1425: Shared validation for family-membership inputs. Reused by
+   * set-existing-link-decision, POST family-memberships, and PATCH family-memberships.
+   */
+  async function validateFamilyMembershipInput(params: {
+    item: typeof schema.bulkImportItems.$inferSelect;
+    session: { organizationId: string; buildingId: string | null };
+    familyId: string;
+    neighborDocumentId: string;
+    position: 'before' | 'after';
+  }): Promise<{ status: number; body: { error: string; errorCode: string } } | null> {
+    const { item, session, familyId, neighborDocumentId, position } = params;
+
+    const [family] = await db
+      .select()
+      .from(schema.documentLinkFamilies)
+      .where(eq(schema.documentLinkFamilies.id, familyId))
+      .limit(1);
+    if (!family) {
+      return { status: 400, body: { error: 'Family not found', errorCode: 'family_not_found' } };
+    }
+    const familyIsVisible =
+      family.organizationId === null || family.organizationId === session.organizationId;
+    if (!familyIsVisible) {
+      return { status: 400, body: { error: 'Family not visible to this organization', errorCode: 'family_not_visible' } };
+    }
+
+    const [neighborDoc] = await db
+      .select()
+      .from(schema.documents)
+      .where(eq(schema.documents.id, neighborDocumentId))
+      .limit(1);
+    if (!neighborDoc) {
+      return { status: 400, body: { error: 'Neighbor document not found', errorCode: 'neighbor_not_found' } };
+    }
+
+    const branchDecision = (item.branchDecision as { branch?: string; residenceId?: string | null } | null) ?? {};
+    const itemResidenceId = branchDecision.branch === 'residence_documents'
+      ? (branchDecision.residenceId ?? null)
+      : null;
+    const neighborBuildingId = neighborDoc.buildingId ?? null;
+    const neighborResidenceId = neighborDoc.residenceId ?? null;
+    if (neighborBuildingId !== session.buildingId || neighborResidenceId !== itemResidenceId) {
+      return {
+        status: 400,
+        body: {
+          error: 'Neighbor document is not in the same scope (building/residence) as this item',
+          errorCode: 'scope_mismatch',
+        },
+      };
+    }
+
+    if (item.finalDocumentId && item.finalDocumentId === neighborDocumentId) {
+      return { status: 400, body: { error: 'Cannot link a document to itself', errorCode: 'self_link' } };
+    }
+
+    const [neighborFamilyLink] = await db
+      .select({ id: schema.documentLinks.id })
+      .from(schema.documentLinks)
+      .where(
+        and(
+          eq(schema.documentLinks.familyId, familyId),
+          or(
+            eq(schema.documentLinks.fromDocumentId, neighborDocumentId),
+            eq(schema.documentLinks.toDocumentId, neighborDocumentId),
+          ),
+        ),
+      )
+      .limit(1);
+    if (!neighborFamilyLink) {
+      return {
+        status: 400,
+        body: { error: 'Neighbor document does not belong to the chosen family', errorCode: 'neighbor_not_in_family' },
+      };
+    }
+
+    const occupiedCheckPosition: 'before' | 'after' = position;
+    const [occupiedLink] = await db
+      .select({ id: schema.documentLinks.id })
+      .from(schema.documentLinks)
+      .where(
+        and(
+          eq(schema.documentLinks.familyId, familyId),
+          or(
+            and(
+              eq(schema.documentLinks.fromDocumentId, neighborDocumentId),
+              eq(schema.documentLinks.position, occupiedCheckPosition),
+            ),
+            and(
+              eq(schema.documentLinks.toDocumentId, neighborDocumentId),
+              eq(schema.documentLinks.position, occupiedCheckPosition === 'before' ? 'after' : 'before'),
+            ),
+          ),
+        ),
+      )
+      .limit(1);
+    if (occupiedLink) {
+      return {
+        status: 400,
+        body: {
+          error: `The ${position} side of this document in the chosen family is already occupied`,
+          errorCode: 'occupied_side',
+        },
+      };
+    }
+
+    return null;
+  }
+
   const setExistingLinkDecisionSchema = z.object({
     familyId: z.string().nullable(),
     neighborDocumentId: z.string().nullable(),
@@ -7336,6 +7485,14 @@ export function registerBulkImportRoutes(app: Express): void {
             })
             .where(eq(schema.bulkImportItems.id, itemId))
             .returning();
+          // Task #1425: also remove all memberships for this item on a full clear.
+          try {
+            await db
+              .delete(schema.bulkImportItemFamilyMemberships)
+              .where(eq(schema.bulkImportItemFamilyMemberships.itemId, itemId));
+          } catch (mErr) {
+            logError('[bulk-import] set-existing-link-decision clear: membership delete failed (non-fatal)', mErr as Error);
+          }
           logDebug('[bulk-import] route exit POST set-existing-link-decision ok (cleared)', {
             metadata: { itemId, status: 200, durationMs: Date.now() - t0 },
           });
@@ -7530,6 +7687,38 @@ export function registerBulkImportRoutes(app: Express): void {
           .where(eq(schema.bulkImportItems.id, itemId))
           .returning();
 
+        // Task #1425: also upsert the memberships table so the new family-group
+        // UI reflects manual decisions made through this legacy endpoint.
+        try {
+          const now = new Date();
+          await db
+            .insert(schema.bulkImportItemFamilyMemberships)
+            .values({
+              itemId,
+              familyId,
+              neighborDocumentId,
+              position,
+              source: 'manual',
+              manualOverride: true,
+              updatedAt: now,
+            })
+            .onConflictDoUpdate({
+              target: [
+                schema.bulkImportItemFamilyMemberships.itemId,
+                schema.bulkImportItemFamilyMemberships.familyId,
+              ],
+              set: {
+                neighborDocumentId,
+                position,
+                source: 'manual',
+                manualOverride: true,
+                updatedAt: now,
+              },
+            });
+        } catch (mErr) {
+          logError('[bulk-import] set-existing-link-decision: membership upsert failed (non-fatal)', mErr as Error);
+        }
+
         logDebug('[bulk-import] route exit POST set-existing-link-decision ok', {
           metadata: { itemId, familyId, neighborDocumentId, position, status: 200, durationMs: Date.now() - t0 },
         });
@@ -7543,6 +7732,439 @@ export function registerBulkImportRoutes(app: Express): void {
         });
         logError('[bulk-import] set-existing-link-decision failed', err as Error);
         return res.status(500).json({ error: 'Failed to update existing link decision' });
+      }
+    },
+  );
+
+  // ---------------------------------------------------------------------------
+  // Task #1425: Family-membership CRUD endpoints
+  // ---------------------------------------------------------------------------
+
+  /**
+   * GET /api/admin/bulk-import/sessions/:id/family-context?familyIds=id1,id2,...
+   *
+   * Returns, per family, the ordered list of existing committed documents in
+   * scope (same building/residence as the session) so the Linking-step UI can
+   * render "Existing" anchor rows inside each family group without a per-row
+   * round-trip.
+   */
+  app.get(
+    '/api/admin/bulk-import/sessions/:id/family-context',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const sessionId = req.params.id;
+      const rawFamilyIds = typeof req.query.familyIds === 'string' ? req.query.familyIds : '';
+      const familyIds = rawFamilyIds
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+
+      try {
+        const session = await loadSession(sessionId);
+        if (!session) {
+          return res.status(404).json({ error: 'Session not found' });
+        }
+        const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
+        if (!canAccess) {
+          return res.status(403).json({ error: 'Forbidden' });
+        }
+        if (familyIds.length === 0) {
+          return res.json({ families: [] });
+        }
+
+        // Load family rows.
+        const famRows = await db
+          .select()
+          .from(schema.documentLinkFamilies)
+          .where(inArray(schema.documentLinkFamilies.id, familyIds));
+
+        if (famRows.length === 0) {
+          return res.json({ families: [] });
+        }
+
+        // Load existing documents scoped to the session building.
+        const scopedDocs = session.buildingId
+          ? await db
+              .select({
+                id: schema.documents.id,
+                name: schema.documents.name,
+                effectiveDate: schema.documents.effectiveDate,
+                mimeType: schema.documents.mimeType,
+                residenceId: schema.documents.residenceId,
+              })
+              .from(schema.documents)
+              .where(eq(schema.documents.buildingId, session.buildingId))
+          : [];
+
+        const scopedDocIds = new Set(scopedDocs.map((d) => d.id));
+        const scopedDocMap = new Map(scopedDocs.map((d) => [d.id, d]));
+
+        const links = scopedDocIds.size > 0
+          ? await db
+              .select()
+              .from(schema.documentLinks)
+              .where(
+                and(
+                  inArray(schema.documentLinks.familyId, familyIds),
+                  or(
+                    inArray(schema.documentLinks.fromDocumentId, Array.from(scopedDocIds)),
+                    inArray(schema.documentLinks.toDocumentId, Array.from(scopedDocIds)),
+                  ),
+                ),
+              )
+          : [];
+
+        // Build per-family chain: resolve ordered document sequences.
+        type FamilyContextDoc = {
+          id: string;
+          name: string;
+          effectiveDate: Date | null | undefined;
+          mimeType: string | null | undefined;
+          residenceId: string | null | undefined;
+        };
+
+        const familyResults: Array<{
+          familyId: string;
+          familyName: string;
+          familyDescription: string | null;
+          documents: Array<FamilyContextDoc & { hasBefore: boolean; hasAfter: boolean }>;
+        }> = [];
+
+        for (const fam of famRows) {
+          const famLinks = links.filter((l) => l.familyId === fam.id);
+          if (famLinks.length === 0) {
+            familyResults.push({
+              familyId: fam.id,
+              familyName: fam.name,
+              familyDescription: fam.description ?? null,
+              documents: [],
+            });
+            continue;
+          }
+
+          // Build next/prev maps from links.
+          const nextOf = new Map<string, string>();
+          const prevOf = new Map<string, string>();
+          for (const lnk of famLinks) {
+            if (lnk.position === 'after') {
+              nextOf.set(lnk.fromDocumentId, lnk.toDocumentId);
+              prevOf.set(lnk.toDocumentId, lnk.fromDocumentId);
+            } else {
+              prevOf.set(lnk.fromDocumentId, lnk.toDocumentId);
+              nextOf.set(lnk.toDocumentId, lnk.fromDocumentId);
+            }
+          }
+
+          // Find chain head(s).
+          const allNodes = new Set<string>([
+            ...famLinks.map((l) => l.fromDocumentId),
+            ...famLinks.map((l) => l.toDocumentId),
+          ]);
+          const heads = Array.from(allNodes).filter((id) => !prevOf.has(id) && scopedDocIds.has(id));
+
+          const orderedDocs: Array<FamilyContextDoc & { hasBefore: boolean; hasAfter: boolean }> = [];
+          const seen = new Set<string>();
+          // Walk each chain starting from its head.
+          for (const head of heads) {
+            let cur: string | undefined = head;
+            while (cur && !seen.has(cur) && scopedDocIds.has(cur)) {
+              seen.add(cur);
+              const docData = scopedDocMap.get(cur);
+              if (docData) {
+                orderedDocs.push({
+                  ...docData,
+                  hasBefore: prevOf.has(cur),
+                  hasAfter: nextOf.has(cur),
+                });
+              }
+              cur = nextOf.get(cur);
+            }
+          }
+          // Include any scoped nodes not reachable from a head (isolated in cycle-safety).
+          for (const nodeId of allNodes) {
+            if (!seen.has(nodeId) && scopedDocIds.has(nodeId)) {
+              const docData = scopedDocMap.get(nodeId);
+              if (docData) {
+                orderedDocs.push({
+                  ...docData,
+                  hasBefore: prevOf.has(nodeId),
+                  hasAfter: nextOf.has(nodeId),
+                });
+              }
+            }
+          }
+
+          familyResults.push({
+            familyId: fam.id,
+            familyName: fam.name,
+            familyDescription: fam.description ?? null,
+            documents: orderedDocs,
+          });
+        }
+
+        logDebug('[bulk-import] route exit GET family-context ok', {
+          metadata: { sessionId, familyIds, durationMs: Date.now() - t0 },
+        });
+        return res.json({ families: familyResults });
+      } catch (err) {
+        logError('[bulk-import] GET family-context failed', err as Error);
+        return res.status(500).json({ error: 'Failed to load family context' });
+      }
+    },
+  );
+
+  /**
+   * GET /api/admin/bulk-import/items/:id/family-memberships
+   *
+   * Returns all family memberships for an item (used to hydrate the UI on
+   * initial load or after a mutation).
+   */
+  app.get(
+    '/api/admin/bulk-import/items/:id/family-memberships',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.id;
+      try {
+        const [item] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, itemId));
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+        const session = await loadSession(item.sessionId);
+        if (!session) return res.status(404).json({ error: 'Session not found' });
+        const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
+        if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
+
+        const memberships = await db
+          .select()
+          .from(schema.bulkImportItemFamilyMemberships)
+          .where(eq(schema.bulkImportItemFamilyMemberships.itemId, itemId));
+
+        // Batch-resolve family and neighbor names for display.
+        const famIds = [...new Set(memberships.map((m) => m.familyId).filter(Boolean) as string[])];
+        const neighborIds = [...new Set(memberships.map((m) => m.neighborDocumentId).filter(Boolean) as string[])];
+        const famMap = new Map<string, string>();
+        const neighborMap = new Map<string, string>();
+        if (famIds.length > 0) {
+          const famRows = await db.select({ id: schema.documentLinkFamilies.id, name: schema.documentLinkFamilies.name })
+            .from(schema.documentLinkFamilies)
+            .where(inArray(schema.documentLinkFamilies.id, famIds));
+          for (const f of famRows) famMap.set(f.id, f.name);
+        }
+        if (neighborIds.length > 0) {
+          const docRows = await db.select({ id: schema.documents.id, name: schema.documents.name })
+            .from(schema.documents)
+            .where(inArray(schema.documents.id, neighborIds));
+          for (const d of docRows) neighborMap.set(d.id, d.name);
+        }
+
+        const enriched = memberships.map((m) => ({
+          ...m,
+          familyName: m.familyId ? (famMap.get(m.familyId) ?? null) : null,
+          neighborDocumentName: m.neighborDocumentId ? (neighborMap.get(m.neighborDocumentId) ?? null) : null,
+        }));
+
+        return res.json({ memberships: enriched });
+      } catch (err) {
+        logError('[bulk-import] GET family-memberships failed', err as Error);
+        return res.status(500).json({ error: 'Failed to load memberships' });
+      }
+    },
+  );
+
+  const createMembershipSchema = z.object({
+    familyId: z.string().min(1),
+    neighborDocumentId: z.string().min(1),
+    position: z.enum(['before', 'after']),
+  });
+
+  /**
+   * POST /api/admin/bulk-import/items/:id/family-memberships
+   *
+   * Creates a new manual family membership for an item. Runs the same
+   * validation as set-existing-link-decision (family visible, neighbor in
+   * scope, side not occupied, no cycle).
+   */
+  app.post(
+    '/api/admin/bulk-import/items/:id/family-memberships',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.id;
+      try {
+        const { familyId, neighborDocumentId, position } = createMembershipSchema.parse(req.body);
+
+        const [item] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, itemId));
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+        const session = await loadSession(item.sessionId);
+        if (!session) return res.status(404).json({ error: 'Session not found' });
+        const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
+        if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
+
+        // Reuse the same validation helper as set-existing-link-decision.
+        const validationError = await validateFamilyMembershipInput({
+          item, session, familyId, neighborDocumentId, position,
+        });
+        if (validationError) {
+          return res.status(validationError.status).json(validationError.body);
+        }
+
+        const now = new Date();
+        const [membership] = await db
+          .insert(schema.bulkImportItemFamilyMemberships)
+          .values({
+            itemId,
+            familyId,
+            neighborDocumentId,
+            position,
+            source: 'manual',
+            manualOverride: true,
+            updatedAt: now,
+          })
+          .onConflictDoUpdate({
+            target: [
+              schema.bulkImportItemFamilyMemberships.itemId,
+              schema.bulkImportItemFamilyMemberships.familyId,
+            ],
+            set: { neighborDocumentId, position, source: 'manual', manualOverride: true, updatedAt: now },
+          })
+          .returning();
+
+        // Promote item to linked if needed.
+        if (item.status === 'identified') {
+          await db
+            .update(schema.bulkImportItems)
+            .set({ status: 'linked', updatedAt: now })
+            .where(eq(schema.bulkImportItems.id, itemId));
+        }
+
+        return res.status(201).json({ membership });
+      } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors, errorCode: 'validation_error' });
+        logError('[bulk-import] POST family-memberships failed', err as Error);
+        return res.status(500).json({ error: 'Failed to create membership' });
+      }
+    },
+  );
+
+  const updateMembershipSchema = z.object({
+    neighborDocumentId: z.string().min(1),
+    position: z.enum(['before', 'after']),
+  });
+
+  /**
+   * PATCH /api/admin/bulk-import/items/:id/family-memberships/:membershipId
+   *
+   * Updates the neighbor document and position for an existing membership.
+   */
+  app.patch(
+    '/api/admin/bulk-import/items/:id/family-memberships/:membershipId',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      const t0 = Date.now();
+      const itemId = req.params.id;
+      const membershipId = req.params.membershipId;
+      try {
+        const { neighborDocumentId, position } = updateMembershipSchema.parse(req.body);
+
+        const [membership] = await db
+          .select()
+          .from(schema.bulkImportItemFamilyMemberships)
+          .where(
+            and(
+              eq(schema.bulkImportItemFamilyMemberships.id, membershipId),
+              eq(schema.bulkImportItemFamilyMemberships.itemId, itemId),
+            ),
+          );
+        if (!membership) return res.status(404).json({ error: 'Membership not found' });
+
+        const [item] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, itemId));
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+        const session = await loadSession(item.sessionId);
+        if (!session) return res.status(404).json({ error: 'Session not found' });
+        const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
+        if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
+
+        if (membership.familyId) {
+          const validationError = await validateFamilyMembershipInput({
+            item, session, familyId: membership.familyId, neighborDocumentId, position,
+          });
+          if (validationError) {
+            return res.status(validationError.status).json(validationError.body);
+          }
+        }
+
+        const now = new Date();
+        const [updated] = await db
+          .update(schema.bulkImportItemFamilyMemberships)
+          .set({ neighborDocumentId, position, manualOverride: true, source: 'manual', updatedAt: now })
+          .where(eq(schema.bulkImportItemFamilyMemberships.id, membershipId))
+          .returning();
+
+        return res.json({ membership: updated });
+      } catch (err) {
+        if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors, errorCode: 'validation_error' });
+        logError('[bulk-import] PATCH family-memberships failed', err as Error);
+        return res.status(500).json({ error: 'Failed to update membership' });
+      }
+    },
+  );
+
+  /**
+   * DELETE /api/admin/bulk-import/items/:id/family-memberships/:membershipId
+   *
+   * Removes a single family membership. If this is the last membership the
+   * item lands in the Unassigned bucket in the UI.
+   */
+  app.delete(
+    '/api/admin/bulk-import/items/:id/family-memberships/:membershipId',
+    requireAuth,
+    requireRole(['admin']),
+    async (req: AuthenticatedRequest, res: Response) => {
+      const itemId = req.params.id;
+      const membershipId = req.params.membershipId;
+      try {
+        const [membership] = await db
+          .select()
+          .from(schema.bulkImportItemFamilyMemberships)
+          .where(
+            and(
+              eq(schema.bulkImportItemFamilyMemberships.id, membershipId),
+              eq(schema.bulkImportItemFamilyMemberships.itemId, itemId),
+            ),
+          );
+        if (!membership) return res.status(404).json({ error: 'Membership not found' });
+
+        const [item] = await db
+          .select()
+          .from(schema.bulkImportItems)
+          .where(eq(schema.bulkImportItems.id, itemId));
+        if (!item) return res.status(404).json({ error: 'Item not found' });
+        const session = await loadSession(item.sessionId);
+        if (!session) return res.status(404).json({ error: 'Session not found' });
+        const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
+        if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
+
+        await db
+          .delete(schema.bulkImportItemFamilyMemberships)
+          .where(eq(schema.bulkImportItemFamilyMemberships.id, membershipId));
+
+        return res.json({ ok: true });
+      } catch (err) {
+        logError('[bulk-import] DELETE family-memberships failed', err as Error);
+        return res.status(500).json({ error: 'Failed to delete membership' });
       }
     },
   );
@@ -8473,12 +9095,13 @@ export function registerBulkImportRoutes(app: Express): void {
             .where(where);
         } else {
           // linking — Task #1421: preserve existing-platform document links.
-          // Fetch all linked items for this session so we can classify each one
-          // before deciding whether to reset it or preserve its existing-doc link.
+          // Task #1425: also clear membership rows for items that DO get reset.
           const allSessionItems = await db
             .select()
             .from(schema.bulkImportItems)
             .where(eq(schema.bulkImportItems.sessionId, session.id));
+
+          const resetItemIds: string[] = [];
 
           for (const item of allSessionItems) {
             if (item.status !== 'linked') continue;
@@ -8517,7 +9140,21 @@ export function registerBulkImportRoutes(app: Express): void {
                   updatedAt: new Date(),
                 })
                 .where(eq(schema.bulkImportItems.id, item.id));
+              resetItemIds.push(item.id);
             }
+          }
+
+          // Task #1425: delete family membership rows for reset items so the
+          // memberships table stays consistent with the cleared linkDecisions.
+          if (resetItemIds.length > 0) {
+            await db
+              .delete(schema.bulkImportItemFamilyMemberships)
+              .where(
+                inArray(
+                  schema.bulkImportItemFamilyMemberships.itemId,
+                  resetItemIds,
+                ),
+              );
           }
         }
 
@@ -8752,45 +9389,66 @@ export function registerBulkImportRoutes(app: Express): void {
           }
         }
 
-        // Task #1386: write documentLinks row when the item has an existing-family link.
-        // The link is written BEFORE the status update so a failure here leaves the item
-        // in a recoverable pre-committed state (the document row exists but the item
+        // Task #1386 / #1425: write documentLinks rows for each family membership.
+        // Task #1425: read from the memberships table first (many-to-many). Fall back to
+        // the legacy JSONB `linkDecisions` single-family fields so old items still commit.
+        //
+        // The link(s) are written BEFORE the status update so a failure here leaves the
+        // item in a recoverable pre-committed state (the document row exists but the item
         // status stays at 'linked'). The admin can retry the commit after resolving the
-        // conflict (e.g. someone else committed to the same family slot in the meantime).
-        const linkDecisionsForCommit = (item.linkDecisions ?? {}) as Record<string, unknown>;
-        const commitFamilyId = (linkDecisionsForCommit.familyId as string | null | undefined) ?? null;
-        const commitBeforeDocId = (linkDecisionsForCommit.beforeDocumentId as string | null | undefined) ?? null;
-        const commitAfterDocId = (linkDecisionsForCommit.afterDocumentId as string | null | undefined) ?? null;
-        const commitNeighborDocId = commitBeforeDocId ?? commitAfterDocId;
-        const commitPosition: 'before' | 'after' | null = commitBeforeDocId
-          ? 'before'
-          : commitAfterDocId
-            ? 'after'
-            : null;
-        if (commitFamilyId && commitNeighborDocId && commitPosition) {
+        // conflict.
+        type CommitLinkRow = { familyId: string; neighborDocumentId: string; position: 'before' | 'after' };
+        const membershipRows = await db
+          .select()
+          .from(schema.bulkImportItemFamilyMemberships)
+          .where(eq(schema.bulkImportItemFamilyMemberships.itemId, item.id));
+
+        let linksToCommit: CommitLinkRow[];
+        if (membershipRows.length > 0) {
+          // Memberships table is canonical; only write rows that have all required fields.
+          linksToCommit = membershipRows
+            .filter((m): m is typeof m & { familyId: string; neighborDocumentId: string; position: 'before' | 'after' } =>
+              !!m.familyId && !!m.neighborDocumentId && (m.position === 'before' || m.position === 'after'),
+            )
+            .map((m) => ({ familyId: m.familyId, neighborDocumentId: m.neighborDocumentId, position: m.position }));
+        } else {
+          // JSONB fallback for items processed before Task #1425.
+          const linkDecisionsForCommit = (item.linkDecisions ?? {}) as Record<string, unknown>;
+          const commitFamilyId = (linkDecisionsForCommit.familyId as string | null | undefined) ?? null;
+          const commitBeforeDocId = (linkDecisionsForCommit.beforeDocumentId as string | null | undefined) ?? null;
+          const commitAfterDocId = (linkDecisionsForCommit.afterDocumentId as string | null | undefined) ?? null;
+          const commitNeighborDocId = commitBeforeDocId ?? commitAfterDocId;
+          const commitPosition: 'before' | 'after' | null = commitBeforeDocId ? 'before' : commitAfterDocId ? 'after' : null;
+          linksToCommit =
+            commitFamilyId && commitNeighborDocId && commitPosition
+              ? [{ familyId: commitFamilyId, neighborDocumentId: commitNeighborDocId, position: commitPosition }]
+              : [];
+        }
+
+        for (const lnk of linksToCommit) {
           logDebug('[bulk-import] commit phase documentLink write start', {
             metadata: {
               itemId: item.id,
               sessionId: item.sessionId,
               documentId: doc.id,
-              familyId: commitFamilyId,
-              neighborDocumentId: commitNeighborDocId,
-              position: commitPosition,
+              familyId: lnk.familyId,
+              neighborDocumentId: lnk.neighborDocumentId,
+              position: lnk.position,
             },
           });
           try {
             await upsertDocumentLink({
               fromDocumentId: doc.id,
-              toDocumentId: commitNeighborDocId,
-              familyId: commitFamilyId,
-              position: commitPosition,
+              toDocumentId: lnk.neighborDocumentId,
+              familyId: lnk.familyId,
+              position: lnk.position,
             });
             logDebug('[bulk-import] commit phase documentLink write done', {
               metadata: {
                 itemId: item.id,
                 sessionId: item.sessionId,
                 documentId: doc.id,
-                familyId: commitFamilyId,
+                familyId: lnk.familyId,
               },
             });
           } catch (linkErr) {

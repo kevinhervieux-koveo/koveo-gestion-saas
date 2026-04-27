@@ -391,6 +391,104 @@ export function computeLinkingMakeStandaloneChanges(
   return Array.from(changes.entries()).map(([itemId, v]) => ({ itemId, ...v }));
 }
 
+// ---------------------------------------------------------------------------
+// Task #1425: Family-group resolver
+// ---------------------------------------------------------------------------
+
+/**
+ * A single item-to-family membership as returned by the API.
+ * All fields that are required for rendering are made non-optional here.
+ */
+export interface FamilyMembership {
+  id: string;
+  itemId: string;
+  familyId: string | null;
+  familyName: string | null;
+  neighborDocumentId: string | null;
+  position: 'before' | 'after' | null;
+  source: 'ai' | 'manual';
+  manualOverride: boolean;
+  aiConfidence: number | null;
+  reason: string | null;
+}
+
+/** An item in the family-group view. Must carry its memberships. */
+export interface FamilyGroupItemShape {
+  id: string;
+  memberships: FamilyMembership[];
+}
+
+/** One named family bucket in the Linking step. */
+export interface FamilyGroup<T extends FamilyGroupItemShape = FamilyGroupItemShape> {
+  /** Null ⟹ the "Unassigned" bucket. */
+  familyId: string | null;
+  familyName: string;
+  items: T[];
+  /**
+   * Deduplicated, ordered memberships across all items in this group,
+   * keyed by item id, so the row can render its neighbor + position without
+   * re-querying.
+   */
+  membershipByItemId: Map<string, FamilyMembership>;
+}
+
+/**
+ * Task #1425 – Resolve a flat list of bulk-import items (each carrying their
+ * `memberships[]`) into an ordered list of named family groups plus an
+ * "Unassigned" bucket for items with no memberships.
+ *
+ * Items can appear in **multiple** groups (many-to-many).
+ *
+ * Algorithm:
+ *  1. Collect all unique familyIds across all items.
+ *  2. Build a map of familyId → { familyId, familyName, items[], membershipByItemId }.
+ *  3. Walk every item: for each of its memberships, add it to the appropriate group.
+ *  4. Items with zero memberships go into the Unassigned bucket (familyId=null).
+ *  5. Sort groups: named families first (alphabetical), Unassigned last.
+ */
+export function resolveFamilyGroups<T extends FamilyGroupItemShape>(
+  items: T[],
+): { groups: FamilyGroup<T>[]; unassignedItems: T[] } {
+  const groupMap = new Map<string, FamilyGroup<T>>();
+  const unassignedItems: T[] = [];
+
+  for (const item of items) {
+    const validMemberships = item.memberships.filter(
+      (m): m is FamilyMembership & { familyId: string } => !!m.familyId,
+    );
+
+    if (validMemberships.length === 0) {
+      unassignedItems.push(item);
+      continue;
+    }
+
+    for (const m of validMemberships) {
+      let group = groupMap.get(m.familyId);
+      if (!group) {
+        group = {
+          familyId: m.familyId,
+          familyName: m.familyName ?? m.familyId,
+          items: [],
+          membershipByItemId: new Map(),
+        };
+        groupMap.set(m.familyId, group);
+      }
+      // Only add the item once per group even if it has multiple memberships
+      // to the same family (defensive: the unique constraint prevents this).
+      if (!group.membershipByItemId.has(item.id)) {
+        group.items.push(item);
+      }
+      group.membershipByItemId.set(item.id, m);
+    }
+  }
+
+  const namedGroups = Array.from(groupMap.values()).sort((a, b) =>
+    a.familyName.localeCompare(b.familyName, undefined, { sensitivity: 'base' }),
+  );
+
+  return { groups: namedGroups, unassignedItems };
+}
+
 /**
  * Pure computation behind "Break group" / `handleLinkingBreakGroup`.
  *
