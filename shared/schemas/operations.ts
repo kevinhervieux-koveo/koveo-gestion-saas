@@ -171,26 +171,23 @@ export const notifications = pgTable('notifications', {
  * Drizzle does not model these triggers, so `drizzle-kit push` will
  * not drop or alter them.
  *
- * Sibling guards (Task #811 / #945 / #1271)
- * -----------------------------------------
- * The same demand-side trigger pattern is intended to apply to every
- * other table surfaced by the `shared/schemas/` audit that carries
- * both `building_id` and `residence_id` columns. As of Task #1271 only
- * the `invitations` sibling actually ships:
+ * Sibling guards (Task #811 / #945 / #1271 / #1472)
+ * ---------------------------------------------------
+ * The same demand-side trigger pattern applies to every other table
+ * that carries both `building_id` and `residence_id` columns:
  *   - `invitations`       → `migrations/0014_invitations_residence_building_check.sql`
  *     (Task #945; demand-side trigger only; the residence-side mirror
  *     is intentionally omitted because invitations are short-lived
  *     and `residence_id` is non-FK).
- *
- * The other three sibling triggers originally listed here
- * (`documents`, `invoices`, `building_elements`) were never
- * implemented as standalone files: their cross-org pairs are still
- * enforced only at the application layer (and, for
- * `building_elements`, by the residence_id FK added in
- * `migrations/0012_building_elements_residence_id_fk.sql` plus the
- * cross-residence backfill scripts). The remaining gaps are tracked
- * as concrete follow-ups so this docstring no longer over-claims
- * coverage.
+ *   - `documents`         → `migrations/0030_documents_residence_building_check.sql`
+ *     (Task #1472; idempotent, re-run on every boot via
+ *     `ensureTriggerOnlyMigrations`).
+ *   - `building_elements` → `migrations/0031_building_elements_residence_building_check.sql`
+ *     (Task #1472; idempotent, re-run on every boot via
+ *     `ensureTriggerOnlyMigrations`).
+ *   - `invoices`          → `migrations/0032_invoices_residence_building_check.sql`
+ *     (Task #1472; idempotent, re-run on every boot via
+ *     `ensureTriggerOnlyMigrations`).
  *
  * The secondary `assignation_residence_id` / `assignation_building_id`
  * pair on this same table is now covered by a parallel pair of

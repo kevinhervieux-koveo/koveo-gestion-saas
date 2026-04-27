@@ -537,6 +537,16 @@ async function loadFullApplication(): Promise<void> {
             '0020_documents_residence_id_fk.sql',
             '0021_invoices_residence_id_fk.sql',
             '0022_invitations_residence_id_fk.sql',
+            // Task #1472: cross-org guard triggers for documents,
+            // building_elements, and invoices — the three sibling tables
+            // that were previously missing the BEFORE INSERT/UPDATE
+            // trigger installed on `demands` (0010) and `invitations`
+            // (0014). Each migration creates the plpgsql function and
+            // trigger with DROP TRIGGER IF EXISTS + CREATE OR REPLACE
+            // FUNCTION so they are safe to re-apply on every boot.
+            '0030_documents_residence_building_check.sql',
+            '0031_building_elements_residence_building_check.sql',
+            '0032_invoices_residence_building_check.sql',
           ],
           {
             logger: (msg, level) => log(msg, level === 'error' ? 'error' : 'express'),
