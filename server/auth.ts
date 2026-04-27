@@ -1395,5 +1395,9 @@ declare module 'express-session' {
     organizationId?: string;
     organizations?: string[];
     canAccessAllOrganizations?: boolean;
+    /** Web-UI impersonation override (Task #1473). Set by POST /api/admin/impersonation/start,
+     *  cleared by POST /api/admin/impersonation/exit.  Separate from the MCP-session
+     *  assume_user override which lives in the per-MCP-connection server closure. */
+    webAssumedUserId?: string | null;
   }
 }

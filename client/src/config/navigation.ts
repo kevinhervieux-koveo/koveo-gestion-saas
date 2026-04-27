@@ -146,6 +146,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     items: [
       { nameKey: 'navBulkDocumentImport', href: '/admin/bulk-document-import', icon: Folder },
       { nameKey: 'documentTags', href: '/admin/document-tags', icon: FileText },
+      { nameKey: 'navOrgAccess', href: '/admin/org-access', icon: Building2 },
     ],
   },
   {

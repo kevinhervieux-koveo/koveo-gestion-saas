@@ -1,11 +1,26 @@
 /**
- * Impersonation audit log API — Task #1322.
+ * Impersonation audit log API — Task #1322 / #1473.
  *
- * Routes (all require admin auth, all begin with /api/admin/impersonation):
- *   GET  /api/admin/impersonation-log      — paginated audit log
- *   GET  /api/admin/impersonation-status   — active impersonation state
- *   POST /api/admin/impersonation/dev/record   — test event writer (non-prod)
- *   POST /api/admin/impersonation/dev/restore  — test restore writer (non-prod)
+ * Routes (all require admin/super_admin auth, all begin with /api/admin/impersonation):
+ *   GET  /api/admin/impersonation-log              — paginated MCP audit log
+ *   GET  /api/admin/impersonation-status           — active impersonation state
+ *   POST /api/admin/impersonation/start            — start web-UI impersonation session
+ *   POST /api/admin/impersonation/exit             — exit impersonation (clears session + audit row)
+ *   POST /api/admin/impersonation/dev/record       — test event writer (non-prod)
+ *   POST /api/admin/impersonation/dev/restore      — test restore writer (non-prod)
+ *
+ * Impersonation state design (#1473):
+ *   Web-UI impersonation is stored directly in the Express session
+ *   (req.session.webAssumedUserId).  The GET /api/admin/impersonation-status endpoint
+ *   checks the session first; if no web-UI session is active it falls back to the
+ *   MCP audit-log approach (assume→restore pairs) so the banner also reflects MCP
+ *   impersonation that was started from a Claude/MCP client.
+ *
+ *   POST /api/admin/impersonation/exit:
+ *     • If req.session.webAssumedUserId is set → clears it in the session (real state)
+ *       then writes an audit row.
+ *     • Otherwise → writes an advisory restore audit row (best-effort for MCP sessions
+ *       whose per-connection state cannot be cleared from the web layer).
  */
 
 import type { Express } from 'express';
@@ -24,6 +39,11 @@ function buildFullName(firstName: string, lastName: string): string {
   return [firstName, lastName].filter(Boolean).join(' ') || '(unknown)';
 }
 
+/** Returns true when the caller has admin or super_admin role. */
+function isAdminOrSuperAdmin(currentUser: { role?: string } | undefined | null): boolean {
+  return currentUser?.role === 'admin' || currentUser?.role === 'super_admin';
+}
+
 export default function registerImpersonationLogRoutes(app: Express): void {
   /**
    * GET /api/admin/impersonation-log
@@ -37,7 +57,7 @@ export default function registerImpersonationLogRoutes(app: Express): void {
     requireAuth,
     asyncHandler(async (req: any, res) => {
       const currentUser = req.user ?? req.session?.user;
-      if (!currentUser || currentUser.role !== 'admin') {
+      if (!isAdminOrSuperAdmin(currentUser)) {
         return res.status(403).json({ message: 'Admin access required', code: 'FORBIDDEN' });
       }
 
@@ -118,32 +138,50 @@ export default function registerImpersonationLogRoutes(app: Express): void {
    *
    * Returns the current impersonation state for the logged-in admin.
    *
-   * Algorithm (correct temporal logic):
-   *   1. Find the most recent SUCCESSFUL assume event for this admin
-   *      (action = 'assume', details->>'outcome' = 'success').
-   *   2. If none exists → inactive.
-   *   3. Check whether a 'restore' event exists with created_at AFTER
-   *      that successful assume → if so, session has ended → inactive.
-   *   4. Otherwise → active.
-   *
-   * Failed assume attempts (feature_disabled, unknown_target_user, etc.)
-   * are completely ignored — they cannot reset an active session.  There is
-   * no arbitrary time cutoff: active state is derived purely from the
-   * assume→restore event pairs in the audit log.
+   * Priority:
+   *   1. Web-UI session state (req.session.webAssumedUserId) — real, clearable.
+   *      Source label: 'web'.
+   *   2. MCP audit-log state (most-recent successful assume without a later restore).
+   *      Source label: 'mcp'.  Advisory only — cannot be cleared from the web layer.
+   *   3. Inactive.
    */
   app.get(
     '/api/admin/impersonation-status',
     requireAuth,
     asyncHandler(async (req: any, res) => {
       const currentUser = req.user ?? req.session?.user;
-      if (!currentUser || currentUser.role !== 'admin') {
+      if (!isAdminOrSuperAdmin(currentUser)) {
         return res.status(403).json({ message: 'Admin access required', code: 'FORBIDDEN' });
       }
 
-      // Step 1: Find the most recent SUCCESSFUL assume event for this admin.
-      // We filter on action = 'assume' AND details->>'outcome' = 'success'
-      // so that failed attempts (not_admin, feature_disabled, unknown_target_user,
-      // etc.) are excluded from the active-state calculation.
+      // ── Priority 1: web-UI session impersonation ──────────────────────────
+      const webAssumedUserId = req.session?.webAssumedUserId;
+      if (webAssumedUserId) {
+        const [assumedUserRow] = await db
+          .select({
+            id: users.id,
+            email: users.email,
+            firstName: users.firstName,
+            lastName: users.lastName,
+          })
+          .from(users)
+          .where(eq(users.id, webAssumedUserId))
+          .limit(1);
+
+        const assumedUser = assumedUserRow
+          ? {
+              id: assumedUserRow.id,
+              email: assumedUserRow.email,
+              fullName: buildFullName(assumedUserRow.firstName, assumedUserRow.lastName),
+            }
+          : { id: webAssumedUserId, email: null, fullName: '(deleted user)' };
+
+        return res.json({ active: true, source: 'web', assumedUser });
+      }
+
+      // ── Priority 2: MCP audit-log state ──────────────────────────────────
+      // Find the most recent SUCCESSFUL assume event for this admin.
+      // Failed attempts are excluded so they cannot reset an active session.
       const [latestSuccessfulAssume] = await db
         .select({
           id: mcpAssumeUserLog.id,
@@ -165,8 +203,7 @@ export default function registerImpersonationLogRoutes(app: Express): void {
         return res.json({ active: false, assumedUser: null });
       }
 
-      // Step 2: Check whether a restore event was recorded AFTER that assume.
-      // If so, the session has ended.
+      // Check whether a restore event was recorded AFTER that assume.
       const [laterRestore] = await db
         .select({ id: mcpAssumeUserLog.id })
         .from(mcpAssumeUserLog)
@@ -183,7 +220,7 @@ export default function registerImpersonationLogRoutes(app: Express): void {
         return res.json({ active: false, assumedUser: null });
       }
 
-      // Active: successful assume with no later restore.
+      // Active MCP session — fetch user info.
       const [assumedUserRow] = await db
         .select({
           id: users.id,
@@ -201,13 +238,126 @@ export default function registerImpersonationLogRoutes(app: Express): void {
             email: assumedUserRow.email,
             fullName: buildFullName(assumedUserRow.firstName, assumedUserRow.lastName),
           }
-        : { id: latestSuccessfulAssume.assumedUserId, email: null, fullName: '(deleted user)' };
+        : {
+            id: latestSuccessfulAssume.assumedUserId,
+            email: null,
+            fullName: '(deleted user)',
+          };
 
       return res.json({
         active: true,
+        source: 'mcp',
         assumedUser,
         since: latestSuccessfulAssume.createdAt,
       });
+    }),
+  );
+
+  /**
+   * POST /api/admin/impersonation/start
+   *
+   * Begins a web-UI impersonation session by storing the target user ID in
+   * the Express session (req.session.webAssumedUserId) and recording an audit
+   * row.  The ImpersonationBanner will immediately reflect this via the status
+   * endpoint (priority 1 path above).
+   *
+   * Body: { userId: string }
+   */
+  app.post(
+    '/api/admin/impersonation/start',
+    requireAuth,
+    asyncHandler(async (req: any, res) => {
+      const currentUser = req.user ?? req.session?.user;
+      if (!isAdminOrSuperAdmin(currentUser)) {
+        return res.status(403).json({ message: 'Admin access required', code: 'FORBIDDEN' });
+      }
+
+      const targetUserId = typeof req.body?.userId === 'string' ? req.body.userId.trim() : '';
+      if (!targetUserId) {
+        return res.status(400).json({ message: 'userId is required', code: 'BAD_REQUEST' });
+      }
+
+      // Verify the target user exists.
+      const [targetUser] = await db
+        .select({ id: users.id, role: users.role })
+        .from(users)
+        .where(eq(users.id, targetUserId))
+        .limit(1);
+
+      if (!targetUser) {
+        return res.status(404).json({ message: 'Target user not found', code: 'NOT_FOUND' });
+      }
+
+      // Set web-UI impersonation in the session.
+      req.session.webAssumedUserId = targetUserId;
+
+      await new Promise<void>((resolve, reject) =>
+        req.session.save((err: Error | null) => (err ? reject(err) : resolve())),
+      );
+
+      // Write audit row.
+      const id = await recordImpersonationEvent({
+        performedBy: currentUser.id,
+        assumedUserId: targetUserId,
+        action: 'assume',
+        outcome: 'success',
+        ipAddress: req.ip ?? '127.0.0.1',
+        userAgent: req.headers['user-agent'] ?? 'web-ui/impersonation/start',
+        extraDetails: {
+          source: 'web-ui',
+          tool: 'assume_user',
+          assumedUserDbRole: targetUser.role ?? 'unknown',
+          assumedUserMcpRole: targetUser.role ?? 'unknown',
+        },
+      });
+
+      return res.json({ ok: true, id: id ?? null });
+    }),
+  );
+
+  /**
+   * POST /api/admin/impersonation/exit
+   *
+   * Exits the current impersonation session.
+   *
+   * If a web-UI session is active (req.session.webAssumedUserId is set):
+   *   → Clears the session field (real state change), saves the session,
+   *     then writes a restore audit row.
+   *
+   * If there is no web-UI session (e.g. the impersonation was started via MCP):
+   *   → Writes an advisory restore audit row.  The MCP session itself is a
+   *     separate per-connection closure that cannot be cleared from this layer,
+   *     but the audit restore row signals "ended" to the banner fallback path.
+   */
+  app.post(
+    '/api/admin/impersonation/exit',
+    requireAuth,
+    asyncHandler(async (req: any, res) => {
+      const currentUser = req.user ?? req.session?.user;
+      if (!isAdminOrSuperAdmin(currentUser)) {
+        return res.status(403).json({ message: 'Admin access required', code: 'FORBIDDEN' });
+      }
+
+      // Clear web-UI session state if present.
+      if (req.session?.webAssumedUserId) {
+        req.session.webAssumedUserId = null;
+        await new Promise<void>((resolve, reject) =>
+          req.session.save((err: Error | null) => (err ? reject(err) : resolve())),
+        );
+      }
+
+      // Write restore audit row (always, so both web and MCP code paths are audited).
+      const id = await recordImpersonationEvent({
+        performedBy: currentUser.id,
+        assumedUserId: null,
+        action: 'restore',
+        outcome: 'success',
+        ipAddress: req.ip ?? '127.0.0.1',
+        userAgent: req.headers['user-agent'] ?? 'web-ui/impersonation/exit',
+        extraDetails: { source: 'web-ui', tool: 'restore_acting_user' },
+      });
+
+      return res.json({ ok: true, id: id ?? null });
     }),
   );
 
@@ -220,7 +370,7 @@ export default function registerImpersonationLogRoutes(app: Express): void {
       requireAuth,
       asyncHandler(async (req: any, res) => {
         const currentUser = req.user ?? req.session?.user;
-        if (!currentUser || currentUser.role !== 'admin') {
+        if (!isAdminOrSuperAdmin(currentUser)) {
           return res.status(403).json({ message: 'Admin access required', code: 'FORBIDDEN' });
         }
 
@@ -262,7 +412,7 @@ export default function registerImpersonationLogRoutes(app: Express): void {
       requireAuth,
       asyncHandler(async (req: any, res) => {
         const currentUser = req.user ?? req.session?.user;
-        if (!currentUser || currentUser.role !== 'admin') {
+        if (!isAdminOrSuperAdmin(currentUser)) {
           return res.status(403).json({ message: 'Admin access required', code: 'FORBIDDEN' });
         }
 

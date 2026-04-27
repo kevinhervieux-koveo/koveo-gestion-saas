@@ -838,6 +838,16 @@ const IMPERSONATION_TOOL_NAMES: ReadonlySet<string> = new Set([
 ]);
 
 /**
+ * Admin-only tool names that are always available (not gated on
+ * MCP_ASSUME_USER). Hidden from non-admin sessions but do NOT get the
+ * feature-flag warning prefix that `IMPERSONATION_TOOL_NAMES` tools receive
+ * when the flag is off. Task #1473.
+ */
+const ADMIN_ONLY_TOOL_NAMES: ReadonlySet<string> = new Set([
+  'list_assume_user_log',
+]);
+
+/**
  * Build the human-readable reminder text appended to every tool response when
  * the session is operating under a downgraded acting role. Exported so the
  * unit tests can assert the exact wording.
@@ -5202,6 +5212,119 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
     },
   );
 
+  // Task #1473 — list_assume_user_log: admin-only MCP tool that surfaces
+  // rows from the `mcp_assume_user_log` audit table so security reviewers
+  // can audit who impersonated whom and when directly from the MCP client.
+  // Requires an admin OAuth session; returns a JSON array of log rows
+  // enriched with performer/assumed-user display names.
+  server.tool(
+    "list_assume_user_log",
+    "List rows from the impersonation audit log (`mcp_assume_user_log`). " +
+      "Returns assume/restore events enriched with user display names. " +
+      "Requires an admin OAuth session. Useful for security reviewers who " +
+      "need to audit who impersonated whom and when without leaving the MCP " +
+      "client. Supports `limit` (max rows, default 50, max 200) and `offset` " +
+      "(zero-based, default 0) for pagination.",
+    {
+      limit: z.number().int().min(1).max(200).optional().describe(
+        "Maximum number of rows to return (default 50, max 200).",
+      ),
+      offset: z.number().int().min(0).optional().describe(
+        "Zero-based row offset for pagination (default 0).",
+      ),
+    },
+    async ({ limit: limitArg, offset: offsetArg }) => {
+      // Require an OAuth-authenticated admin or super_admin session.
+      // The legacy MCP_API_KEY path leaves `enforcedRole` undefined — that
+      // path must also be rejected so audit rows are never readable without a
+      // bound user identity (mirroring the assume_user / restore_acting_user
+      // contract). This is intentionally strict: if the session has no
+      // enforcedRole it cannot be attributed, so we deny rather than leak.
+      if (!enforcedRole || (enforcedRole !== "admin" && enforcedRole !== "super_admin")) {
+        return {
+          content: [{
+            type: "text" as const,
+            text: !enforcedRole
+              ? "list_assume_user_log requires an OAuth-authenticated admin session. " +
+                "The legacy MCP_API_KEY auth path is not supported for this tool."
+              : `Permission denied: list_assume_user_log requires an admin OAuth session. ` +
+                `This session is bound to role "${enforcedRole}".`,
+          }],
+        };
+      }
+
+      const rowLimit = Math.min(200, Math.max(1, limitArg ?? 50));
+      const rowOffset = Math.max(0, offsetArg ?? 0);
+
+      const rows = await db
+        .select({
+          id: schema.mcpAssumeUserLog.id,
+          action: schema.mcpAssumeUserLog.action,
+          performedBy: schema.mcpAssumeUserLog.performedBy,
+          assumedUserId: schema.mcpAssumeUserLog.assumedUserId,
+          ipAddress: schema.mcpAssumeUserLog.ipAddress,
+          userAgent: schema.mcpAssumeUserLog.userAgent,
+          details: schema.mcpAssumeUserLog.details,
+          createdAt: schema.mcpAssumeUserLog.createdAt,
+        })
+        .from(schema.mcpAssumeUserLog)
+        .orderBy(desc(schema.mcpAssumeUserLog.createdAt))
+        .limit(rowLimit)
+        .offset(rowOffset);
+
+      // Collect unique user IDs to batch-lookup names.
+      const userIds = new Set<string>();
+      for (const row of rows) {
+        if (row.performedBy) userIds.add(row.performedBy);
+        if (row.assumedUserId) userIds.add(row.assumedUserId);
+      }
+      const userMap = new Map<string, { id: string; email: string | null; fullName: string }>();
+      if (userIds.size > 0) {
+        const idList = Array.from(userIds);
+        const userRows = await db
+          .select({
+            id: schema.users.id,
+            email: schema.users.email,
+            firstName: schema.users.firstName,
+            lastName: schema.users.lastName,
+          })
+          .from(schema.users)
+          .where(inArray(schema.users.id, idList));
+        for (const u of userRows) {
+          const fullName = [u.firstName, u.lastName].filter(Boolean).join(' ') || '(unknown)';
+          userMap.set(u.id, { id: u.id, email: u.email, fullName });
+        }
+      }
+
+      const [{ total }] = await db
+        .select({ total: sql`count(*)::int` })
+        .from(schema.mcpAssumeUserLog);
+
+      const enriched = rows.map((row) => ({
+        id: row.id,
+        action: row.action,
+        performedBy: row.performedBy
+          ? (userMap.get(row.performedBy) ?? { id: row.performedBy, email: null, fullName: '(deleted)' })
+          : null,
+        assumedUser: row.assumedUserId
+          ? (userMap.get(row.assumedUserId) ?? { id: row.assumedUserId, email: null, fullName: '(deleted)' })
+          : null,
+        ipAddress: row.ipAddress ?? null,
+        outcome: typeof (row.details as Record<string, unknown> | null)?.outcome === 'string'
+          ? (row.details as Record<string, unknown>).outcome
+          : null,
+        createdAt: row.createdAt,
+      }));
+
+      return {
+        content: [{
+          type: "text" as const,
+          text: JSON.stringify({ total, offset: rowOffset, limit: rowLimit, rows: enriched }, null, 2),
+        }],
+      };
+    },
+  );
+
   server.tool(
     "get_mcp_info",
     "Get information about the MCP setup including available organizations, users, and roles",
@@ -5277,7 +5400,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       //   sessions, or the same session once the flag flips on, see the
       //   correct description without a server restart.
       const { isMcpAssumeUserEnabled: isMcpAssumeUserEnabledForInfo } = await import("../utils/feature-flags");
-      const isAdminSession = oauthBoundRole === "admin";
+      const isAdminSession = oauthBoundRole === "admin" || oauthBoundRole === "super_admin";
       const assumeUserFlagOn = isMcpAssumeUserEnabledForInfo();
       const IMPERSONATION_WARN_PREFIX =
         "Requires the MCP_ASSUME_USER feature flag to be enabled on the server; " +
@@ -5287,14 +5410,16 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         ? Object.keys(registeredToolsMap)
             .sort()
             .filter((name) => {
-              // Drop impersonation tools entirely for non-admin sessions.
-              if (IMPERSONATION_TOOL_NAMES.has(name) && !isAdminSession) return false;
+              // Drop impersonation + admin-only tools entirely for non-admin sessions.
+              if ((IMPERSONATION_TOOL_NAMES.has(name) || ADMIN_ONLY_TOOL_NAMES.has(name)) && !isAdminSession) return false;
               return true;
             })
             .map((name) => {
               const baseDescription = registeredToolsMap[name]?.description ?? "";
               // For admin sessions where the feature flag is off, prepend the
               // warning to the impersonation tools' descriptions in the response.
+              // Admin-only tools (ADMIN_ONLY_TOOL_NAMES) do NOT get this warning
+              // because they are always available regardless of the flag.
               const description =
                 IMPERSONATION_TOOL_NAMES.has(name) && isAdminSession && !assumeUserFlagOn
                   ? IMPERSONATION_WARN_PREFIX + baseDescription

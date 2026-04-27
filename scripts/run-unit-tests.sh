@@ -58,6 +58,11 @@ UNIT_PATHS=(
   server/tests/ai-suggest-payment-schedule-route.test.ts
   server/tests/document-text-endpoint.test.ts
   server/tests/upload-filename-normalization-secondary-routes.test.ts
+  # Task #1473 — impersonation E2E (guards against silent audit-row drops).
+  # The test gates itself on _INTEGRATION_DB_URL and skips cleanly without
+  # a real Postgres connection, so it is safe to include here — it adds zero
+  # runtime cost in environments without the integration DB.
+  tests/integration/mcp/assume-user-http-e2e.test.ts
 )
 
 COMMON_FLAGS=(

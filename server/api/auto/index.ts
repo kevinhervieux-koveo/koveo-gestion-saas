@@ -75,6 +75,13 @@ export const AUTO_ROUTE_MODULES: Record<string, AutoRouteEntry> = {
     lazy: { matcher: '/api/admin/impersonation' },
   },
 
+  // Admin org-access scope helper (task #1473 / #657). Lazy — only hit
+  // when an admin visits the Org Access page.
+  orgAccess: {
+    load: () => import('./org-access'),
+    lazy: { matcher: '/api/admin/org-access' },
+  },
+
   // Post-deploy migration verifier (task #939). Eager so a curl against
   // /api/admin/migration-status responds the moment the server is up,
   // without waiting for a first lazy-mount hit.

@@ -1715,6 +1715,7 @@ export interface Translations {
   navBulkDocumentImport: string;
   navKpiDashboard: string;
   navImpersonationLog: string;
+  navOrgAccess: string;
   kpiDashboardTitle: string;
   kpiDashboardSubtitle: string;
   kpiBulkImportFilenameTitle: string;
@@ -5758,6 +5759,7 @@ export const translations: Record<Language, Translations> = {
     navBulkDocumentImport: 'Bulk Document Import',
     navKpiDashboard: 'KPI Dashboard',
     navImpersonationLog: 'Impersonation Log',
+    navOrgAccess: 'Org Access',
     kpiDashboardTitle: 'KPI Dashboard',
     kpiDashboardSubtitle: 'Operational metrics aggregated from product telemetry.',
     kpiBulkImportFilenameTitle: 'Bulk import — AI filename suggestions',
@@ -10023,6 +10025,7 @@ export const translations: Record<Language, Translations> = {
     navBulkDocumentImport: 'Importation de documents en masse',
     navKpiDashboard: 'Tableau de bord KPI',
     navImpersonationLog: "Journal d'usurpation d'identité",
+    navOrgAccess: "Accès aux organisations",
     kpiDashboardTitle: 'Tableau de bord KPI',
     kpiDashboardSubtitle: 'Mesures opérationnelles agrégées à partir de la télémétrie produit.',
     kpiBulkImportFilenameTitle: 'Import en masse — suggestions de noms IA',
