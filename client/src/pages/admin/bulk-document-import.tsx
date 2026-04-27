@@ -396,6 +396,22 @@ export interface BulkImportItemLite {
   residenceAiSuggestedId: string | null;
   residenceAiSuggested: boolean;
   residenceAiConfirmed: boolean;
+  /**
+   * Task #1401 — clean human-readable filename stem the AI suggested for
+   * this row in the Sorting (a.k.a. Branching) step. The Sorting rename
+   * input defaults to this when the admin hasn't typed anything yet, and
+   * shows an "AI suggestion" hint while the input value still matches
+   * verbatim. `null` means the AI did not produce a suggestion (fallback
+   * row, api_error, or unsanitisable response) — the input falls back to
+   * the original-stem placeholder.
+   */
+  branchSuggestedFinalFileName: string | null;
+  /**
+   * Task #1401 — pair of clean filename stems for split rows, in slice
+   * order (Part 1 / Part 2). Only populated when the AI itself flagged
+   * the document as splittable. `null` otherwise.
+   */
+  branchSuggestedSplitFinalNames: [string, string] | null;
   identificationConfidence: number | null;
   identificationFallback: BulkImportFallbackReason | null;
   /** Task #1157: Anthropic attempts for the Identification step. See screeningRetryCount. */
@@ -7348,68 +7364,128 @@ export default function BulkDocumentImportPage() {
                                                   </div>
                                                   {currentDecision === 'split' ? (
                                                     <>
-                                                      <div className="flex flex-col gap-1">
-                                                        <label className="text-xs text-muted-foreground">
-                                                          {isFr ? 'Partie 1 :' : 'Part 1:'}
-                                                        </label>
-                                                        <div className="flex items-center gap-1">
-                                                          <input
-                                                            type="text"
-                                                            className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                                                            data-testid={`branching-rename-split-${sibling.id}-0`}
-                                                            value={inlineRenameSplit.get(sibling.id)?.[0] ?? sibling.sortingDecisionSplitFinalNames?.[0] ?? ''}
-                                                            placeholder={`${renameStem} (1)`}
-                                                            onChange={(e) => {
-                                                              const part2 = inlineRenameSplit.get(sibling.id)?.[1] ?? sibling.sortingDecisionSplitFinalNames?.[1] ?? '';
-                                                              setInlineRenameSplit((prev) => new Map(prev).set(sibling.id, [e.target.value, part2]));
-                                                              scheduleAutoSave(sibling);
-                                                            }}
-                                                          />
-                                                          {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
-                                                        </div>
-                                                      </div>
-                                                      <div className="flex flex-col gap-1">
-                                                        <label className="text-xs text-muted-foreground">
-                                                          {isFr ? 'Partie 2 :' : 'Part 2:'}
-                                                        </label>
-                                                        <div className="flex items-center gap-1">
-                                                          <input
-                                                            type="text"
-                                                            className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                                                            data-testid={`branching-rename-split-${sibling.id}-1`}
-                                                            value={inlineRenameSplit.get(sibling.id)?.[1] ?? sibling.sortingDecisionSplitFinalNames?.[1] ?? ''}
-                                                            placeholder={`${renameStem} (2)`}
-                                                            onChange={(e) => {
-                                                              const part1 = inlineRenameSplit.get(sibling.id)?.[0] ?? sibling.sortingDecisionSplitFinalNames?.[0] ?? '';
-                                                              setInlineRenameSplit((prev) => new Map(prev).set(sibling.id, [part1, e.target.value]));
-                                                              scheduleAutoSave(sibling);
-                                                            }}
-                                                          />
-                                                          {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
-                                                        </div>
-                                                      </div>
+                                                      {(() => {
+                                                        // Task #1401 — default to AI-suggested split names when the
+                                                        // admin hasn't typed an override and the analyzer produced a
+                                                        // pair. The hint badge below the input fires when the value
+                                                        // still matches the suggestion verbatim.
+                                                        const aiPart1 = sibling.branchSuggestedSplitFinalNames?.[0] ?? null;
+                                                        const aiPart2 = sibling.branchSuggestedSplitFinalNames?.[1] ?? null;
+                                                        const part1Value = inlineRenameSplit.get(sibling.id)?.[0]
+                                                          ?? sibling.sortingDecisionSplitFinalNames?.[0]
+                                                          ?? aiPart1
+                                                          ?? '';
+                                                        const part2Value = inlineRenameSplit.get(sibling.id)?.[1]
+                                                          ?? sibling.sortingDecisionSplitFinalNames?.[1]
+                                                          ?? aiPart2
+                                                          ?? '';
+                                                        const part1IsAi = !!aiPart1 && part1Value === aiPart1;
+                                                        const part2IsAi = !!aiPart2 && part2Value === aiPart2;
+                                                        return (
+                                                          <>
+                                                            <div className="flex flex-col gap-1">
+                                                              <label className="text-xs text-muted-foreground">
+                                                                {isFr ? 'Partie 1 :' : 'Part 1:'}
+                                                              </label>
+                                                              <div className="flex items-center gap-1">
+                                                                <input
+                                                                  type="text"
+                                                                  className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                                                  data-testid={`branching-rename-split-${sibling.id}-0`}
+                                                                  value={part1Value}
+                                                                  placeholder={`${renameStem} (1)`}
+                                                                  onChange={(e) => {
+                                                                    const part2 = inlineRenameSplit.get(sibling.id)?.[1] ?? sibling.sortingDecisionSplitFinalNames?.[1] ?? aiPart2 ?? '';
+                                                                    setInlineRenameSplit((prev) => new Map(prev).set(sibling.id, [e.target.value, part2]));
+                                                                    scheduleAutoSave(sibling);
+                                                                  }}
+                                                                />
+                                                                {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
+                                                              </div>
+                                                              {part1IsAi && (
+                                                                <span
+                                                                  className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"
+                                                                  data-testid={`branching-rename-split-ai-hint-${sibling.id}-0`}
+                                                                >
+                                                                  <Sparkles className="h-3 w-3" />
+                                                                  {isFr ? "Suggestion de l'IA" : 'AI suggestion'}
+                                                                </span>
+                                                              )}
+                                                            </div>
+                                                            <div className="flex flex-col gap-1">
+                                                              <label className="text-xs text-muted-foreground">
+                                                                {isFr ? 'Partie 2 :' : 'Part 2:'}
+                                                              </label>
+                                                              <div className="flex items-center gap-1">
+                                                                <input
+                                                                  type="text"
+                                                                  className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                                                  data-testid={`branching-rename-split-${sibling.id}-1`}
+                                                                  value={part2Value}
+                                                                  placeholder={`${renameStem} (2)`}
+                                                                  onChange={(e) => {
+                                                                    const part1 = inlineRenameSplit.get(sibling.id)?.[0] ?? sibling.sortingDecisionSplitFinalNames?.[0] ?? aiPart1 ?? '';
+                                                                    setInlineRenameSplit((prev) => new Map(prev).set(sibling.id, [part1, e.target.value]));
+                                                                    scheduleAutoSave(sibling);
+                                                                  }}
+                                                                />
+                                                                {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
+                                                              </div>
+                                                              {part2IsAi && (
+                                                                <span
+                                                                  className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"
+                                                                  data-testid={`branching-rename-split-ai-hint-${sibling.id}-1`}
+                                                                >
+                                                                  <Sparkles className="h-3 w-3" />
+                                                                  {isFr ? "Suggestion de l'IA" : 'AI suggestion'}
+                                                                </span>
+                                                              )}
+                                                            </div>
+                                                          </>
+                                                        );
+                                                      })()}
                                                     </>
-                                                  ) : (
-                                                    <div className="flex flex-col gap-1">
-                                                      <label className="text-xs text-muted-foreground">
-                                                        {isFr ? 'Nouveau nom :' : 'New name:'}
-                                                      </label>
-                                                      <div className="flex items-center gap-1">
-                                                        <input
-                                                          type="text"
-                                                          className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                                                          data-testid={renameTestId}
-                                                          value={inlineRename.get(mergeLeadId) ?? leadItem.finalFileName ?? ''}
-                                                          placeholder={renameStem}
-                                                          onChange={(e) => {
-                                                            setInlineRename((prev) => new Map(prev).set(mergeLeadId, e.target.value));
-                                                            scheduleAutoSave(leadItem, sortingPickerStates.get(sibling.id)?.decision);
-                                                          }}
-                                                        />
-                                                        {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
+                                                  ) : (() => {
+                                                    // Task #1401 — non-split rename input defaults to the lead
+                                                    // item's AI-suggested filename when the admin hasn't typed
+                                                    // anything and no `finalFileName` override is persisted yet.
+                                                    const aiSuggested = leadItem.branchSuggestedFinalFileName ?? null;
+                                                    const renameValue = inlineRename.get(mergeLeadId)
+                                                      ?? leadItem.finalFileName
+                                                      ?? aiSuggested
+                                                      ?? '';
+                                                    const isAi = !!aiSuggested && renameValue === aiSuggested;
+                                                    return (
+                                                      <div className="flex flex-col gap-1">
+                                                        <label className="text-xs text-muted-foreground">
+                                                          {isFr ? 'Nouveau nom :' : 'New name:'}
+                                                        </label>
+                                                        <div className="flex items-center gap-1">
+                                                          <input
+                                                            type="text"
+                                                            className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                                            data-testid={renameTestId}
+                                                            value={renameValue}
+                                                            placeholder={renameStem}
+                                                            onChange={(e) => {
+                                                              setInlineRename((prev) => new Map(prev).set(mergeLeadId, e.target.value));
+                                                              scheduleAutoSave(leadItem, sortingPickerStates.get(sibling.id)?.decision);
+                                                            }}
+                                                          />
+                                                          {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
+                                                        </div>
+                                                        {isAi && (
+                                                          <span
+                                                            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"
+                                                            data-testid={`branching-rename-ai-hint-${mergeLeadId}`}
+                                                          >
+                                                            <Sparkles className="h-3 w-3" />
+                                                            {isFr ? "Suggestion de l'IA" : 'AI suggestion'}
+                                                          </span>
+                                                        )}
                                                       </div>
-                                                    </div>
-                                                  )}
+                                                    );
+                                                  })()}
                                                 </div>
                                               )}
 
@@ -8965,68 +9041,125 @@ export default function BulkDocumentImportPage() {
                                             </div>
                                             {currentDecision === 'split' ? (
                                               <>
-                                                <div className="flex flex-col gap-1">
-                                                  <label className="text-xs text-muted-foreground">
-                                                    {isFr ? 'Partie 1 :' : 'Part 1:'}
-                                                  </label>
-                                                  <div className="flex items-center gap-1">
-                                                    <input
-                                                      type="text"
-                                                      className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                                                      data-testid={`branching-rename-split-${item.id}-0`}
-                                                      value={inlineRenameSplit.get(item.id)?.[0] ?? item.sortingDecisionSplitFinalNames?.[0] ?? ''}
-                                                      placeholder={`${renameStem} (1)`}
-                                                      onChange={(e) => {
-                                                        const part2 = inlineRenameSplit.get(item.id)?.[1] ?? item.sortingDecisionSplitFinalNames?.[1] ?? '';
-                                                        setInlineRenameSplit((prev) => new Map(prev).set(item.id, [e.target.value, part2]));
-                                                        scheduleAutoSave(item);
-                                                      }}
-                                                    />
-                                                    {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
-                                                  </div>
-                                                </div>
-                                                <div className="flex flex-col gap-1">
-                                                  <label className="text-xs text-muted-foreground">
-                                                    {isFr ? 'Partie 2 :' : 'Part 2:'}
-                                                  </label>
-                                                  <div className="flex items-center gap-1">
-                                                    <input
-                                                      type="text"
-                                                      className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                                                      data-testid={`branching-rename-split-${item.id}-1`}
-                                                      value={inlineRenameSplit.get(item.id)?.[1] ?? item.sortingDecisionSplitFinalNames?.[1] ?? ''}
-                                                      placeholder={`${renameStem} (2)`}
-                                                      onChange={(e) => {
-                                                        const part1 = inlineRenameSplit.get(item.id)?.[0] ?? item.sortingDecisionSplitFinalNames?.[0] ?? '';
-                                                        setInlineRenameSplit((prev) => new Map(prev).set(item.id, [part1, e.target.value]));
-                                                        scheduleAutoSave(item);
-                                                      }}
-                                                    />
-                                                    {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
-                                                  </div>
-                                                </div>
+                                                {(() => {
+                                                  // Task #1401 — see twin block in the merge-sibling
+                                                  // path above for the value-precedence rationale.
+                                                  const aiPart1 = item.branchSuggestedSplitFinalNames?.[0] ?? null;
+                                                  const aiPart2 = item.branchSuggestedSplitFinalNames?.[1] ?? null;
+                                                  const part1Value = inlineRenameSplit.get(item.id)?.[0]
+                                                    ?? item.sortingDecisionSplitFinalNames?.[0]
+                                                    ?? aiPart1
+                                                    ?? '';
+                                                  const part2Value = inlineRenameSplit.get(item.id)?.[1]
+                                                    ?? item.sortingDecisionSplitFinalNames?.[1]
+                                                    ?? aiPart2
+                                                    ?? '';
+                                                  const part1IsAi = !!aiPart1 && part1Value === aiPart1;
+                                                  const part2IsAi = !!aiPart2 && part2Value === aiPart2;
+                                                  return (
+                                                    <>
+                                                      <div className="flex flex-col gap-1">
+                                                        <label className="text-xs text-muted-foreground">
+                                                          {isFr ? 'Partie 1 :' : 'Part 1:'}
+                                                        </label>
+                                                        <div className="flex items-center gap-1">
+                                                          <input
+                                                            type="text"
+                                                            className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                                            data-testid={`branching-rename-split-${item.id}-0`}
+                                                            value={part1Value}
+                                                            placeholder={`${renameStem} (1)`}
+                                                            onChange={(e) => {
+                                                              const part2 = inlineRenameSplit.get(item.id)?.[1] ?? item.sortingDecisionSplitFinalNames?.[1] ?? aiPart2 ?? '';
+                                                              setInlineRenameSplit((prev) => new Map(prev).set(item.id, [e.target.value, part2]));
+                                                              scheduleAutoSave(item);
+                                                            }}
+                                                          />
+                                                          {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
+                                                        </div>
+                                                        {part1IsAi && (
+                                                          <span
+                                                            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"
+                                                            data-testid={`branching-rename-split-ai-hint-${item.id}-0`}
+                                                          >
+                                                            <Sparkles className="h-3 w-3" />
+                                                            {isFr ? "Suggestion de l'IA" : 'AI suggestion'}
+                                                          </span>
+                                                        )}
+                                                      </div>
+                                                      <div className="flex flex-col gap-1">
+                                                        <label className="text-xs text-muted-foreground">
+                                                          {isFr ? 'Partie 2 :' : 'Part 2:'}
+                                                        </label>
+                                                        <div className="flex items-center gap-1">
+                                                          <input
+                                                            type="text"
+                                                            className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                                            data-testid={`branching-rename-split-${item.id}-1`}
+                                                            value={part2Value}
+                                                            placeholder={`${renameStem} (2)`}
+                                                            onChange={(e) => {
+                                                              const part1 = inlineRenameSplit.get(item.id)?.[0] ?? item.sortingDecisionSplitFinalNames?.[0] ?? aiPart1 ?? '';
+                                                              setInlineRenameSplit((prev) => new Map(prev).set(item.id, [part1, e.target.value]));
+                                                              scheduleAutoSave(item);
+                                                            }}
+                                                          />
+                                                          {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
+                                                        </div>
+                                                        {part2IsAi && (
+                                                          <span
+                                                            className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"
+                                                            data-testid={`branching-rename-split-ai-hint-${item.id}-1`}
+                                                          >
+                                                            <Sparkles className="h-3 w-3" />
+                                                            {isFr ? "Suggestion de l'IA" : 'AI suggestion'}
+                                                          </span>
+                                                        )}
+                                                      </div>
+                                                    </>
+                                                  );
+                                                })()}
                                               </>
-                                            ) : (
-                                              <div className="flex flex-col gap-1">
-                                                <label className="text-xs text-muted-foreground">
-                                                  {isFr ? 'Nouveau nom :' : 'New name:'}
-                                                </label>
-                                                <div className="flex items-center gap-1">
-                                                  <input
-                                                    type="text"
-                                                    className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
-                                                    data-testid={renameTestId}
-                                                    value={inlineRename.get(mergeLeadId) ?? leadItem.finalFileName ?? ''}
-                                                    placeholder={renameStem}
-                                                    onChange={(e) => {
-                                                      setInlineRename((prev) => new Map(prev).set(mergeLeadId, e.target.value));
-                                                      scheduleAutoSave(leadItem, sortingPickerStates.get(item.id)?.decision);
-                                                    }}
-                                                  />
-                                                  {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
+                                            ) : (() => {
+                                              // Task #1401 — see twin block in the merge-sibling
+                                              // path above for the value-precedence rationale.
+                                              const aiSuggested = leadItem.branchSuggestedFinalFileName ?? null;
+                                              const renameValue = inlineRename.get(mergeLeadId)
+                                                ?? leadItem.finalFileName
+                                                ?? aiSuggested
+                                                ?? '';
+                                              const isAi = !!aiSuggested && renameValue === aiSuggested;
+                                              return (
+                                                <div className="flex flex-col gap-1">
+                                                  <label className="text-xs text-muted-foreground">
+                                                    {isFr ? 'Nouveau nom :' : 'New name:'}
+                                                  </label>
+                                                  <div className="flex items-center gap-1">
+                                                    <input
+                                                      type="text"
+                                                      className="h-8 flex-1 rounded-md border border-input bg-background px-3 text-sm focus:outline-none focus:ring-1 focus:ring-ring"
+                                                      data-testid={renameTestId}
+                                                      value={renameValue}
+                                                      placeholder={renameStem}
+                                                      onChange={(e) => {
+                                                        setInlineRename((prev) => new Map(prev).set(mergeLeadId, e.target.value));
+                                                        scheduleAutoSave(leadItem, sortingPickerStates.get(item.id)?.decision);
+                                                      }}
+                                                    />
+                                                    {fileExt && <span className="text-sm text-muted-foreground shrink-0">{fileExt}</span>}
+                                                  </div>
+                                                  {isAi && (
+                                                    <span
+                                                      className="inline-flex items-center gap-1 text-[11px] text-muted-foreground"
+                                                      data-testid={`branching-rename-ai-hint-${mergeLeadId}`}
+                                                    >
+                                                      <Sparkles className="h-3 w-3" />
+                                                      {isFr ? "Suggestion de l'IA" : 'AI suggestion'}
+                                                    </span>
+                                                  )}
                                                 </div>
-                                              </div>
-                                            )}
+                                              );
+                                            })()}
                                           </div>
                                         )}
 

@@ -107,6 +107,12 @@ interface ItemRow {
   sortingManualOverride: boolean;
   sortingReason: string | null;
   sortingConfidence: number | null;
+  // Task #1401 — optional AI-suggested filename overrides for tests that
+  // exercise the rename-input default + "AI suggestion" hint behaviour.
+  branchSuggestedFinalFileName?: string | null;
+  branchSuggestedSplitFinalNames?: [string, string] | null;
+  finalFileName?: string | null;
+  sortingDecisionSplitFinalNames?: [string, string] | null;
 }
 
 let items: ItemRow[] = [];
@@ -185,8 +191,12 @@ function buildSessionPayload() {
       linkingAfterItemId: null,
       sortingDecisionSplitIntoItemIds: null,
       sortingDecisionDraft: false,
-      sortingDecisionSplitFinalNames: null,
-      finalFileName: null,
+      sortingDecisionSplitFinalNames: it.sortingDecisionSplitFinalNames ?? null,
+      finalFileName: it.finalFileName ?? null,
+      // Task #1401 — surface optional AI-suggested filenames so tests can
+      // assert the rename-input default + "AI suggestion" hint contract.
+      branchSuggestedFinalFileName: it.branchSuggestedFinalFileName ?? null,
+      branchSuggestedSplitFinalNames: it.branchSuggestedSplitFinalNames ?? null,
       excludeSource: null,
     })),
   };
@@ -846,6 +856,173 @@ describe('BulkDocumentImportPage — sorting decision UI (Task #817 / #825)', ()
       expect(screen.getByTestId(`branching-rename-split-${ITEM_SPLIT_PENDING}-0`)).toBeInTheDocument();
       expect(screen.getByTestId(`branching-rename-split-${ITEM_SPLIT_PENDING}-1`)).toBeInTheDocument();
     });
+  });
+
+  // ---------------------------------------------------------------------------
+  // Task #1401 — AI-suggested filenames in the rename input.
+  //
+  // The Sorting (a.k.a. Branching) step now defaults the rename input to
+  // the analyzer's `branchSuggestedFinalFileName` / `branchSuggestedSplitFinalNames`
+  // when the admin hasn't typed an override and no `finalFileName` is yet
+  // persisted. While the input still shows the AI value verbatim, an
+  // "AI suggestion" hint badge appears below the input. Typing anything
+  // different removes the badge. Fallback rows (no AI suggestion) keep
+  // the placeholder-only behaviour from before.
+  // ---------------------------------------------------------------------------
+
+  it('defaults the keep rename input to the AI suggestion and shows an AI hint badge (Task #1401)', async () => {
+    const ITEM_AI_NAMED = 'item-ai-named';
+    items.push({
+      id: ITEM_AI_NAMED,
+      originalName: 'IMG_20240912_184231.pdf',
+      status: 'sorted',
+      sortingDecisionState: 'pending',
+      sortingDecision: 'keep',
+      sortingMergeWithItemId: null,
+      sortingMergeWithItemIds: null,
+      sortingSplitAtPage: null,
+      sortingManualOverride: false,
+      sortingReason: 'Standalone',
+      sortingConfidence: 0.9,
+      branchSuggestedFinalFileName: 'Procès-verbal AGA 2024-09-12',
+    });
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_AI_NAMED}`, undefined, { timeout: 4000 });
+
+    const renameInput = (await screen.findByTestId(
+      `branching-rename-${ITEM_AI_NAMED}`,
+    )) as HTMLInputElement;
+
+    // Input value defaults to the AI suggestion (a value, not a placeholder).
+    expect(renameInput.value).toBe('Procès-verbal AGA 2024-09-12');
+    // AI-suggestion hint badge is rendered while the value matches verbatim.
+    expect(
+      screen.getByTestId(`branching-rename-ai-hint-${ITEM_AI_NAMED}`),
+    ).toHaveTextContent('AI suggestion');
+  });
+
+  it('removes the AI hint badge once the admin types something different (Task #1401)', async () => {
+    const ITEM_AI_OVERRIDE = 'item-ai-override';
+    items.push({
+      id: ITEM_AI_OVERRIDE,
+      originalName: 'scan001.pdf',
+      status: 'sorted',
+      sortingDecisionState: 'pending',
+      sortingDecision: 'keep',
+      sortingMergeWithItemId: null,
+      sortingMergeWithItemIds: null,
+      sortingSplitAtPage: null,
+      sortingManualOverride: false,
+      sortingReason: 'Standalone',
+      sortingConfidence: 0.9,
+      branchSuggestedFinalFileName: 'Insurance policy 2024',
+    });
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_AI_OVERRIDE}`, undefined, { timeout: 4000 });
+
+    const renameInput = (await screen.findByTestId(
+      `branching-rename-${ITEM_AI_OVERRIDE}`,
+    )) as HTMLInputElement;
+
+    // Hint is visible at first.
+    expect(
+      screen.getByTestId(`branching-rename-ai-hint-${ITEM_AI_OVERRIDE}`),
+    ).toBeInTheDocument();
+
+    // Admin types over the suggestion.
+    await act(async () => {
+      fireEvent.change(renameInput, { target: { value: 'My custom name' } });
+    });
+
+    expect(renameInput.value).toBe('My custom name');
+    // Badge is gone — the value no longer matches the AI suggestion verbatim.
+    await waitFor(() => {
+      expect(
+        screen.queryByTestId(`branching-rename-ai-hint-${ITEM_AI_OVERRIDE}`),
+      ).not.toBeInTheDocument();
+    });
+  });
+
+  it('does not render the AI hint badge on rows without an AI suggestion (Task #1401)', async () => {
+    // ITEM_PENDING in the default fixture has no branchSuggestedFinalFileName,
+    // mirroring a fallback / api_error row.
+    renderPage();
+    await waitForRows();
+
+    const renameInput = (await screen.findByTestId(
+      `branching-rename-${ITEM_PENDING}`,
+    )) as HTMLInputElement;
+
+    // Without an AI suggestion the input falls back to the empty value
+    // (the placeholder takes over visually).
+    expect(renameInput.value).toBe('');
+    expect(
+      screen.queryByTestId(`branching-rename-ai-hint-${ITEM_PENDING}`),
+    ).not.toBeInTheDocument();
+  });
+
+  it('split decision defaults Part 1 / Part 2 inputs to the AI split suggestions and renders both AI hints (Task #1401)', async () => {
+    const ITEM_AI_SPLIT = 'item-ai-split';
+    items.push({
+      id: ITEM_AI_SPLIT,
+      originalName: 'combined.pdf',
+      status: 'sorted',
+      sortingDecisionState: 'pending',
+      sortingDecision: 'split',
+      sortingMergeWithItemId: null,
+      sortingMergeWithItemIds: null,
+      sortingSplitAtPage: 2,
+      sortingManualOverride: false,
+      sortingReason: 'Two parts detected',
+      sortingConfidence: 0.88,
+      branchSuggestedSplitFinalNames: ['AGA minutes 2024-09-12', 'Insurance policy 2024'],
+    });
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_AI_SPLIT}`, undefined, { timeout: 4000 });
+
+    const part1 = (await screen.findByTestId(
+      `branching-rename-split-${ITEM_AI_SPLIT}-0`,
+    )) as HTMLInputElement;
+    const part2 = (await screen.findByTestId(
+      `branching-rename-split-${ITEM_AI_SPLIT}-1`,
+    )) as HTMLInputElement;
+
+    expect(part1.value).toBe('AGA minutes 2024-09-12');
+    expect(part2.value).toBe('Insurance policy 2024');
+    expect(
+      screen.getByTestId(`branching-rename-split-ai-hint-${ITEM_AI_SPLIT}-0`),
+    ).toHaveTextContent('AI suggestion');
+    expect(
+      screen.getByTestId(`branching-rename-split-ai-hint-${ITEM_AI_SPLIT}-1`),
+    ).toHaveTextContent('AI suggestion');
+  });
+
+  it('renders the French AI suggestion label when the language is French (Task #1401)', async () => {
+    const ITEM_AI_FR = 'item-ai-fr';
+    items.push({
+      id: ITEM_AI_FR,
+      originalName: 'scanFR.pdf',
+      status: 'sorted',
+      sortingDecisionState: 'pending',
+      sortingDecision: 'keep',
+      sortingMergeWithItemId: null,
+      sortingMergeWithItemIds: null,
+      sortingSplitAtPage: null,
+      sortingManualOverride: false,
+      sortingReason: 'Standalone',
+      sortingConfidence: 0.9,
+      branchSuggestedFinalFileName: 'Police d’assurance 2024',
+    });
+    languageRef.current = 'fr';
+
+    renderPage();
+    await screen.findByTestId(`item-preview-trigger-${ITEM_AI_FR}`, undefined, { timeout: 4000 });
+
+    const hint = await screen.findByTestId(`branching-rename-ai-hint-${ITEM_AI_FR}`);
+    expect(hint).toHaveTextContent("Suggestion de l'IA");
   });
 
   // ---------------------------------------------------------------------------

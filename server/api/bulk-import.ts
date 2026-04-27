@@ -2831,6 +2831,12 @@ export function registerBulkImportRoutes(app: Express): void {
           residenceAiSuggestedId: null,
           residenceAiSuggested: false,
           residenceAiConfirmed: false,
+          // Task #1401 — AI-suggested filename stems for the rename input
+          // in the Sorting (a.k.a. Branching) step. `null` means "no
+          // suggestion available, fall back to the original-stem
+          // placeholder".
+          suggestedFinalFileName: null,
+          suggestedSplitFinalNames: null,
         };
         const validBranches: BranchDestination[] = [
           'building_documents', 'residence_documents', 'demand', 'bill', 'maintenance', 'other',
@@ -2863,6 +2869,27 @@ export function registerBulkImportRoutes(app: Express): void {
           && residenceAiSuggestedId === residenceId
           && !residenceAiConfirmed
           && !residenceManualOverride;
+        // Task #1401 — replay the AI's filename suggestions as a clean
+        // string or `null`. The analyzer already sanitises before
+        // persisting, but persisted JSONB is `unknown` to TypeScript so
+        // we re-validate the type here.
+        const rawSuggestedFinal = json.suggestedFinalFileName;
+        const suggestedFinalFileName =
+          typeof rawSuggestedFinal === 'string' && rawSuggestedFinal.length > 0
+            ? rawSuggestedFinal
+            : null;
+        const rawSuggestedSplit = json.suggestedSplitFinalNames;
+        let suggestedSplitFinalNames: [string, string] | null = null;
+        if (
+          Array.isArray(rawSuggestedSplit)
+          && rawSuggestedSplit.length === 2
+          && typeof rawSuggestedSplit[0] === 'string'
+          && typeof rawSuggestedSplit[1] === 'string'
+          && rawSuggestedSplit[0].length > 0
+          && rawSuggestedSplit[1].length > 0
+        ) {
+          suggestedSplitFinalNames = [rawSuggestedSplit[0], rawSuggestedSplit[1]];
+        }
         return {
           ...base,
           branch,
@@ -2877,6 +2904,8 @@ export function registerBulkImportRoutes(app: Express): void {
           residenceAiSuggestedId,
           residenceAiSuggested,
           residenceAiConfirmed,
+          suggestedFinalFileName,
+          suggestedSplitFinalNames,
         };
       }
 
@@ -2978,6 +3007,12 @@ export function registerBulkImportRoutes(app: Express): void {
               residenceAiSuggestedId: br.residenceAiSuggestedId,
               residenceAiSuggested: br.residenceAiSuggested,
               residenceAiConfirmed: br.residenceAiConfirmed,
+              // Task #1401 — surface the AI's clean filename suggestions so
+              // the rename input in the Sorting (a.k.a. Branching) step can
+              // default to them and render an "AI suggestion" hint when
+              // unchanged.
+              branchSuggestedFinalFileName: br.suggestedFinalFileName,
+              branchSuggestedSplitFinalNames: br.suggestedSplitFinalNames,
               identificationConfidence: id.confidence,
               identificationFallback: id.fallbackReason,
               identificationRetryCount: id.retryCount,

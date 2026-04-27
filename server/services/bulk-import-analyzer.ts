@@ -201,6 +201,19 @@ export interface BranchResult extends AnalyzerConfidence {
   residenceConfidence?: number | null;
   residenceReason?: string | null;
   residenceFallbackReason?: string | null;
+  /**
+   * Task #1401 — clean human-readable filename stem (no extension)
+   * suggested by the AI for this row. Sanitised in the analyzer so the
+   * server route never has to re-clean it. `null` when the AI did not
+   * supply a meaningful suggestion or the response was a fallback stub.
+   */
+  suggestedFinalFileName?: string | null;
+  /**
+   * Task #1401 — pair of clean filename stems for split rows, in the
+   * same order as the slice (Part 1 / Part 2). `null` when the AI did
+   * not supply a meaningful suggestion or it could not be sanitised.
+   */
+  suggestedSplitFinalNames?: [string, string] | null;
 }
 
 export interface IdentificationResult extends AnalyzerConfidence {
@@ -983,6 +996,54 @@ function clampConfidence(value: unknown): number {
   return Math.max(0, Math.min(1, n));
 }
 
+/**
+ * Task #1401 — Sanitise an AI-suggested filename stem before persisting
+ * it on the bulk-import row. The cleaned value is fed straight to the
+ * rename input so downstream code never has to re-clean it.
+ *
+ * Rules (mirror the admin-typed `sanitizeFileNameStem` in
+ * `server/api/bulk-import.ts`, with the cap raised to 210 chars to match
+ * the existing rename limit):
+ *   - Trim whitespace.
+ *   - Drop any extension the AI included (everything after the last dot).
+ *   - Strip path separators (`/` and `\\`) so a stray suggestion can't
+ *     escape the staged-files directory at commit time.
+ *   - Strip ASCII control characters and the NTFS-reserved set
+ *     (`<>:"|?*`) so the filename is safe on every supported OS.
+ *   - Collapse runs of whitespace to a single space.
+ *   - Forbid leading dots (Unix hidden-file trap).
+ *   - Cap to 210 chars (matches the 210-char rename limit referenced in
+ *     task #1401's spec).
+ *
+ * Returns the cleaned stem, or `null` when the input is empty / unsafe
+ * after cleaning. Callers persist `null` so the UI falls back to the
+ * original filename stem placeholder.
+ */
+export function sanitizeAiSuggestedFileName(raw: unknown): string | null {
+  if (typeof raw !== 'string') return null;
+  let s = raw.trim();
+  if (!s) return null;
+  // Drop any extension the AI included (everything after the last dot).
+  const lastDot = s.lastIndexOf('.');
+  if (lastDot > 0 && lastDot >= s.length - 6) {
+    s = s.slice(0, lastDot).trim();
+  }
+  // Strip path separators.
+  s = s.replace(/[/\\]/g, '');
+  // Collapse runs of whitespace (incl. tabs / newlines) to a single
+  // space FIRST so the control-character strip below doesn't collapse
+  // "foo\tbar" into "foobar".
+  s = s.replace(/\s+/g, ' ').trim();
+  // Strip filesystem-unsafe characters and any remaining control bytes.
+  // eslint-disable-next-line no-control-regex
+  s = s.replace(/[<>:"|?*\x00-\x1f]/g, '');
+  s = s.replace(/\s+/g, ' ').trim();
+  if (!s) return null;
+  if (s.startsWith('.')) return null;
+  if (s.length > 210) s = s.slice(0, 210).trim();
+  return s || null;
+}
+
 function fallbackQuickAnalysis(
   fallbackReason: BulkImportFallbackReason | null = null,
 ): QuickAnalysis {
@@ -1232,7 +1293,11 @@ Sub-categories per destination:
   maintenance: work_order | quote | inspection_report | inventory | other
   other: other
 
-Return JSON: { branch: string, subCategory: string, residenceHint?: string, reason: string, confidence: number${residenceJsonNote} }.`;
+Also propose a clean, human-readable filename for this document (Task #1401):
+- suggestedFilename (string): a single clean stem with NO extension and NO path separators, suitable as a default in a rename input. Prefer descriptive names that combine the document subject and the relevant period or unique identifier (e.g. "Procès-verbal AGA 2024-09-12", "Insurance policy 2024", "Invoice INV-2024-042"). Avoid generic camera/scanner filenames like "IMG_20240912_184231" or "Scan_001". Keep it under 200 characters.
+- suggestedSplitFilenames (array of two strings, optional): include ONLY when this file clearly contains two separate documents stitched together (i.e. you would advise a split). Each entry is a clean stem (no extension), one for each part, in the order they appear in the file (Part 1 first, Part 2 second). Omit this key entirely when no split is warranted.
+
+Return JSON: { branch: string, subCategory: string, residenceHint?: string, reason: string, confidence: number, suggestedFilename: string, suggestedSplitFilenames?: [string, string]${residenceJsonNote} }.`;
     const { data: raw, fallbackReason, retryCount, degraded } = await callClaudeJson<Partial<BranchResult & { subCategory: string }>>(
       prompt,
       {
@@ -1252,7 +1317,9 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
       'other',
     ];
     if (!raw) {
-      return { branch: 'building_documents', subCategory: 'other', reason: 'fallback', confidence: 0.2, fallbackReason, retryCount, degraded, residenceId: null, residenceConfidence: null, residenceReason: null, residenceFallbackReason: null };
+      // Task #1401 — fallback rows carry no AI suggestion so the rename
+      // input falls back to the original-stem placeholder.
+      return { branch: 'building_documents', subCategory: 'other', reason: 'fallback', confidence: 0.2, fallbackReason, retryCount, degraded, residenceId: null, residenceConfidence: null, residenceReason: null, residenceFallbackReason: null, suggestedFinalFileName: null, suggestedSplitFinalNames: null };
     }
     const branch: BranchDestination = allowed.includes(raw.branch as BranchDestination)
       ? (raw.branch as BranchDestination)
@@ -1290,6 +1357,25 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
       }
     }
 
+    // Task #1401 — extract and sanitise the AI's filename suggestions.
+    // We persist `null` (rather than the original stem) when the AI omits
+    // a suggestion or returns one we can't sanitise, so the UI knows to
+    // fall back to the original filename placeholder. Split suggestions
+    // are only kept when BOTH halves sanitise cleanly — a half-good pair
+    // would defeat the "matches verbatim" hint logic on the unsuggested
+    // side.
+    const rawSuggested = (raw as Record<string, unknown>).suggestedFilename;
+    const suggestedFinalFileName = sanitizeAiSuggestedFileName(rawSuggested);
+    const rawSplit = (raw as Record<string, unknown>).suggestedSplitFilenames;
+    let suggestedSplitFinalNames: [string, string] | null = null;
+    if (Array.isArray(rawSplit) && rawSplit.length === 2) {
+      const part1 = sanitizeAiSuggestedFileName(rawSplit[0]);
+      const part2 = sanitizeAiSuggestedFileName(rawSplit[1]);
+      if (part1 && part2) {
+        suggestedSplitFinalNames = [part1, part2];
+      }
+    }
+
     return {
       branch,
       subCategory,
@@ -1304,6 +1390,8 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
       residenceConfidence,
       residenceReason,
       residenceFallbackReason,
+      suggestedFinalFileName,
+      suggestedSplitFinalNames,
     };
   },
 
