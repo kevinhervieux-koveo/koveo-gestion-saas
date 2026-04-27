@@ -1,16 +1,18 @@
 /**
- * Task #1431 — Extend the system-entity guard to protect Koveo system tags
- * from deletion via the admin web interface.
+ * Task #1431 / Task #1445 — System-entity guard for Koveo system tags on
+ * the REST `DELETE /api/document-tags/:id` surface used by the admin web UI.
  *
- * The MCP `delete_document_tag` tool already refuses to delete system tags
- * for every role (Task #1428). This file pins the same invariant on the
- * REST surface that the admin web UI uses:
+ * The MCP `delete_document_tag` tool stays role-agnostic and refuses every
+ * caller (Task #1428). The REST surface used by the admin UI now carves out
+ * `super_admin` so super admins can curate the system tag list from the
+ * admin document-tags page (Task #1445), mirroring the system link family
+ * carve-out from Task #1440.
  *
- *   DELETE /api/document-tags/:id
- *
- *   - Returns 403 with "System tags cannot be deleted" for EVERY role that
- *     reaches the handler (admin, manager, demo_manager) when the target
- *     tag has `isSystem = true`. The row is NOT deleted.
+ *   - Returns 403 with "System tags cannot be deleted" for every NON-super
+ *     role that reaches the handler (admin, manager, demo_manager) when
+ *     the target tag has `isSystem = true`. The row is NOT deleted.
+ *   - super_admin CAN delete a Koveo system tag via this REST handler
+ *     (Task #1445). The MCP guard remains intentionally unchanged.
  *   - The system-tag refusal happens BEFORE the per-org access check, so
  *     a manager who otherwise wouldn't own the tag still gets the system
  *     refusal first — matching the MCP behaviour.
@@ -172,7 +174,7 @@ beforeEach(() => {
   jest.clearAllMocks();
 });
 
-describe('DELETE /api/document-tags/:id — Koveo system tag refusal (Task #1431)', () => {
+describe('DELETE /api/document-tags/:id — Koveo system tag refusal (Task #1431 / #1445)', () => {
   beforeEach(() => {
     seedTag(SYSTEM_TAG_ID, true, null);
   });
@@ -196,7 +198,7 @@ describe('DELETE /api/document-tags/:id — Koveo system tag refusal (Task #1431
     });
   }
 
-  it('the row is still in the database after every refused call across roles', async () => {
+  it('the row is still in the database after every refused call across non-super roles', async () => {
     for (const role of ['admin', 'manager', 'demo_manager'] as const) {
       currentTestUser = { id: `user-${role}`, role };
       userOrgIds = [ORG_ID];
@@ -220,6 +222,26 @@ describe('DELETE /api/document-tags/:id — Koveo system tag refusal (Task #1431
 
     expect(res.body.message).toBe(SYSTEM_TAG_DELETE_REFUSAL_MESSAGE);
     expect(tagStore.has(SYSTEM_TAG_ID)).toBe(true);
+  });
+
+  // Task #1445 — super_admin is the single carve-out on the REST surface,
+  // matching the system link family delete carve-out from Task #1440. The
+  // MCP `delete_document_tag` tool stays role-agnostic (covered separately
+  // in tests/unit/mcp/document-tags-system-guard.test.ts).
+  it('super_admin can delete a Koveo system tag via the REST handler (Task #1445)', async () => {
+    currentTestUser = { id: 'super-1', role: 'super_admin' };
+    // System tags have no organizationId, and super_admin has no per-org
+    // membership configured — proving the system check is bypassed AND
+    // the per-org access check is not reached for super_admin.
+    userOrgIds = [];
+
+    const res = await request(buildApp())
+      .delete(`/api/document-tags/${SYSTEM_TAG_ID}`)
+      .expect(200);
+
+    expect(res.body).toEqual({ success: true });
+    expect(tagStore.has(SYSTEM_TAG_ID)).toBe(false);
+    expect(deletedTagIds).toContain(SYSTEM_TAG_ID);
   });
 });
 

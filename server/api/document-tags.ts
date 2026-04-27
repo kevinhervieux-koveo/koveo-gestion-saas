@@ -232,13 +232,15 @@ export function registerDocumentTagRoutes(app: Express): void {
         if (!tag) {
           return res.status(404).json({ message: 'Tag not found' });
         }
-        // Koveo system tags must never be deleted from any surface,
-        // regardless of the caller's role (Task #1431) — including
-        // super_admin, matching the role-agnostic MCP delete guard
-        // (`refuseIfKoveoSystemTag`). This check runs BEFORE the per-org
-        // access check so an admin hitting the REST API directly gets
-        // the same refusal as every other role.
-        if (isKoveoSystemTag(tag)) {
+        // Koveo system tags are protected from deletion on the REST surface
+        // for every role EXCEPT `super_admin` (Task #1445). The MCP
+        // `delete_document_tag` tool stays role-agnostic via
+        // `refuseIfKoveoSystemTag` so MCP callers (including super admins)
+        // are still blocked there. This mirrors the system link family
+        // delete carve-out introduced in Task #1440. The system check runs
+        // BEFORE the per-org access check so non-super-admin admins/managers
+        // get the system refusal instead of a generic "Access denied".
+        if (user.role !== 'super_admin' && isKoveoSystemTag(tag)) {
           return res.status(403).json({ message: SYSTEM_TAG_DELETE_REFUSAL_MESSAGE });
         }
         if (!tag.isSystem && user.role !== 'admin') {

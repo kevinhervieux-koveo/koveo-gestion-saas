@@ -4,18 +4,21 @@
  * Task #1418 — super-admin-only Koveo system tags & families
  * (creation path), updated for the role-agnostic delete/update guards
  * introduced by Tasks #1430 (link family delete), #1431 (tag delete),
- * and #1436 (link family update).
+ * #1436 (link family update), and the super_admin REST carve-outs from
+ * Tasks #1440 (link family delete) and #1445 (tag delete).
  *
  * Verifies:
  *   - CREATE: super_admin can create Koveo system tags and families;
  *     admin/manager are 403'd. (Unchanged — only the create path is
  *     super-admin-only.)
- *   - DELETE on system tags: every role (including super_admin) is
- *     refused with the shared MCP guard message.
+ *   - DELETE on system tags: admin/manager/demo_manager are refused with
+ *     the shared MCP guard message; super_admin can delete system tags
+ *     via the REST handler (Task #1445). The MCP guard is unchanged.
  *   - PATCH on system link families: every role (including super_admin)
  *     is refused with the shared MCP guard message.
- *   - DELETE on system link families: every role (including super_admin)
- *     is refused with the shared MCP guard message.
+ *   - DELETE on system link families: admin/manager are refused with the
+ *     shared MCP guard message; super_admin can delete via REST
+ *     (Task #1440).
  *   - Non-system (org-scoped) tags and families remain accessible to
  *     admin, manager, and demo_manager exactly as before (regression).
  *
@@ -295,15 +298,16 @@ describe('PATCH /api/document-tags/:id — system tag protection', () => {
 // ─── DELETE /api/document-tags/:id ───────────────────────────────────────────
 
 describe('DELETE /api/document-tags/:id — system tag protection', () => {
-  // Task #1431 made the DELETE handler refuse system tags for every
-  // role — including super_admin — using the shared MCP guard
-  // (`refuseIfKoveoSystemTag` → "System tags cannot be deleted").
-  it('super_admin gets 403 when trying to delete a system tag (tags are locked for all roles)', async () => {
+  // Task #1431 added the role-agnostic refusal on REST. Task #1445 then
+  // carved out `super_admin` so super admins can curate the system tag
+  // list from the admin UI, mirroring Task #1440 for system link
+  // families. The MCP `delete_document_tag` tool stays role-agnostic.
+  it('super_admin can delete a system tag via REST (Task #1445 carve-out)', async () => {
     selectQueue.push([SYSTEM_TAG]);
     const res = await request(buildApp('super_admin'))
       .delete('/api/document-tags/tag-system-1');
-    expect(res.status).toBe(403);
-    expect(res.body.message).toBe('System tags cannot be deleted');
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
   });
 
   it('admin gets 403 when trying to delete a system tag', async () => {
@@ -453,18 +457,20 @@ describe('PATCH /api/document-link-families/:id — system family protection', (
 // ─── DELETE /api/document-link-families/:id ──────────────────────────────────
 
 describe('DELETE /api/document-link-families/:id — system family protection', () => {
-  // Task #1430 made the DELETE handler refuse system link families for
-  // every role — including super_admin — using the shared MCP guard
-  // (`refuseIfKoveoSystemLinkFamily` →
-  // "System document link families cannot be deleted").
-  it('super_admin is refused when trying to delete a system family (403)', async () => {
+  // Task #1430 added the REST refusal via the shared MCP guard
+  // (`refuseIfKoveoSystemLinkFamily` → "System document link families
+  // cannot be deleted"). Task #1440 then carved out super_admin so they
+  // can curate system families from the admin UI; the dedicated coverage
+  // for the super_admin path lives in
+  // tests/unit/api/document-link-families-system-delete.test.ts. We keep
+  // the assertion here just to anchor the carve-out alongside the system
+  // tag carve-out from Task #1445 below.
+  it('super_admin can delete a system family via REST (Task #1440 carve-out)', async () => {
     selectQueue.push([SYSTEM_FAMILY]);
     const res = await request(buildApp('super_admin'))
       .delete('/api/document-link-families/fam-system-1');
-    expect(res.status).toBe(403);
-    expect(res.body).toEqual({
-      message: 'System document link families cannot be deleted',
-    });
+    expect(res.status).toBe(200);
+    expect(res.body.success).toBe(true);
   });
 
   it('admin gets 403 when trying to delete a system family', async () => {
