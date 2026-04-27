@@ -1855,7 +1855,13 @@ export default function BulkDocumentImportPage() {
   const [showConfirm, setShowConfirm] = useState(false);
   const [showHelp, setShowHelp] = useState(false);
   const [expandedHistoryId, setExpandedHistoryId] = useState<string | null>(null);
-  const [previewItem, setPreviewItem] = useState<{ id: string; originalName: string; mimeType: string | null } | null>(null);
+  const [previewItem, setPreviewItem] = useState<{
+    id: string;
+    originalName: string;
+    mimeType: string | null;
+    chainSiblings: { id: string; originalName: string; mimeType: string | null }[];
+    chainIndex: number;
+  } | null>(null);
   // Per-item expansion state for the detail panel that reveals the
   // full-size quickAnalysis guesses, the labelled confidence and the
   // un-truncated reason text (Task #771). Stored as a Set so multiple
@@ -4146,11 +4152,11 @@ export default function BulkDocumentImportPage() {
                             role="button"
                             tabIndex={0}
                             data-testid={`item-preview-trigger-${item.id}`}
-                            onClick={() => setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType })}
+                            onClick={() => setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType, chainSiblings: [], chainIndex: 0 })}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
-                                setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType });
+                                setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType, chainSiblings: [], chainIndex: 0 });
                               }
                             }}
                           >
@@ -5010,11 +5016,11 @@ export default function BulkDocumentImportPage() {
                                           role="button"
                                           tabIndex={0}
                                           data-testid={`item-preview-trigger-${item.id}`}
-                                          onClick={() => setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType })}
+                                          onClick={() => setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType, chainSiblings: [], chainIndex: 0 })}
                                           onKeyDown={(e) => {
                                             if (e.key === 'Enter' || e.key === ' ') {
                                               e.preventDefault();
-                                              setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType });
+                                              setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType, chainSiblings: [], chainIndex: 0 });
                                             }
                                           }}
                                         >
@@ -5748,12 +5754,28 @@ export default function BulkDocumentImportPage() {
                                   >
                                     {groupIdx + 1}/{group.items.length}
                                   </span>
-                                  {/* File icon */}
-                                  <GrpItemIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                                  {/* Filename */}
-                                  <span className="text-sm truncate flex-1 min-w-0">
-                                    {groupItem.originalName}
-                                  </span>
+                                  {/* File icon + Filename (click to preview with chain navigation) */}
+                                  <button
+                                    type="button"
+                                    className="flex items-center gap-2 min-w-0 flex-1 text-left hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
+                                    data-testid={`item-preview-trigger-${groupItem.id}`}
+                                    onClick={() => setPreviewItem({
+                                      id: groupItem.id,
+                                      originalName: groupItem.originalName,
+                                      mimeType: groupItem.mimeType,
+                                      chainSiblings: group.items.map((gi) => ({
+                                        id: gi.id,
+                                        originalName: gi.originalName,
+                                        mimeType: gi.mimeType,
+                                      })),
+                                      chainIndex: groupIdx,
+                                    })}
+                                  >
+                                    <GrpItemIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
+                                    <span className="text-sm truncate">
+                                      {groupItem.originalName}
+                                    </span>
+                                  </button>
                                   {/* Action buttons */}
                                   <div
                                     className="flex items-center gap-1 flex-shrink-0 ml-auto"
@@ -6235,6 +6257,8 @@ export default function BulkDocumentImportPage() {
                                               id: sibling.id,
                                               originalName: sibling.originalName,
                                               mimeType: sibling.mimeType,
+                                              chainSiblings: [],
+                                              chainIndex: 0,
                                             })
                                           }
                                         >
@@ -7092,11 +7116,11 @@ export default function BulkDocumentImportPage() {
                               role="button"
                               tabIndex={0}
                               data-testid={`item-preview-trigger-${item.id}`}
-                              onClick={() => setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType })}
+                              onClick={() => setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType, chainSiblings: [], chainIndex: 0 })}
                               onKeyDown={(e) => {
                                 if (e.key === 'Enter' || e.key === ' ') {
                                   e.preventDefault();
-                                  setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType });
+                                  setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType, chainSiblings: [], chainIndex: 0 });
                                 }
                               }}
                             >
@@ -8803,11 +8827,11 @@ export default function BulkDocumentImportPage() {
                             role="button"
                             tabIndex={0}
                             data-testid={`item-preview-trigger-${item.id}`}
-                            onClick={() => setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType })}
+                            onClick={() => setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType, chainSiblings: [], chainIndex: 0 })}
                             onKeyDown={(e) => {
                               if (e.key === 'Enter' || e.key === ' ') {
                                 e.preventDefault();
-                                setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType });
+                                setPreviewItem({ id: item.id, originalName: item.originalName, mimeType: item.mimeType, chainSiblings: [], chainIndex: 0 });
                               }
                             }}
                           >
@@ -8855,6 +8879,20 @@ export default function BulkDocumentImportPage() {
         downloadUrl={previewItem ? `/api/admin/bulk-import/items/${previewItem.id}/file` : undefined}
         fileName={previewItem?.originalName}
         mimeType={previewItem?.mimeType}
+        chainSiblings={previewItem?.chainSiblings}
+        chainIndex={previewItem?.chainIndex}
+        onChainNavigate={(newIndex) => {
+          if (!previewItem?.chainSiblings) return;
+          const sibling = previewItem.chainSiblings[newIndex];
+          if (!sibling) return;
+          setPreviewItem({
+            id: sibling.id,
+            originalName: sibling.originalName,
+            mimeType: sibling.mimeType,
+            chainSiblings: previewItem.chainSiblings,
+            chainIndex: newIndex,
+          });
+        }}
       />
 
       <Dialog open={showConfirm} onOpenChange={setShowConfirm}>

@@ -11,6 +11,12 @@ import { DocumentLinkPickerDialog } from '@/components/documents/DocumentLinkPic
 import { DocumentSequencePanel } from '@/components/documents/DocumentSequencePanel';
 import { parseDateOnlyLoose } from '@/lib/utils';
 
+export interface ChainSibling {
+  id: string;
+  originalName: string;
+  mimeType: string | null;
+}
+
 interface DocumentInlineViewerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -20,6 +26,12 @@ interface DocumentInlineViewerProps {
   mimeType?: string | null;
   documentId?: string;
   onNavigate?: (documentId: string) => void;
+  /** Ordered list of chain siblings (link-step staged files). When provided and length > 1, shows prev/next navigation. */
+  chainSiblings?: ChainSibling[];
+  /** Index of the currently viewed item within chainSiblings. */
+  chainIndex?: number;
+  /** Called with the new index when the user clicks prev/next in the chain nav bar. */
+  onChainNavigate?: (index: number) => void;
 }
 
 interface NeighborInfo {
@@ -97,6 +109,9 @@ export function DocumentInlineViewer({
   mimeType,
   documentId,
   onNavigate,
+  chainSiblings,
+  chainIndex,
+  onChainNavigate,
 }: DocumentInlineViewerProps) {
   const { toast } = useToast();
   const { t } = useLanguage();
@@ -300,6 +315,45 @@ export function DocumentInlineViewer({
             </Button>
           </div>
         </DialogHeader>
+        {chainSiblings && chainSiblings.length > 1 && chainIndex !== undefined && (
+          <div
+            className="flex items-center justify-between gap-2 px-4 py-2 border-b shrink-0 bg-muted/30"
+            data-testid="chain-nav-bar"
+          >
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onChainNavigate?.(chainIndex - 1)}
+              disabled={chainIndex === 0 || !onChainNavigate}
+              data-testid="button-chain-prev"
+              aria-label={t('previousDocument') || 'Previous document'}
+            >
+              <ChevronLeft className="w-4 h-4 mr-1" />
+              {t('previous') || 'Prev'}
+            </Button>
+            <span
+              className="text-sm text-muted-foreground truncate text-center flex-1 min-w-0"
+              data-testid="chain-nav-position"
+            >
+              {chainIndex + 1}&thinsp;/&thinsp;{chainSiblings.length}
+              {' — '}
+              <span className="truncate">{chainSiblings[chainIndex]?.originalName}</span>
+            </span>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => onChainNavigate?.(chainIndex + 1)}
+              disabled={chainIndex === chainSiblings.length - 1 || !onChainNavigate}
+              data-testid="button-chain-next"
+              aria-label={t('nextDocument') || 'Next document'}
+            >
+              {t('next') || 'Next'}
+              <ChevronRight className="w-4 h-4 ml-1" />
+            </Button>
+          </div>
+        )}
         {documentId && (
           <div
             className="flex items-center justify-between gap-2 px-4 py-2 border-b shrink-0 bg-muted/30"
