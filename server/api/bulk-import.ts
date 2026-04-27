@@ -55,6 +55,7 @@ import {
 } from '@shared/schemas/bulk-import';
 import { fixLatin1MisdecodeFilename } from '../utils/filenameNormalization';
 import { buildContentDisposition } from '../utils/content-disposition';
+import { normalizeMimeType } from '../services/mime-normalizer';
 
 /**
  * Default staging root used when `BULK_IMPORT_STAGING_ROOT` is not set
@@ -3907,7 +3908,7 @@ export function registerBulkImportRoutes(app: Express): void {
                 originalName: correctedName,
                 stagedPath,
                 contentHash: hash,
-                mimeType: file.mimetype,
+                mimeType: normalizeMimeType(correctedName, file.mimetype),
                 fileSize: file.size,
                 ...(dupe
                   ? { status: 'duplicate' }
@@ -4222,7 +4223,7 @@ export function registerBulkImportRoutes(app: Express): void {
               originalName: correctedName,
               stagedPath: resolvedNew,
               contentHash: hash,
-              mimeType: file.mimetype,
+              mimeType: normalizeMimeType(correctedName, file.mimetype),
               fileSize: file.size,
               updatedAt: new Date(),
             })

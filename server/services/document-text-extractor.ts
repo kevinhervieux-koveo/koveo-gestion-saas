@@ -7,8 +7,9 @@
  *
  * Supports the same set of "text-extractable" MIME types we already handle
  * elsewhere (consolidated-ai-service, bulk-import-analyzer): plain text,
- * CSV, .docx and .xlsx. PDFs and images are intentionally skipped — they
- * require OCR / Gemini and don't have a cheap server-side text path.
+ * CSV, TSV, .docx, .xlsx, .xls, .xlsm and .ods. PDFs and images are
+ * intentionally skipped — they require OCR / Gemini and don't have a cheap
+ * server-side text path.
  *
  * Returns an empty string when the type is unsupported or extraction
  * fails; callers should treat that as "no text available" and fall back
@@ -20,6 +21,7 @@ const MAX_EXTRACTED_TEXT = 20_000;
 const PLAIN_TEXT_MIMES = new Set<string>([
   'text/plain',
   'text/csv',
+  'text/tab-separated-values',
 ]);
 
 const DOCX_MIMES = new Set<string>([
@@ -30,6 +32,8 @@ const DOCX_MIMES = new Set<string>([
 const XLSX_MIMES = new Set<string>([
   'application/vnd.ms-excel',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-excel.sheet.macroEnabled.12',
+  'application/vnd.oasis.opendocument.spreadsheet',
 ]);
 
 export const TEXT_EXTRACTABLE_MIME_TYPES: ReadonlySet<string> = new Set<string>([
@@ -61,18 +65,34 @@ export async function extractTextFromBuffer(
     if (XLSX_MIMES.has(mimeType)) {
       const XLSX = await import('xlsx');
       const workbook = XLSX.read(buffer, { type: 'buffer' });
+      const sheetCount = workbook.SheetNames.length;
+      const perSheetBudget = Math.floor(MAX_EXTRACTED_TEXT / Math.max(1, sheetCount));
       const lines: string[] = [];
       for (const sheetName of workbook.SheetNames) {
         const worksheet = workbook.Sheets[sheetName];
         const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }) as unknown[][];
         const csvRows = rows
           .filter((row) => row.some((v) => v !== ''))
-          .map((row) => row.map((v) => (v == null ? '' : String(v))).join(','));
+          .map((row) =>
+            row
+              .map((v) => {
+                const cell = v == null ? '' : String(v);
+                if (
+                  cell.includes('"') ||
+                  cell.includes(',') ||
+                  cell.includes('\n') ||
+                  cell.includes('\r')
+                ) {
+                  return '"' + cell.replace(/"/g, '""') + '"';
+                }
+                return cell;
+              })
+              .join(','),
+          );
         const csv = csvRows.join('\n');
         if (csv.trim()) {
-          lines.push(`# ${sheetName}\n${csv}`);
+          lines.push(`# ${sheetName}\n${csv.slice(0, perSheetBudget)}`);
         }
-        if (lines.join('\n').length > MAX_EXTRACTED_TEXT) break;
       }
       return lines.join('\n').slice(0, MAX_EXTRACTED_TEXT);
     }

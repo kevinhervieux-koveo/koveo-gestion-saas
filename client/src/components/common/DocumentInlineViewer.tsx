@@ -7,6 +7,7 @@ import {
   Download,
   X,
   FileText,
+  FileSpreadsheet,
   Loader2,
   ChevronLeft,
   ChevronRight,
@@ -70,12 +71,30 @@ interface NeighborsResponse {
 
 type LinkPickerState = false | { position: 'before' | 'after'; familyId: string | null };
 
-type PreviewKind = 'pdf' | 'image' | 'text' | 'unsupported';
+type PreviewKind = 'pdf' | 'image' | 'text' | 'spreadsheet' | 'unsupported';
 type PreviewState =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'ready'; blobUrl: string }
   | { status: 'error' };
+
+type SheetData = { name: string; rows: string[][] };
+type SpreadsheetState =
+  | { status: 'idle' }
+  | { status: 'loading' }
+  | { status: 'ready'; sheets: SheetData[]; activeSheet: number; page: number }
+  | { status: 'error' };
+
+const SPREADSHEET_PAGE_SIZE = 50;
+const SPREADSHEET_MAX_COLS = 30;
+
+const SPREADSHEET_MIMES = new Set([
+  'application/vnd.ms-excel',
+  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-excel.sheet.macroEnabled.12',
+  'application/vnd.oasis.opendocument.spreadsheet',
+]);
+const SPREADSHEET_EXTS = new Set(['xlsx', 'xls', 'xlsm', 'ods']);
 
 function formatNeighborDate(n: NeighborInfo): string {
   if (n.effectiveDate) {
@@ -101,7 +120,8 @@ function detectPreviewKind(mimeType?: string | null, fileName?: string | null): 
   if (mime === 'application/pdf' || ext === 'pdf') return 'pdf';
   if (mime.startsWith('image/')) return 'image';
   if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'bmp', 'avif'].includes(ext)) return 'image';
-  if (mime.startsWith('text/') || ['txt', 'csv', 'log', 'md'].includes(ext)) return 'text';
+  if (SPREADSHEET_MIMES.has(mime) || SPREADSHEET_EXTS.has(ext)) return 'spreadsheet';
+  if (mime.startsWith('text/') || ['txt', 'csv', 'log', 'md', 'tsv'].includes(ext)) return 'text';
   return 'unsupported';
 }
 
@@ -177,6 +197,8 @@ export function DocumentInlineViewer({
   const needsFetch = previewKind === 'pdf' || previewKind === 'text';
   const [preview, setPreview] = useState<PreviewState>({ status: 'idle' });
 
+  const [spreadsheet, setSpreadsheet] = useState<SpreadsheetState>({ status: 'idle' });
+
   useEffect(() => {
     if (!isOpen || !needsFetch) {
       setPreview({ status: 'idle' });
@@ -204,6 +226,44 @@ export function DocumentInlineViewer({
       if (createdBlobUrl) window.URL.revokeObjectURL(createdBlobUrl);
     };
   }, [isOpen, needsFetch, fileUrl]);
+
+  useEffect(() => {
+    if (!isOpen || previewKind !== 'spreadsheet') {
+      setSpreadsheet({ status: 'idle' });
+      return;
+    }
+    let cancelled = false;
+    setSpreadsheet({ status: 'loading' });
+    (async () => {
+      try {
+        const response = await fetch(fileUrl, { method: 'GET', credentials: 'include' });
+        if (cancelled) return;
+        if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
+        const arrayBuffer = await response.arrayBuffer();
+        if (cancelled) return;
+        const XLSX = await import('xlsx');
+        const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
+        const sheets: SheetData[] = workbook.SheetNames.map((name) => {
+          const worksheet = workbook.Sheets[name];
+          const raw = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }) as unknown[][];
+          const rows = raw
+            .filter((row) => row.some((v) => v !== ''))
+            .map((row) =>
+              row
+                .slice(0, SPREADSHEET_MAX_COLS)
+                .map((v) => (v == null ? '' : String(v))),
+            );
+          return { name, rows };
+        });
+        if (cancelled) return;
+        setSpreadsheet({ status: 'ready', sheets, activeSheet: 0, page: 0 });
+      } catch {
+        if (cancelled) return;
+        setSpreadsheet({ status: 'error' });
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [isOpen, previewKind, fileUrl]);
 
   const handleDownload = async () => {
     const url = downloadUrl ?? (fileUrl.includes('?') ? `${fileUrl}&download=true` : `${fileUrl}?download=true`);
@@ -249,6 +309,110 @@ export function DocumentInlineViewer({
     </div>
   );
 
+  const renderSpreadsheetPreview = () => {
+    if (spreadsheet.status === 'loading' || spreadsheet.status === 'idle') {
+      return (
+        <div className="w-full h-full flex items-center justify-center" data-testid="spreadsheet-viewer-loading">
+          <Loader2 className="w-8 h-8 animate-spin text-gray-400" />
+        </div>
+      );
+    }
+    if (spreadsheet.status === 'error') return renderUnsupportedFallback('spreadsheet-viewer-error');
+    const { sheets, activeSheet, page } = spreadsheet;
+    if (!sheets.length) return renderUnsupportedFallback('spreadsheet-viewer-empty');
+    const currentSheet = sheets[activeSheet] ?? sheets[0];
+    const totalPages = Math.ceil(currentSheet.rows.length / SPREADSHEET_PAGE_SIZE);
+    const pageRows = currentSheet.rows.slice(
+      page * SPREADSHEET_PAGE_SIZE,
+      (page + 1) * SPREADSHEET_PAGE_SIZE,
+    );
+    const setSheetPage = (newPage: number) => {
+      setSpreadsheet((prev) =>
+        prev.status === 'ready' ? { ...prev, page: newPage } : prev,
+      );
+    };
+    const setActiveSheetIndex = (idx: number) => {
+      setSpreadsheet((prev) =>
+        prev.status === 'ready' ? { ...prev, activeSheet: idx, page: 0 } : prev,
+      );
+    };
+    return (
+      <div className="w-full h-full flex flex-col overflow-hidden" data-testid="spreadsheet-viewer">
+        {sheets.length > 1 && (
+          <div className="flex gap-1 px-2 pt-2 border-b bg-muted/30 shrink-0 flex-wrap" data-testid="spreadsheet-tabs">
+            {sheets.map((sheet, idx) => (
+              <button
+                key={sheet.name}
+                type="button"
+                onClick={() => setActiveSheetIndex(idx)}
+                className={[
+                  'px-3 py-1 text-xs rounded-t border transition-colors',
+                  idx === activeSheet
+                    ? 'bg-background border-b-background font-semibold'
+                    : 'bg-muted/50 hover:bg-muted text-muted-foreground',
+                ].join(' ')}
+                data-testid={`spreadsheet-tab-${idx}`}
+              >
+                {sheet.name}
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="flex-1 overflow-auto">
+          {pageRows.length === 0 ? (
+            <div className="flex flex-col items-center justify-center h-full p-8 text-muted-foreground">
+              <FileSpreadsheet className="w-10 h-10 mb-2" />
+              <p className="text-sm">Empty sheet</p>
+            </div>
+          ) : (
+            <table className="text-xs border-collapse w-full" data-testid="spreadsheet-table">
+              <tbody>
+                {pageRows.map((row, rIdx) => (
+                  <tr key={rIdx} className={rIdx % 2 === 0 ? 'bg-background' : 'bg-muted/20'}>
+                    {row.map((cell, cIdx) => (
+                      <td
+                        key={cIdx}
+                        className="border border-border px-2 py-0.5 whitespace-pre-wrap max-w-[200px] truncate"
+                        title={cell}
+                      >
+                        {cell}
+                      </td>
+                    ))}
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          )}
+        </div>
+        {totalPages > 1 && (
+          <div className="flex items-center justify-between gap-2 px-3 py-1 border-t shrink-0 text-xs text-muted-foreground bg-muted/20" data-testid="spreadsheet-pagination">
+            <button
+              type="button"
+              disabled={page === 0}
+              onClick={() => setSheetPage(page - 1)}
+              className="px-2 py-0.5 rounded border disabled:opacity-40 hover:bg-muted transition-colors"
+              data-testid="spreadsheet-page-prev"
+            >
+              <ChevronLeft className="w-3 h-3" />
+            </button>
+            <span data-testid="spreadsheet-page-indicator">
+              Rows {page * SPREADSHEET_PAGE_SIZE + 1}–{Math.min((page + 1) * SPREADSHEET_PAGE_SIZE, currentSheet.rows.length)} of {currentSheet.rows.length}
+            </span>
+            <button
+              type="button"
+              disabled={page >= totalPages - 1}
+              onClick={() => setSheetPage(page + 1)}
+              className="px-2 py-0.5 rounded border disabled:opacity-40 hover:bg-muted transition-colors"
+              data-testid="spreadsheet-page-next"
+            >
+              <ChevronRight className="w-3 h-3" />
+            </button>
+          </div>
+        )}
+      </div>
+    );
+  };
+
   const renderPreview = () => {
     switch (previewKind) {
       case 'image':
@@ -264,6 +428,8 @@ export function DocumentInlineViewer({
         }
         if (preview.status === 'error') return renderUnsupportedFallback('inline-viewer-error');
         return <iframe src={preview.blobUrl} title={displayName} className="w-full h-full border-0" data-testid="iframe-inline-viewer" />;
+      case 'spreadsheet':
+        return renderSpreadsheetPreview();
       default:
         return renderUnsupportedFallback('inline-viewer-unsupported');
     }

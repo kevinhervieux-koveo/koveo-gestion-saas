@@ -26,6 +26,7 @@ import {
   getCachedSuggestion,
   setCachedSuggestion,
 } from './ai-suggestion-cache';
+import { normalizeMimeType } from './mime-normalizer';
 
 /**
  * Per-step Anthropic response cache (Task #462).
@@ -280,6 +281,7 @@ export interface AnalyzerFileSource {
   stagedPath?: string | null;
   buffer?: Buffer | null;
   mimeType?: string | null;
+  originalName?: string | null;
 }
 
 const MODEL = 'claude-sonnet-4-6';
@@ -459,8 +461,10 @@ const DOCX_MIMES = new Set([
 const XLSX_MIMES = new Set([
   'application/vnd.ms-excel',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+  'application/vnd.ms-excel.sheet.macroEnabled.12',
+  'application/vnd.oasis.opendocument.spreadsheet',
 ]);
-const PLAIN_TEXT_MIMES = new Set(['text/plain', 'text/csv']);
+const PLAIN_TEXT_MIMES = new Set(['text/plain', 'text/csv', 'text/tab-separated-values']);
 
 type AnthropicContentBlock =
   | { type: 'text'; text: string }
@@ -537,7 +541,10 @@ async function loadFileForClaude(
   if (!source) {
     return { blocks: [], textPrefix: '', contentHash: null, fallbackReason: null, degraded: null };
   }
-  const mimeType = (source.mimeType ?? '').toLowerCase();
+  const mimeType = normalizeMimeType(
+    source.originalName ?? '',
+    (source.mimeType ?? '').toLowerCase(),
+  );
   // No mimeType + no buffer/path → caller never asked us to attach
   // anything, so this isn't a fallback either.
   if (!mimeType && !source.buffer && !source.stagedPath) {
@@ -718,20 +725,44 @@ async function loadFileForClaude(
     try {
       const XLSX = await import('xlsx');
       const workbook = XLSX.read(buffer, { type: 'buffer' });
+      const sheetCount = workbook.SheetNames.length;
+      // Give each sheet a fair share of the character budget so a large
+      // first sheet cannot starve subsequent ones (per-sheet truncation).
+      const perSheetBudget = Math.floor(MAX_EXTRACTED_TEXT / Math.max(1, sheetCount));
       const lines: string[] = [];
       for (const sheetName of workbook.SheetNames) {
         const worksheet = workbook.Sheets[sheetName];
         const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }) as unknown[][];
         const csvRows = rows
           .filter((row) => row.some((v) => v !== ''))
-          .map((row) => row.map((v) => (v == null ? '' : String(v))).join(','));
+          .map((row) =>
+            row
+              .map((v) => {
+                const cell = v == null ? '' : String(v);
+                // RFC 4180: wrap cells containing comma, double-quote,
+                // newline or carriage return in double-quotes, and
+                // double any internal double-quote characters.
+                if (
+                  cell.includes('"') ||
+                  cell.includes(',') ||
+                  cell.includes('\n') ||
+                  cell.includes('\r')
+                ) {
+                  return '"' + cell.replace(/"/g, '""') + '"';
+                }
+                return cell;
+              })
+              .join(','),
+          );
         const csv = csvRows.join('\n');
         // Strip control characters (null bytes, etc.) that can corrupt
         // the JSON payload sent to Anthropic and trigger api_error.
         // Keep printable ASCII + common whitespace (tab, LF, CR).
         const cleanCsv = csv.replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\uFFFF]/g, '').trim();
-        if (cleanCsv) lines.push(`# ${sheetName}\n${cleanCsv}`);
-        if (lines.join('\n').length > MAX_EXTRACTED_TEXT) break;
+        if (cleanCsv) {
+          const truncated = cleanCsv.slice(0, perSheetBudget);
+          lines.push(`# ${sheetName}\n${truncated}`);
+        }
       }
       const text = lines.join('\n').slice(0, MAX_EXTRACTED_TEXT);
       return {
@@ -1184,7 +1215,7 @@ Return JSON only: { suggestedFilename: string${input.needsSplitNames ? ', sugges
   try {
     const { data } = await callClaudeJson<{ suggestedFilename?: unknown; suggestedSplitFilenames?: unknown }>(
       retryPrompt,
-      { stagedPath: input.stagedPath, buffer: input.buffer, mimeType: input.mimeType },
+      { stagedPath: input.stagedPath, buffer: input.buffer, mimeType: input.mimeType, originalName: input.originalName },
       'branch',
       { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
     );
@@ -1311,6 +1342,7 @@ Return JSON with keys:
         stagedPath: input.stagedPath,
         buffer: input.buffer,
         mimeType: input.mimeType,
+        originalName: input.originalName,
       },
       'screen',
       { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
@@ -1395,6 +1427,7 @@ Return JSON: { decision: 'keep'|'merge'|'split', reason: string, mergeWithItemId
         stagedPath: input.stagedPath,
         buffer: input.buffer,
         mimeType: input.mimeType,
+        originalName: input.originalName,
       },
       'merge-or-split',
       { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
@@ -1474,6 +1507,7 @@ Return JSON: { branch: string, subCategory: string, residenceHint?: string, reas
         stagedPath: input.stagedPath,
         buffer: input.buffer,
         mimeType: input.mimeType,
+        originalName: input.originalName,
       },
       'branch',
       { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
@@ -1697,6 +1731,7 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.${
         stagedPath: input.stagedPath,
         buffer: input.buffer,
         mimeType: input.mimeType,
+        originalName: input.originalName,
       },
       'identify',
       { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },
@@ -1829,6 +1864,7 @@ relatedItemIds: string[], reason: string, confidence: number }.`;
         stagedPath: input.stagedPath,
         buffer: input.buffer,
         mimeType: input.mimeType,
+        originalName: input.originalName,
       },
       'links',
       { originalName: input.originalName, itemId: input.itemId, sessionId: input.sessionId },

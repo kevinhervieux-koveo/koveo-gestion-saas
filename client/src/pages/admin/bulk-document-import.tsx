@@ -575,12 +575,20 @@ function getItemStepDecision(
 
 // LinkingGroup and resolveLinkingGroups are imported from ./bulk-import-linking-groups
 
-function iconForMime(mime: string | null | undefined) {
+function iconForMime(mime: string | null | undefined, fileName?: string | null) {
   const m = (mime ?? '').toLowerCase();
+  const ext = fileName ? fileName.toLowerCase().split('.').pop() ?? '' : '';
   if (m.startsWith('image/')) return FileImage;
-  if (m === 'application/pdf') return FileText;
+  if (m === 'application/pdf' || ext === 'pdf') return FileText;
   if (m.includes('zip') || m.includes('compressed')) return FileArchive;
-  if (m.includes('sheet') || m.includes('excel') || m.includes('csv')) return FileSpreadsheet;
+  if (
+    m.includes('sheet') ||
+    m.includes('excel') ||
+    m.includes('csv') ||
+    m.includes('tab-separated') ||
+    m.includes('oasis.opendocument.spreadsheet') ||
+    ['xlsx', 'xls', 'xlsm', 'ods', 'csv', 'tsv'].includes(ext)
+  ) return FileSpreadsheet;
   if (m.includes('word') || m.includes('document') || m.startsWith('text/')) return FileText;
   return FileIcon;
 }
@@ -588,7 +596,7 @@ function iconForMime(mime: string | null | undefined) {
 function ItemThumbnail({ item }: { item: { id: string; mimeType?: string | null; originalName: string } }) {
   const isImage = (item.mimeType ?? '').toLowerCase().startsWith('image/');
   const [broken, setBroken] = useState(false);
-  const Icon = iconForMime(item.mimeType);
+  const Icon = iconForMime(item.mimeType, item.originalName);
   if (isImage && !broken) {
     return (
       <img
@@ -4399,13 +4407,13 @@ export default function BulkDocumentImportPage() {
   const stepIndex = useMemo(() => STEP_ORDER.indexOf(currentStep), [currentStep]);
 
   const helpIntro = isFr
-    ? "Importez en lot des dossiers de documents (PDF, Word, Excel, images) pour un immeuble. L'assistant vous guide à travers 7 étapes. Vous pouvez fermer la page à tout moment et reprendre — la session est sauvegardée."
-    : 'Bulk-import folders of mixed documents (PDF, Word, Excel, images) for one building. The wizard walks you through 7 steps. You can close the page at any time and resume — the session is saved.';
+    ? "Importez en lot des dossiers de documents (PDF, Word, Excel, ODS, CSV, TSV, images) pour un immeuble. L'assistant vous guide à travers 7 étapes. Vous pouvez fermer la page à tout moment et reprendre — la session est sauvegardée."
+    : 'Bulk-import folders of mixed documents (PDF, Word, Excel, ODS, CSV, TSV, images) for one building. The wizard walks you through 7 steps. You can close the page at any time and resume — the session is saved.';
 
   const stepDescriptions: Record<BulkImportStep, string> = isFr
     ? {
         upload:
-          "Choisissez l'immeuble et déposez les documents (PDF, Word, Excel, images) à traiter.",
+          "Choisissez l'immeuble et déposez les documents (PDF, Word, Excel, ODS, CSV, TSV, images) à traiter.",
         screening:
           "L'IA lit chaque fichier et décide s'il s'agit d'un vrai document à conserver ou à écarter.",
         // Descriptions are keyed by internal step key, so they swap in
@@ -4425,7 +4433,7 @@ export default function BulkDocumentImportPage() {
       }
     : {
         upload:
-          'Choose the building and drop in the documents (PDF, Word, Excel, images) you want to process.',
+          'Choose the building and drop in the documents (PDF, Word, Excel, ODS, CSV, TSV, images) you want to process.',
         screening:
           'The AI reads each file and decides whether it looks like a real document worth keeping or should be discarded.',
         // Descriptions are keyed by internal step key, so they swap in
@@ -4854,6 +4862,11 @@ export default function BulkDocumentImportPage() {
                         {isFr ? 'Choisir un dossier' : 'Choose folder'}
                       </Button>
                     </div>
+                    <p className="text-xs text-muted-foreground">
+                      {isFr
+                        ? 'Formats acceptés : PDF, Word, Excel (.xlsx, .xls, .xlsm), ODS, CSV, TSV, images'
+                        : 'Accepted formats: PDF, Word, Excel (.xlsx, .xls, .xlsm), ODS, CSV, TSV, images'}
+                    </p>
                     <p className="text-sm text-muted-foreground">
                       {items.length}{' '}
                       {isFr ? 'fichier(s) en attente' : 'file(s) staged'}
@@ -6760,7 +6773,7 @@ export default function BulkDocumentImportPage() {
                                 (toggleExclude.isPending && toggleExclude.variables?.itemId === groupItem.id);
                               const grpCanToggleExclude =
                                 groupItem.status !== 'committed' && groupItem.status !== 'duplicate';
-                              const GrpItemIcon = iconForMime(groupItem.mimeType);
+                              const GrpItemIcon = iconForMime(groupItem.mimeType, groupItem.originalName);
                               return (
                                 <div
                                   key={groupItem.id}
@@ -6950,7 +6963,7 @@ export default function BulkDocumentImportPage() {
                               const grpRetryPending = (runStep.isPending && runStep.variables?.itemId === groupItem.id);
                               const grpTogglePending = (toggleExclude.isPending && toggleExclude.variables?.itemId === groupItem.id);
                               const grpCanToggleExclude = groupItem.status !== 'committed' && groupItem.status !== 'duplicate';
-                              const GrpItemIcon = iconForMime(groupItem.mimeType);
+                              const GrpItemIcon = iconForMime(groupItem.mimeType, groupItem.originalName);
                               return (
                                 <div key={groupItem.id} data-testid={`linking-row-${groupItem.id}`} className="rounded border bg-background flex flex-col gap-1 p-2">
                                   <div className="flex items-center gap-2 min-w-0">
@@ -7464,7 +7477,7 @@ export default function BulkDocumentImportPage() {
                               testId={`branching-merge-group-${item.id}`}
                               isFr={isFr}
                               siblingRows={mergeGroupSiblingItems.map((sibling) => {
-                                const SiblingIcon = iconForMime(sibling.mimeType);
+                                const SiblingIcon = iconForMime(sibling.mimeType, sibling.originalName);
                                 const sibSortingIsPending =
                                   sibling.sortingDecisionState === 'pending';
                                 const sibSortingIsRejected =
@@ -7908,7 +7921,7 @@ export default function BulkDocumentImportPage() {
                                                         {displayedMergeGroupIds.map((fileId, idx) => {
                                                           const fileItem = items.find((i) => i.id === fileId);
                                                           const fileName = fileItem?.originalName ?? fileId;
-                                                          const FileIconComp = iconForMime(fileItem?.mimeType);
+                                                          const FileIconComp = iconForMime(fileItem?.mimeType, fileItem?.originalName);
                                                           const canMoveUp = !sibSortingIsAccepted && idx > 0;
                                                           const canMoveDown = !sibSortingIsAccepted && idx < displayedMergeGroupIds.length - 1;
                                                           return (
@@ -9607,7 +9620,7 @@ export default function BulkDocumentImportPage() {
                                               {displayedMergeGroupIds.map((fileId, idx) => {
                                                 const fileItem = items.find((i) => i.id === fileId);
                                                 const fileName = fileItem?.originalName ?? fileId;
-                                                const FileIconComp = iconForMime(fileItem?.mimeType);
+                                                const FileIconComp = iconForMime(fileItem?.mimeType, fileItem?.originalName);
                                                 const canMoveUp = !sortingIsAccepted && idx > 0;
                                                 const canMoveDown = !sortingIsAccepted && idx < displayedMergeGroupIds.length - 1;
                                                 return (
