@@ -281,12 +281,12 @@ describe('PATCH /api/document-tags/:id — system tag protection', () => {
 // ─── DELETE /api/document-tags/:id ───────────────────────────────────────────
 
 describe('DELETE /api/document-tags/:id — system tag protection', () => {
-  it('super_admin can delete a system tag (200)', async () => {
+  it('super_admin gets 403 when trying to delete a system tag (tags are locked for all roles)', async () => {
     selectQueue.push([SYSTEM_TAG]);
     const res = await request(buildApp('super_admin'))
       .delete('/api/document-tags/tag-system-1');
-    expect(res.status).toBe(200);
-    expect(res.body.success).toBe(true);
+    expect(res.status).toBe(403);
+    expect(res.body.message).toBe('System tags cannot be deleted');
   });
 
   it('admin gets 403 when trying to delete a system tag', async () => {
@@ -294,7 +294,7 @@ describe('DELETE /api/document-tags/:id — system tag protection', () => {
     const res = await request(buildApp('admin'))
       .delete('/api/document-tags/tag-system-1');
     expect(res.status).toBe(403);
-    expect(res.body.message).toMatch(/super admin/i);
+    expect(res.body.message).toBe('System tags cannot be deleted');
   });
 
   it('manager gets 403 when trying to delete a system tag', async () => {
@@ -302,7 +302,7 @@ describe('DELETE /api/document-tags/:id — system tag protection', () => {
     const res = await request(buildApp('manager'))
       .delete('/api/document-tags/tag-system-1');
     expect(res.status).toBe(403);
-    expect(res.body.message).toMatch(/super admin/i);
+    expect(res.body.message).toBe('System tags cannot be deleted');
   });
 
   it('admin can still delete a non-system tag from their org (200)', async () => {
@@ -439,7 +439,7 @@ describe('DELETE /api/document-link-families/:id — system family protection', 
     const res = await request(buildApp('admin'))
       .delete('/api/document-link-families/fam-system-1');
     expect(res.status).toBe(403);
-    expect(res.body.message).toMatch(/super admin/i);
+    expect(res.body.message).toBe('System document link families cannot be deleted');
   });
 
   it('manager gets 403 when trying to delete a system family', async () => {
@@ -447,7 +447,7 @@ describe('DELETE /api/document-link-families/:id — system family protection', 
     const res = await request(buildApp('manager'))
       .delete('/api/document-link-families/fam-system-1');
     expect(res.status).toBe(403);
-    expect(res.body.message).toMatch(/super admin/i);
+    expect(res.body.message).toBe('System document link families cannot be deleted');
   });
 
   it('admin can still delete a non-system family from their org (200)', async () => {

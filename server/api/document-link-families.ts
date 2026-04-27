@@ -100,7 +100,7 @@ export function registerDocumentLinkFamilyRoutes(app: Express): void {
             return res.status(400).json({ message: 'No organization for user' });
           }
           organizationId = orgIds[0];
-        } else if (user.role !== 'admin' && !orgIds.includes(organizationId)) {
+        } else if (user.role !== 'admin' && user.role !== 'super_admin' && !orgIds.includes(organizationId)) {
           return res.status(403).json({ message: 'Cannot create family in this organization' });
         }
 
@@ -182,9 +182,11 @@ export function registerDocumentLinkFamilyRoutes(app: Express): void {
         if (!family) {
           return res.status(404).json({ message: 'Family not found' });
         }
-        const systemRefusal = refuseIfKoveoSystemLinkFamily(family);
-        if (systemRefusal) {
-          return res.status(403).json({ message: systemRefusal.content[0].text });
+        if (user.role !== 'super_admin') {
+          const systemRefusal = refuseIfKoveoSystemLinkFamily(family);
+          if (systemRefusal) {
+            return res.status(403).json({ message: systemRefusal.content[0].text });
+          }
         }
         if (!family.isSystem && user.role !== 'admin') {
           const orgIds = await getUserOrgIds(user.id);

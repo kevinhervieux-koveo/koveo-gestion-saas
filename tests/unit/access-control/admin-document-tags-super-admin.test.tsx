@@ -17,7 +17,7 @@
 
 import React from 'react';
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
-import { render, fireEvent } from '@testing-library/react';
+import { render, fireEvent, act } from '@testing-library/react';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import '@testing-library/jest-dom';
 
@@ -142,7 +142,19 @@ const SYSTEM_FAMILY = {
 
 const AdminDocumentTags = require('@/pages/admin/document-tags').default;
 
-function renderPage() {
+const SAMPLE_ORGS = [
+  { id: 'org-1', name: 'Acme Corp' },
+  { id: 'org-2', name: 'Globex' },
+];
+
+const SAMPLE_MEMBER_ORGS = [
+  { id: 'member-org-1', name: 'Member Org Alpha' },
+];
+
+function renderPage({
+  orgs = SAMPLE_ORGS,
+  memberOrgs = SAMPLE_MEMBER_ORGS,
+}: { orgs?: { id: string; name: string }[]; memberOrgs?: { id: string; name: string }[] } = {}) {
   const queryClient = new QueryClient({
     defaultOptions: {
       queries: {
@@ -156,6 +168,8 @@ function renderPage() {
   // Pre-seed the cache so components never enter a loading state during tests.
   queryClient.setQueryData(['/api/document-tags'], { tags: [SYSTEM_TAG] });
   queryClient.setQueryData(['/api/document-link-families'], { families: [SYSTEM_FAMILY] });
+  queryClient.setQueryData(['/api/organizations'], orgs);
+  queryClient.setQueryData(['/api/users/me/organizations'], memberOrgs);
 
   return render(
     <QueryClientProvider client={queryClient}>
@@ -313,6 +327,93 @@ describe('Document Tags admin page — super-admin Koveo controls (task #1418)',
       fireEvent.click(getByTestId('button-create-family'));
 
       expect(queryByTestId('toggle-family-is-system')).not.toBeInTheDocument();
+    });
+  });
+
+  // ── 5. Org picker in family create dialog ────────────────────────────────
+
+  describe('Family create dialog — organization picker visibility (task #1440)', () => {
+    it('shows the org picker for super_admin when the system toggle is OFF', () => {
+      mockAuthState.user = USERS.super_admin;
+      const { getByTestId, queryByTestId } = renderPage();
+
+      fireEvent.click(getByTestId('toggle-view-families'));
+      fireEvent.click(getByTestId('button-create-family'));
+
+      // System toggle is OFF by default — org picker should appear.
+      expect(queryByTestId('select-family-organization')).toBeInTheDocument();
+    });
+
+    it('hides the org picker for super_admin when the system toggle is ON', () => {
+      mockAuthState.user = USERS.super_admin;
+      const { getByTestId, queryByTestId } = renderPage();
+
+      fireEvent.click(getByTestId('toggle-view-families'));
+      fireEvent.click(getByTestId('button-create-family'));
+
+      // Turn the system toggle ON.
+      fireEvent.click(getByTestId('toggle-family-is-system'));
+
+      expect(queryByTestId('select-family-organization')).not.toBeInTheDocument();
+    });
+
+    it('does NOT show the org picker for a regular admin', () => {
+      mockAuthState.user = USERS.admin;
+      const { getByTestId, queryByTestId } = renderPage();
+
+      fireEvent.click(getByTestId('toggle-view-families'));
+      fireEvent.click(getByTestId('button-create-family'));
+
+      expect(queryByTestId('select-family-organization')).not.toBeInTheDocument();
+    });
+
+    it('does NOT show the org picker for a manager', () => {
+      mockAuthState.user = USERS.manager;
+      const { getByTestId, queryByTestId } = renderPage();
+
+      fireEvent.click(getByTestId('toggle-view-families'));
+      fireEvent.click(getByTestId('button-create-family'));
+
+      expect(queryByTestId('select-family-organization')).not.toBeInTheDocument();
+    });
+
+    it('org picker is shown (and no default pre-selected) when super_admin has no memberships', () => {
+      mockAuthState.user = USERS.super_admin;
+      const { getByTestId, queryByTestId } = renderPage({ memberOrgs: [] });
+
+      fireEvent.click(getByTestId('toggle-view-families'));
+      fireEvent.click(getByTestId('button-create-family'));
+
+      expect(queryByTestId('select-family-organization')).toBeInTheDocument();
+    });
+
+    it('org picker shows when super_admin has memberships and the picker renders', () => {
+      mockAuthState.user = USERS.super_admin;
+      const { getByTestId, queryByTestId } = renderPage({
+        memberOrgs: [{ id: 'member-org-1', name: 'Member Org Alpha' }],
+      });
+
+      fireEvent.click(getByTestId('toggle-view-families'));
+      fireEvent.click(getByTestId('button-create-family'));
+
+      expect(queryByTestId('select-family-organization')).toBeInTheDocument();
+    });
+
+    it('submit is blocked and apiRequest is NOT called when super_admin submits without selecting an org', () => {
+      mockAuthState.user = USERS.super_admin;
+      const { getByTestId } = renderPage({ memberOrgs: [] });
+
+      fireEvent.click(getByTestId('toggle-view-families'));
+      fireEvent.click(getByTestId('button-create-family'));
+
+      fireEvent.change(getByTestId('input-family-name'), { target: { value: 'Test Family' } });
+
+      act(() => {
+        fireEvent.click(getByTestId('button-submit-family'));
+      });
+
+      const { apiRequest } = require('@/lib/queryClient');
+      expect(apiRequest).not.toHaveBeenCalled();
     });
   });
 });

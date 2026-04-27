@@ -76,6 +76,7 @@ const familyFormSchema = z.object({
   name: z.string().min(1, 'Name is required').max(150),
   description: z.string().max(2000).optional().nullable(),
   isSystem: z.boolean().optional().default(false),
+  organizationId: z.string().nullable().optional(),
 });
 
 type FamilyFormValues = z.infer<typeof familyFormSchema>;
@@ -225,9 +226,19 @@ export default function AdminDocumentTags() {
     queryKey: ['/api/document-link-families'],
   });
 
+  const { data: organizations = [] } = useQuery<{ id: string; name: string }[]>({
+    queryKey: ['/api/organizations'],
+    enabled: isSuperAdmin,
+  });
+
+  const { data: myMemberOrgs = [] } = useQuery<{ id: string; name: string }[]>({
+    queryKey: ['/api/users/me/organizations'],
+    enabled: isSuperAdmin,
+  });
+
   const familyForm = useForm<FamilyFormValues>({
     resolver: zodResolver(familyFormSchema),
-    defaultValues: { name: '', description: '', isSystem: false },
+    defaultValues: { name: '', description: '', isSystem: false, organizationId: null },
   });
 
   const createFamilyMutation = useMutation({
@@ -269,23 +280,31 @@ export default function AdminDocumentTags() {
 
   const openCreateFamily = () => {
     setEditingFamily(null);
-    familyForm.reset({ name: '', description: '', isSystem: false });
+    const defaultOrg = isSuperAdmin && myMemberOrgs.length > 0 ? myMemberOrgs[0].id : null;
+    familyForm.reset({ name: '', description: '', isSystem: false, organizationId: defaultOrg });
     setFamilyDialogOpen(true);
   };
 
   const openEditFamily = (family: LinkFamily) => {
     setEditingFamily(family);
-    familyForm.reset({ name: family.name, description: family.description ?? '', isSystem: false });
+    familyForm.reset({ name: family.name, description: family.description ?? '', isSystem: false, organizationId: null });
     setFamilyDialogOpen(true);
   };
 
   const submitFamily = (values: FamilyFormValues) => {
+    if (isSuperAdmin && !editingFamily && !values.isSystem && !values.organizationId) {
+      familyForm.setError('organizationId', { message: 'Please select an organization' });
+      return;
+    }
     const payload: Record<string, unknown> = {
       name: values.name,
       description: values.description || null,
     };
     if (!editingFamily) {
       payload.isSystem = values.isSystem ?? false;
+      if (isSuperAdmin && !values.isSystem && values.organizationId) {
+        payload.organizationId = values.organizationId;
+      }
     }
     if (editingFamily) {
       updateFamilyMutation.mutate({ id: editingFamily.id, payload });
@@ -664,6 +683,35 @@ export default function AdminDocumentTags() {
                           {t('lfKoveoFamilyHelper') ||
                             'System families are seeded by Koveo and visible to all organizations.'}
                         </p>
+                      </FormItem>
+                    )}
+                  />
+                )}
+                {!editingFamily && isSuperAdmin && !familyForm.watch('isSystem') && (
+                  <FormField
+                    control={familyForm.control}
+                    name="organizationId"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('lfOrganizationLabel') || 'Organization'}</FormLabel>
+                        <Select
+                          onValueChange={field.onChange}
+                          value={field.value ?? ''}
+                        >
+                          <FormControl>
+                            <SelectTrigger data-testid="select-family-organization">
+                              <SelectValue placeholder={t('lfOrganizationPlaceholder') || 'Select an organization…'} />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            {organizations.map((org) => (
+                              <SelectItem key={org.id} value={org.id}>
+                                {org.name}
+                              </SelectItem>
+                            ))}
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
                       </FormItem>
                     )}
                   />

@@ -48,8 +48,8 @@ export function registerOrganizationRoutes(app: Express): void {
       // Get organizations based on user role
       let organizationsQuery;
 
-      if (currentUser.role === 'admin') {
-        // Admin can see all organizations
+      if (currentUser.role === 'admin' || currentUser.role === 'super_admin') {
+        // Admin and super_admin can see all organizations
         organizationsQuery = db
           .select({
             id: organizations.id,

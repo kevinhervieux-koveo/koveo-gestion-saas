@@ -1,23 +1,23 @@
 /**
  * @jest-environment node
  *
- * Task #1430 — Prevent system link families from being deleted by admin
- * users through the REST web interface.
+ * Task #1440 — Super admins can create and delete Koveo system link families.
  *
- * The MCP layer (Task #1428) already refuses to delete document link
- * families where `isSystem = true`. Task #1428 explicitly excluded the
- * REST surface, leaving `DELETE /api/document-link-families/:id` open
- * for `admin` callers. This file pins the closed behavior:
+ * This file replaces the Task #1430 fixture (which blocked all roles from
+ * deleting system families) with the new behaviour:
  *
- *   - DELETE returns 403 with the shared
- *     `refuseIfKoveoSystemLinkFamily` message for every role that can
- *     reach the handler — `super_admin`, `admin`, `manager`,
- *     `demo_manager` — when the family is a system family
- *     (isSystem = true, organizationId = null).
- *   - The system family row is NOT deleted from the database in any of
- *     those refused cases.
- *   - DELETE still works for a non-system family in the caller's org.
- *   - DELETE still returns 404 when the family id does not exist.
+ * DELETE /api/document-link-families/:id
+ *   - super_admin CAN delete a system family → 200.
+ *   - Every other role (admin, manager, demo_manager) is still refused → 403.
+ *   - The system family row is NOT deleted when the caller is not super_admin.
+ *   - Non-system family in the caller's org → still 200 for admin.
+ *   - Out-of-scope non-system family → still 403 for manager.
+ *   - Missing id → 404.
+ *
+ * POST /api/document-link-families
+ *   - super_admin + isSystem:true → 201, isSystem=true, source='koveo'.
+ *   - super_admin + isSystem:false + explicit organizationId (not a member) → 201.
+ *   - admin + isSystem:true → 403 "Only super admins can create Koveo system families".
  */
 
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
@@ -41,6 +41,7 @@ type Family = {
 
 const familyStore = new Map<string, Family>();
 const deletedFamilyIds: string[] = [];
+const insertedFamilies: Family[] = [];
 
 function seedFamily(
   id: string,
@@ -69,7 +70,7 @@ function condEqValue(cond: any): unknown {
 }
 
 // ---------------------------------------------------------------------------
-// Mock DB — only the operations the route handlers use
+// Mock DB
 // ---------------------------------------------------------------------------
 
 const mockDb: any = {
@@ -94,9 +95,22 @@ const mockDb: any = {
     }),
   })),
 
-  insert: jest.fn(() => ({
-    values: jest.fn(() => ({
-      returning: jest.fn(() => Promise.resolve([])),
+  insert: jest.fn((_table: any) => ({
+    values: jest.fn((vals: any) => ({
+      returning: jest.fn(() => {
+        const fam: Family = {
+          id: 'new-family-id',
+          isSystem: vals.isSystem ?? false,
+          organizationId: vals.organizationId ?? null,
+          name: vals.name ?? '',
+          description: vals.description ?? null,
+          source: vals.source ?? null,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        };
+        insertedFamilies.push(fam);
+        return Promise.resolve([fam]);
+      }),
     })),
   })),
 
@@ -112,8 +126,7 @@ const mockDb: any = {
 jest.mock('../../../server/db', () => ({ db: mockDb }));
 
 // ---------------------------------------------------------------------------
-// Auth middleware — replace the default __mocks__ pass-through with one that
-// sets req.user from a header so each test can vary the caller's role.
+// Auth middleware — sets req.user from x-test-role header.
 // ---------------------------------------------------------------------------
 
 jest.mock('../../../server/auth', () => ({
@@ -126,8 +139,7 @@ jest.mock('../../../server/auth', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Storage mock — only getUserOrganizations is exercised by the DELETE handler
-// (and only on the non-system path).
+// Storage mock
 // ---------------------------------------------------------------------------
 
 const ORG_ID = 'org-1';
@@ -139,7 +151,7 @@ jest.mock('../../../server/storage', () => ({
 }));
 
 // ---------------------------------------------------------------------------
-// Schema — minimal shape sufficient for `eq(documentLinkFamilies.id, id)`.
+// Schema mock
 // ---------------------------------------------------------------------------
 
 const makeTable = (tableName: string, cols: Record<string, unknown> = {}) => ({
@@ -156,7 +168,6 @@ jest.mock('../../../shared/schemas/documents', () => ({
   insertDocumentLinkFamilySchema: {},
 }));
 
-// Logger — keep the test output clean.
 jest.mock('../../../server/utils/logger', () => ({
   logError: jest.fn(),
   logInfo: jest.fn(),
@@ -180,6 +191,7 @@ let app: Express;
 beforeEach(() => {
   familyStore.clear();
   deletedFamilyIds.length = 0;
+  insertedFamilies.length = 0;
   jest.clearAllMocks();
 
   app = express();
@@ -188,15 +200,36 @@ beforeEach(() => {
 });
 
 // ---------------------------------------------------------------------------
-// DELETE — system family refusal across every reachable role
+// DELETE — super_admin succeeds on system family
 // ---------------------------------------------------------------------------
 
-describe('DELETE /api/document-link-families/:id — Koveo system family refusal', () => {
+describe('DELETE /api/document-link-families/:id — super_admin on system family', () => {
   beforeEach(() => {
     seedFamily(SYSTEM_FAMILY_ID, true, null);
   });
 
-  for (const role of ['super_admin', 'admin', 'manager', 'demo_manager'] as const) {
+  it('returns 200 and removes the row', async () => {
+    const res = await request(app)
+      .delete(`/api/document-link-families/${SYSTEM_FAMILY_ID}`)
+      .set('x-test-role', 'super_admin');
+
+    expect(res.status).toBe(200);
+    expect(res.body).toEqual({ success: true });
+    expect(familyStore.has(SYSTEM_FAMILY_ID)).toBe(false);
+    expect(deletedFamilyIds).toContain(SYSTEM_FAMILY_ID);
+  });
+});
+
+// ---------------------------------------------------------------------------
+// DELETE — non-super roles are still refused for system families
+// ---------------------------------------------------------------------------
+
+describe('DELETE /api/document-link-families/:id — Koveo system family refusal (non-super)', () => {
+  beforeEach(() => {
+    seedFamily(SYSTEM_FAMILY_ID, true, null);
+  });
+
+  for (const role of ['admin', 'manager', 'demo_manager'] as const) {
     it(`returns 403 with the shared refusal message for role=${role}`, async () => {
       const res = await request(app)
         .delete(`/api/document-link-families/${SYSTEM_FAMILY_ID}`)
@@ -207,16 +240,14 @@ describe('DELETE /api/document-link-families/:id — Koveo system family refusal
         message: 'System document link families cannot be deleted',
       });
 
-      // Row must still be in the database; mockDb.delete must not have been
-      // called against it.
       expect(familyStore.has(SYSTEM_FAMILY_ID)).toBe(true);
       expect(deletedFamilyIds).not.toContain(SYSTEM_FAMILY_ID);
       expect(mockDb.delete).not.toHaveBeenCalled();
     });
   }
 
-  it('the system row is still present after every refused call', async () => {
-    for (const role of ['super_admin', 'admin', 'manager', 'demo_manager'] as const) {
+  it('the system row is still present after every refused non-super call', async () => {
+    for (const role of ['admin', 'manager', 'demo_manager'] as const) {
       await request(app)
         .delete(`/api/document-link-families/${SYSTEM_FAMILY_ID}`)
         .set('x-test-role', role);
@@ -227,7 +258,7 @@ describe('DELETE /api/document-link-families/:id — Koveo system family refusal
 });
 
 // ---------------------------------------------------------------------------
-// DELETE — custom (non-system) family happy path is preserved
+// DELETE — custom (non-system) family paths preserved
 // ---------------------------------------------------------------------------
 
 describe('DELETE /api/document-link-families/:id — non-system family path is preserved', () => {
@@ -264,5 +295,71 @@ describe('DELETE /api/document-link-families/:id — non-system family path is p
 
     expect(res.status).toBe(404);
     expect(res.body).toEqual({ message: 'Family not found' });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// POST — super_admin creates a Koveo system family
+// ---------------------------------------------------------------------------
+
+describe('POST /api/document-link-families — super_admin creates system family', () => {
+  it('returns 201 with isSystem=true, source=koveo, organizationId=null', async () => {
+    const res = await request(app)
+      .post('/api/document-link-families')
+      .set('x-test-role', 'super_admin')
+      .send({ name: 'New Koveo Family', description: 'A seeded family', isSystem: true });
+
+    expect(res.status).toBe(201);
+    expect(res.body.isSystem).toBe(true);
+    expect(res.body.source).toBe('koveo');
+    expect(res.body.organizationId).toBeNull();
+  });
+
+  it('persists the insert call with correct values', async () => {
+    await request(app)
+      .post('/api/document-link-families')
+      .set('x-test-role', 'super_admin')
+      .send({ name: 'Koveo Seeded', isSystem: true });
+
+    expect(insertedFamilies).toHaveLength(1);
+    expect(insertedFamilies[0].isSystem).toBe(true);
+    expect(insertedFamilies[0].source).toBe('koveo');
+    expect(insertedFamilies[0].organizationId).toBeNull();
+  });
+});
+
+// ---------------------------------------------------------------------------
+// POST — super_admin creates non-system family for an org they don't belong to
+// ---------------------------------------------------------------------------
+
+describe('POST /api/document-link-families — super_admin creates non-system family for any org', () => {
+  it('returns 201 when an explicit organizationId outside their memberships is supplied', async () => {
+    const res = await request(app)
+      .post('/api/document-link-families')
+      .set('x-test-role', 'super_admin')
+      .send({ name: 'Org Family', isSystem: false, organizationId: 'org-other' });
+
+    expect(res.status).toBe(201);
+    expect(res.body.isSystem).toBe(false);
+    expect(res.body.organizationId).toBe('org-other');
+  });
+});
+
+// ---------------------------------------------------------------------------
+// POST — regular admin is still refused for isSystem:true
+// ---------------------------------------------------------------------------
+
+describe('POST /api/document-link-families — admin cannot create system family', () => {
+  it('returns 403 with the right message', async () => {
+    const res = await request(app)
+      .post('/api/document-link-families')
+      .set('x-test-role', 'admin')
+      .send({ name: 'Sneaky System Family', isSystem: true });
+
+    expect(res.status).toBe(403);
+    expect(res.body).toEqual({
+      message: 'Only super admins can create Koveo system families',
+    });
+    expect(insertedFamilies).toHaveLength(0);
   });
 });

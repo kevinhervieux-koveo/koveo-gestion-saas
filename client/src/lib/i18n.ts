@@ -4242,6 +4242,8 @@ export interface Translations {
   lfDescriptionPlaceholder: string;
   lfKoveoFamilyLabel: string;
   lfKoveoFamilyHelper: string;
+  lfOrganizationLabel: string;
+  lfOrganizationPlaceholder: string;
   lfCreateSubmitButton: string;
   lfToastCreatedTitle: string;
   lfToastUpdatedTitle: string;
@@ -8534,6 +8536,8 @@ export const translations: Record<Language, Translations> = {
     lfDescriptionPlaceholder: 'Optional description…',
     lfKoveoFamilyLabel: 'Koveo system family',
     lfKoveoFamilyHelper: 'System families are seeded by Koveo and visible to all organizations.',
+    lfOrganizationLabel: 'Organization',
+    lfOrganizationPlaceholder: 'Select an organization…',
     lfCreateSubmitButton: 'Create',
     lfToastCreatedTitle: 'Family created',
     lfToastUpdatedTitle: 'Family updated',
@@ -12831,6 +12835,8 @@ export const translations: Record<Language, Translations> = {
     lfDescriptionPlaceholder: 'Description facultative…',
     lfKoveoFamilyLabel: 'Famille système Koveo',
     lfKoveoFamilyHelper: 'Les familles système sont générées par Koveo et visibles par toutes les organisations.',
+    lfOrganizationLabel: 'Organisation',
+    lfOrganizationPlaceholder: 'Sélectionner une organisation…',
     lfCreateSubmitButton: 'Créer',
     lfToastCreatedTitle: 'Famille créée',
     lfToastUpdatedTitle: 'Famille mise à jour',
