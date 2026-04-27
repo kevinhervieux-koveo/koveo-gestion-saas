@@ -26,6 +26,7 @@ import { storage } from '../storage';
 import {
   bulkImportAnalyzer,
   isBulkImportAiAvailable,
+  getBulkImportAiFallbackReason,
   type QuickAnalysis,
   type SiblingContext,
   BRANCH_SUB_CATEGORIES,
@@ -2615,10 +2616,11 @@ export function registerBulkImportRoutes(app: Express): void {
         metadata: { userId: req.user?.id },
       });
       const available = isBulkImportAiAvailable();
+      const fallbackReason = getBulkImportAiFallbackReason();
       logDebug('[bulk-import] route exit GET /api/admin/bulk-import/ai-status ok', {
-        metadata: { available, status: 200, durationMs: Date.now() - t0 },
+        metadata: { available, fallbackReason, status: 200, durationMs: Date.now() - t0 },
       });
-      return res.json({ available });
+      return res.json({ available, fallbackReason });
     },
   );
 

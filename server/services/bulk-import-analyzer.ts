@@ -500,6 +500,24 @@ export function isBulkImportAiAvailable(): boolean {
 }
 
 /**
+ * Return the reason why the bulk-import AI is unavailable, or `null`
+ * when it is available. Distinguishes between:
+ * - `'no_api_key'`          — `ANTHROPIC_API_KEY` is absent from the
+ *   environment; the analyzer never ran.
+ * - `'model_misconfigured'` — the API key is present but the SDK failed
+ *   to initialise (bad key format, invalid model name, etc.).
+ * Used by the `/api/admin/bulk-import/ai-status` endpoint so the
+ * client banner can show a targeted fix-hint instead of a generic
+ * "unavailable" message.
+ */
+export function getBulkImportAiFallbackReason(): 'no_api_key' | 'model_misconfigured' | null {
+  if (client !== null) return null;
+  const key = process.env.ANTHROPIC_API_KEY;
+  if (!key) return 'no_api_key';
+  return 'model_misconfigured';
+}
+
+/**
  * Read the staged file (or use the supplied buffer) and turn it into
  * Anthropic content blocks plus an optional text prefix to inject into
  * the prompt. Any failure (missing file, oversize, unsupported type,

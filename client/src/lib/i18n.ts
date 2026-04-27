@@ -4341,6 +4341,16 @@ export interface Translations {
   siReviewAndSelectDesc: string;
   siFailedToLoadSuggestions: string;
   siProjectDefaultsDesc: string;
+  confidenceBandHigh: string;
+  confidenceBandMedium: string;
+  confidenceBandLow: string;
+  confidenceAiNotRun: string;
+  confidenceLowTooltip: string;
+  confidenceDefaultTooltip: string;
+  confidenceAiNotRunTooltip: string;
+  aiUnavailableNoApiKey: string;
+  aiUnavailableMisconfigured: string;
+  residenceUnitsLoadError: string;
 }
 
 /**
@@ -8693,6 +8703,16 @@ export const translations: Record<Language, Translations> = {
     siReviewAndSelectDesc: 'Review and select evaluation suggestions to automatically create maintenance projects. Projects will be generated with standard workflows and can be customized after creation.',
     siFailedToLoadSuggestions: 'Failed to load suggestions. Please try again.',
     siProjectDefaultsDesc: 'Set default values for all generated projects',
+    confidenceBandHigh: 'High',
+    confidenceBandMedium: 'Medium',
+    confidenceBandLow: 'Low',
+    confidenceAiNotRun: 'AI not run',
+    confidenceLowTooltip: 'AI confidence: {pct}. The AI ran and returned a low score — review this file. Nothing is auto-discarded based on confidence.',
+    confidenceDefaultTooltip: 'AI confidence: {pct}. Nothing is auto-discarded based on this score — low confidence means "needs review", not "discard this".',
+    confidenceAiNotRunTooltip: 'The AI did not analyze this file. Nothing is auto-discarded based on confidence — a low score means "needs review", not "discard this".',
+    aiUnavailableNoApiKey: 'The AI analyzer is not configured on this deployment. Every document will receive a generic 20% confidence score based on its filename only — no real analysis is performed.',
+    aiUnavailableMisconfigured: 'The Anthropic API key is configured but appears to be invalid, or the requested model name is not recognised. Every document will receive a generic 20% confidence score until the deployment settings are corrected.',
+    residenceUnitsLoadError: 'Failed to load residences. Refresh and try again.',
   },
   fr: {
 
@@ -13050,5 +13070,15 @@ export const translations: Record<Language, Translations> = {
     siReviewAndSelectDesc: 'Examinez et sélectionnez les suggestions d\'évaluation pour créer automatiquement des projets de maintenance. Les projets seront générés avec des workflows standards et pourront être personnalisés après leur création.',
     siFailedToLoadSuggestions: 'Échec du chargement des suggestions. Veuillez réessayer.',
     siProjectDefaultsDesc: 'Définir les valeurs par défaut pour tous les projets générés',
+    confidenceBandHigh: 'Élevée',
+    confidenceBandMedium: 'Moyenne',
+    confidenceBandLow: 'Faible',
+    confidenceAiNotRun: 'IA non exécutée',
+    confidenceLowTooltip: 'Confiance de l\'IA : {pct}. L\'IA a retourné un score faible — vérifiez ce fichier. Aucun fichier n\'est exclu automatiquement selon la confiance.',
+    confidenceDefaultTooltip: 'Confiance de l\'IA : {pct}. Aucun fichier n\'est exclu automatiquement — un score faible signifie « à vérifier », pas « à rejeter ».',
+    confidenceAiNotRunTooltip: 'L\'IA n\'a pas pu analyser ce fichier. Aucun fichier n\'est exclu automatiquement selon la confiance — un score faible signifie « à vérifier », pas « à rejeter ».',
+    aiUnavailableNoApiKey: 'L\'analyseur IA n\'est pas configuré sur ce déploiement. Tous les documents recevront un score de confiance générique de 20 % basé uniquement sur le nom du fichier — aucune analyse réelle n\'est effectuée.',
+    aiUnavailableMisconfigured: 'La clé API Anthropic est configurée, mais semble invalide, ou le nom du modèle demandé n\'est pas reconnu. Tous les documents recevront un score de confiance générique de 20 % jusqu\'à ce que les paramètres de déploiement soient corrigés.',
+    residenceUnitsLoadError: 'Échec du chargement des résidences. Actualisez et réessayez.',
   }
 };

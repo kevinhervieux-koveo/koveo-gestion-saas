@@ -4,6 +4,7 @@ import {
   type BulkImportFallbackReason,
   type ConfidenceBand,
 } from '@shared/schemas/bulk-import';
+import { translations } from '@/lib/i18n';
 
 export interface ConfidenceBadgeProps {
   value: number | undefined | null;
@@ -16,18 +17,18 @@ export function ConfidenceBadge({
   fallbackReason,
   isFr,
 }: ConfidenceBadgeProps) {
+  const lang = isFr ? 'fr' : 'en';
+  const tr = translations[lang];
+
   if (fallbackReason) {
-    const tooltip = isFr
-      ? "L'IA n'a pas pu analyser ce fichier. Aucun fichier n'est exclu automatiquement selon la confiance — un score faible signifie « à vérifier », pas « à rejeter »."
-      : "The AI did not analyze this file. Nothing is auto-discarded based on confidence — a low score means \"needs review\", not \"discard this\".";
     return (
       <span
         className="inline-flex items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-500"
         data-testid="badge-confidence-not-run"
-        title={tooltip}
+        title={tr.confidenceAiNotRunTooltip}
       >
         <Ban className="h-3 w-3" />
-        {isFr ? 'IA non exécutée' : 'AI not run'}
+        {tr.confidenceAiNotRun}
       </span>
     );
   }
@@ -39,19 +40,16 @@ export function ConfidenceBadge({
     high: 'bg-emerald-100 text-emerald-800',
   };
   const pct = value == null ? '—' : `${Math.round(value * 100)}%`;
-  const tooltipEn =
+  const tooltipTemplate =
     band === 'low'
-      ? `AI confidence: ${pct}. The AI ran and returned a low score — review this file. Nothing is auto-discarded based on confidence.`
-      : `AI confidence: ${pct}. Nothing is auto-discarded based on this score — low confidence means "needs review", not "discard this".`;
-  const tooltipFr =
-    band === 'low'
-      ? `Confiance de l'IA : ${pct}. L'IA a retourné un score faible — vérifiez ce fichier. Aucun fichier n'est exclu automatiquement selon la confiance.`
-      : `Confiance de l'IA : ${pct}. Aucun fichier n'est exclu automatiquement — un score faible signifie « à vérifier », pas « à rejeter ».`;
+      ? tr.confidenceLowTooltip
+      : tr.confidenceDefaultTooltip;
+  const tooltip = tooltipTemplate.replace('{pct}', pct);
   return (
     <span
       className={`inline-flex items-center gap-1 rounded-md px-2 py-0.5 text-xs font-medium ${variant[band]}`}
       data-testid={`badge-confidence-${band}`}
-      title={isFr ? tooltipFr : tooltipEn}
+      title={tooltip}
     >
       <Sparkles className="h-3 w-3" /> {pct}
     </span>

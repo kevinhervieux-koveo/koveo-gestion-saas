@@ -1907,7 +1907,7 @@ const RETRYABLE_AI_FALLBACK_REASON_SET: ReadonlySet<BulkImportFallbackReason> =
 export const BULK_RETRY_CONFIRM_THRESHOLD = 5;
 
 export default function BulkDocumentImportPage() {
-  const { language, tp } = useLanguage();
+  const { language, tp, t } = useLanguage();
   const { toast } = useToast();
   const isFr = language === 'fr';
   const stepLabels = isFr ? STEP_LABEL_FR : STEP_LABEL_EN;
@@ -1998,10 +1998,11 @@ export default function BulkDocumentImportPage() {
    * hidden while the probe is loading or fails — better to be quiet
    * than to flash a misleading warning.
    */
-  const { data: aiStatus } = useQuery<{ available: boolean }>({
+  const { data: aiStatus } = useQuery<{ available: boolean; fallbackReason: 'no_api_key' | 'model_misconfigured' | null }>({
     queryKey: ['/api/admin/bulk-import/ai-status'],
   });
   const aiAvailable = aiStatus?.available ?? true;
+  const aiFallbackReason = aiStatus?.fallbackReason ?? null;
   const [skipExisting, setSkipExisting] = useState(true);
   const [aiBannerDismissed, setAiBannerDismissed] = useState(false);
   const [reassignPickerItemId, setReassignPickerItemId] = useState<string | null>(null);
@@ -3257,14 +3258,14 @@ export default function BulkDocumentImportPage() {
    * (Task #780). Only fetched when the wizard is on the branching step
    * so we don't burden other steps with an unnecessary query.
    */
-  const { data: buildingResidences = [] } = useQuery<Array<{ id: string; unitNumber: string }>>({
+  const { data: buildingResidences = [], isError: buildingResidencesError } = useQuery<Array<{ id: string; unitNumber: string }>>({
     queryKey: ['/api/buildings', session?.buildingId, 'residences'],
     enabled: !!session?.buildingId && currentStep === 'branching',
     queryFn: async () => {
       const res = await fetch(`/api/buildings/${session!.buildingId}/residences`, {
         credentials: 'include',
       });
-      if (!res.ok) return [];
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json() as Array<{ id: string; unitNumber: string }>;
       return data.sort((a, b) =>
         a.unitNumber.localeCompare(b.unitNumber, undefined, { numeric: true }),
@@ -4437,18 +4438,20 @@ export default function BulkDocumentImportPage() {
           {!aiAvailable && !aiBannerDismissed && (
             <Alert
               variant="destructive"
-              data-testid="alert-ai-unavailable"
+              data-testid={`alert-ai-unavailable${aiFallbackReason ? `-${aiFallbackReason}` : ''}`}
               className="border-amber-300 bg-amber-50 text-amber-900 [&>svg]:text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-100 dark:[&>svg]:text-amber-100"
             >
               <AlertTriangle className="h-4 w-4" />
               <AlertTitle>
-                {isFr ? 'IA indisponible' : 'AI unavailable'}
+                {aiFallbackReason === 'model_misconfigured'
+                  ? (isFr ? 'IA mal configurée' : 'AI misconfigured')
+                  : (isFr ? 'IA indisponible' : 'AI unavailable')}
               </AlertTitle>
               <AlertDescription className="space-y-2">
                 <p>
-                  {isFr
-                    ? "L'analyseur IA n'est pas configuré sur ce déploiement. Tous les documents recevront un score de confiance générique de 20 % basé uniquement sur le nom du fichier — aucune analyse réelle n'est effectuée."
-                    : 'The AI analyzer is not configured on this deployment. Every document will receive a generic 20% confidence score based on its filename only — no real analysis is performed.'}
+                  {aiFallbackReason === 'model_misconfigured'
+                    ? t('aiUnavailableMisconfigured')
+                    : t('aiUnavailableNoApiKey')}
                 </p>
                 <div>
                   <Button
@@ -5465,6 +5468,23 @@ export default function BulkDocumentImportPage() {
                                 <Badge variant="secondary" className="text-xs" data-testid={`branching-section-count-${section.key}`}>
                                   {section.items.length}
                                 </Badge>
+                                {section.key !== 'unsorted' && (() => {
+                                  const scCounts = new Map<string, number>();
+                                  for (const it of section.items) {
+                                    if (it.subCategory) scCounts.set(it.subCategory, (scCounts.get(it.subCategory) ?? 0) + 1);
+                                  }
+                                  if (scCounts.size === 0) return null;
+                                  return Array.from(scCounts.entries()).map(([sc, cnt]) => (
+                                    <Badge
+                                      key={sc}
+                                      variant="outline"
+                                      className="text-[11px] border-purple-200 bg-purple-50/50 text-purple-800 dark:border-purple-800 dark:bg-purple-950/50 dark:text-purple-300"
+                                      data-testid={`branching-section-subcat-${section.key}-${sc}`}
+                                    >
+                                      {subCatLabelsHeader[sc] ?? sc}: {cnt}
+                                    </Badge>
+                                  ));
+                                })()}
                                 {groupBranch && eligibleIds.length > 0 && (
                                   <Button
                                     size="sm"
@@ -5876,11 +5896,7 @@ export default function BulkDocumentImportPage() {
                                                     </Badge>
                                                     {item.residenceConfidence != null && (() => {
                                                       const band = bandForConfidence(item.residenceConfidence);
-                                                      const label = band === 'high'
-                                                        ? (isFr ? 'Élevée' : 'High')
-                                                        : band === 'medium'
-                                                          ? (isFr ? 'Moyenne' : 'Medium')
-                                                          : (isFr ? 'Faible' : 'Low');
+                                                      const label = confidenceBandLabel(item.residenceConfidence, isFr);
                                                       const chipClass = band === 'high'
                                                         ? 'border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-200'
                                                         : band === 'medium'
@@ -6095,7 +6111,11 @@ export default function BulkDocumentImportPage() {
                                                   <SelectValue placeholder={isFr ? 'Choisir une résidence…' : 'Choose a residence…'} />
                                                 </SelectTrigger>
                                                 <SelectContent>
-                                                  {buildingResidences.length === 0 ? (
+                                                  {buildingResidencesError ? (
+                                                    <SelectItem value="__error__" disabled className="text-xs text-red-600 dark:text-red-400" data-testid="reassign-residence-error">
+                                                      {t('residenceUnitsLoadError')}
+                                                    </SelectItem>
+                                                  ) : buildingResidences.length === 0 ? (
                                                     <SelectItem value="__none__" disabled className="text-xs text-muted-foreground">
                                                       {isFr ? 'Aucune résidence' : 'No residences'}
                                                     </SelectItem>
@@ -6182,7 +6202,11 @@ export default function BulkDocumentImportPage() {
                                                 <SelectValue placeholder={isFr ? 'Choisir une résidence…' : 'Choose a residence…'} />
                                               </SelectTrigger>
                                               <SelectContent>
-                                                {buildingResidences.length === 0 ? (
+                                                {buildingResidencesError ? (
+                                                  <SelectItem value="__error__" disabled className="text-xs text-red-600 dark:text-red-400" data-testid="residence-picker-error">
+                                                    {t('residenceUnitsLoadError')}
+                                                  </SelectItem>
+                                                ) : buildingResidences.length === 0 ? (
                                                   <SelectItem value="__none__" disabled className="text-xs text-muted-foreground">
                                                     {isFr ? 'Aucune résidence' : 'No residences'}
                                                   </SelectItem>
@@ -8617,6 +8641,22 @@ export default function BulkDocumentImportPage() {
                                       isFr={isFr}
                                     />
                                   )}
+                                  {currentStep === 'sorting' && !isExcluded && (() => {
+                                    const bucketKey = item.branch ?? item.screeningBucketGuess;
+                                    if (!bucketKey || bucketKey === 'unknown') return null;
+                                    const destLabels = isFr ? BRANCH_DESTINATION_LABEL_FR : BRANCH_DESTINATION_LABEL_EN;
+                                    const bucketLabels = isFr ? BUCKET_GUESS_LABEL_FR : BUCKET_GUESS_LABEL_EN;
+                                    const bucketLabel = destLabels[bucketKey as BranchDestination] ?? bucketLabels[bucketKey] ?? bucketKey;
+                                    return (
+                                      <Badge
+                                        variant="outline"
+                                        className="shrink-0 border-teal-300 bg-teal-50 text-teal-900 dark:border-teal-700 dark:bg-teal-950 dark:text-teal-200"
+                                        data-testid={`sorting-branch-bucket-${item.id}`}
+                                      >
+                                        {bucketLabel}
+                                      </Badge>
+                                    );
+                                  })()}
                                   {currentStep === 'screening' && item.screeningTypeGuess && item.screeningTypeGuess !== 'unknown' && (
                                     <Badge
                                       variant="outline"
