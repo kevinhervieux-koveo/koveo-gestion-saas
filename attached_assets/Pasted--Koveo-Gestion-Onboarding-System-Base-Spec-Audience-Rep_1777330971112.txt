@@ -1,0 +1,269 @@
+# Koveo Gestion — Onboarding System (Base Spec)
+
+**Audience:** Replit AI agent. This file describes the foundation a Replit build agent must implement BEFORE any per-role tour can be wired up. The four per-role files (`01_onboarding_admin.md`, `02_onboarding_manager.md`, `03_onboarding_tenant.md`, `04_onboarding_resident.md`) all depend on the primitives defined here.
+
+**Goal:** every Koveo Gestion user gets a guided in-app tour the first time they sign in, scoped to the parts of the app their role can actually access. The tour can be re-triggered from Settings at any time. A periodic monitoring pass will detect when product features drift past the onboarding and flag tours that need refreshing.
+
+---
+
+## 0. Glossary
+
+| Term | Meaning |
+|------|---------|
+| **Tour** | A sequenced set of `Step`s that walk the user through an area of the product. One role may have one or several tours. |
+| **Step** | A single tooltip / spotlight / modal anchored to a DOM target with a title, body, and optional action (e.g., "click here", "fill this field"). |
+| **Track** | A named grouping of tours for one role (e.g., `manager.core`, `manager.financial`). |
+| **Onboarding version** | A monotonically increasing integer that bumps every time tour content meaningfully changes. Used by the freshness monitor and the "what's new" re-prompt. |
+| **Feature manifest** | The machine-readable list of features (`feature_list.md` distilled to JSON) that the freshness monitor compares against the tour catalog. |
+
+---
+
+## 1. Architecture overview
+
+The onboarding system has four layers. Build them in this order — each row depends on the rows above it.
+
+| Layer | Responsibility | Key artifact(s) |
+|-------|---------------|-----------------|
+| **L1 — DB** | Persist who has seen what, what version, and progress per step. | `onboarding_progress`, `onboarding_versions`, `onboarding_feature_manifest` tables |
+| **L2 — API** | Read/write progress, fetch the right tour catalog for the caller's role + locale. | `GET /api/onboarding/me`, `POST /api/onboarding/progress`, `POST /api/onboarding/restart`, `GET /api/onboarding/catalog?role=…&locale=…` |
+| **L3 — Tour engine (frontend)** | Render tooltips, route between steps, gate-check that the target DOM node exists, fall back gracefully. | React component `<OnboardingProvider>`; underlying lib **driver.js** (preferred — see §3.2). |
+| **L4 — Content (per-role tours)** | The actual step content, anchors, and copy for each role. Defined in the four per-role specs. | `content/onboarding/<role>/<track>.ts` |
+
+A separate **L5 — Freshness monitor** runs on every deploy: compare the active feature manifest snapshot against the tour catalog and emit a report of "features without tour coverage" / "tour anchors that no longer resolve."
+
+---
+
+## 2. Data model
+
+### 2.1 New tables
+
+```sql
+-- One row per (user, tour). Tracks completion + which version was last seen.
+CREATE TABLE onboarding_progress (
+  id                UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id           UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+  role              TEXT NOT NULL CHECK (role IN ('admin','manager','tenant','resident')),
+  track_id          TEXT NOT NULL,                  -- e.g. 'manager.core'
+  tour_id           TEXT NOT NULL,                  -- e.g. 'manager.core.buildings'
+  seen_version      INTEGER NOT NULL DEFAULT 0,     -- last onboarding_versions.version the user saw end-to-end
+  current_step      INTEGER NOT NULL DEFAULT 0,
+  status            TEXT NOT NULL DEFAULT 'not_started'
+                    CHECK (status IN ('not_started','in_progress','completed','skipped','dismissed')),
+  started_at        TIMESTAMPTZ,
+  completed_at      TIMESTAMPTZ,
+  last_event_at     TIMESTAMPTZ NOT NULL DEFAULT now(),
+  UNIQUE (user_id, tour_id)
+);
+CREATE INDEX onboarding_progress_user_idx ON onboarding_progress (user_id);
+
+-- Tour version registry. Bumped whenever the content for a tour changes.
+CREATE TABLE onboarding_versions (
+  tour_id           TEXT PRIMARY KEY,
+  version           INTEGER NOT NULL,
+  changelog         TEXT,                           -- free text: what changed
+  released_at       TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+-- Snapshot of the feature manifest at deploy time. Used by the freshness monitor.
+CREATE TABLE onboarding_feature_manifest (
+  id                SERIAL PRIMARY KEY,
+  build_sha         TEXT NOT NULL,                  -- matches get_mcp_info.buildSha
+  captured_at       TIMESTAMPTZ NOT NULL DEFAULT now(),
+  manifest_json     JSONB NOT NULL                  -- the parsed feature_list.md
+);
+CREATE INDEX onboarding_feature_manifest_sha_idx ON onboarding_feature_manifest (build_sha);
+```
+
+### 2.2 Migration notes for Replit
+
+- Use the project's existing migration tooling (Drizzle migrations under `db/migrations/`). One migration file per table.
+- Do NOT seed a hard-coded `version=1` for every tour in code — instead, write a seed script that reads the per-role TS content files at build time and `INSERT … ON CONFLICT (tour_id) DO NOTHING`. That way new tours register themselves automatically.
+
+### 2.3 Backward-compat for existing users
+
+Every existing user should be treated as `not_started` for every tour, except: if a user's `created_at` is older than the date of the first onboarding deploy, mark them as `skipped` so they aren't ambushed by a tour. They can still trigger it manually from Settings.
+
+---
+
+## 3. Frontend tour engine
+
+### 3.1 Where it lives in the app
+
+- React component `<OnboardingProvider>` mounted at the root of the authenticated layout (just inside the existing auth gate).
+- A hook `useOnboarding()` exposes: `start(tourId)`, `restart(tourId)`, `dismiss()`, `skipAll()`, `currentStep`, `isActive`.
+- A `<OnboardingSettingsPanel />` component lives in the Settings page (see §6).
+
+### 3.2 Library choice
+
+Use **driver.js** v1.x (`npm i driver.js`). Reasons:
+- Tiny (~10 KB), no peer-dep on a UI framework.
+- Programmatic `Driver({ steps })` API — easy to drive from our hook.
+- Handles overlays, popover positioning, scroll-into-view, keyboard nav.
+
+Do NOT use Shepherd.js or Reactour — both add bigger bundles and friction with shadcn-style portals. Do NOT roll a custom tooltip library.
+
+### 3.3 Step contract
+
+Every step in every role file MUST be defined as:
+
+```ts
+export type OnboardingStep = {
+  id: string;                     // stable; used as anchor in URLs and analytics
+  anchor: { selector: string; fallbackSelector?: string };
+  title: { en: string; fr: string };
+  body:  { en: string; fr: string };
+  // gating — step is skipped if the predicate returns false at runtime
+  visibleIf?: (ctx: OnboardingCtx) => boolean;
+  // user must perform this action before the next step unlocks
+  waitFor?: { type: 'click'|'navigation'|'apiCall'; target: string };
+  placement?: 'top'|'bottom'|'left'|'right'|'auto';
+  allowSkip?: boolean;            // default true
+  // freshness-monitor binding — features in feature_list.md this step covers
+  covers: string[];               // e.g. ['fr-3.create-building']
+};
+```
+
+`OnboardingCtx` carries: current user (`role`, `id`), feature flags, current route, MCP buildSha. This lets a step say "only show when at least one building exists" or "skip if user has no residence link."
+
+### 3.4 Anchor resilience
+
+DOM selectors are fragile. Enforce the convention:
+
+- Every onboardable element gets a `data-onboarding="<stable-id>"` attribute. The tour anchors to `[data-onboarding="…"]`, never to class names or nth-child.
+- The freshness monitor (§7) confirms every step's selector resolves on a headless render before each deploy.
+
+### 3.5 Locale
+
+The app already supports FR/EN. Tour content is bilingual at source (see Step contract). At runtime, render the locale matching `users.language` (fallback `fr`). Do NOT use a separate locale file — keeps content + translation diff-reviewed together.
+
+---
+
+## 4. API endpoints
+
+| Method | Path | Auth | Purpose |
+|--------|------|------|---------|
+| `GET` | `/api/onboarding/me` | session | Returns the current user's progress per tour: `[{ tourId, status, currentStep, seenVersion, latestVersion }]`. |
+| `GET` | `/api/onboarding/catalog` | session | Returns all tours visible to the caller's role, filtered by locale. Includes step content. |
+| `POST` | `/api/onboarding/progress` | session | Body: `{ tourId, currentStep, status }`. Upserts into `onboarding_progress`. |
+| `POST` | `/api/onboarding/restart` | session | Body: `{ tourId? }`. If `tourId` omitted, resets ALL tours for the caller's role to `not_started`. |
+| `GET` | `/api/onboarding/health` | admin | Returns the freshness report (§7). |
+
+All endpoints follow the existing zod-schema pattern used elsewhere in the app. Tenant/resident sessions can read/write only their own progress; managers and admins can read their own; only admins can hit `/health`.
+
+---
+
+## 5. First-run flow
+
+1. User signs in. `<OnboardingProvider>` calls `GET /api/onboarding/me`.
+2. If the role has any tour with `status='not_started'` and `seenVersion < latestVersion`, queue them.
+3. Tours run **one at a time**, in the order defined by the per-role spec's "Tour ordering" section.
+4. After each step the FE posts `{ currentStep, status: 'in_progress' }`. After the last step, status becomes `completed`.
+5. If the user clicks **Skip this tour** → `status='skipped'`. **Skip all** → all queued tours go to `skipped`.
+6. The provider exposes a "Resume tour" floater in the bottom-right when a tour is `in_progress` and the user navigates away mid-tour.
+
+---
+
+## 6. Settings re-trigger UX
+
+A new sub-page **Settings → Help & Onboarding**:
+
+- A list of tours available to the caller's role, each row shows: title, last completed date, status badge, button **Restart tour**.
+- A button **Restart all tours** at the top.
+- A **What's new** section listing tours where `latestVersion > seenVersion` with the `changelog` text from `onboarding_versions`.
+
+UX requirements:
+- Restart triggers `POST /api/onboarding/restart` then immediately starts the tour (no page reload).
+- The page itself must be present in the role's own tour catalog (every per-role file ends with a "Settings → restart" step so users learn how to come back).
+
+---
+
+## 7. Freshness monitor (periodic feature drift check)
+
+This is the part that keeps the onboarding from going stale.
+
+### 7.1 What it does
+
+On every deploy (and on a nightly cron), compare:
+- **Source A:** the feature catalog. Parse `feature_list.md` (or its JSON projection) into `{ feature_id, surface, status }[]`.
+- **Source B:** the tour catalog. Walk every per-role TS file and collect `{ tour_id, step_id, covers: feature_id[] }[]`. Each step MUST declare which features it covers, via the `covers: ['fr-3.create-building', …]` field on the step.
+- **Source C:** anchor resolution. Headlessly render each authenticated route under each role, run `document.querySelector(step.anchor.selector)` for every step.
+
+Emit a report (JSON + Markdown) with three sections:
+
+1. **Uncovered features** — features marked `✅ exercised and working` in `feature_list.md` that no step declares it covers.
+2. **Stale anchors** — steps whose selector returned `null` under at least one role/route.
+3. **Version skew** — tours whose content TS file was modified in the last commit but `onboarding_versions.version` was NOT bumped.
+
+### 7.2 Wiring
+
+- A script `scripts/onboarding-health.ts` runs in CI on every PR that touches `app/`, `content/onboarding/`, or `feature_list.md`. PR fails if any "uncovered feature" appears with `status=✅`.
+- A nightly Replit cron job runs the same script against the production build, posts the report to `/api/onboarding/health`, and bumps `onboarding_feature_manifest`.
+- Admins see the report in **Settings → Admin → Onboarding health**.
+
+### 7.3 Feature → tour mapping convention
+
+Each row in `feature_list.md` already has a section number (1–16) and a feature name. For the freshness monitor to parse it, add a stable `feature_id` to each row in a future `feature_list.md` sweep — e.g. `fr-3.create-building`, `fr-7.create-bill`. This is a one-time lift; do it as part of L5 implementation. Until then, fall back to fuzzy matching on feature name + section number.
+
+---
+
+## 8. Acceptance criteria for the base layer
+
+A Replit pull request implementing this base spec must:
+
+- [ ] Add the three DB tables in §2 with passing migrations up + down.
+- [ ] Expose the five API endpoints in §4 with zod request/response schemas.
+- [ ] Mount `<OnboardingProvider>` and ship one **smoke tour** with a single step (`onboarding.smoke`) that anchors to the dashboard header, just to prove the engine works end-to-end.
+- [ ] Add the `data-onboarding` attribute convention to the dashboard header and document the convention in `CONTRIBUTING.md`.
+- [ ] Ship the **Settings → Help & Onboarding** sub-page with the smoke tour listed and a working Restart button.
+- [ ] Add the `scripts/onboarding-health.ts` skeleton that prints "0 uncovered features" against the smoke tour.
+- [ ] Add a Puppeteer test under `tests/e2e/onboarding.base.spec.ts` that:
+  1. Logs in as a fresh user.
+  2. Asserts the smoke tour appears.
+  3. Clicks **Next** through every step.
+  4. Asserts `onboarding_progress.status='completed'` via the API.
+  5. Reloads — asserts the tour does NOT re-appear.
+  6. Goes to Settings → Help & Onboarding → Restart — asserts the tour re-appears.
+
+> **Test framework note:** Use **Puppeteer** for this and every other onboarding browser test in this project. Do not propose Cypress.
+
+---
+
+## 9. Localization & accessibility
+
+- Every tour string must be available in `en` and `fr`. PRs that add `en` only must fail CI.
+- All popovers must be keyboard-navigable: `Tab` cycles to the **Next/Skip** buttons, `Esc` dismisses, `Enter` advances. Driver.js handles this out of the box; verify in a Puppeteer test.
+- Color contrast on the highlight overlay must hit WCAG AA against the app's existing theme (light + dark).
+
+---
+
+## 10. Telemetry
+
+Emit one analytics event per step transition: `onboarding.step.viewed`, `onboarding.step.completed`, `onboarding.tour.skipped`, `onboarding.tour.completed`, `onboarding.tour.restarted_from_settings`. Properties: `tourId`, `stepId`, `userId`, `role`, `version`. Reuse whatever analytics shim the app already has — do NOT add a second analytics SDK.
+
+---
+
+## 11. Out of scope for the base layer
+
+- Translating the actual per-role step content — that lives in the per-role files.
+- Branching tours (e.g., one path for managers with no buildings vs. those with many) — start linear; revisit after we have data on completion rates.
+- Mobile-specific tours — desktop first; the per-role files note where mobile divergence exists.
+
+---
+
+## 12. Open questions to resolve with the human PM before merge
+
+These should be raised in the PR description, not silently decided:
+
+1. Do we want a **video** alternative for users who skip? (Skill-level decision — flagged but not built.)
+2. Should `assume_user`-initiated admin sessions inherit the impersonated user's onboarding progress, or stay on the admin's own? Current design: stay on the admin's own (impersonation is QA-only).
+3. Where do we store the bilingual changelog text — on `onboarding_versions.changelog` as a single TEXT, or split into `changelog_en` / `changelog_fr`? Current design: split. Confirm.
+
+---
+
+## 13. Hand-off checklist for per-role files
+
+Before any per-role file is implemented, confirm:
+
+- The base layer (§1–§7) is merged behind a feature flag `onboarding.enabled`.
+- The feature manifest snapshot from the latest build is loaded — the freshness monitor needs it to validate role files.
+- The role's OAuth flow lets the implementer actually log in as that role for Puppeteer tests. If not (e.g., resident OAuth still pending), mark that role's tests as `xfail` and call it out in the PR.
