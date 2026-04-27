@@ -43,8 +43,9 @@ export function Sidebar({ forceExpanded = false }: SidebarProps) {
 
   const { isCollapsed, toggleCollapsed: toggleCollapsedShared } = useSidebarState();
 
-  // Effective collapsed state: the mobile drawer instance never collapses.
-  const collapsed = forceExpanded ? false : isCollapsed;
+  // Effective collapsed state: the mobile drawer (isMobileMenuOpen) and any
+  // forceExpanded instance never collapse — always show full sidebar.
+  const collapsed = (forceExpanded || isMobileMenuOpen) ? false : isCollapsed;
 
   const toggleCollapsed = () => {
     // When collapsing, close any open submenus so the rail stays clean.

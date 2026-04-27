@@ -10,6 +10,7 @@ import { LanguageProvider } from '@/hooks/use-language';
 import { AuthProvider, useAuth } from '@/hooks/use-auth';
 import { Sidebar } from '@/components/layout/sidebar';
 import { SidebarStateProvider, useSidebarState } from '@/hooks/use-sidebar-state';
+import { RouteDocumentTitle } from '@/hooks/use-document-title';
 import { Suspense, useEffect } from 'react';
 import React from 'react';
 import { memoryOptimizer } from '@/utils/memory-monitor';
@@ -345,117 +346,126 @@ function AuthenticatedLayout() {
 
   return (
     <div className='h-full flex flex-col bg-gray-50 font-inter'>
+      {/* Per-route document title management (W52) */}
+      <RouteDocumentTitle />
+
+      {/* Accessibility: skip to main content link (W54) */}
+      <a
+        href='#main'
+        className='sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-koveo-navy focus:text-white focus:rounded focus:text-sm focus:font-medium'
+      >
+        {/* Bilingual skip link — shown in both FR and EN */}
+        Aller au contenu principal / Skip to main content
+      </a>
+
       {/* Persistent admin-only impersonation warning banner */}
       <ImpersonationBanner />
 
       <div className='flex-1 flex min-h-0'>
-      {/* Desktop sidebar - always visible on desktop */}
-      <div className='hidden md:block'>
+        {/* Single sidebar instance (W50): the Sidebar component handles both
+            desktop (static, always visible) and mobile (fixed overlay, toggled
+            by isMobileMenuOpen) in one tree via its own responsive classes.
+            A single instance guarantees only one set of nav buttons in the DOM. */}
         <Sidebar />
+
+        {/* Main content landmark (W54). When the desktop sidebar is collapsed, we add a
+            marker class so page-level wrappers (e.g. `max-w-7xl mx-auto`) can
+            widen to fill the freed-up space. The CSS rules live in
+            `client/src/index.css`. */}
+        <main
+          id='main'
+          role='main'
+          className={`flex-1 flex flex-col min-w-0 sidebar-aware-content ${
+            isCollapsed ? 'sidebar-collapsed-layout' : ''
+          }`}
+        >
+          <Suspense fallback={<LoadingSpinner />}>
+            <Switch>
+              {/* Login page - redirect authenticated users to dashboard */}
+              <Route path='/login' component={LoginRedirect} />
+              <Route path='/auth/login' component={LoginRedirect} />
+
+              {/* Main Dashboard */}
+              <Route path='/dashboard' component={DashboardOverviewRedirect} />
+              <Route path='/dashboard/overview' component={DashboardPage} />
+              <Route path='/dashboard/communication' component={DashboardCommunicationPage} />
+
+              {/* Admin routes */}
+              <Route path='/admin' component={AdminOverviewRedirect} />
+              <Route path='/admin/organizations'>{() => <ProtectedRoute requiredRole="admin"><AdminOrganizations /></ProtectedRoute>}</Route>
+              <Route path='/admin/quality'>{() => <ProtectedRoute requiredRole="super_admin"><AdminQuality /></ProtectedRoute>}</Route>
+              <Route path='/admin/compliance'>{() => <ProtectedRoute requiredRole="admin"><AdminCompliance /></ProtectedRoute>}</Route>
+              <Route path='/admin/permissions'>{() => <ProtectedRoute requiredRole="admin"><AdminPermissions /></ProtectedRoute>}</Route>
+              <Route path='/admin/bulk-document-import'>{() => <ProtectedRoute requiredRole="super_admin"><AdminBulkDocumentImport /></ProtectedRoute>}</Route>
+              <Route path='/admin/document-tags'>{() => <ProtectedRoute requiredRole="super_admin"><AdminDocumentTags /></ProtectedRoute>}</Route>
+              <Route path='/admin/kpi-dashboard'>{() => <ProtectedRoute requiredRole="super_admin"><AdminKpiDashboard /></ProtectedRoute>}</Route>
+              <Route path='/admin/performance'>{() => <ProtectedRoute requiredRole="super_admin"><PerformanceDashboardPage /></ProtectedRoute>}</Route>
+
+              {/* Manager routes */}
+              <Route path='/manager' component={ManagerOverviewRedirect} />
+              <Route path='/manager/buildings'>{() => <ProtectedRoute requiredRole="manager"><ManagerBuildings /></ProtectedRoute>}</Route>
+              <Route path='/manager/buildings/documents'>{() => <ProtectedRoute requiredRole="manager"><BuildingDocuments /></ProtectedRoute>}</Route>
+              <Route path='/manager/buildings/:buildingId/documents'>{() => <ProtectedRoute requiredRole="manager"><BuildingDocuments /></ProtectedRoute>}</Route>
+              <Route path='/manager/residences'>{() => <ProtectedRoute requiredRole="manager"><ManagerResidences /></ProtectedRoute>}</Route>
+              <Route path='/manager/residences/documents'>{() => <ProtectedRoute requiredRole="manager"><ResidenceDocuments /></ProtectedRoute>}</Route>
+              <Route path='/manager/residences/:residenceId/documents'>{() => <ProtectedRoute requiredRole="manager"><ResidenceDocuments /></ProtectedRoute>}</Route>
+              <Route path='/manager/budget'>{() => <ProtectedRoute requiredRole="manager"><ManagerBudget /></ProtectedRoute>}</Route>
+              <Route path='/manager/bills'>{() => <ProtectedRoute requiredRole="manager"><ManagerBills /></ProtectedRoute>}</Route>
+              <Route path='/manager/invoices'>{() => <ProtectedRoute requiredRole="manager"><ManagerInvoices /></ProtectedRoute>}</Route>
+              <Route path='/manager/demands'>{() => <ProtectedRoute requiredRole="manager"><ManagerDemands /></ProtectedRoute>}</Route>
+              <Route path='/manager/user-management'>{() => <ProtectedRoute requiredRole="manager"><ManagerUserManagement /></ProtectedRoute>}</Route>
+              <Route path='/manager/common-spaces-stats'>{() => <ProtectedRoute requiredRole="manager"><ManagerCommonSpacesStats /></ProtectedRoute>}</Route>
+              <Route path='/manager/maintenance/inventory'>{() => <ProtectedRoute requiredRole="manager"><ManagerMaintenanceInventory /></ProtectedRoute>}</Route>
+              <Route path='/manager/maintenance/elements/:elementId/history'>{() => <ProtectedRoute requiredRole="manager"><ManagerElementHistoryPage /></ProtectedRoute>}</Route>
+              <Route path='/manager/maintenance/projects'>{() => <ProtectedRoute requiredRole="manager"><ManagerMaintenanceProjects /></ProtectedRoute>}</Route>
+
+              {/* Residents routes */}
+              <Route path='/residents' component={ResidentsOverviewRedirect} />
+              <Route path='/residents/residence'>{() => <ResidentsResidence />}</Route>
+              <Route
+                path='/residents/residence/documents'
+                component={() => <ResidentsResidenceDocuments />}
+              />
+              {/* Support dynamic residence ID in URL path */}
+              <Route
+                path='/residents/residences/:residenceId/documents'
+                component={() => <ResidentsResidenceDocuments />}
+              />
+              <Route path='/residents/building'>{() => <ResidentsBuilding />}</Route>
+              <Route
+                path='/residents/building/documents'
+                component={() => <ResidentsBuildingDocuments />}
+              />
+              {/* Support dynamic building ID in URL path */}
+              <Route
+                path='/residents/buildings/:buildingId/documents'
+                component={() => <ResidentsBuildingDocuments />}
+              />
+              <Route path='/residents/demands' component={ResidentsDemands} />
+              <Route path='/residents/common-spaces'>{() => <ResidentsCommonSpaces />}</Route>
+              <Route path='/resident/common-spaces'>{() => <SingularCommonSpacesRedirect />}</Route>
+              <Route path='/resident/my-calendar' component={ResidentsMyCalendar} />
+
+              {/* Settings routes */}
+              <Route path='/settings' component={SettingsOverviewRedirect} />
+              <Route path='/settings/general' component={SettingsSettings} />
+
+              {/* Auto-discovered pages — drop new pages in
+                  client/src/pages/auto/ instead of editing this file.
+                  See client/src/pages/auto/README.md. */}
+              <AutoPageRoutes />
+
+              {/* 404 */}
+              <Route component={NotFound} />
+            </Switch>
+          </Suspense>
+        </main>
+
+        {/* Help system - floating button and overlay */}
+        <HelpButton />
+        <HelpOverlay />
+        <HelpHighlighter />
       </div>
-
-      {/* Mobile sidebar overlay - only visible when mobile menu is open */}
-      <div className='md:hidden'>
-        <Sidebar forceExpanded />
-      </div>
-
-      {/* Main content area. When the desktop sidebar is collapsed, we add a
-          marker class so page-level wrappers (e.g. `max-w-7xl mx-auto`) can
-          widen to fill the freed-up space. The CSS rules live in
-          `client/src/index.css`. */}
-      <div
-        className={`flex-1 flex flex-col min-w-0 sidebar-aware-content ${
-          isCollapsed ? 'sidebar-collapsed-layout' : ''
-        }`}
-      >
-        <Suspense fallback={<LoadingSpinner />}>
-          <Switch>
-            {/* Login page - redirect authenticated users to dashboard */}
-            <Route path='/login' component={LoginRedirect} />
-            <Route path='/auth/login' component={LoginRedirect} />
-
-            {/* Main Dashboard */}
-            <Route path='/dashboard' component={DashboardOverviewRedirect} />
-            <Route path='/dashboard/overview' component={DashboardPage} />
-            <Route path='/dashboard/communication' component={DashboardCommunicationPage} />
-
-            {/* Admin routes */}
-            <Route path='/admin' component={AdminOverviewRedirect} />
-            <Route path='/admin/organizations'>{() => <ProtectedRoute requiredRole="admin"><AdminOrganizations /></ProtectedRoute>}</Route>
-            <Route path='/admin/quality'>{() => <ProtectedRoute requiredRole="super_admin"><AdminQuality /></ProtectedRoute>}</Route>
-            <Route path='/admin/compliance'>{() => <ProtectedRoute requiredRole="admin"><AdminCompliance /></ProtectedRoute>}</Route>
-            <Route path='/admin/permissions'>{() => <ProtectedRoute requiredRole="admin"><AdminPermissions /></ProtectedRoute>}</Route>
-            <Route path='/admin/bulk-document-import'>{() => <ProtectedRoute requiredRole="super_admin"><AdminBulkDocumentImport /></ProtectedRoute>}</Route>
-            <Route path='/admin/document-tags'>{() => <ProtectedRoute requiredRole="super_admin"><AdminDocumentTags /></ProtectedRoute>}</Route>
-            <Route path='/admin/kpi-dashboard'>{() => <ProtectedRoute requiredRole="super_admin"><AdminKpiDashboard /></ProtectedRoute>}</Route>
-            <Route path='/admin/performance'>{() => <ProtectedRoute requiredRole="super_admin"><PerformanceDashboardPage /></ProtectedRoute>}</Route>
-
-            {/* Manager routes */}
-            <Route path='/manager' component={ManagerOverviewRedirect} />
-            <Route path='/manager/buildings'>{() => <ProtectedRoute requiredRole="manager"><ManagerBuildings /></ProtectedRoute>}</Route>
-            <Route path='/manager/buildings/documents'>{() => <ProtectedRoute requiredRole="manager"><BuildingDocuments /></ProtectedRoute>}</Route>
-            <Route path='/manager/buildings/:buildingId/documents'>{() => <ProtectedRoute requiredRole="manager"><BuildingDocuments /></ProtectedRoute>}</Route>
-            <Route path='/manager/residences'>{() => <ProtectedRoute requiredRole="manager"><ManagerResidences /></ProtectedRoute>}</Route>
-            <Route path='/manager/residences/documents'>{() => <ProtectedRoute requiredRole="manager"><ResidenceDocuments /></ProtectedRoute>}</Route>
-            <Route path='/manager/residences/:residenceId/documents'>{() => <ProtectedRoute requiredRole="manager"><ResidenceDocuments /></ProtectedRoute>}</Route>
-            <Route path='/manager/budget'>{() => <ProtectedRoute requiredRole="manager"><ManagerBudget /></ProtectedRoute>}</Route>
-            <Route path='/manager/bills'>{() => <ProtectedRoute requiredRole="manager"><ManagerBills /></ProtectedRoute>}</Route>
-            <Route path='/manager/invoices'>{() => <ProtectedRoute requiredRole="manager"><ManagerInvoices /></ProtectedRoute>}</Route>
-            <Route path='/manager/demands'>{() => <ProtectedRoute requiredRole="manager"><ManagerDemands /></ProtectedRoute>}</Route>
-            <Route path='/manager/user-management'>{() => <ProtectedRoute requiredRole="manager"><ManagerUserManagement /></ProtectedRoute>}</Route>
-            <Route path='/manager/common-spaces-stats'>{() => <ProtectedRoute requiredRole="manager"><ManagerCommonSpacesStats /></ProtectedRoute>}</Route>
-            <Route path='/manager/maintenance/inventory'>{() => <ProtectedRoute requiredRole="manager"><ManagerMaintenanceInventory /></ProtectedRoute>}</Route>
-            <Route path='/manager/maintenance/elements/:elementId/history'>{() => <ProtectedRoute requiredRole="manager"><ManagerElementHistoryPage /></ProtectedRoute>}</Route>
-            <Route path='/manager/maintenance/projects'>{() => <ProtectedRoute requiredRole="manager"><ManagerMaintenanceProjects /></ProtectedRoute>}</Route>
-
-
-            {/* Residents routes */}
-            <Route path='/residents' component={ResidentsOverviewRedirect} />
-            <Route path='/residents/residence'>{() => <ResidentsResidence />}</Route>
-            <Route
-              path='/residents/residence/documents'
-              component={() => <ResidentsResidenceDocuments />}
-            />
-            {/* Support dynamic residence ID in URL path */}
-            <Route
-              path='/residents/residences/:residenceId/documents'
-              component={() => <ResidentsResidenceDocuments />}
-            />
-            <Route path='/residents/building'>{() => <ResidentsBuilding />}</Route>
-            <Route
-              path='/residents/building/documents'
-              component={() => <ResidentsBuildingDocuments />}
-            />
-            {/* Support dynamic building ID in URL path */}
-            <Route
-              path='/residents/buildings/:buildingId/documents'
-              component={() => <ResidentsBuildingDocuments />}
-            />
-            <Route path='/residents/demands' component={ResidentsDemands} />
-            <Route path='/residents/common-spaces'>{() => <ResidentsCommonSpaces />}</Route>
-            <Route path='/resident/common-spaces'>{() => <SingularCommonSpacesRedirect />}</Route>
-            <Route path='/resident/my-calendar' component={ResidentsMyCalendar} />
-
-            {/* Settings routes */}
-            <Route path='/settings' component={SettingsOverviewRedirect} />
-            <Route path='/settings/general' component={SettingsSettings} />
-
-            {/* Auto-discovered pages — drop new pages in
-                client/src/pages/auto/ instead of editing this file.
-                See client/src/pages/auto/README.md. */}
-            <AutoPageRoutes />
-
-            {/* 404 */}
-            <Route component={NotFound} />
-          </Switch>
-        </Suspense>
-      </div>
-
-      {/* Help system - floating button and overlay */}
-      <HelpButton />
-      <HelpOverlay />
-      <HelpHighlighter />
-    </div>
     </div>
   );
 }

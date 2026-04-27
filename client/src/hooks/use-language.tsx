@@ -82,10 +82,11 @@ export function LanguageProvider({ children }: LanguageProviderProps) {
     return 'fr';
   });
 
-  // Save language preference to localStorage whenever it changes
+  // Save language preference to localStorage and sync <html lang> whenever it changes
   useEffect(() => {
     if (typeof window !== 'undefined') {
       localStorage.setItem('koveo-language', language);
+      document.documentElement.lang = language;
     }
   }, [language]);
 
