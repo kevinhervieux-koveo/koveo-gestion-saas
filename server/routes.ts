@@ -263,8 +263,10 @@ export async function registerRoutes(app: Express) {
     }
   });
   
-  // Sync to production endpoint (should only work during deployment)
-  app.post('/api/features/trigger-sync', requireAuth, async (req: any, res) => {
+  // Sync to production endpoint (should only work during deployment).
+  // Super-admin only — features is Koveo's internal product roadmap, no
+  // customer admin/manager/resident should be able to trigger a sync.
+  app.post('/api/features/trigger-sync', requireAuth, requireSuperAdmin, async (req: any, res) => {
     try {
       // Only allow sync in development environment or during deployment
       if (process.env.NODE_ENV === 'production' && !process.env.DEPLOYMENT_CONTEXT) {

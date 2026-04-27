@@ -1,5 +1,5 @@
 import type { Express } from 'express';
-import { requireAuth } from '../auth';
+import { requireAuth, requireSuperAdmin } from '../auth';
 import { db } from '../db';
 import { sql, eq } from 'drizzle-orm';
 import { features } from '../../shared/schema';
@@ -7,12 +7,20 @@ import { features } from '../../shared/schema';
 import { asyncHandler } from '../utils/async-handler';
 /**
  * Register feature management routes.
+ *
+ * The `features` table is Koveo's internal product roadmap (no
+ * `organizationId` scope). Mutations to roadmap items must therefore be
+ * restricted to Koveo super admins — customer admins, managers and
+ * residents have no business changing roadmap status, strategic flags,
+ * triggering AI analysis or syncing roadmap data to production.
+ *
+ * Mirrors the super-admin guard pattern introduced in task #1418 for
+ * Koveo system document tags and link families.
  * @param app Express application.
  */
 export function registerFeatureManagementRoutes(app: Express): void {
-  // Feature status update route
-  app.post('/api/features/:id/update-status', requireAuth, asyncHandler(async (req: any, res) => {
-      const { status } = req.body;
+  // Feature status update route — super-admin only (Koveo internal roadmap).
+  app.post('/api/features/:id/update-status', requireAuth, requireSuperAdmin, asyncHandler(async (req: any, res) => {
       const featureId = req.params.id;
 
       const validStatuses = [
@@ -22,18 +30,21 @@ export function registerFeatureManagementRoutes(app: Express): void {
         'ai-analyzed',
         'completed',
         'cancelled',
-      ];
+      ] as const;
+      type FeatureStatus = (typeof validStatuses)[number];
 
-      if (!validStatuses.includes(status)) {
+      const status: unknown = req.body?.status;
+      if (typeof status !== 'string' || !validStatuses.includes(status as FeatureStatus)) {
         return res.status(400).json({ message: 'Invalid status' });
       }
+      const typedStatus = status as FeatureStatus;
 
       // Use Drizzle ORM for safe parameterized query
       const result = await db
         .update(features)
-        .set({ 
-          status: status as any, 
-          updatedAt: new Date() 
+        .set({
+          status: typedStatus,
+          updatedAt: new Date(),
         })
         .where(eq(features.id, featureId))
         .returning();
@@ -47,8 +58,8 @@ export function registerFeatureManagementRoutes(app: Express): void {
       res.json(feature);
     }, { errorMessage: 'Internal server error', errorLogPrefix: 'Error updating feature' }));
 
-  // Toggle strategic path route
-  app.post('/api/features/:id/toggle-strategic', requireAuth, asyncHandler(async (req: any, res) => {
+  // Toggle strategic path route — super-admin only (Koveo internal roadmap).
+  app.post('/api/features/:id/toggle-strategic', requireAuth, requireSuperAdmin, asyncHandler(async (req: any, res) => {
       const { isStrategicPath } = req.body;
       const featureId = req.params.id;
 
@@ -75,8 +86,8 @@ export function registerFeatureManagementRoutes(app: Express): void {
       res.json(feature);
     }, { errorMessage: 'Internal server error', errorLogPrefix: 'Error updating feature' }));
 
-  // Feature analysis route
-  app.post('/api/features/:id/analyze', requireAuth, asyncHandler(async (req: any, res) => {
+  // Feature analysis route — super-admin only (Koveo internal roadmap).
+  app.post('/api/features/:id/analyze', requireAuth, requireSuperAdmin, asyncHandler(async (req: any, res) => {
       const featureId = req.params.id;
 
       // Check if feature exists and is in correct status
@@ -113,8 +124,8 @@ export function registerFeatureManagementRoutes(app: Express): void {
       });
     }, { errorMessage: 'Internal server error', errorLogPrefix: 'Error analyzing feature' }));
 
-  // Features sync to production route
-  app.post('/api/features/trigger-sync', requireAuth, async (req: any, res) => {
+  // Features sync to production route — super-admin only (Koveo internal roadmap).
+  app.post('/api/features/trigger-sync', requireAuth, requireSuperAdmin, async (req: any, res) => {
     try {
       // Mark all features as synced (in a real setup, this would sync to another database)
       const result = await db
