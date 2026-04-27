@@ -154,7 +154,7 @@ export function ProtectedRoute({
 ### Session Persistence and Security
 
 ```typescript
-// server/middleware/auth.ts - Server-side session handling
+// server/middleware/auth-middleware.ts - Server-side session handling
 import session from 'express-session';
 import connectPgSimple from 'connect-pg-simple';
 import { pool } from '@/server/db';

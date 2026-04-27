@@ -56,25 +56,14 @@ Successful Test Results:
   • NODE_ENV not set - should be "production" for deployment
 ```
 
-### 3. Enhanced CLI Interface (`scripts/enhanced-ai-agent-cli.ts`)
+### 3. Enhanced CLI Interface
 
-**Advanced command-line interface with interactive task management**
-
-Available Commands:
-
-- **start**: Start enhanced orchestrator with real-time monitoring
-- **optimize**: Optimize Replit environment for AI-assisted development
-- **report**: Generate comprehensive environment reports (text/JSON/HTML)
-- **task**: Execute AI agent tasks with interactive selection
-- **context**: Manage smart development context
-- **workflow**: Automated development workflows (pre-commit, security, quality, deploy)
-
-Interactive Features:
-
-- Task selection with priority handling
-- Multi-format reporting
-- Workflow automation templates
-- Real-time integration with orchestrator
+> **Note (2026):** The standalone CLI driver and interactive demo script that
+> were originally shipped with this milestone have since been retired during
+> the AI-agent-tooling cleanup. The orchestrator and Replit integration
+> enhancer described above are still available as TypeScript modules under
+> `tools/` and are now invoked from the standard quality/deployment workflows
+> rather than from a dedicated CLI.
 
 ### 4. Supporting Infrastructure
 
@@ -85,10 +74,6 @@ Lightweight monitoring script for Replit-specific metrics and system health trac
 #### Configuration System (`config/ai-agent-config.json`)
 
 Comprehensive configuration management for monitoring, optimization, reporting, workflows, integrations, thresholds, and notifications.
-
-#### Demo System (`scripts/ai-agent-demo.ts`)
-
-Interactive demonstration showcasing all enhanced AI agent capabilities.
 
 ## Environment Detection & Optimization
 
@@ -157,37 +142,13 @@ Interactive demonstration showcasing all enhanced AI agent capabilities.
 - **Performance Focused**: Optimized for Replit environment constraints and capabilities
 - **Extensible**: Easy to add new workflows, commands, and monitoring capabilities
 
-## Usage Examples
+## Usage
 
-### Start Enhanced Monitoring
-
-```bash
-npx tsx scripts/enhanced-ai-agent-cli.ts start --watch --dashboard
-```
-
-### Environment Optimization
-
-```bash
-npx tsx scripts/enhanced-ai-agent-cli.ts optimize
-```
-
-### Interactive Task Management
-
-```bash
-npx tsx scripts/enhanced-ai-agent-cli.ts task --interactive
-```
-
-### Generate Reports
-
-```bash
-npx tsx scripts/enhanced-ai-agent-cli.ts report --format html --output report.html
-```
-
-### Workflow Automation
-
-```bash
-npx tsx scripts/enhanced-ai-agent-cli.ts workflow --type quality
-```
+The enhanced orchestrator and the Replit integration enhancer are imported
+directly from `tools/enhanced-agent-orchestrator.ts` and
+`tools/replit-integration-enhancer.ts`. They are wired into the standard
+quality and deployment workflows; there is no longer a dedicated CLI entry
+point for them.
 
 ## Integration Points
 

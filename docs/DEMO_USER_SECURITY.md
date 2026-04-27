@@ -76,42 +76,22 @@ Example error response:
 
 ## Test Suite
 
-### 1. Security Tests
-
-#### `tests/security/demo-users-validation.test.ts`
-
-- Validates demo user data integrity
-- Ensures no admin users in demo organizations
-- Verifies realistic Quebec names and email patterns
-- Checks role restrictions
-
-#### `tests/security/comprehensive-demo-user-security.test.ts`
-
-- End-to-end API security tests
-- Tests all CRUD operations restrictions
-- Validates error message quality
-- Tests security edge cases and bypass attempts
-
-#### `tests/integration/demo-user-ui-restrictions.test.tsx`
-
-- Frontend UI restriction tests
-- Error message display validation
-- Accessibility and user experience tests
-- Progressive disclosure testing
-
-### 2. Test Runner
-
-#### `tests/security/demo-security-test-runner.ts`
-
-- Comprehensive test execution
-- Security status reporting
-- Critical failure detection
-- Recommendations for security issues
-
-Run all demo security tests:
+The original aggregated demo-security suites that lived under
+`tests/security/` (data-integrity validation, end-to-end CRUD
+restrictions, the UI-restrictions integration test, and the standalone
+test runner script) have been retired and split into the per-feature
+suites that now live alongside the rest of the test tree. The current
+demo-security coverage is exercised through the regular Jest run:
 
 ```bash
-tsx tests/security/demo-security-test-runner.ts
+npm test
+```
+
+If you need to focus only on demo-user security, filter by the
+`demo-security` test name pattern, e.g.:
+
+```bash
+npx jest -t "demo-security"
 ```
 
 ## Implementation Checklist
@@ -227,8 +207,8 @@ npm run db:studio
 # Test specific security function
 tsx -e "import { isOpenDemoUser } from './server/rbac'; console.log(await isOpenDemoUser('user-id'))"
 
-# Run specific test suite
-npm test tests/security/demo-users-validation.test.ts
+# Run all demo-security tests
+npx jest -t "demo-security"
 
 # Check middleware application
 grep -r "enforceDemoSecurity" server/

@@ -4,33 +4,25 @@
 
 This guide explains the automated testing system for demo user restrictions in the Koveo Gestion platform. The testing suite ensures that demo users maintain view-only access and cannot perform any write operations.
 
-## Test Files
+## Test Coverage
 
-### 1. `tests/security/automated-demo-restrictions.test.ts`
-**Primary automated validation suite**
+The original aggregated demo-restriction suites and the standalone
+`validate-demo-security` CLI script that this guide once described have
+been retired and replaced by per-feature suites that live alongside the
+rest of the integration and unit test trees.
 
-- **Endpoint Discovery**: Automatically discovers all API endpoints in the codebase
-- **Write Operation Detection**: Identifies which endpoints perform write operations
-- **Demo User Testing**: Validates that demo users cannot perform write operations
-- **Security Report Generation**: Creates comprehensive security analysis reports
-- **Regression Testing**: Ensures demo security remains intact across updates
+The current demo-user testing coverage is exercised through the regular
+Jest run, with the same conceptual breakdown as before:
 
-### 2. `tests/security/demo-user-comprehensive-validation.test.ts`
-**Detailed scenario testing**
-
-- **Role-based Testing**: Tests all demo user roles (demo_manager, demo_tenant, demo_resident)
-- **Operation-specific Tests**: Validates restrictions for create, update, delete operations
-- **Edge Case Testing**: Tests concurrent requests, malformed data, permission escalation
-- **File Operation Testing**: Validates upload/download restrictions
-- **Read Access Validation**: Ensures demo users can still view data appropriately
-
-### 3. `scripts/validate-demo-security.ts`
-**Manual validation script**
-
-- **Database Validation**: Checks demo user configuration in database
-- **Role Assignment Validation**: Verifies demo users are properly assigned to demo organizations
-- **Write Restriction Validation**: Confirms all demo users have write restrictions
-- **Security Report**: Generates summary reports of demo user security status
+- **Automated endpoint discovery / restriction validation** — exercised
+  by the integration suites under `tests/integration/` that exercise the
+  demo-security middleware against every authenticated API surface.
+- **Detailed scenario testing** — exercised by the per-role and
+  per-operation suites under `tests/integration/` and `tests/unit/`,
+  covering create / update / delete restrictions, file uploads, and
+  edge cases such as concurrent requests and permission escalation.
+- **Manual validation** — replaced by the same Jest-based suites; the
+  standalone CLI script is no longer needed.
 
 ## Key Security Validations
 
@@ -59,18 +51,12 @@ Demo users cannot:
 
 ## Running the Tests
 
-### Automated Test Suite
+### Demo-focused Jest run
 ```bash
-npm test tests/security/automated-demo-restrictions.test.ts
-npm test tests/security/demo-user-comprehensive-validation.test.ts
+npx jest -t "demo"
 ```
 
-### Manual Validation Script
-```bash
-npx tsx scripts/validate-demo-security.ts
-```
-
-### All Security Tests
+### Full security test directory
 ```bash
 npm test tests/security/
 ```
@@ -165,15 +151,13 @@ The tests will alert you to:
 
 ### Pre-commit Hooks
 ```bash
-npx tsx scripts/validate-demo-security.ts
+npx jest -t "demo-security"
 ```
 
 ### Build Pipeline
 ```yaml
 - name: Validate Demo Security
-  run: |
-    npm test tests/security/automated-demo-restrictions.test.ts
-    npx tsx scripts/validate-demo-security.ts
+  run: npx jest -t "demo-security"
 ```
 
 ### Quality Gates

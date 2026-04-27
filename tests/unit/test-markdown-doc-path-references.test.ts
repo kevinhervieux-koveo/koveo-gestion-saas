@@ -94,64 +94,7 @@ interface AllowedRef {
  * below ensure entries do not silently rot.
  */
 const ALLOWED_MISSING_REFERENCES: AllowedRef[] = [
-  // -- docs/COMPONENT_DOCUMENTATION.md catalog (AI-generated, drifted) --
-  {
-    filePath: 'client/src/components/ErrorBoundary.tsx',
-    justification:
-      'Stale entry in docs/COMPONENT_DOCUMENTATION.md (auto-generated component catalog from an earlier layout). The actual error boundary lives elsewhere in the current tree; the catalog has not been regenerated. Tolerated so the guard can ship; follow-up work should regenerate the catalog or delete the stale section.',
-  },
-  {
-    filePath: 'client/src/components/LanguageProvider.tsx',
-    justification:
-      'Stale entry in docs/COMPONENT_DOCUMENTATION.md: the language provider was moved out of components/ during the i18n refactor but the catalog still names the old path.',
-  },
-  {
-    filePath: 'client/src/components/ProtectedRoute.tsx',
-    justification:
-      'Stale entry in docs/COMPONENT_DOCUMENTATION.md: ProtectedRoute now lives at client/src/components/common/ProtectedRoute.tsx (see replit.md "Access Control" note). The catalog still names the pre-move path.',
-  },
-  {
-    filePath: 'client/src/components/admin/user-list.tsx',
-    justification:
-      'Stale entry in docs/COMPONENT_DOCUMENTATION.md: the admin user list component was renamed/restructured but the catalog still names the old path.',
-  },
-  {
-    filePath: 'client/src/components/layout/AppLayout.tsx',
-    justification:
-      'Stale entry in docs/COMPONENT_DOCUMENTATION.md: the layout components were reorganised after the catalog was generated.',
-  },
-  {
-    filePath: 'client/src/components/layout/Header.tsx',
-    justification:
-      'Stale entry in docs/COMPONENT_DOCUMENTATION.md: the header component was reorganised after the catalog was generated.',
-  },
-  {
-    filePath: 'client/src/components/ssl/SslCertificateInfo.tsx',
-    justification:
-      'Stale entry in docs/COMPONENT_DOCUMENTATION.md: the SSL admin surface was removed/restructured but the catalog still references the deleted file.',
-  },
-  {
-    filePath: 'client/src/pages/admin/dashboard.tsx',
-    justification:
-      'Stale entry in docs/COMPONENT_DOCUMENTATION.md: the admin dashboard page was restructured (current admin pages live alongside compliance/permissions/quality/etc.) but the catalog still names the old aggregate file.',
-  },
-  {
-    filePath: 'client/src/pages/admin/roadmap.tsx',
-    justification:
-      'Stale entry in docs/COMPONENT_DOCUMENTATION.md: the admin roadmap page was removed/relocated but the catalog still references the deleted file.',
-  },
-  {
-    filePath: 'client/src/pages/buildings/dashboard.tsx',
-    justification:
-      'Stale entry in docs/COMPONENT_DOCUMENTATION.md: the buildings dashboard page was renamed/restructured but the catalog still names the old path.',
-  },
-  {
-    filePath: 'client/src/pages/residences/dashboard.tsx',
-    justification:
-      'Stale entry in docs/COMPONENT_DOCUMENTATION.md: the residences dashboard page was renamed/restructured but the catalog still names the old path.',
-  },
-
-  // -- on-boarding tutorial placeholders --
+  // -- on-boarding tutorial placeholders (intentionally non-existent) --
   {
     filePath: 'client/src/components/NewFeature.tsx',
     justification:
@@ -168,136 +111,13 @@ const ALLOWED_MISSING_REFERENCES: AllowedRef[] = [
       'Tutorial placeholder in docs/guides/GETTING_STARTED.md and docs/references/DEVELOPMENT_WORKFLOW.md: companion to the NewFeature tutorial above, names the API route the reader is being taught to add. Intentionally non-existent.',
   },
 
-  // -- docs/BUDGET_TESTING_PIPELINE.md --
-  {
-    filePath: 'client/src/pages/manager/budget.tsx',
-    justification:
-      'Stale entry in docs/BUDGET_TESTING_PIPELINE.md: the manager budget page was renamed/restructured but the testing-pipeline doc still names the old path.',
-  },
+  // -- docs/BUDGET_TESTING_PIPELINE.md (historical pointer mirrored from
+  //    tests/unit/test-doc-path-references.test.ts so the migration trail
+  //    stays discoverable from both the test header and the pipeline doc) --
   {
     filePath: 'tests/unit/api/budgets.test.ts',
     justification:
       'Historical pointer in docs/BUDGET_TESTING_PIPELINE.md: names the legacy `describeIfDb = describe.skip` suite that was migrated into tests/integration/budgets-investments-upsert.test.ts. The same pointer is allow-listed in tests/unit/test-doc-path-references.test.ts so the migration trail stays discoverable from both the test header and the pipeline doc.',
-  },
-
-  // -- docs/ai-agent-improvements-summary.md (decommissioned scripts) --
-  {
-    filePath: 'scripts/ai-agent-demo.ts',
-    justification:
-      'Stale reference in docs/ai-agent-improvements-summary.md: the named demo script was removed during the AI-agent-tooling cleanup but the summary document was never refreshed. Tolerated so the guard can ship; follow-up work should refresh the summary.',
-  },
-  {
-    filePath: 'scripts/enhanced-ai-agent-cli.ts',
-    justification:
-      'Stale reference in docs/ai-agent-improvements-summary.md: the named CLI script was removed during the AI-agent-tooling cleanup but the summary document was never refreshed.',
-  },
-
-  // -- docs/demo-organizations-deployment-guide.md (decommissioned scripts/files) --
-  {
-    filePath: 'scripts/create-comprehensive-demo.ts',
-    justification:
-      'Stale reference in docs/demo-organizations-deployment-guide.md: the named seed script was removed/renamed during the demo-data refactor but the deployment guide still names the old path.',
-  },
-  {
-    filePath: 'scripts/duplicate-demo-to-open-demo.ts',
-    justification:
-      'Stale reference in docs/demo-organizations-deployment-guide.md: the named duplication script was removed/renamed during the demo-data refactor but the deployment guide still names the old path.',
-  },
-  {
-    filePath: 'scripts/production-demo-sync.ts',
-    justification:
-      'Stale reference in docs/demo-organizations-deployment-guide.md: the named sync script was removed/renamed during the demo-data refactor but the deployment guide still names the old path.',
-  },
-  {
-    filePath: 'server/routes-minimal.ts',
-    justification:
-      'Stale reference in docs/demo-organizations-deployment-guide.md: the minimal-routes entry-point was consolidated into server/routes.ts but the deployment guide still names the old file.',
-  },
-  {
-    filePath: 'server/services/comprehensive-demo-sync-service.ts',
-    justification:
-      'Stale reference in docs/demo-organizations-deployment-guide.md: the named service was removed/renamed during the demo-data refactor but the deployment guide still names the old path.',
-  },
-
-  // -- other one-off stale references --
-  {
-    filePath: 'scripts/run-quality-metric-tests.ts',
-    justification:
-      'Stale reference in docs/QUALITY_SYSTEM_OVERVIEW.md: the metric-tests runner script was removed/renamed but the overview document still names the old path.',
-  },
-  {
-    filePath: 'scripts/validate-demo-security.ts',
-    justification:
-      'Stale reference in docs/DEMO_USER_TESTING_GUIDE.md: the named validator script was removed/renamed but the testing guide still names the old path.',
-  },
-  {
-    filePath: 'scripts/validate-routes.ts',
-    justification:
-      'Stale reference in docs/ROUTING_CHECKLIST.md: the named route-validator script was removed/renamed but the checklist still names the old path.',
-  },
-  {
-    filePath: 'server/db-storage.ts',
-    justification:
-      'Stale reference in docs/deployment/deployment-guide.md: the storage module was renamed/restructured but the deployment guide still names the old path.',
-  },
-  {
-    filePath: 'server/middleware/auth.ts',
-    justification:
-      'Stale reference in docs/CODE_EXAMPLES_GUIDE.md: the example snippet imports from a conventional middleware/auth.ts location that this repo does not currently expose. Same path is allow-listed in tests/unit/test-prod-doc-path-references.test.ts as a defensive existence probe; documented here too because the example guide names it explicitly in narrative text.',
-  },
-  {
-    filePath: 'server/tests/user-serializer-http.test.ts',
-    justification:
-      'Stale reference in docs/security/user-password-leak-audit.md: the named regression test was relocated/renamed during the password-leak audit follow-up but the audit document still names the old path.',
-  },
-
-  // -- docs/RBAC_SYSTEM.md (RBAC test suite reorganisation) --
-  {
-    filePath: 'tests/integration/api/rbac-endpoints.test.ts',
-    justification:
-      'Stale reference in docs/RBAC_SYSTEM.md: the RBAC integration tests were reorganised but the system doc still names the old test suite path.',
-  },
-  {
-    filePath: 'tests/integration/invitation/rbac-system.test.ts',
-    justification:
-      'Stale reference in docs/RBAC_SYSTEM.md: the invitation RBAC tests were reorganised/renamed but the system doc still names the old test suite path.',
-  },
-  {
-    filePath: 'tests/unit/auth/rbac.test.ts',
-    justification:
-      'Stale reference in docs/RBAC_SYSTEM.md: the unit-tier RBAC tests were reorganised/renamed but the system doc still names the old test suite path.',
-  },
-
-  // -- docs/DEMO_USER_SECURITY.md / docs/DEMO_USER_TESTING_GUIDE.md --
-  {
-    filePath: 'tests/integration/demo-user-ui-restrictions.test.tsx',
-    justification:
-      'Stale reference in docs/DEMO_USER_SECURITY.md: the named UI-restrictions integration test was renamed/relocated during the demo-user testing reorganisation but the security doc still names the old path.',
-  },
-  {
-    filePath: 'tests/security/automated-demo-restrictions.test.ts',
-    justification:
-      'Stale reference in docs/DEMO_USER_TESTING_GUIDE.md: the named automated restrictions test was renamed/relocated but the testing guide still names the old path.',
-  },
-  {
-    filePath: 'tests/security/comprehensive-demo-user-security.test.ts',
-    justification:
-      'Stale reference in docs/DEMO_USER_SECURITY.md: the named suite was removed (also tracked in tests/unit/test-prod-doc-path-references.test.ts as a stale Jest invocation in scripts/test-auth-security.ts) but the security doc still names it as the canonical comprehensive suite.',
-  },
-  {
-    filePath: 'tests/security/demo-security-test-runner.ts',
-    justification:
-      'Stale reference in docs/DEMO_USER_SECURITY.md: the named runner script was removed/renamed during the demo-user testing reorganisation but the security doc still names the old path.',
-  },
-  {
-    filePath: 'tests/security/demo-user-comprehensive-validation.test.ts',
-    justification:
-      'Stale reference in docs/DEMO_USER_TESTING_GUIDE.md: the named comprehensive validation suite was removed/renamed during the demo-user testing reorganisation but the testing guide still names the old path.',
-  },
-  {
-    filePath: 'tests/security/demo-users-validation.test.ts',
-    justification:
-      'Stale reference in docs/DEMO_USER_SECURITY.md: the named validation suite was removed/renamed during the demo-user testing reorganisation but the security doc still names the old path.',
   },
 ];
 

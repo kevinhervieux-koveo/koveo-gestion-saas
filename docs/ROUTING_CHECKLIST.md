@@ -118,7 +118,6 @@ npm run build
 - **Navigation Menu**: `client/src/components/layout/sidebar.tsx`
 - **Page Components**: `client/src/pages/`
 - **Route Tests**: `tests/routing/`
-- **Validation Script**: `scripts/validate-routes.ts`
 - **Build Output**: `client/dist/`
 
 ## Scripts to Add to package.json
@@ -126,7 +125,6 @@ npm run build
 When you can modify package.json, add these scripts:
 
 ```json
-"validate:routes": "tsx scripts/validate-routes.ts",
 "test:routing": "jest --testPathPattern=tests/routing",
 "clean:cache": "rm -rf client/dist .vite node_modules/.vite",
 "rebuild:clean": "npm run clean:cache && npm run build"

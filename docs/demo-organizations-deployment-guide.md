@@ -11,76 +11,27 @@ The system provides two demo organizations:
 
 ## System Components
 
-### 1. Core Scripts
+### 1. Seed and Setup Scripts
 
-#### `scripts/create-comprehensive-demo.ts`
+The standalone "create / duplicate / sync" script trio that originally
+shipped with this milestone has been retired. Demo data is now seeded by:
 
-Creates complete demo data covering all application aspects:
-
-- Organizations (Demo and Open Demo)
-- Buildings with varied configurations
-- Residences with different types
-- Users with all roles (admin, manager, tenant, resident)
-- Financial data (bills, budgets, money flow)
-- Operations data (maintenance, demands, notifications)
-- Settings data (bugs, feature requests)
-- Documents (building and residence level)
+- `scripts/create-demo-environment.ts` — creates the Demo and Open Demo
+  organizations, buildings, residences, and users in one pass.
+- `scripts/setup-marketing-demo-data.ts` — loads the polished
+  marketing-grade content (financial data, operations data, documents)
+  on top of the base demo environment.
+- `scripts/production-demo-setup.sql` — the SQL companion used by the
+  deployment pipeline when seeding a fresh production database.
 
 **Usage:**
 
 ```bash
-tsx scripts/create-comprehensive-demo.ts
-```
-
-#### `scripts/duplicate-demo-to-open-demo.ts`
-
-Duplicates Demo organization to Open Demo:
-
-- Complete data replication
-- User email domain changes (@demo.com → @opendemo.com)
-- Preserves all relationships
-- Safe cleanup of existing data
-
-**Usage:**
-
-```bash
-tsx scripts/duplicate-demo-to-open-demo.ts
-```
-
-#### `scripts/production-demo-sync.ts`
-
-Production-safe synchronization script:
-
-- Detects missing organizations
-- Creates demo data if needed
-- Synchronizes Demo → Open Demo
-- Can be run during deployment
-
-**Usage:**
-
-```bash
-# Normal sync
-tsx scripts/production-demo-sync.ts
-
-# Check status only
-tsx scripts/production-demo-sync.ts --check-only
-
-# Force recreation
-tsx scripts/production-demo-sync.ts --force-recreate
-
-# Silent operation
-tsx scripts/production-demo-sync.ts --silent
+tsx scripts/create-demo-environment.ts
+tsx scripts/setup-marketing-demo-data.ts
 ```
 
 ### 2. Services
-
-#### `server/services/comprehensive-demo-sync-service.ts`
-
-Low-level synchronization service:
-
-- Full data mapping between organizations
-- Handles all table relationships
-- Safe cleanup and recreation
 
 #### `server/services/demo-management-service.ts`
 
@@ -90,6 +41,9 @@ High-level demo management:
 - Initialization during startup
 - Scheduled maintenance
 - API integration
+- Synchronisation between Demo and Open Demo (the previous low-level
+  comprehensive demo sync service has been folded into this single
+  service)
 
 ### 3. API Endpoints
 
@@ -132,47 +86,30 @@ The comprehensive demo system covers ALL application menus:
 
 ### 1. Initial Setup
 
-The system automatically initializes during application startup:
-
-```typescript
-// In server/routes-minimal.ts
-DemoManagementService.initializeDemoOrganizations();
-```
-
-This ensures demo organizations are available when the application starts.
+The system automatically initializes during application startup from
+`server/routes.ts`, which calls
+`DemoManagementService.initializeDemoOrganizations()` once the database
+connection is ready. This ensures demo organizations are available when
+the application starts.
 
 ### 2. Manual Setup
 
 If you need to manually create demo data:
 
 ```bash
-# Create comprehensive demo data
-tsx scripts/create-comprehensive-demo.ts
+# Create the demo environment (organizations, buildings, residences, users)
+tsx scripts/create-demo-environment.ts
 
-# Duplicate to Open Demo
-tsx scripts/duplicate-demo-to-open-demo.ts
+# Load the marketing-grade content on top
+tsx scripts/setup-marketing-demo-data.ts
 ```
 
 ### 3. Production Deployment
 
-For production environments, the sync script can be run during deployment:
-
-```bash
-# In deployment script
-tsx scripts/production-demo-sync.ts --silent
-```
-
-Or integrated into package.json:
-
-```json
-{
-  "scripts": {
-    "demo:sync": "tsx scripts/production-demo-sync.ts",
-    "demo:check": "tsx scripts/production-demo-sync.ts --check-only",
-    "demo:recreate": "tsx scripts/production-demo-sync.ts --force-recreate"
-  }
-}
-```
+For production environments, demo synchronisation is exposed through the
+REST API documented below (`POST /api/demo/ensure` and
+`POST /api/demo/maintenance`). The health endpoint is unauthenticated and
+safe to call from a deployment hook or external monitor.
 
 ### 4. Health Monitoring
 
@@ -218,15 +155,11 @@ await DemoManagementService.scheduledMaintenance();
 
 ### Manual Sync
 
-If demo data becomes stale:
+If demo data becomes stale, call the admin-only REST endpoints described
+above:
 
-```bash
-# Quick sync
-tsx scripts/production-demo-sync.ts
-
-# Force recreation
-tsx scripts/production-demo-sync.ts --force-recreate
-```
+- `POST /api/demo/ensure` for a quick sync
+- `POST /api/demo/recreate` to rebuild demo data from scratch
 
 ## Security Considerations
 
@@ -239,13 +172,8 @@ tsx scripts/production-demo-sync.ts --force-recreate
 
 ### Demo Organizations Missing
 
-```bash
-# Check status
-tsx scripts/production-demo-sync.ts --check-only
-
-# Recreate if needed
-tsx scripts/production-demo-sync.ts --force-recreate
-```
+Call the health endpoint to check status, and use the admin
+`POST /api/demo/recreate` endpoint to rebuild the demo data if needed.
 
 ### Sync Issues
 

@@ -236,7 +236,7 @@ being projected in any response-path query observed during this audit.
 
 ## 6. Live HTTP Regression Tests
 
-**File**: `server/tests/user-serializer-http.test.ts`
+**File**: `tests/integration/user-serializer-http.test.ts`
 
 A Vitest integration test spins up the test Express application (real database,
 supertest HTTP client) and seeds an admin user with a recognisable sentinel
@@ -302,7 +302,7 @@ the response body of `GET /api/users`.
 
 **Method**: Two-layer verification:
 1. Static source analysis of the `GET /api/users` handler (`server/api/users.ts`)
-2. Live HTTP integration test in `server/tests/user-serializer-http.test.ts` using a
+2. Live HTTP integration test in `tests/integration/user-serializer-http.test.ts` using a
    seeded admin user with a recognisable sentinel bcrypt hash.
 
 **Static analysis evidence**:
@@ -341,7 +341,7 @@ After join enrichment (`SafeUserWithAssignments`), each user object returned by
 `GET /api/users` also includes `"organizations"`, `"buildings"`, `"residences"`.
 
 **Full `Object.keys(body.users[0])` from live HTTP probe** (captured from the
-`server/tests/user-serializer-http.test.ts` pass-#21 assertion, which `.expect(200)`
+`tests/integration/user-serializer-http.test.ts` pass-#21 assertion, which `.expect(200)`
 guards the 200 response before checking keys):
 
 ```

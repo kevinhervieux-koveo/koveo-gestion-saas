@@ -54,7 +54,6 @@ Koveo Gestion now has a comprehensive, mandatory code review and automated quali
 **Quality Scripts:**
 
 - `scripts/run-quality-check.ts` - Comprehensive quality analysis
-- `scripts/run-quality-metric-tests.ts` - Quality metrics effectiveness validation
 - Automated improvement suggestion generation and tracking
 
 ### 4. Mandatory Code Review Process

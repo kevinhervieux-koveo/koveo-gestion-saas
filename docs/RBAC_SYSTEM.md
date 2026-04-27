@@ -241,18 +241,18 @@ Residents → cannot invite users
 
 ## Testing
 
-The RBAC system includes comprehensive test coverage:
+The RBAC system includes comprehensive test coverage spread across the
+unit, integration, and end-to-end test trees:
 
-- Unit tests for permission checking logic
-- Integration tests for API endpoint authorization
-- End-to-end tests for complete workflows
-- Performance tests for permission validation
-
-Test files:
-
-- `tests/unit/auth/rbac.test.ts` - Core RBAC logic
-- `tests/integration/api/rbac-endpoints.test.ts` - API authorization
-- `tests/integration/invitation/rbac-system.test.ts` - Invitation permissions
+- Unit-level permission-checking logic lives under `tests/unit/`. The
+  original aggregated single-file `auth/rbac` unit suite has since been
+  split into per-feature suites; filter the unit run by the `rbac` or
+  `permission` test name pattern to scope to RBAC behaviour.
+- Integration-level API endpoint authorization lives under
+  `tests/integration/`. The original aggregated `rbac-endpoints` and
+  `invitation/rbac-system` integration suites have likewise been split
+  into per-endpoint suites that exercise the same authorisation rules.
+- End-to-end role-based smoke flows under `tests/e2e/`.
 
 ## Migration Guide
 

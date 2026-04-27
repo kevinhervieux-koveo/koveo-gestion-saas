@@ -11,10 +11,10 @@ We switched from the broken `OptimizedDatabaseStorage` to the simpler, working `
 ### 1. Storage Implementation Switch
 **File:** `server/storage.ts`
 - Changed from `OptimizedDatabaseStorage` to `DatabaseStorage`
-- Added missing type imports in `server/db-storage.ts`
+- Added missing type imports in the storage module
 
 ### 2. Type Fixes
-**File:** `server/db-storage.ts`
+**File:** `server/storage.ts`
 - Added missing imports for Document, Contact, Permission, and other types
 - Fixed type compatibility issues
 

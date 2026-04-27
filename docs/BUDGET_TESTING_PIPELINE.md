@@ -176,7 +176,7 @@ The budget testing pipeline includes mandatory pre-deployment gates:
 Budget test watcher monitors these file patterns:
 - `server/api/budgets.ts`
 - `server/utils/budgetCalculations.ts`
-- `client/src/pages/manager/budget.tsx`
+- `client/src/pages/manager/budget/index.tsx`
 - `client/src/components/**/budget*.tsx`
 - `client/src/components/**/Budget*.tsx`
 - All budget test files

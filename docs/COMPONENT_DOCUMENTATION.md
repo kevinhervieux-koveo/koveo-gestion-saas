@@ -19,110 +19,11 @@ This comprehensive guide documents all 73+ React components in the Koveo Gestion
 
 ## Layout Components
 
-### AppLayout (`client/src/components/layout/AppLayout.tsx`)
-
-**Purpose**: Main application layout wrapper with authentication and routing
-
-**Props**:
-
-```typescript
-interface AppLayoutProps {
-  children: React.ReactNode;
-}
-```
-
-**Features**:
-
-- Session management and authentication checks
-- Language provider setup (French/English)
-- Query client configuration for TanStack Query
-- Global toast notifications setup
-
-**Complete Implementation Example**:
-
-```typescript
-// App.tsx - Main application setup
-import { AppLayout } from '@/components/layout/AppLayout';
-import { BrowserRouter } from 'wouter';
-
-function App() {
-  return (
-    <AppLayout>
-      <BrowserRouter>
-        <Routes />
-      </BrowserRouter>
-    </AppLayout>
-  );
-}
-
-// Routes.tsx - Route configuration
-import { Route, Switch } from 'wouter';
-import { DashboardPage } from '@/pages/DashboardPage';
-import { UsersPage } from '@/pages/UsersPage';
-import { LoginPage } from '@/pages/auth/LoginPage';
-
-export function Routes() {
-  return (
-    <Switch>
-      <Route path="/login" component={LoginPage} />
-      <Route path="/dashboard" component={DashboardPage} />
-      <Route path="/users" component={UsersPage} />
-      <Route path="/" component={DashboardPage} />
-    </Switch>
-  );
-}
-
-// Protected route example
-import { useAuth } from '@/hooks/use-auth';
-import { LoadingSpinner } from '@/components/ui/loading-spinner';
-
-export function ProtectedRoute({ children }: { children: React.ReactNode }) {
-  const { user, isLoading } = useAuth();
-
-  if (isLoading) {
-    return <LoadingSpinner />;
-  }
-
-  if (!user) {
-    return <Navigate to="/login" />;
-  }
-
-  return <>{children}</>;
-}
-```
-
-**Advanced Usage with Context**:
-
-```typescript
-// Custom layout for specific sections
-import { AppLayout } from '@/components/layout/AppLayout';
-import { AdminSidebar } from '@/components/admin/AdminSidebar';
-
-export function AdminLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <AppLayout>
-      <div className="flex h-screen">
-        <AdminSidebar />
-        <main className="flex-1 overflow-auto p-6">
-          {children}
-        </main>
-      </div>
-    </AppLayout>
-  );
-}
-
-// Page implementation with layout
-export function AdminUsersPage() {
-  return (
-    <AdminLayout>
-      <div className="space-y-6">
-        <h1 className="text-3xl font-bold">User Management</h1>
-        <UsersTable />
-      </div>
-    </AdminLayout>
-  );
-}
-```
+The application is composed at the route level in `client/src/App.tsx`,
+which wires together the providers (query client, auth, language, toaster)
+and mounts the page-level layout components below. There is no top-level
+`AppLayout` wrapper component — providers are configured directly in
+`App.tsx`.
 
 ### Sidebar (`client/src/components/layout/sidebar.tsx`)
 
@@ -143,7 +44,7 @@ export function AdminUsersPage() {
 - **Tenant**: Residence and maintenance focus
 - **Resident**: Basic tenant features
 
-### Header (`client/src/components/layout/Header.tsx`)
+### Header (`client/src/components/layout/header.tsx`)
 
 **Purpose**: Top navigation bar with user info and actions
 
@@ -370,31 +271,6 @@ const invitationSchema = z.object({
 });
 ```
 
-### UserList (`client/src/components/admin/user-list.tsx`)
-
-**Purpose**: User management interface with table display and bulk operations
-
-**Props**:
-
-```typescript
-interface UserListComponentProps {
-  users: User[];
-  selectedUsers: Set<string>;
-  onSelectionChange: (selection: Set<string>) => void;
-  onBulkAction: (action: string, data?: any) => Promise<void>;
-  isLoading?: boolean;
-}
-```
-
-**Features**:
-
-- Tabular user display with avatars
-- Multi-select functionality with checkboxes
-- Individual user actions (edit, activate/deactivate, delete)
-- Role and status management
-- User search and filtering
-- Responsive table design
-
 ### InvitationManagement (`client/src/components/admin/invitation-management.tsx`)
 
 **Purpose**: Invitation tracking and management interface
@@ -592,16 +468,9 @@ type BulkActionType =
 
 Page components are located in `client/src/pages/` and represent full page views.
 
-### AdminDashboard (`client/src/pages/admin/dashboard.tsx`)
-
-**Purpose**: Main admin overview page
-
-**Features**:
-
-- System-wide statistics
-- User activity monitoring
-- Organization metrics
-- Quick action links
+Admin pages are split into focused screens (compliance, organizations,
+permissions, quality, etc.) rather than one monolithic dashboard. The
+top-level overview is rendered from `client/src/pages/dashboard.tsx`.
 
 ### UserPermissions (`client/src/pages/admin/permissions.tsx`)
 
@@ -614,38 +483,10 @@ Page components are located in `client/src/pages/` and represent full page views
 - Permission level adjustment
 - Audit trail viewing
 
-### Roadmap (`client/src/pages/admin/roadmap.tsx`)
-
-**Purpose**: Platform development roadmap display
-
-**Features**:
-
-- Feature status tracking
-- Release planning
-- User feedback integration
-- Progress visualization
-
-### BuildingDashboard (`client/src/pages/buildings/dashboard.tsx`)
-
-**Purpose**: Building-specific management interface
-
-**Features**:
-
-- Building statistics
-- Residence overview
-- Maintenance tracking
-- Financial summaries
-
-### ResidenceDashboard (`client/src/pages/residences/dashboard.tsx`)
-
-**Purpose**: Individual residence management
-
-**Features**:
-
-- Unit details
-- Resident information
-- Maintenance history
-- Billing records
+Building- and residence-scoped views live under
+`client/src/pages/manager/` (e.g. `manager/buildings.tsx`,
+`manager/residences.tsx`) and `client/src/pages/residents/` rather than
+in dedicated `buildings/` or `residences/` page folders.
 
 ## Authentication Components
 
@@ -863,9 +704,10 @@ Each component should have:
 
 ### Layout and Navigation Components
 
-#### ErrorBoundary (`client/src/components/ErrorBoundary.tsx`)
+#### AuthErrorBoundary (`client/src/components/common/AuthErrorBoundary.tsx`)
 
-**Purpose**: Application-wide error handling and graceful degradation
+**Purpose**: Application-wide error handling and graceful degradation around
+the auth-aware tree (mounted in `client/src/App.tsx`).
 
 **Features**:
 
@@ -875,7 +717,7 @@ Each component should have:
 - Error reporting to logging services
 - Fallback UI for broken components
 
-#### ProtectedRoute (`client/src/components/ProtectedRoute.tsx`)
+#### ProtectedRoute (`client/src/components/common/ProtectedRoute.tsx`)
 
 **Purpose**: Route-level access control with RBAC integration
 
@@ -898,9 +740,11 @@ interface ProtectedRouteProps {
 - Automatic redirect to login
 - Loading states during auth checks
 
-#### LanguageProvider (`client/src/components/LanguageProvider.tsx`)
+#### LanguageProvider (`client/src/hooks/use-language.tsx`)
 
-**Purpose**: Quebec bilingual support system
+**Purpose**: Quebec bilingual support system. The provider and `useLanguage`
+hook live together in the hooks module; the language switcher UI is at
+`client/src/components/ui/language-switcher.tsx`.
 
 **Features**:
 
@@ -1186,25 +1030,6 @@ All components maintain WCAG 2.1 AA compliance:
 - Enhancement requests
 - Maintenance tasks
 - Documentation updates
-
-#### SslCertificateInfo (`client/src/components/ssl/SslCertificateInfo.tsx`)
-
-**Purpose**: SSL certificate status and management display
-
-**Information Displayed**:
-
-- Certificate validity period
-- Issuer information
-- Domain coverage
-- Renewal status
-- Security level indicators
-
-**Features**:
-
-- Automatic renewal monitoring
-- Expiry warnings
-- Certificate chain validation
-- Security recommendations
 
 ## Component Integration Patterns
 
