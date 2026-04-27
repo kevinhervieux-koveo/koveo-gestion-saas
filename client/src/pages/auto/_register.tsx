@@ -5,7 +5,7 @@ import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export type AutoPageRoute = {
   path: string;
-  role?: 'admin' | 'manager' | 'tenant' | 'resident';
+  role?: 'super_admin' | 'admin' | 'manager' | 'tenant' | 'resident';
 };
 
 type ComponentLoader = () => Promise<{ default: React.ComponentType<unknown> }>;

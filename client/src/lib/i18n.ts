@@ -2708,6 +2708,8 @@ export interface Translations {
   totalViolations: string;
   criticalViolationsLabel: string;
   lastScan: string;
+  lastRun: string;
+  refreshQuality: string;
   categoryDataCollection: string;
   categoryConsentManagement: string;
   categoryDataRetention: string;
@@ -6728,6 +6730,8 @@ export const translations: Record<Language, Translations> = {
     totalViolations: 'Total Violations',
     criticalViolationsLabel: 'Critical',
     lastScan: 'Last Scan',
+    lastRun: 'Last Run',
+    refreshQuality: 'Refresh',
     categoryDataCollection: 'Data Collection',
     categoryConsentManagement: 'Consent Management',
     categoryDataRetention: 'Data Retention',
@@ -11151,6 +11155,8 @@ export const translations: Record<Language, Translations> = {
     totalViolations: 'Violations totales',
     criticalViolationsLabel: 'Critique',
     lastScan: 'Dernière analyse',
+    lastRun: 'Dernière exécution',
+    refreshQuality: 'Actualiser',
     categoryDataCollection: 'Collecte de données',
     categoryConsentManagement: 'Gestion du consentement',
     categoryDataRetention: 'Conservation des données',

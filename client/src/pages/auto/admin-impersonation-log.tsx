@@ -31,7 +31,7 @@ import { ClipboardList, ChevronLeft, ChevronRight, AlertTriangle } from 'lucide-
 
 export const route: AutoPageRoute = {
   path: '/admin/impersonation-log',
-  role: 'admin',
+  role: 'super_admin',
 };
 
 type ImpersonationUser = {
@@ -113,7 +113,7 @@ export default function AdminImpersonationLogPage() {
       }
       return res.json();
     },
-    enabled: user?.role === 'admin',
+    enabled: user?.role === 'admin' || user?.role === 'super_admin',
     staleTime: 30_000,
   });
 

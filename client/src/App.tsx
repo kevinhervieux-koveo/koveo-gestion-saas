@@ -385,10 +385,10 @@ function AuthenticatedLayout() {
             <Route path='/admin/quality'>{() => <ProtectedRoute requiredRole="super_admin"><AdminQuality /></ProtectedRoute>}</Route>
             <Route path='/admin/compliance'>{() => <ProtectedRoute requiredRole="super_admin"><AdminCompliance /></ProtectedRoute>}</Route>
             <Route path='/admin/permissions'>{() => <ProtectedRoute requiredRole="super_admin"><AdminPermissions /></ProtectedRoute>}</Route>
-            <Route path='/admin/bulk-document-import'>{() => <ProtectedRoute requiredRole="admin"><AdminBulkDocumentImport /></ProtectedRoute>}</Route>
-            <Route path='/admin/document-tags'>{() => <ProtectedRoute requiredRole="admin"><AdminDocumentTags /></ProtectedRoute>}</Route>
+            <Route path='/admin/bulk-document-import'>{() => <ProtectedRoute requiredRole="super_admin"><AdminBulkDocumentImport /></ProtectedRoute>}</Route>
+            <Route path='/admin/document-tags'>{() => <ProtectedRoute requiredRole="super_admin"><AdminDocumentTags /></ProtectedRoute>}</Route>
             <Route path='/admin/kpi-dashboard'>{() => <ProtectedRoute requiredRole="super_admin"><AdminKpiDashboard /></ProtectedRoute>}</Route>
-            <Route path='/admin/performance'>{() => <ProtectedRoute requiredRole="admin"><PerformanceDashboardPage /></ProtectedRoute>}</Route>
+            <Route path='/admin/performance'>{() => <ProtectedRoute requiredRole="super_admin"><PerformanceDashboardPage /></ProtectedRoute>}</Route>
 
             {/* Manager routes */}
             <Route path='/manager' component={ManagerOverviewRedirect} />

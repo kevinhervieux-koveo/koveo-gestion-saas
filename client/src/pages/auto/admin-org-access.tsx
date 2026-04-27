@@ -10,13 +10,13 @@ import { HardHat } from 'lucide-react';
 
 export const route: AutoPageRoute = {
   path: '/admin/org-access',
-  role: 'admin',
+  role: 'super_admin',
 };
 
 export default function AdminOrgAccessPage() {
   return (
     <div className="flex-1 flex flex-col overflow-hidden">
-      <Header title="Org Access" />
+      <Header title="Org Access" subtitle="" />
 
       <div className="flex-1 overflow-auto p-6">
         <div className="max-w-4xl mx-auto flex flex-col items-center justify-center min-h-[60vh] text-center gap-4">
