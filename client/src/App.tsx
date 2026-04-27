@@ -1,5 +1,6 @@
 // @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 import { Switch, Route, useLocation } from 'wouter';
+import { PARENT_ROUTE_REDIRECTS } from '@/config/route-redirects';
 import { HelmetProvider } from 'react-helmet-async';
 import { queryClient } from './lib/queryClient';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -444,6 +445,10 @@ function AuthenticatedLayout() {
   );
 }
 
+// Re-export the canonical redirect map (source of truth lives in config/ so
+// tests can import it without pulling in Vite-specific import.meta.glob).
+export { PARENT_ROUTE_REDIRECTS };
+
 /**
  * Login redirect component for authenticated users.
  * Redirects authenticated users from login page to dashboard.
@@ -457,7 +462,7 @@ function DashboardOverviewRedirect() {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    setLocation('/dashboard/overview');
+    setLocation(PARENT_ROUTE_REDIRECTS['/dashboard']);
   }, [setLocation]);
 
   return <LoadingSpinner />;
@@ -467,7 +472,7 @@ function ResidentsOverviewRedirect() {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    setLocation('/residents/residence');
+    setLocation(PARENT_ROUTE_REDIRECTS['/residents']);
   }, [setLocation]);
 
   return <LoadingSpinner />;
@@ -477,7 +482,7 @@ function ManagerOverviewRedirect() {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    setLocation('/manager/buildings');
+    setLocation(PARENT_ROUTE_REDIRECTS['/manager']);
   }, [setLocation]);
 
   return <LoadingSpinner />;
@@ -487,7 +492,7 @@ function AdminOverviewRedirect() {
   const [, setLocation] = useLocation();
 
   useEffect(() => {
-    setLocation('/admin/organizations');
+    setLocation(PARENT_ROUTE_REDIRECTS['/admin']);
   }, [setLocation]);
 
   return <LoadingSpinner />;

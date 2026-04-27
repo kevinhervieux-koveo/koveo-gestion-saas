@@ -17,6 +17,7 @@ import {
 import { organizations, userOrganizations, buildings } from '@shared/schema';
 import { maintenanceSuggestionService } from '../services/maintenanceSuggestionService';
 import { pruneAiSuggestionCache } from '../services/ai-suggestion-cache';
+import { cleanupOrphanInvitations, type OrphanInvitationCleanupResult } from './orphan-invitation-cleanup';
 
 /**
  * Job execution statistics interface
@@ -61,6 +62,8 @@ export class MaintenanceJobsScheduler {
   private lastExecutionStats: JobExecutionStats | null = null;
   private isPruningCache = false;
   private lastCachePrune: { ranAt: Date; expiredDeleted: number; overflowDeleted: number } | null = null;
+  private lastOrphanInvitationCleanup: OrphanInvitationCleanupResult | null = null;
+  private isCleaningOrphanInvitations = false;
 
   constructor() {
     // Initialize scheduler
@@ -93,10 +96,20 @@ export class MaintenanceJobsScheduler {
       timezone: 'America/Montreal'
     });
 
+    // Schedule daily orphan-invitation cleanup at 03:30 AM Montreal time.
+    // Cancels pending invitations whose building or residence no longer exists
+    // so they don't clog the pending queue or confuse operators.
+    cron.schedule('30 3 * * *', async () => {
+      await this.runOrphanInvitationCleanup();
+    }, {
+      timezone: 'America/Montreal'
+    });
+
     console.log('✅ Maintenance jobs scheduled');
     console.log('📅 Daily suggestions: Every day at 02:15 AM (America/Montreal)');
     console.log('🔄 Weekly rebalancing: Saturdays at 03:00 AM (America/Montreal)');
     console.log('🧹 AI suggestion cache prune: Hourly (America/Montreal)');
+    console.log('🗑️  Orphan invitation cleanup: Every day at 03:30 AM (America/Montreal)');
   }
 
   /**
@@ -131,6 +144,42 @@ export class MaintenanceJobsScheduler {
       console.error('❌ Error pruning AI suggestion cache:', error);
     } finally {
       this.isPruningCache = false;
+    }
+  }
+
+  /**
+   * Daily orphan-invitation cleanup.
+   *
+   * Delegates to cleanupOrphanInvitations() and logs a one-line summary so
+   * operators can easily see the result in the server log.
+   */
+  private async runOrphanInvitationCleanup(): Promise<void> {
+    if (this.isCleaningOrphanInvitations) {
+      console.log('⏭️ Orphan invitation cleanup already running, skipping...');
+      return;
+    }
+
+    this.isCleaningOrphanInvitations = true;
+    try {
+      const result = await cleanupOrphanInvitations();
+      this.lastOrphanInvitationCleanup = result;
+
+      if (result.total > 0) {
+        console.log(
+          `🗑️  Orphan invitation cleanup: cancelled ${result.total} invitation(s) ` +
+          `(building=${result.cancelledBuilding}, residence=${result.cancelledResidence})`,
+        );
+      } else {
+        console.log('🗑️  Orphan invitation cleanup: no orphan invitations found');
+      }
+
+      if (result.errors.length > 0) {
+        console.error('❌ Orphan invitation cleanup errors:', result.errors);
+      }
+    } catch (error: any) {
+      console.error('❌ Orphan invitation cleanup failed:', error);
+    } finally {
+      this.isCleaningOrphanInvitations = false;
     }
   }
 
@@ -501,6 +550,10 @@ export class MaintenanceJobsScheduler {
       isRunning: boolean;
       lastRun: { ranAt: Date; expiredDeleted: number; overflowDeleted: number } | null;
     };
+    orphanInvitationCleanup?: {
+      isRunning: boolean;
+      lastRun: OrphanInvitationCleanupResult | null;
+    };
   }> {
     // Calculate next scheduled run (tomorrow at 02:15 AM)
     const now = new Date();
@@ -518,7 +571,11 @@ export class MaintenanceJobsScheduler {
       aiSuggestionCache: {
         isRunning: this.isPruningCache,
         lastRun: this.lastCachePrune,
-      }
+      },
+      orphanInvitationCleanup: {
+        isRunning: this.isCleaningOrphanInvitations,
+        lastRun: this.lastOrphanInvitationCleanup,
+      },
     };
   }
 

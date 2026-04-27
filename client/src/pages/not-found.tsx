@@ -1,5 +1,6 @@
 import { Card, CardContent } from '@/components/ui/card';
 import { AlertCircle } from 'lucide-react';
+import { Link } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 
 /**
@@ -18,6 +19,15 @@ export default function NotFound() {
           </div>
 
           <p className='mt-4 text-sm text-gray-600'>{t('notFoundMessage')}</p>
+
+          <div className='mt-6'>
+            <Link
+              href='/dashboard'
+              className='inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
+            >
+              {t('goToDashboard')}
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
