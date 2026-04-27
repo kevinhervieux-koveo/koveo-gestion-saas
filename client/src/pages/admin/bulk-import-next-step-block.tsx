@@ -1,5 +1,7 @@
 import { Button } from '@/components/ui/button';
+import { useLanguage } from '@/hooks/use-language';
 import type {
+  BulkImportFallbackReason,
   BulkImportItem,
   BulkImportStep,
 } from '@shared/schemas/bulk-import';
@@ -30,7 +32,7 @@ export const AUTO_STEPS: ReadonlyArray<AutoStep> = [
 ];
 
 export function isAutoStep(step: BulkImportStep): step is AutoStep {
-  return (AUTO_STEPS as readonly string[]).includes(step);
+  return (AUTO_STEPS as ReadonlyArray<string>).includes(step);
 }
 
 export const STEP_PRE_STATUS: Record<AutoStep, BulkImportItem['status']> = {
@@ -41,35 +43,35 @@ export const STEP_PRE_STATUS: Record<AutoStep, BulkImportItem['status']> = {
   linking: 'identified',
 };
 
-interface ItemWithStatus {
-  status: BulkImportItem['status'];
-}
+export type ItemWithStatus = { status: BulkImportItem['status'] };
 
 /**
- * Returns true when an item's AI fallback for the given step is still
- * unresolved — i.e. it should count toward `fallbackPendingCount` and
- * block the Next-step button.
+ * Returns true when an AI fallback result for `step` is still pending —
+ * i.e., the AI failed and the admin has not yet manually resolved it.
  *
- * This must stay in sync with the manual-override logic inside
- * `isItemReadyForNextStep` in bulk-document-import.tsx: both functions
- * must agree on which overrides resolve a fallback so the gate count
- * and the per-row ready check cannot drift apart.
+ * For `branching`, the admin resolves the fallback by manually setting
+ * the branch (`branchManualOverride`).  For `identification`, by
+ * manually entering the effective date
+ * (`identificationEffectiveDateManualOverride`).  For `screening` and
+ * `linking` no manual override exists, so any fallback always blocks.
  *
- * Identification: a manually entered effective date resolves the fallback.
- * Branching: a manual branch override resolves the fallback.
- * Screening / Linking: no manual-override flag exists, so every fallback counts.
+ * Must stay in sync with `isItemReadyForNextStep` in
+ * `bulk-document-import.tsx`.
  */
 export function isFallbackPending(
   step: BulkImportStep,
-  fallbackReason: string | null | undefined,
+  fallbackReason: BulkImportFallbackReason | null | undefined,
   overrides: {
     branchManualOverride?: boolean | null;
     identificationEffectiveDateManualOverride?: boolean | null;
-  } = {},
+  },
 ): boolean {
-  if (fallbackReason == null) return false;
+  if (!fallbackReason) return false;
   if (step === 'branching' && overrides.branchManualOverride) return false;
-  if (step === 'identification' && overrides.identificationEffectiveDateManualOverride)
+  if (
+    step === 'identification' &&
+    overrides.identificationEffectiveDateManualOverride
+  )
     return false;
   return true;
 }
@@ -80,12 +82,12 @@ export function computeStillAnalyzingCount(
 ): number {
   if (!isAutoStep(currentStep)) return 0;
   const preStatus = STEP_PRE_STATUS[currentStep];
-  return items.filter((item) => {
-    if (item.status === 'rejected') return false;
-    return (
-      item.status === preStatus ||
-      (currentStep === 'screening' && item.status === 'screening')
-    );
+  return items.filter((i) => {
+    if (i.status === preStatus) return true;
+    // Mid-flight: items briefly sit in 'screening' status while the
+    // run-all loop is processing them on the screening step.
+    if (currentStep === 'screening' && i.status === 'screening') return true;
+    return false;
   }).length;
 }
 
@@ -119,12 +121,13 @@ export function NextStepBlock({
   items,
   currentStep,
   stepIndex,
-  isFr,
+  isFr: _isFr,
   onNext,
   residenceIncompleteCount = 0,
   sortingPendingCount = 0,
   fallbackPendingCount = 0,
 }: NextStepBlockProps) {
+  const { tp, t } = useLanguage();
   const stillAnalyzingCount = computeStillAnalyzingCount(items, currentStep);
   const isNextBlocked =
     stepIndex >= STEP_ORDER.length - 1 ||
@@ -136,30 +139,22 @@ export function NextStepBlock({
     <div className="mt-4 flex flex-col items-end gap-2">
       {stillAnalyzingCount > 0 && (
         <p className="text-sm text-amber-700" data-testid="analyzing-warning">
-          {isFr
-            ? `${stillAnalyzingCount} document(s) sont encore en cours d'analyse. Attendez la fin de l'analyse ou excluez-les pour continuer.`
-            : `${stillAnalyzingCount} document(s) are still being analyzed. Wait for them to finish or exclude them to continue.`}
+          {tp('bulkImportAnalyzing', stillAnalyzingCount)}
         </p>
       )}
       {residenceIncompleteCount > 0 && (
         <p className="text-sm text-red-700" data-testid="residence-incomplete-warning">
-          {isFr
-            ? `${residenceIncompleteCount} document(s) de résidence nécessitent une résidence avant de continuer.`
-            : `${residenceIncompleteCount} residence document(s) need a residence selected before you can continue.`}
+          {tp('bulkImportResidenceIncomplete', residenceIncompleteCount)}
         </p>
       )}
       {sortingPendingCount > 0 && (
         <p className="text-sm text-amber-700" data-testid="sorting-pending-warning">
-          {isFr
-            ? `${sortingPendingCount} décision(s) de branchement en attente. Acceptez ou choisissez manuellement pour continuer.`
-            : `${sortingPendingCount} branching decision(s) need your review. Accept or choose manually to continue.`}
+          {tp('bulkImportBranchingPending', sortingPendingCount)}
         </p>
       )}
       {fallbackPendingCount > 0 && (
         <p className="text-sm text-red-700" data-testid="fallback-pending-warning">
-          {isFr
-            ? `${fallbackPendingCount} fichier(s) doivent être assignés manuellement (l'IA n'a pas pu les traiter). Vérifiez-les ou excluez-les pour continuer.`
-            : `${fallbackPendingCount} file(s) need a manual assignment (the AI could not process them). Review or exclude them to continue.`}
+          {tp('bulkImportFallbackPending', fallbackPendingCount)}
         </p>
       )}
       <Button
@@ -168,7 +163,7 @@ export function NextStepBlock({
         onClick={onNext}
         data-testid="button-next-step"
       >
-        {isFr ? 'Étape suivante' : 'Next step'}
+        {t('bulkImportNextStep')}
       </Button>
     </div>
   );

@@ -1,0 +1,97 @@
+// Jest Snapshot v1, https://jestjs.io/docs/snapshot-testing
+
+exports[`Inventory screen translations — snapshot matches English DocumentManager document count strings snapshot 1`] = `
+{
+  "one": "{count} document for {name}",
+  "other": "{count} documents for {name}",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches English inventory header strings snapshot 1`] = `
+{
+  "ihdrAddElement": "Add Element",
+  "ihdrAllCategoriesItem": "All Categories",
+  "ihdrAllCategoriesPlaceholder": "All categories",
+  "ihdrAllConditionsItem": "All Conditions",
+  "ihdrAllConditionsPlaceholder": "All conditions",
+  "ihdrBackToBuildingButton": "Back to Building",
+  "ihdrConditionCritical": "Critical",
+  "ihdrConditionExcellent": "Excellent",
+  "ihdrConditionFair": "Fair",
+  "ihdrConditionGood": "Good",
+  "ihdrConditionLabel": "Condition",
+  "ihdrConditionPoor": "Poor",
+  "ihdrFilters": "Filters",
+  "ihdrOverdueEvaluations": "Overdue Evaluations",
+  "ihdrOverdueLabel": "Overdue",
+  "ihdrPageTitle": "Inventory - Building Elements",
+  "ihdrSearchPlaceholder": "Search elements by name, UNIFORMAT code, or description...",
+  "ihdrUniformatA": "A - Substructure",
+  "ihdrUniformatB": "B - Shell",
+  "ihdrUniformatC": "C - Interiors",
+  "ihdrUniformatCategoryLabel": "UNIFORMAT Category",
+  "ihdrUniformatD": "D - Services",
+  "ihdrUniformatE": "E - Equipment & Furnishings",
+  "ihdrUniformatF": "F - Special Construction",
+  "ihdrUniformatG": "G - Building Sitework",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches English inventory overview strings snapshot 1`] = `
+{
+  "inventoryManagementSubtitle": "Manage building elements, maintenance records, and asset documentation across your property portfolio.",
+  "inventoryManagementTitle": "Inventory Management",
+  "iovBuildingInventoryItems": "Building inventory items",
+  "iovHeaderTitle": "Inventory Overview",
+  "selectBuildingInventoryMessage": "Please select an organization and building to view its maintenance inventory.",
+  "startBuildingYourInventoryByAdding": "Start building your inventory by adding building elements.",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches French DocumentManager document count strings snapshot 1`] = `
+{
+  "one": "{count} document pour {name}",
+  "other": "{count} documents pour {name}",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches French inventory header strings snapshot 1`] = `
+{
+  "ihdrAddElement": "Ajouter un élément",
+  "ihdrAllCategoriesItem": "Toutes les catégories",
+  "ihdrAllCategoriesPlaceholder": "Toutes les catégories",
+  "ihdrAllConditionsItem": "Tous les états",
+  "ihdrAllConditionsPlaceholder": "Tous les états",
+  "ihdrBackToBuildingButton": "Retour au bâtiment",
+  "ihdrConditionCritical": "Critique",
+  "ihdrConditionExcellent": "Excellent",
+  "ihdrConditionFair": "Passable",
+  "ihdrConditionGood": "Bon",
+  "ihdrConditionLabel": "État",
+  "ihdrConditionPoor": "Mauvais",
+  "ihdrFilters": "Filtres",
+  "ihdrOverdueEvaluations": "Évaluations en retard",
+  "ihdrOverdueLabel": "En retard",
+  "ihdrPageTitle": "Inventaire — Éléments du bâtiment",
+  "ihdrSearchPlaceholder": "Rechercher des éléments par nom, code UNIFORMAT ou description...",
+  "ihdrUniformatA": "A — Infrastructure",
+  "ihdrUniformatB": "B — Enveloppe",
+  "ihdrUniformatC": "C — Intérieurs",
+  "ihdrUniformatCategoryLabel": "Catégorie UNIFORMAT",
+  "ihdrUniformatD": "D — Services",
+  "ihdrUniformatE": "E — Équipements et mobilier",
+  "ihdrUniformatF": "F — Constructions spéciales",
+  "ihdrUniformatG": "G — Aménagement du site",
+}
+`;
+
+exports[`Inventory screen translations — snapshot matches French inventory overview strings snapshot 1`] = `
+{
+  "inventoryManagementSubtitle": "Gérez les éléments du bâtiment, les dossiers d'entretien et la documentation des actifs dans votre portefeuille immobilier.",
+  "inventoryManagementTitle": "Gestion de l'inventaire",
+  "iovBuildingInventoryItems": "Articles d'inventaire du bâtiment",
+  "iovHeaderTitle": "Aperçu de l'inventaire",
+  "selectBuildingInventoryMessage": "Veuillez sélectionner une organisation et un bâtiment pour voir son inventaire de maintenance.",
+  "startBuildingYourInventoryByAdding": "Commencez à constituer votre inventaire en ajoutant des éléments d'immeuble.",
+}
+`;

@@ -15,6 +15,15 @@ import type {
   BulkImportStep,
 } from '../../../shared/schemas/bulk-import';
 
+jest.mock('@/hooks/use-language', () => ({
+  useLanguage: () => ({
+    language: 'en',
+    t: (key: string) => key,
+    tp: (key: string, _count: number) => key,
+    setLanguage: jest.fn(),
+  }),
+}));
+
 /**
  * Locks down the client-side guard added in Task #748: the "Next step"
  * button on the bulk-document-import page must stay disabled (and a
@@ -72,9 +81,7 @@ describe('NextStepBlock — still-analyzing guard', () => {
       expect(button).toBeDisabled();
 
       const warning = screen.getByTestId('analyzing-warning');
-      expect(warning).toHaveTextContent(
-        '1 document(s) are still being analyzed',
-      );
+      expect(warning).toHaveTextContent('bulkImportAnalyzing');
       expect(warning).toHaveClass('text-amber-700');
     });
 
@@ -121,9 +128,9 @@ describe('NextStepBlock — still-analyzing guard', () => {
     renderBlock([makeItem('pending')], 'screening', { isFr: true });
 
     const warning = screen.getByTestId('analyzing-warning');
-    expect(warning).toHaveTextContent("encore en cours d'analyse");
+    expect(warning).toHaveTextContent('bulkImportAnalyzing');
     expect(screen.getByTestId('button-next-step')).toHaveTextContent(
-      'Étape suivante',
+      'bulkImportNextStep',
     );
   });
 
@@ -133,7 +140,7 @@ describe('NextStepBlock — still-analyzing guard', () => {
       'screening',
     );
     expect(screen.getByTestId('analyzing-warning')).toHaveTextContent(
-      '3 document(s) are still being analyzed',
+      'bulkImportAnalyzing',
     );
   });
 
@@ -233,9 +240,7 @@ describe('NextStepBlock — sorting decision guard (Task #817)', () => {
     const warning = screen.getByTestId('sorting-pending-warning');
     expect(warning).toBeInTheDocument();
     expect(warning).toHaveClass('text-amber-700');
-    expect(warning).toHaveTextContent(
-      '2 branching decision(s) need your review',
-    );
+    expect(warning).toHaveTextContent('bulkImportBranchingPending');
 
     // Clicking the disabled button must NOT invoke onNext.
     fireEvent.click(button);
@@ -245,7 +250,7 @@ describe('NextStepBlock — sorting decision guard (Task #817)', () => {
   it('renders the warning even with a single pending decision', () => {
     renderBlock([makeItem('sorted')], 'sorting', { sortingPendingCount: 1 });
     expect(screen.getByTestId('sorting-pending-warning')).toHaveTextContent(
-      '1 branching decision(s) need your review',
+      'bulkImportBranchingPending',
     );
     expect(screen.getByTestId('button-next-step')).toBeDisabled();
   });
@@ -256,7 +261,7 @@ describe('NextStepBlock — sorting decision guard (Task #817)', () => {
       isFr: true,
     });
     expect(screen.getByTestId('sorting-pending-warning')).toHaveTextContent(
-      '3 décision(s) de branchement en attente',
+      'bulkImportBranchingPending',
     );
   });
 
@@ -397,7 +402,7 @@ describe('NextStepBlock — fallback-pending guard (Task #1230)', () => {
     const warning = screen.getByTestId('fallback-pending-warning');
     expect(warning).toBeInTheDocument();
     expect(warning).toHaveClass('text-red-700');
-    expect(warning).toHaveTextContent('1 file(s) need a manual assignment');
+    expect(warning).toHaveTextContent('bulkImportFallbackPending');
   });
 
   it('enables Next step and hides the warning when the only fallback has a manual date override (count = 0)', () => {
@@ -421,7 +426,7 @@ describe('NextStepBlock — fallback-pending guard (Task #1230)', () => {
       />,
     );
     expect(screen.getByTestId('fallback-pending-warning')).toHaveTextContent(
-      "2 fichier(s) doivent être assignés manuellement",
+      'bulkImportFallbackPending',
     );
     expect(screen.getByTestId('button-next-step')).toBeDisabled();
   });

@@ -26,7 +26,7 @@ export function ConfidenceIndicator({ confidence, fieldName, t }: ConfidenceIndi
             <CheckCircle className="w-4 h-4 ml-1 text-green-500 inline-block" data-testid={`confidence-high-${fieldName}`} />
           </TooltipTrigger>
           <TooltipContent>
-            <p>{t('bills.aiConfidenceHigh') || 'AI is confident about this value'}</p>
+            <p>{t('bills.aiConfidenceHigh')}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -41,7 +41,7 @@ export function ConfidenceIndicator({ confidence, fieldName, t }: ConfidenceIndi
             <HelpCircle className="w-4 h-4 ml-1 text-yellow-500 inline-block" data-testid={`confidence-medium-${fieldName}`} />
           </TooltipTrigger>
           <TooltipContent>
-            <p>{t('bills.aiConfidenceMedium') || 'Please verify this value'}</p>
+            <p>{t('bills.aiConfidenceMedium')}</p>
           </TooltipContent>
         </Tooltip>
       </TooltipProvider>
@@ -55,7 +55,7 @@ export function ConfidenceIndicator({ confidence, fieldName, t }: ConfidenceIndi
           <AlertCircle className="w-4 h-4 ml-1 text-red-500 inline-block" data-testid={`confidence-low-${fieldName}`} />
         </TooltipTrigger>
         <TooltipContent>
-          <p>{t('bills.aiConfidenceLow') || 'Low confidence - manual review recommended'}</p>
+          <p>{t('bills.aiConfidenceLow')}</p>
         </TooltipContent>
       </Tooltip>
     </TooltipProvider>

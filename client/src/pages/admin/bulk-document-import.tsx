@@ -1847,7 +1847,7 @@ const RETRYABLE_AI_FALLBACK_REASON_SET: ReadonlySet<BulkImportFallbackReason> =
 export const BULK_RETRY_CONFIRM_THRESHOLD = 5;
 
 export default function BulkDocumentImportPage() {
-  const { language } = useLanguage();
+  const { language, tp } = useLanguage();
   const { toast } = useToast();
   const isFr = language === 'fr';
   const stepLabels = isFr ? STEP_LABEL_FR : STEP_LABEL_EN;
@@ -9106,9 +9106,7 @@ export default function BulkDocumentImportPage() {
                   </CardHeader>
                   <CardContent className="space-y-3">
                     <p className="text-sm text-muted-foreground">
-                      {isFr
-                        ? `${items.filter((i) => i.status === 'committed').length} document(s) sauvegardé(s).`
-                        : `${items.filter((i) => i.status === 'committed').length} document(s) committed.`}
+                      {tp('bulkImportCommitted', items.filter((i) => i.status === 'committed').length)}
                     </p>
                     {/* Excluded (rejected) files are hidden from step 3+ (Task #804).
                         The committed count above is unaffected — it already

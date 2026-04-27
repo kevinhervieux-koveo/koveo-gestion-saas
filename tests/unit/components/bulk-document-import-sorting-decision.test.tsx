@@ -52,6 +52,7 @@ jest.mock('@/hooks/use-language', () => ({
       return languageRef.current;
     },
     t: (key: string) => key,
+    tp: (_key: string, count: number) => String(count),
     setLanguage: jest.fn(),
   }),
 }));

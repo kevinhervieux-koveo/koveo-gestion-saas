@@ -71,7 +71,7 @@ export function DocumentManager({
   buildingId,
   organizationId,
 }: DocumentManagerProps) {
-  const { t } = useLanguage();
+  const { t, tp } = useLanguage();
   // Simplified placeholder - no context for now
   const hasPermission = () => true;
   const { toast } = useToast();
@@ -463,7 +463,7 @@ export function DocumentManager({
         </div>
 
         <div className="text-sm text-muted-foreground">
-          {documents.length} document(s) for {element.name}
+          {tp('docManagerDocumentCount', documents.length, { name: element.name })}
         </div>
       </CardHeader>
 

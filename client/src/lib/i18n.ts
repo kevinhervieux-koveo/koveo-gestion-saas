@@ -829,6 +829,19 @@ export interface Translations {
   failedToDelete: string;
   failedToDeleteDocumentsCount_one: string;
   failedToDeleteDocumentsCount_other: string;
+  docManagerDocumentCount_one: string;
+  docManagerDocumentCount_other: string;
+  bulkImportAnalyzing_one: string;
+  bulkImportAnalyzing_other: string;
+  bulkImportResidenceIncomplete_one: string;
+  bulkImportResidenceIncomplete_other: string;
+  bulkImportBranchingPending_one: string;
+  bulkImportBranchingPending_other: string;
+  bulkImportFallbackPending_one: string;
+  bulkImportFallbackPending_other: string;
+  bulkImportCommitted_one: string;
+  bulkImportCommitted_other: string;
+  bulkImportNextStep: string;
   deselectAll: string;
   buildingIdRequired: string;
   residenceIdRequired: string;
@@ -1957,6 +1970,9 @@ export interface Translations {
   'bills.createNewBill': string;
   'bills.createFromTemplate': string;
   'bills.aiExtracted': string;
+  'bills.aiConfidenceHigh': string;
+  'bills.aiConfidenceMedium': string;
+  'bills.aiConfidenceLow': string;
   'bills.manualEntry': string;
   'bills.aiExtraction': string;
   'bills.uploadBillDocument': string;
@@ -4524,6 +4540,9 @@ export const translations: Record<Language, Translations> = {
     'bills.createNewBill': 'Create New Bill',
     'bills.createFromTemplate': 'Create Bill from Template',
     'bills.aiExtracted': 'AI Extracted',
+    'bills.aiConfidenceHigh': 'AI is confident about this value',
+    'bills.aiConfidenceMedium': 'Please verify this value',
+    'bills.aiConfidenceLow': 'Low confidence — manual review recommended',
     'bills.manualEntry': 'Manual Entry',
     'bills.aiExtraction': 'AI Extraction',
     'bills.uploadBillDocument': 'Upload Bill Document',
@@ -4708,6 +4727,19 @@ export const translations: Record<Language, Translations> = {
     failedToDelete: 'Failed to delete',
     failedToDeleteDocumentsCount_one: 'Failed to delete {count} document. Please try again.',
     failedToDeleteDocumentsCount_other: 'Failed to delete {count} documents. Please try again.',
+    docManagerDocumentCount_one: '{count} document for {name}',
+    docManagerDocumentCount_other: '{count} documents for {name}',
+    bulkImportAnalyzing_one: '{count} document is still being analyzed. Wait for it to finish or exclude it to continue.',
+    bulkImportAnalyzing_other: '{count} documents are still being analyzed. Wait for them to finish or exclude them to continue.',
+    bulkImportResidenceIncomplete_one: '{count} residence document needs a residence selected before you can continue.',
+    bulkImportResidenceIncomplete_other: '{count} residence documents need a residence selected before you can continue.',
+    bulkImportBranchingPending_one: '{count} branching decision needs your review. Accept or choose manually to continue.',
+    bulkImportBranchingPending_other: '{count} branching decisions need your review. Accept or choose manually to continue.',
+    bulkImportFallbackPending_one: '{count} file needs a manual assignment (the AI could not process it). Review or exclude it to continue.',
+    bulkImportFallbackPending_other: '{count} files need a manual assignment (the AI could not process them). Review or exclude them to continue.',
+    bulkImportCommitted_one: '{count} document committed.',
+    bulkImportCommitted_other: '{count} documents committed.',
+    bulkImportNextStep: 'Next step',
     deselectAll: 'Deselect all',
     buildingIdRequired: 'Building ID is required to view documents',
     residenceIdRequired: 'Residence ID is required to view documents',
@@ -8685,6 +8717,9 @@ export const translations: Record<Language, Translations> = {
     'bills.createNewBill': 'Créer une nouvelle facture',
     'bills.createFromTemplate': 'Créer une facture à partir du modèle',
     'bills.aiExtracted': 'Extrait par IA',
+    'bills.aiConfidenceHigh': "L'IA est confiante quant à cette valeur",
+    'bills.aiConfidenceMedium': 'Veuillez vérifier cette valeur',
+    'bills.aiConfidenceLow': 'Faible confiance — révision manuelle recommandée',
     'bills.manualEntry': 'Saisie manuelle',
     'bills.aiExtraction': 'Extraction IA',
     'bills.uploadBillDocument': 'Télécharger le document de facture',
@@ -8869,6 +8904,19 @@ export const translations: Record<Language, Translations> = {
     failedToDelete: 'Échec de la suppression',
     failedToDeleteDocumentsCount_one: 'Échec de la suppression de {count} document. Veuillez réessayer.',
     failedToDeleteDocumentsCount_other: 'Échec de la suppression de {count} documents. Veuillez réessayer.',
+    docManagerDocumentCount_one: '{count} document pour {name}',
+    docManagerDocumentCount_other: '{count} documents pour {name}',
+    bulkImportAnalyzing_one: '{count} document est encore en cours d\'analyse. Attendez la fin de l\'analyse ou excluez-le pour continuer.',
+    bulkImportAnalyzing_other: '{count} documents sont encore en cours d\'analyse. Attendez la fin de l\'analyse ou excluez-les pour continuer.',
+    bulkImportResidenceIncomplete_one: '{count} document de résidence nécessite une résidence avant de continuer.',
+    bulkImportResidenceIncomplete_other: '{count} documents de résidence nécessitent une résidence avant de continuer.',
+    bulkImportBranchingPending_one: '{count} décision de branchement en attente. Acceptez ou choisissez manuellement pour continuer.',
+    bulkImportBranchingPending_other: '{count} décisions de branchement en attente. Acceptez ou choisissez manuellement pour continuer.',
+    bulkImportFallbackPending_one: '{count} fichier doit être assigné manuellement (l\'IA n\'a pas pu le traiter). Vérifiez-le ou excluez-le pour continuer.',
+    bulkImportFallbackPending_other: '{count} fichiers doivent être assignés manuellement (l\'IA n\'a pas pu les traiter). Vérifiez-les ou excluez-les pour continuer.',
+    bulkImportCommitted_one: '{count} document sauvegardé.',
+    bulkImportCommitted_other: '{count} documents sauvegardés.',
+    bulkImportNextStep: 'Étape suivante',
     deselectAll: 'Tout désélectionner',
     buildingIdRequired: 'L\'ID du bâtiment est requis pour voir les documents',
     residenceIdRequired: 'L\'ID de la résidence est requis pour voir les documents',
