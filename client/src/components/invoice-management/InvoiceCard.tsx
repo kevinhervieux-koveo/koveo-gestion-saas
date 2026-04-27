@@ -17,6 +17,7 @@ import {
   MoreHorizontal,
 } from 'lucide-react';
 import { format } from 'date-fns';
+import { parseDateOnly } from '@/lib/utils';
 import { useQueryClient } from '@tanstack/react-query';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
 import { useToast } from '@/hooks/use-toast';
@@ -107,7 +108,7 @@ export function InvoiceCard({ invoice, onUpdate, compact = false }: InvoiceCardP
         {
           icon: <Calendar className="w-3 h-3" />,
           label: 'Due',
-          value: format(new Date(invoice.dueDate), 'MMM dd, yyyy'),
+          value: format(parseDateOnly(invoice.dueDate) ?? new Date(invoice.dueDate), 'MMM dd, yyyy'),
         },
         ...(invoice.frequency ? [{
           value: invoice.frequency.charAt(0).toUpperCase() + invoice.frequency.slice(1),
@@ -188,11 +189,11 @@ export function InvoiceCard({ invoice, onUpdate, compact = false }: InvoiceCardP
               vendorName: invoice.vendorName,
               invoiceNumber: invoice.invoiceNumber,
               totalAmount: invoice.totalAmount,
-              dueDate: new Date(invoice.dueDate),
+              dueDate: parseDateOnly(invoice.dueDate) ?? new Date(invoice.dueDate),
               paymentType: invoice.paymentType,
               frequency: invoice.frequency,
-              startDate: invoice.startDate ? new Date(invoice.startDate) : undefined,
-              customPaymentDates: invoice.customPaymentDates?.map((d: string) => new Date(d)),
+              startDate: invoice.startDate ? (parseDateOnly(invoice.startDate) ?? new Date(invoice.startDate)) : undefined,
+              customPaymentDates: invoice.customPaymentDates?.map((d: string) => parseDateOnly(d) ?? new Date(d)),
               documentId: invoice.documentId,
               isAiExtracted: invoice.isAiExtracted,
               extractionConfidence: invoice.extractionConfidence ? parseFloat(invoice.extractionConfidence.toString()) : undefined,
@@ -223,7 +224,7 @@ export function InvoiceCard({ invoice, onUpdate, compact = false }: InvoiceCardP
                   Amount: ${formatAmount(invoice.totalAmount)}
                 </p>
                 <p className="text-sm text-muted-foreground">
-                  Due: {format(new Date(invoice.dueDate), 'PPP')}
+                  Due: {format(parseDateOnly(invoice.dueDate) ?? new Date(invoice.dueDate), 'PPP')}
                 </p>
                 <p className="text-sm text-muted-foreground">
                   Type: {invoice.paymentType}

@@ -26,6 +26,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { withHierarchicalSelection } from '@/components/hoc/withHierarchicalSelection';
+import { parseDateOnly } from '@/lib/utils';
 import { useLocation } from 'wouter';
 import {
   Select,
@@ -217,8 +218,8 @@ function BookingCalendar({
     // Check if day falls within any unavailable periods
     if (space.unavailablePeriods && Array.isArray(space.unavailablePeriods)) {
       for (const period of space.unavailablePeriods) {
-        const startDate = new Date(period.startDate);
-        const endDate = new Date(period.endDate);
+        const startDate = parseDateOnly(period.startDate) ?? new Date(period.startDate);
+        const endDate = parseDateOnly(period.endDate) ?? new Date(period.endDate);
         startDate.setHours(0, 0, 0, 0);
         endDate.setHours(23, 59, 59, 999);
         
@@ -606,8 +607,8 @@ function CommonSpacesPageInner({ buildingId, showBackButton, backButtonLabel, on
     // Check if day falls within any unavailable periods
     if (selectedSpace.unavailablePeriods && Array.isArray(selectedSpace.unavailablePeriods)) {
       for (const period of selectedSpace.unavailablePeriods) {
-        const startDate = new Date(period.startDate);
-        const endDate = new Date(period.endDate);
+        const startDate = parseDateOnly(period.startDate) ?? new Date(period.startDate);
+        const endDate = parseDateOnly(period.endDate) ?? new Date(period.endDate);
         startDate.setHours(0, 0, 0, 0);
         endDate.setHours(23, 59, 59, 999);
         

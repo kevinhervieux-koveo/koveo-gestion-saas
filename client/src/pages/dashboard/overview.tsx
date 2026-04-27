@@ -43,7 +43,7 @@ import {
 } from 'lucide-react';
 import { GanttChart } from '@/components/GanttChart';
 import { format, startOfMonth, endOfMonth, addMonths, subMonths } from 'date-fns';
-import { parseDateOnly } from '@/lib/utils';
+import { parseDateOnly, parseDateOnlyLoose } from '@/lib/utils';
 import {
   LineChart as RechartsLineChart,
   XAxis as RechartsXAxis,
@@ -518,7 +518,7 @@ export default function FinancialOverview() {
   const availableFiscalYears = useMemo(() => {
     const years = [];
     const anchorYear = bankAccountConfig?.bankAccountStartDate
-      ? new Date(bankAccountConfig.bankAccountStartDate).getFullYear()
+      ? (parseDateOnlyLoose(bankAccountConfig.bankAccountStartDate) ?? new Date(bankAccountConfig.bankAccountStartDate)).getFullYear()
       : currentFiscalYear;
     const earliest = bankAccountConfig?.earliestFinancialYear ?? (currentFiscalYear - 5);
     // Clamp earliest by the anchor (never go before anchor); the anchor itself
@@ -690,7 +690,7 @@ export default function FinancialOverview() {
     // Clamp to bank account effective start anchor: never start the chart
     // before the bank account start date (or current calendar year by default).
     const anchorYear = bankAccountConfig?.bankAccountStartDate
-      ? new Date(bankAccountConfig.bankAccountStartDate).getFullYear()
+      ? (parseDateOnlyLoose(bankAccountConfig.bankAccountStartDate) ?? new Date(bankAccountConfig.bankAccountStartDate)).getFullYear()
       : currentYear;
     if (calculatedStartYear < anchorYear) {
       calculatedStartYear = anchorYear;
@@ -914,7 +914,7 @@ export default function FinancialOverview() {
     if (!selectedBuilding || !selectedBuilding.financialYearStart) {
       return 1; // Default to January
     }
-    const fiscalDate = new Date(selectedBuilding.financialYearStart);
+    const fiscalDate = parseDateOnlyLoose(selectedBuilding.financialYearStart) ?? new Date(selectedBuilding.financialYearStart);
     return fiscalDate.getMonth() + 1; // Convert 0-11 to 1-12
   }, [selectedBuilding]);
 

@@ -28,7 +28,7 @@ import { PriorityBadge, EvaluationStatusBadge } from '@/components/maintenance/S
 import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { cn, parseDateOnly } from '@/lib/utils';
 import {
   CheckCircle,
   Clock,
@@ -223,7 +223,7 @@ export function SuggestionTable({
       cell: ({ row }) => {
         const suggestion = row.original;
         const today = new Date();
-        const suggestedDate = new Date(suggestion.suggestedDate);
+        const suggestedDate = parseDateOnly(suggestion.suggestedDate) ?? new Date(suggestion.suggestedDate);
         const daysUntilDue = Math.ceil((suggestedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
         
         let urgencyLevel = 'low';
@@ -277,7 +277,8 @@ export function SuggestionTable({
       accessorKey: 'suggestedDate',
       header: 'Due Date',
       cell: ({ row }) => {
-        const date = new Date(row.getValue('suggestedDate'));
+        const raw = row.getValue('suggestedDate') as string;
+        const date = parseDateOnly(raw) ?? new Date(raw);
         return (
           <div className="space-y-1">
             <div className="text-sm font-medium">{format(date, 'MMM d, yyyy')}</div>

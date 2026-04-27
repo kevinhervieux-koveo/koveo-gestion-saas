@@ -32,7 +32,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { useCreateUpdateMutation } from '@/lib/common-hooks';
-import { cn } from '@/lib/utils';
+import { cn, parseDateOnly } from '@/lib/utils';
 import { SharedUploader } from '@/components/document-management';
 import { GeminiBillExtractor } from './GeminiBillExtractor';
 import { AttachedFileSection } from '@/components/common/AttachedFileSection';
@@ -1202,19 +1202,19 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
   const generateNextPaymentDate = (startDate: string, schedule: string, paymentIndex: number): string => {
     if (!startDate || !schedule) return '';
     
-    const start = new Date(startDate);
+    const start = parseDateOnly(startDate) ?? new Date(startDate);
     const endDate = form.getValues('endDate');
     
     // Calculate proper renewal date: endDate or startDate + 1 year
     let maxDate: Date;
     if (endDate && endDate.trim() !== '') {
-      maxDate = new Date(endDate);
+      maxDate = parseDateOnly(endDate) ?? new Date(endDate);
     } else {
       maxDate = new Date(start);
       maxDate.setFullYear(start.getFullYear() + 1);
     }
     
-    let nextDate = new Date(start);
+    let nextDate = new Date(start.getFullYear(), start.getMonth(), start.getDate());
     
     switch (schedule) {
       case 'weekly':
@@ -1238,7 +1238,12 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
       return '';
     }
     
-    return nextDate.toISOString().split('T')[0];
+    // Format as YYYY-MM-DD using local-time fields so we don't roll back a
+    // day in negative-UTC timezones (toISOString() would convert to UTC).
+    const yyyy = nextDate.getFullYear();
+    const mm = String(nextDate.getMonth() + 1).padStart(2, '0');
+    const dd = String(nextDate.getDate()).padStart(2, '0');
+    return `${yyyy}-${mm}-${dd}`;
   };
 
   // Custom Payment Management
@@ -1257,16 +1262,16 @@ export default function ModularBillForm({ bill, isTemplate = false, onSuccess, o
     // Calculate proper renewal limit: endDate or startDate + 1 year
     let renewalLimit: Date;
     if (endDate && endDate.trim() !== '') {
-      renewalLimit = new Date(endDate);
+      renewalLimit = parseDateOnly(endDate) ?? new Date(endDate);
     } else if (startDate) {
-      renewalLimit = new Date(startDate);
+      renewalLimit = parseDateOnly(startDate) ?? new Date(startDate);
       renewalLimit.setFullYear(renewalLimit.getFullYear() + 1);
     } else {
       renewalLimit = new Date();
       renewalLimit.setFullYear(renewalLimit.getFullYear() + 1);
     }
     
-    const paymentDate = new Date(newPayment.date);
+    const paymentDate = parseDateOnly(newPayment.date) ?? new Date(newPayment.date);
     
     // Check if we're exceeding the bill's renewal period
     if (!isCustomSchedule && newPayment.date && paymentDate >= renewalLimit) {

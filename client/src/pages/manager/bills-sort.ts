@@ -9,6 +9,8 @@
  * mounting the entire bills page.
  */
 
+import { parseDateOnlyLoose } from '@/lib/utils';
+
 export type BillSortField = 'issueDate' | 'dueDate' | 'amount';
 
 type BillSortable = {
@@ -17,22 +19,22 @@ type BillSortable = {
   totalAmount?: unknown;
 };
 
+function dateOnlyToTime(v: unknown): number | null {
+  if (v === null || v === undefined || v === '') return null;
+  const parsed = parseDateOnlyLoose(v as string | Date);
+  if (parsed) return parsed.getTime();
+  const t = new Date(v as string).getTime();
+  return Number.isNaN(t) ? null : t;
+}
+
 function getSortValue(bill: BillSortable, field: BillSortField): number | null {
   switch (field) {
-    case 'issueDate': {
-      const v = bill.issueDate;
-      if (v === null || v === undefined || v === '') return null;
-      const t = new Date(v as string).getTime();
-      return Number.isNaN(t) ? null : t;
-    }
-    case 'dueDate': {
+    case 'issueDate':
+      return dateOnlyToTime(bill.issueDate);
+    case 'dueDate':
       // The bill's "due date" in the UI corresponds to the schema's startDate
       // (when the bill series starts / is due).
-      const v = bill.startDate;
-      if (v === null || v === undefined || v === '') return null;
-      const t = new Date(v as string).getTime();
-      return Number.isNaN(t) ? null : t;
-    }
+      return dateOnlyToTime(bill.startDate);
     case 'amount': {
       const v = bill.totalAmount;
       if (v === null || v === undefined || v === '') return null;

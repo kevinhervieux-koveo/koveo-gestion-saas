@@ -31,7 +31,7 @@ import { useToast } from '@/hooks/use-toast';
 import { useLanguage } from '@/hooks/use-language';
 import { apiRequest } from '@/lib/queryClient';
 import { insertMaintenanceProjectSchema, MaintenanceProject, EvaluationSuggestion } from '@shared/schemas/maintenance';
-import { cn } from '@/lib/utils';
+import { cn, parseDateOnly } from '@/lib/utils';
 import {
   AlertTriangle,
   Info,
@@ -161,7 +161,9 @@ export function ProjectForm({
       priority: project?.priority || evaluationSuggestion?.priority || 'medium',
       totalBudget: project?.totalBudget ? parseFloat(project.totalBudget) : undefined,
       actualCost: project?.actualCost ? parseFloat(project.actualCost) : 0,
-      plannedStartDate: project?.plannedStartDate ? new Date(project.plannedStartDate) : undefined,
+      plannedStartDate: project?.plannedStartDate
+        ? (parseDateOnly(project.plannedStartDate) ?? new Date(project.plannedStartDate))
+        : undefined,
       suggestionId: project?.suggestionId || evaluationSuggestion?.id,
       description: project?.planningDescription || '',
       // Quick Project defaults
@@ -202,7 +204,7 @@ export function ProjectForm({
       
       // Set suggested date as start date
       if (evaluationSuggestion.suggestedDate) {
-        form.setValue('plannedStartDate', new Date(evaluationSuggestion.suggestedDate));
+        form.setValue('plannedStartDate', parseDateOnly(evaluationSuggestion.suggestedDate) ?? new Date(evaluationSuggestion.suggestedDate));
       }
     }
   }, [evaluationSuggestion, project, form]);

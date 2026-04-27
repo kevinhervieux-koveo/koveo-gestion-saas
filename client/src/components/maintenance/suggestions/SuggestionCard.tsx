@@ -28,7 +28,7 @@ import { PriorityBadge, EvaluationStatusBadge } from '@/components/maintenance/S
 import { useBuildingContext } from '@/hooks/use-building-context';
 import { apiRequest } from '@/lib/queryClient';
 import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
+import { cn, parseDateOnly } from '@/lib/utils';
 import {
   CheckCircle,
   Clock,
@@ -76,7 +76,7 @@ export function SuggestionCard({
   // Calculate urgency metrics
   const urgencyMetrics = useMemo(() => {
     const today = new Date();
-    const suggestedDate = new Date(suggestion.suggestedDate);
+    const suggestedDate = parseDateOnly(suggestion.suggestedDate) ?? new Date(suggestion.suggestedDate);
     const daysUntilDue = Math.ceil((suggestedDate.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
     
     // Urgency level based on days until due and priority
@@ -279,7 +279,7 @@ export function SuggestionCard({
     {
       icon: <Calendar className="w-3 h-3" />,
       label: 'Due',
-      value: format(new Date(suggestion.suggestedDate), 'MMM d')
+      value: format(parseDateOnly(suggestion.suggestedDate) ?? new Date(suggestion.suggestedDate), 'MMM d')
     },
     suggestion.element && {
       icon: <Building className="w-3 h-3" />,
@@ -309,10 +309,10 @@ export function SuggestionCard({
           <Calendar className="h-4 w-4 text-blue-600" />
           <div>
             <div className="text-sm font-medium">
-              {format(new Date(suggestion.suggestedDate), 'MMM d')}
+              {format(parseDateOnly(suggestion.suggestedDate) ?? new Date(suggestion.suggestedDate), 'MMM d')}
             </div>
             <div className="text-xs text-muted-foreground">
-              {formatDistanceToNow(new Date(suggestion.suggestedDate))}
+              {formatDistanceToNow(parseDateOnly(suggestion.suggestedDate) ?? new Date(suggestion.suggestedDate))}
             </div>
           </div>
         </div>

@@ -438,7 +438,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
     // object is what the API returns alongside each submission row.
     editVendorForm.reset({
       vendorId: vendor.vendorId ?? '',
-      availableDate: vendor.availableDate ? new Date(vendor.availableDate) : undefined,
+      availableDate: vendor.availableDate ? (parseDateOnly(vendor.availableDate) ?? new Date(vendor.availableDate)) : undefined,
       description: vendor.notes || '',
       contactInfo: vendor.contactInfo || '',
       preferred: vendor.preferred,
@@ -446,7 +446,7 @@ export function SubmissionTab({ project, workflowState, onUpdate, onMarkComplete
       paymentType,
       totalAmount,
       schedulePayment,
-      dateFirstPayment: vendor.paymentPlanStartDate ? new Date(vendor.paymentPlanStartDate) : undefined,
+      dateFirstPayment: vendor.paymentPlanStartDate ? (parseDateOnly(vendor.paymentPlanStartDate) ?? new Date(vendor.paymentPlanStartDate)) : undefined,
       dateEndPayment: undefined, // Not used in current implementation
       hasInitialPayment,
       recurringPaymentsEqual,

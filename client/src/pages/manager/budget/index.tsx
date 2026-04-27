@@ -28,6 +28,7 @@ import { useToast } from '@/hooks/use-toast';
 import { handleApiError } from '@/lib/demo-error-handler';
 import { Residence } from '@shared/schema';
 import { MaintenanceProject } from '@shared/schemas/maintenance';
+import { parseDateOnly, parseDateOnlyLoose } from '@/lib/utils';
 import { stripLeadingZeros, normalizeMoney } from '@/utils/number';
 import { useCurrentFinancialYear } from '@/hooks/use-current-financial-year';
 import { getFinancialYearRange } from '@/utils/financial-year';
@@ -426,12 +427,11 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
       // (or Jan 1 of the current year when no bank account start is set).
       const data = bankAccountData as any;
       const todayYear = new Date().getFullYear();
-      const anchorYear = data?.bankAccountStartDate
-        ? new Date(data.bankAccountStartDate).getFullYear()
-        : todayYear;
-      const anchorMonth = data?.bankAccountStartDate
-        ? new Date(data.bankAccountStartDate).getMonth() + 1
-        : 1;
+      const anchorDate = data?.bankAccountStartDate
+        ? (parseDateOnlyLoose(data.bankAccountStartDate) ?? new Date(data.bankAccountStartDate))
+        : null;
+      const anchorYear = anchorDate ? anchorDate.getFullYear() : todayYear;
+      const anchorMonth = anchorDate ? anchorDate.getMonth() + 1 : 1;
       const requestedIdx = startYear * 12 + (startMonth - 1);
       const anchorIdx = anchorYear * 12 + (anchorMonth - 1);
       if (requestedIdx < anchorIdx) {
@@ -1800,7 +1800,9 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
       if (urgencyCompare !== 0) return urgencyCompare;
       
       // If same urgency, sort by date
-      return new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime();
+      const aDate = parseDateOnlyLoose(a.targetDate) ?? new Date(a.targetDate);
+      const bDate = parseDateOnlyLoose(b.targetDate) ?? new Date(b.targetDate);
+      return aDate.getTime() - bDate.getTime();
     });
     
     for (const suggestion of sorted) {
@@ -2038,7 +2040,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
       });
       
       filtered = filtered.filter(inv => {
-        const invDate = new Date(inv.targetDate);
+        const invDate = parseDateOnlyLoose(inv.targetDate) ?? new Date(inv.targetDate);
         const isInWindow = invDate >= windowStart && invDate <= windowEnd;
         
         debugLog('Investment date check', {
@@ -2055,7 +2057,9 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
     
     // Sort by target date (earliest first), then by urgency (urgent -> suggested -> not_urgent)
     filtered.sort((a, b) => {
-      const dateCompare = new Date(a.targetDate).getTime() - new Date(b.targetDate).getTime();
+      const aDate = parseDateOnlyLoose(a.targetDate) ?? new Date(a.targetDate);
+      const bDate = parseDateOnlyLoose(b.targetDate) ?? new Date(b.targetDate);
+      const dateCompare = aDate.getTime() - bDate.getTime();
       if (dateCompare !== 0) return dateCompare;
       
       const urgencyOrder = { urgent: 0, suggested: 1, not_urgent: 2 };
@@ -2403,7 +2407,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
   const aggregateInvestmentsByMonth = (year: number, month: number) => {
     // Find all investments that target this specific month (custom, database, and auto-generated)
     const monthInvestments = capitalInvestments.filter(investment => {
-      const targetDate = new Date(investment.targetDate);
+      const targetDate = parseDateOnlyLoose(investment.targetDate) ?? new Date(investment.targetDate);
       return targetDate.getFullYear() === year && targetDate.getMonth() + 1 === month;
     });
 
@@ -2471,7 +2475,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
   const aggregateCustomInvestmentsByMonth = (year: number, month: number) => {
     // Find only custom investments that target this specific month
     const monthInvestments = capitalInvestments.filter(investment => {
-      const targetDate = new Date(investment.targetDate);
+      const targetDate = parseDateOnlyLoose(investment.targetDate) ?? new Date(investment.targetDate);
       return targetDate.getFullYear() === year && 
              targetDate.getMonth() + 1 === month &&
              investment.type === 'custom'; // Only custom investments
@@ -3767,7 +3771,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                             const p = projects.find(proj => proj.id === id);
                             if (!p) return;
                             if (p.isQuickProject) {
-                              const plannedDate = p.plannedStartDate ? new Date(p.plannedStartDate) : null;
+                              const plannedDate = p.plannedStartDate ? (parseDateOnlyLoose(p.plannedStartDate) ?? new Date(p.plannedStartDate)) : null;
                               setEditingProject({
                                 id: p.id,
                                 title: p.title,
@@ -3879,7 +3883,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                             }}
                             onEdit={async (p) => {
                               if (p.isQuickProject) {
-                                const plannedDate = p.plannedStartDate ? new Date(p.plannedStartDate) : null;
+                                const plannedDate = p.plannedStartDate ? (parseDateOnlyLoose(p.plannedStartDate) ?? new Date(p.plannedStartDate)) : null;
                                 setEditingProject({
                                   id: p.id,
                                   title: p.title,
@@ -4093,13 +4097,13 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                       <div className='flex justify-between text-sm'>
                         <span className='text-muted-foreground'>{t('budgetBalanceDate')}:</span>
                         <span className='font-medium'>
-                          {localSettings.bankAccountStartDate ? new Date(localSettings.bankAccountStartDate).toLocaleDateString() : t('notSet')}
+                          {localSettings.bankAccountStartDate ? (parseDateOnlyLoose(localSettings.bankAccountStartDate) ?? new Date(localSettings.bankAccountStartDate)).toLocaleDateString() : t('notSet')}
                         </span>
                       </div>
                       <div className='flex justify-between text-sm'>
                         <span className='text-muted-foreground'>{t('budgetFinancialYearStart')}:</span>
                         <span className='font-medium'>
-                          {localSettings.financialYearStart ? new Date(localSettings.financialYearStart).toLocaleDateString() : `${new Date().getFullYear()}-01-01`}
+                          {localSettings.financialYearStart ? (parseDateOnlyLoose(localSettings.financialYearStart) ?? new Date(localSettings.financialYearStart)).toLocaleDateString() : `${new Date().getFullYear()}-01-01`}
                         </span>
                       </div>
                       {(bankAccountData as BankAccountData)?.bankAccountUpdatedAt && (
@@ -4459,7 +4463,8 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                                   ];
                                   
                                   // Get fiscal year start month (1-12)
-                                  const fiscalYearDate = new Date(localSettings.financialYearStart || new Date().getFullYear() + '-01-01');
+                                  const fiscalYearStartStr = localSettings.financialYearStart || new Date().getFullYear() + '-01-01';
+                                  const fiscalYearDate = parseDateOnlyLoose(fiscalYearStartStr) ?? new Date(fiscalYearStartStr);
                                   const fiscalStartMonth = fiscalYearDate.getMonth() + 1;
                                   
                                   return monthNames.map((name, index) => {
@@ -5378,7 +5383,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                           };
                           
                           const config = urgencyConfig[investment.urgency];
-                          const targetDate = new Date(investment.targetDate);
+                          const targetDate = parseDateOnlyLoose(investment.targetDate) ?? new Date(investment.targetDate);
                           const isAutoGenerated = investment.type === 'auto_generated';
                           
                           return (
