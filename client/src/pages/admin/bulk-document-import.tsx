@@ -78,6 +78,7 @@ import { StandaloneDatePicker } from '@/components/common/DatePickerField';
 import {
   AI_DEGRADED_FAILURE_RATE_THRESHOLD,
   RETRYABLE_AI_FALLBACK_REASONS,
+  bandForConfidence,
   type BulkImportFallbackReason,
   type BulkImportItem,
   type BulkImportSession,
@@ -4884,7 +4885,7 @@ export default function BulkDocumentImportPage() {
                                 ) : (
                                   <Sparkles className="mr-2 h-4 w-4" />
                                 )}
-                                {isFr ? 'Confirmer toutes les suggestions IA' : 'Review all AI suggestions'}
+                                {isFr ? 'Confirmer toutes les suggestions IA' : 'Confirm all AI suggestions'}
                               </Button>
                             </div>
                           )}
@@ -5305,20 +5306,44 @@ export default function BulkDocumentImportPage() {
                                                   {item.residenceManualOverride && ` (${isFr ? 'manuel' : 'manual'})`}
                                                 </Badge>
                                                 {item.residenceAiSuggested && (
-                                                  <Badge
-                                                    variant="outline"
-                                                    className="shrink-0 border-violet-300 bg-violet-50 text-violet-900 dark:border-violet-700 dark:bg-violet-950 dark:text-violet-200 text-xs"
-                                                    title={
-                                                      item.residenceReason
-                                                      ?? (isFr
-                                                        ? 'Choisi par l\'IA — vérifiez puis confirmez'
-                                                        : 'Picked by AI — review and confirm')
-                                                    }
-                                                    data-testid={`badge-residence-ai-${item.id}`}
-                                                  >
-                                                    <Sparkles className="mr-1 h-3 w-3" />
-                                                    {isFr ? 'Suggestion IA' : 'AI'}
-                                                  </Badge>
+                                                  <>
+                                                    <Badge
+                                                      variant="outline"
+                                                      className="shrink-0 border-violet-300 bg-violet-50 text-violet-900 dark:border-violet-700 dark:bg-violet-950 dark:text-violet-200 text-xs"
+                                                      title={
+                                                        item.residenceReason
+                                                        ?? (isFr
+                                                          ? 'Choisi par l\'IA — vérifiez puis confirmez'
+                                                          : 'Picked by AI — review and confirm')
+                                                      }
+                                                      data-testid={`badge-residence-ai-${item.id}`}
+                                                    >
+                                                      <Sparkles className="mr-1 h-3 w-3" />
+                                                      {isFr ? 'Suggestion IA' : 'AI'}
+                                                    </Badge>
+                                                    {item.residenceConfidence != null && (() => {
+                                                      const band = bandForConfidence(item.residenceConfidence);
+                                                      const label = band === 'high'
+                                                        ? (isFr ? 'Élevée' : 'High')
+                                                        : band === 'medium'
+                                                          ? (isFr ? 'Moyenne' : 'Medium')
+                                                          : (isFr ? 'Faible' : 'Low');
+                                                      const chipClass = band === 'high'
+                                                        ? 'border-emerald-300 bg-emerald-50 text-emerald-900 dark:border-emerald-700 dark:bg-emerald-950 dark:text-emerald-200'
+                                                        : band === 'medium'
+                                                          ? 'border-amber-300 bg-amber-50 text-amber-900 dark:border-amber-700 dark:bg-amber-950 dark:text-amber-200'
+                                                          : 'border-red-300 bg-red-50 text-red-900 dark:border-red-700 dark:bg-red-950 dark:text-red-200';
+                                                      return (
+                                                        <Badge
+                                                          variant="outline"
+                                                          className={`shrink-0 ${chipClass} text-xs`}
+                                                          data-testid={`badge-residence-confidence-${item.id}`}
+                                                        >
+                                                          {label}
+                                                        </Badge>
+                                                      );
+                                                    })()}
+                                                  </>
                                                 )}
                                               </>
                                             ) : (
