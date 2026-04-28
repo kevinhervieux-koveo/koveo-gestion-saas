@@ -34,7 +34,7 @@ function MyBuilding({ organizationId, showBackButton, backButtonLabel, onBack }:
     queryFn: async () => {
       const params = new URLSearchParams();
       if (organizationId) {
-        params.append('organization_id', organizationId);
+        params.append('organizationId', organizationId);
       }
       
       const url = `/api/users/me/buildings${params.toString() ? `?${params.toString()}` : ''}`;

@@ -115,9 +115,9 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
     isLoading: residencesLoading,
     refetch,
   } = useQuery({
-    queryKey: ['/api/residences', deferredSearchTerm, selectedFloor, buildingId],
+    queryKey: ['/api/residences', deferredSearchTerm, selectedFloor, buildingId, organizationId],
     queryFn: async () => {
-      logDebug('🔍 [RESIDENCES] Fetching residences with params:', { searchTerm: deferredSearchTerm, selectedFloor, buildingId });
+      logDebug('🔍 [RESIDENCES] Fetching residences with params:', { searchTerm: deferredSearchTerm, selectedFloor, buildingId, organizationId });
       const params = new URLSearchParams();
 
       if (deferredSearchTerm) {
@@ -126,6 +126,10 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
 
       if (buildingId) {
         params.append('buildingId', buildingId);
+      }
+
+      if (organizationId && !buildingId) {
+        params.append('organizationId', organizationId);
       }
 
       if (selectedFloor && selectedFloor !== 'all') {
@@ -143,11 +147,14 @@ function ManagerResidences({ organizationId, buildingId, showBackButton, backBut
   });
 
   const { data: residencesForFloorFilter } = useQuery({
-    queryKey: ['/api/residences/for-floor-filter', buildingId],
+    queryKey: ['/api/residences/for-floor-filter', buildingId, organizationId],
     queryFn: async () => {
       const params = new URLSearchParams();
       if (buildingId) {
         params.append('buildingId', buildingId);
+      }
+      if (organizationId && !buildingId) {
+        params.append('organizationId', organizationId);
       }
       const response = await fetch(`/api/residences?${params}`);
       if (!response.ok) {

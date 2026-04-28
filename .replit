@@ -54,6 +54,18 @@ args = "Suppression lint check"
 task = "workflow.run"
 args = "Type check"
 
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "org-scope-test"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "org-scope-hoc-test"
+
+[[workflows.workflow.tasks]]
+task = "workflow.run"
+args = "org-scope-all-tests"
+
 [[workflows.workflow]]
 name = "Start application"
 author = "agent"
@@ -117,6 +129,39 @@ args = "bash scripts/type-check.sh"
 
 [workflows.workflow.metadata]
 outputType = "console"
+
+[[workflows.workflow]]
+name = "org-scope-test"
+author = "agent"
+
+[workflows.workflow.metadata]
+isValidation = true
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "TEST_TYPE=unit node_modules/.bin/jest tests/unit/org-scope-residences-and-building-pages.test.tsx --no-coverage --forceExit --testTimeout=15000"
+
+[[workflows.workflow]]
+name = "org-scope-hoc-test"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "TEST_TYPE=unit node_modules/.bin/jest tests/unit/org-scope-hoc-buildings-fetch.test.tsx --no-coverage --forceExit --testTimeout=15000"
+
+[workflows.workflow.metadata]
+isValidation = true
+
+[[workflows.workflow]]
+name = "org-scope-all-tests"
+author = "agent"
+
+[[workflows.workflow.tasks]]
+task = "shell.exec"
+args = "TEST_TYPE=unit node_modules/.bin/jest tests/unit/org-scope-residences-and-building-pages.test.tsx tests/unit/org-scope-hoc-buildings-fetch.test.tsx --no-coverage --forceExit --testTimeout=15000"
+
+[workflows.workflow.metadata]
+isValidation = true
 
 [agent]
 integrations = ["github:1.0.0"]

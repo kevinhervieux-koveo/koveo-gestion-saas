@@ -270,7 +270,7 @@ function AdminManagerHierarchyFlow<T extends object>({
         
         // For user endpoint, add organization filter if needed
         if (organizationId && url.includes('/api/users/me/buildings')) {
-          params.append('organization_id', organizationId);
+          params.append('organizationId', organizationId);
         }
         
         const fullUrl = `${url}${params.toString() ? `?${params.toString()}` : ''}`;
