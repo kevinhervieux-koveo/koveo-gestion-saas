@@ -3,6 +3,29 @@
 **Generated:** November 5, 2025  
 **Status:** Schema validated and synced to development database
 
+---
+
+## Required deployment secret
+
+Before publishing, configure the following in the **Manage → Secrets** panel of the deployment (not in `.env` — that file is for local dev only):
+
+| Secret name | Purpose |
+|-------------|---------|
+| `DATABASE_URL_KOVEO` | Production Neon database connection string. Also accepted as `PRODUCTION_DATABASE_URL`. |
+
+The deploy build command pins `IS_DEPLOY_BUILD=true NODE_ENV=production` for the `npm run migrate` step. If `DATABASE_URL_KOVEO` is missing the migrate step throws a clear error and the deploy does not promote. If the value is byte-equal to `DATABASE_URL` (the dev database) the runner also refuses — this catches the operator mistake of copying the wrong URL into the production secret.
+
+Verifying the deploy succeeded:
+
+```
+# In the publish log, the first migrate line should read:
+PRODUCTION migration runner — env var DATABASE_URL_KOVEO → <prod-host>/<proddb> (about to migrate)
+```
+
+If you see `Using DATABASE_URL (...) — NODE_ENV is not production.` instead, the secret is missing or the build command does not include `NODE_ENV=production`.
+
+---
+
 ## Verification Summary
 
 ### Development Database State (Verified)

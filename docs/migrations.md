@@ -87,10 +87,25 @@ and never from a script.
 | ----------- | ---------------------------------- | -------------------------------------------- |
 | Dev         | Manual (after editing schema)      | `npm run migrate`                            |
 | Post-merge  | `scripts/post-merge.sh`            | `RUN_DB_MIGRATIONS=true npm run migrate`     |
-| Deploy      | `.replit` `[deployment]` build step | `npm run build && npm run migrate`           |
+| Deploy      | `.replit` `[deployment]` build step | `IS_DEPLOY_BUILD=true NODE_ENV=production npm run migrate` (pinned after `npm run build`) |
 | Server boot | `server/index.ts` (prod only)      | `runMigrations({})` from `scripts/run-migrations.ts` |
 
 All of these go through the numbered chain. None of them push.
+
+## Required deployment secrets
+
+Before publishing, configure the following in the Manage → Secrets panel
+of the deployment:
+
+| Secret | Purpose |
+|--------|---------|
+| `DATABASE_URL_KOVEO` | Production Neon database connection string (preferred). Also accepted as `PRODUCTION_DATABASE_URL`. |
+
+The deploy build command pins `IS_DEPLOY_BUILD=true NODE_ENV=production`
+for the migrate step. If `DATABASE_URL_KOVEO` is absent the migrate step
+throws a clear error and the deploy does not promote. If the value equals
+`DATABASE_URL` (the dev database) the runner also refuses to continue —
+this catches the operator mistake of copying the wrong URL into the secret.
 
 ## Related scripts
 

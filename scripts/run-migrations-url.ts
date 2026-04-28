@@ -42,10 +42,56 @@ export const PROD_FALLBACK_MESSAGE =
   'production env vars (they are aliases) or unset NODE_ENV=production.';
 
 /**
+ * Error thrown when the runner is inside a Replit deployment build
+ * context (detected via REPLIT_DEPLOYMENT or IS_DEPLOY_BUILD) but
+ * neither prod URL alias is configured as a deployment secret.
+ * The deploy MUST NOT proceed — configure DATABASE_URL_KOVEO (or its
+ * alias PRODUCTION_DATABASE_URL) in the Manage → Secrets panel.
+ */
+export const DEPLOY_CONTEXT_NO_PROD_URL_MESSAGE =
+  'Running inside a Replit deployment build but neither ' +
+  'DATABASE_URL_KOVEO nor PRODUCTION_DATABASE_URL is set. ' +
+  'Refusing to migrate — configure DATABASE_URL_KOVEO as a ' +
+  'deployment secret in the Manage → Secrets panel before publishing. ' +
+  'The deploy will not proceed until this secret is present.';
+
+/**
+ * Error thrown when the resolved production URL is byte-equal to
+ * DATABASE_URL (the dev database). This catches the operator mistake
+ * of copying the dev URL into the prod secret, which would cause all
+ * production migration runs to land in the dev database.
+ */
+export function buildProdEqualsDevMessage(
+  prodSource: string,
+  maskedHost: string,
+): string {
+  return (
+    `${prodSource} resolves to the same database as DATABASE_URL ` +
+    `(${maskedHost}). The production secret must not be identical to ` +
+    `DATABASE_URL. Verify that ${prodSource} is set to the correct ` +
+    `production database, not the development one.`
+  );
+}
+
+/**
+ * Return true when the migration runner is executing inside a Replit
+ * deployment build. Detection uses two independent signals so that
+ * a future platform change (or a missing IS_DEPLOY_BUILD flag) cannot
+ * silently degrade the guard:
+ *
+ *  - REPLIT_DEPLOYMENT — set by the Replit platform in deploy builds.
+ *  - IS_DEPLOY_BUILD=true — set explicitly in the `.replit` build
+ *    command as a belt-and-suspenders fallback.
+ */
+export function isDeployContext(env: NodeJS.ProcessEnv): boolean {
+  return !!env.REPLIT_DEPLOYMENT || env.IS_DEPLOY_BUILD === 'true';
+}
+
+/**
  * Resolve which database URL the migration runner should target, and
  * record which env var supplied it.
  *
- * Production (`NODE_ENV=production`):
+ * Production (`NODE_ENV=production` OR deploy context):
  *   - Prefer `DATABASE_URL_KOVEO` when set.
  *   - Otherwise accept `PRODUCTION_DATABASE_URL` as an alias.
  *   - If both are set, deterministically use `DATABASE_URL_KOVEO`; the
@@ -55,6 +101,15 @@ export const PROD_FALLBACK_MESSAGE =
  *   - If neither is set, throw — even when `DATABASE_URL` is set —
  *     because silently migrating the dev DB from a prod deploy is
  *     exactly the failure mode this runner exists to prevent.
+ *   - If the resolved prod URL equals `DATABASE_URL`, throw — this
+ *     catches an operator mistake where the dev URL was copied into
+ *     the production secret.
+ *
+ * Deploy context (REPLIT_DEPLOYMENT or IS_DEPLOY_BUILD=true):
+ *   - Treated as production regardless of NODE_ENV value. If NODE_ENV
+ *     is missing or wrong, the runner still refuses to fall back to
+ *     DATABASE_URL and throws a deploy-context-specific message so the
+ *     deploy log is grep-friendly.
  *
  * Non-production:
  *   - Prefer `DATABASE_URL`, then either prod alias if dev is unset.
@@ -64,13 +119,15 @@ export const PROD_FALLBACK_MESSAGE =
 export function resolveDatabaseUrl(
   env: NodeJS.ProcessEnv = process.env,
 ): ResolvedDatabaseUrl {
-  const isProd = env.NODE_ENV === 'production';
+  const inDeploy = isDeployContext(env);
+  const isProd = env.NODE_ENV === 'production' || inDeploy;
   const koveo = env.DATABASE_URL_KOVEO;
   const prodAlias = env.PRODUCTION_DATABASE_URL;
   const dev = env.DATABASE_URL;
 
   if (isProd) {
     if (koveo && prodAlias) {
+      assertProdNotEqualsDevUrl(koveo, 'DATABASE_URL_KOVEO', dev);
       return {
         url: koveo,
         source: 'DATABASE_URL_KOVEO',
@@ -80,14 +137,20 @@ export function resolveDatabaseUrl(
       };
     }
     if (koveo) {
+      assertProdNotEqualsDevUrl(koveo, 'DATABASE_URL_KOVEO', dev);
       return { url: koveo, source: 'DATABASE_URL_KOVEO', isProd: true };
     }
     if (prodAlias) {
+      assertProdNotEqualsDevUrl(prodAlias, 'PRODUCTION_DATABASE_URL', dev);
       return {
         url: prodAlias,
         source: 'PRODUCTION_DATABASE_URL',
         isProd: true,
       };
+    }
+    // Neither prod URL is configured — fail fast with a context-specific message.
+    if (inDeploy) {
+      throw new Error(DEPLOY_CONTEXT_NO_PROD_URL_MESSAGE);
     }
     throw new Error(PROD_FALLBACK_MESSAGE);
   }
@@ -106,6 +169,24 @@ export function resolveDatabaseUrl(
     };
   }
   throw new Error(NO_URL_MESSAGE);
+}
+
+/**
+ * Throw if the resolved production URL is byte-equal to the dev URL.
+ * This catches the operator mistake of copying DATABASE_URL into the
+ * production secret, which would silently run every deploy migration
+ * against the development database.
+ */
+function assertProdNotEqualsDevUrl(
+  prodUrl: string,
+  prodSource: string,
+  devUrl: string | undefined,
+): void {
+  if (devUrl && prodUrl === devUrl) {
+    throw new Error(
+      buildProdEqualsDevMessage(prodSource, maskDatabaseUrl(prodUrl)),
+    );
+  }
 }
 
 /**

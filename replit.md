@@ -84,10 +84,13 @@ The platform exposes an MCP server at `/mcp` for LLM integration (e.g., Claude D
 - **Debug Logging**: All `[DB DEBUG]`, `[SESSION STORE DB]`, `[MCP SEED]`, and optimization diagnostic logs are silenced in `NODE_ENV=production`; errors are still logged
 - **Session Security**: In production, cookies use `secure: true`, `sameSite: 'strict'`, `httpOnly: true`; session secret must be 32+ characters
 - **Environment Variables**: See `.env.example` for all required and optional variables
-- **Production Migration DB URL (Task #936)**: `npm run migrate` (and `drizzle.production.config.ts`) accept either `DATABASE_URL_KOVEO` or `PRODUCTION_DATABASE_URL` — they are aliases. When `NODE_ENV=production`:
+- **Production Migration DB URL (Task #936, hardened in Task #1614)**: `npm run migrate` (and `drizzle.production.config.ts`) accept either `DATABASE_URL_KOVEO` or `PRODUCTION_DATABASE_URL` — they are aliases. When `NODE_ENV=production` **or** when running inside a Replit deployment build:
   - The runner prints a banner naming which env var supplied the URL and the masked `host:port/db` it is about to migrate (no credentials).
   - If both prod vars are set, `DATABASE_URL_KOVEO` wins deterministically; if they point at different databases, a loud warning is logged and the alias is ignored.
   - If neither prod var is set, the runner refuses to fall back to `DATABASE_URL` (the dev DB) and exits non-zero so the deploy fails fast instead of silently corrupting prod.
+  - **Deploy-context guard**: the runner detects Replit deployment builds via `REPLIT_DEPLOYMENT` (platform-provided) and `IS_DEPLOY_BUILD=true` (set explicitly in the `.replit` build command). In a deploy context, the production branch is forced even if `NODE_ENV` is missing or wrong — the deploy will fail with a clear error if `DATABASE_URL_KOVEO` is not configured.
+  - **Prod-equals-dev sanity check**: if the resolved production URL is byte-equal to `DATABASE_URL` (the dev database), the runner throws an error naming both vars and the masked host, catching the operator mistake of copying the dev URL into the production secret.
+  - **Required deployment secret**: `DATABASE_URL_KOVEO` (or its alias `PRODUCTION_DATABASE_URL`) MUST be configured as a deployment secret in the Manage → Secrets panel before publishing. The build command pins `IS_DEPLOY_BUILD=true NODE_ENV=production` for the migrate step. This is a one-time operator action.
 
 ### MCP Tooling
 - **Write-Error Envelope (`server/mcp/server.ts` → `buildWriteErrorResponse`)**: All MCP write tools must wrap database failures with this helper. The text payload is a JSON object of shape `{ status, code, retryable, message, pgCode?, referenced_entity?, blocking_entity? }`.
