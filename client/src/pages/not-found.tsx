@@ -3,15 +3,13 @@ import { AlertCircle } from 'lucide-react';
 import { Link } from 'wouter';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
+import { useDocumentTitle } from '@/hooks/use-document-title';
 
-/**
- * 404 not-found page with localized copy.
- * Shows a "Go to Dashboard" button for authenticated users and a
- * "Go to Login" button for unauthenticated users.
- */
 export default function NotFound() {
   const { t } = useLanguage();
   const { isAuthenticated } = useAuth();
+
+  useDocumentTitle('notFoundTitle');
 
   return (
     <div className='min-h-screen w-full flex items-center justify-center bg-gray-50'>
@@ -27,7 +25,7 @@ export default function NotFound() {
           <div className='mt-6'>
             {isAuthenticated ? (
               <Link
-                href='/dashboard'
+                href='/dashboard/overview'
                 className='inline-flex items-center justify-center rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground shadow hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring'
               >
                 {t('goToDashboard')}

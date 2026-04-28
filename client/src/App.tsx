@@ -369,7 +369,7 @@ function AuthenticatedLayout() {
 
       {/* Accessibility: skip to main content link (W54) */}
       <a
-        href='#main'
+        href='#main-content'
         className='sr-only focus:not-sr-only focus:absolute focus:top-2 focus:left-2 focus:z-[9999] focus:px-4 focus:py-2 focus:bg-koveo-navy focus:text-white focus:rounded focus:text-sm focus:font-medium'
       >
         {/* Bilingual skip link — shown in both FR and EN */}
@@ -391,7 +391,7 @@ function AuthenticatedLayout() {
             widen to fill the freed-up space. The CSS rules live in
             `client/src/index.css`. */}
         <main
-          id='main'
+          id='main-content'
           role='main'
           className={`flex-1 flex flex-col min-w-0 sidebar-aware-content ${
             isCollapsed ? 'sidebar-collapsed-layout' : ''

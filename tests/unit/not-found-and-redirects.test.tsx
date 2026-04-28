@@ -32,6 +32,11 @@ jest.mock('@/hooks/use-auth', () => ({
   useAuth: jest.fn(),
 }));
 
+jest.mock('@/hooks/use-document-title', () => ({
+  useDocumentTitle: jest.fn(),
+  RouteDocumentTitle: () => null,
+}));
+
 jest.mock('@/components/ui/card', () => ({
   Card: ({ children, className }: { children: React.ReactNode; className?: string }) => (
     <div className={className}>{children}</div>
@@ -135,7 +140,7 @@ describe('NotFound page (authenticated)', () => {
     render(<NotFound />);
 
     const link = screen.getByTestId('page-link');
-    expect(link).toHaveAttribute('href', '/dashboard');
+    expect(link).toHaveAttribute('href', '/dashboard/overview');
   });
 
   it('renders the alert icon', async () => {

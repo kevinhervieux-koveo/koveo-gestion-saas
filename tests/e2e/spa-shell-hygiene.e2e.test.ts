@@ -13,7 +13,7 @@
  * W52 — <title> is a per-route label ("${routeTitle} — Koveo Gestion"),
  *        not the marketing tagline, on every authenticated route.
  *
- * W54 — A <main id="main" role="main"> landmark wraps the route outlet and
+ * W54 — A <main id="main-content" role="main"> landmark wraps the route outlet and
  *        a "Skip to main content" link is present on every authenticated page.
  */
 
@@ -179,7 +179,7 @@ describe('SPA shell hygiene — W50 (single sidebar)', () => {
 
 describe('SPA shell hygiene — W54 (<main> landmark + skip link)', () => {
   for (const route of SIDEBAR_ROUTES) {
-    it(`${route}: has exactly one <main id="main" role="main"> landmark`, async () => {
+    it(`${route}: has exactly one <main id="main-content" role="main"> landmark`, async () => {
       const page = await browser.newPage();
       page.on('pageerror', (err) => console.error('[pageerror]', err.message));
       try {
@@ -198,7 +198,7 @@ describe('SPA shell hygiene — W54 (<main> landmark + skip link)', () => {
         const mainId = await page.evaluate(
           () => document.querySelector('main')?.id
         );
-        expect(mainId).toBe('main');
+        expect(mainId).toBe('main-content');
       } finally {
         await page.close();
       }
@@ -217,7 +217,7 @@ describe('SPA shell hygiene — W54 (<main> landmark + skip link)', () => {
       });
 
       const skipLink = await page.evaluate(() => {
-        const a = document.querySelector('a[href="#main"]') as HTMLAnchorElement | null;
+        const a = document.querySelector('a[href="#main-content"]') as HTMLAnchorElement | null;
         return a ? a.textContent : null;
       });
       expect(skipLink).not.toBeNull();
