@@ -7476,104 +7476,108 @@ export default function BulkDocumentImportPage() {
                                     });
                                   }}
                                 >
-                                  <div className="flex items-center gap-2 min-w-0">
-                                    {/* Task #1608: Drag handle — visible only when this item has a membership to reorder */}
-                                    {m?.id && (
-                                      <GripVertical
-                                        className="w-3.5 h-3.5 text-muted-foreground/50 flex-shrink-0 cursor-grab active:cursor-grabbing"
-                                        aria-hidden="true"
-                                      />
-                                    )}
-                                    {/* File icon + filename */}
-                                    <button
-                                      type="button"
-                                      className="flex items-center gap-2 min-w-0 flex-1 text-left hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
-                                      data-testid={`item-preview-trigger-${groupItem.id}`}
-                                      onClick={() => setPreviewItem({
-                                        id: groupItem.id,
-                                        originalName: groupItem.originalName,
-                                        mimeType: groupItem.mimeType,
-                                        chainSiblings: famGroupItems.map((gi) => ({
-                                          id: gi.id,
-                                          originalName: gi.originalName,
-                                          mimeType: gi.mimeType,
-                                        })),
-                                        chainIndex: famGroupItems.indexOf(groupItem),
-                                      })}
-                                    >
+                                  <div className="flex flex-col gap-1 min-w-0">
+                                    {/* Line 1: drag handle, file icon, sequence badge, filename, position input, neighbor text */}
+                                    <div className="flex items-center gap-2 min-w-0">
+                                      {/* Task #1608: Drag handle — visible only when this item has a membership to reorder */}
+                                      {m?.id && (
+                                        <GripVertical
+                                          className="w-3.5 h-3.5 text-muted-foreground/50 flex-shrink-0 cursor-grab active:cursor-grabbing"
+                                          aria-hidden="true"
+                                        />
+                                      )}
+                                      {/* File icon */}
                                       <GrpItemIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
-                                      <span className="text-sm truncate">{groupItem.originalName}</span>
-                                    </button>
-                                    {/* Task #1589: sequence position display + editable input */}
-                                    {m?.sequence != null && (
-                                      <span
-                                        className="text-xs font-mono text-indigo-600 dark:text-indigo-400 flex-shrink-0"
-                                        data-testid={`family-row-position-${groupItem.id}-${group.familyId}`}
-                                        title={isFr ? `Position dans la famille: ${m.sequence}` : `Position in family: ${m.sequence}`}
+                                      {/* Task #1589: sequence badge — now before the filename */}
+                                      {m?.sequence != null && (
+                                        <span
+                                          className="text-xs font-mono text-indigo-600 dark:text-indigo-400 flex-shrink-0"
+                                          data-testid={`family-row-position-${groupItem.id}-${group.familyId}`}
+                                          title={isFr ? `Position dans la famille: ${m.sequence}` : `Position in family: ${m.sequence}`}
+                                        >
+                                          #{m.sequence}
+                                        </span>
+                                      )}
+                                      {/* Filename button */}
+                                      <button
+                                        type="button"
+                                        className="min-w-0 flex-1 text-left hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
+                                        data-testid={`item-preview-trigger-${groupItem.id}`}
+                                        onClick={() => setPreviewItem({
+                                          id: groupItem.id,
+                                          originalName: groupItem.originalName,
+                                          mimeType: groupItem.mimeType,
+                                          chainSiblings: famGroupItems.map((gi) => ({
+                                            id: gi.id,
+                                            originalName: gi.originalName,
+                                            mimeType: gi.mimeType,
+                                          })),
+                                          chainIndex: famGroupItems.indexOf(groupItem),
+                                        })}
                                       >
-                                        #{m.sequence}
-                                      </span>
-                                    )}
-                                    {/* Editable sequence position input */}
-                                    {m?.id && (
-                                      <input
-                                        type="number"
-                                        min={1}
-                                        max={group.items.length}
-                                        data-testid={`family-row-position-input-${groupItem.id}-${group.familyId}`}
-                                        className="w-12 text-xs border border-border rounded px-1 py-0.5 text-center bg-background text-foreground flex-shrink-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
-                                        value={sequenceInputValues.has(`${groupItem.id}-${group.familyId}`)
-                                          ? sequenceInputValues.get(`${groupItem.id}-${group.familyId}`)!
-                                          : (m.sequence ?? '')}
-                                        title={isFr ? 'Modifier la position dans la famille' : 'Edit position in family'}
-                                        onChange={(e) => {
-                                          const key = `${groupItem.id}-${group.familyId}`;
-                                          setSequenceInputValues((prev) => {
-                                            const next = new Map(prev);
-                                            next.set(key, e.target.value);
-                                            return next;
-                                          });
-                                        }}
-                                        onBlur={(e) => {
-                                          const raw = parseInt(e.target.value, 10);
-                                          // Task #1589: clamp to valid range [1..groupSize].
-                                          const groupSize = group.items.length;
-                                          const newSeq = isNaN(raw) ? NaN : Math.min(Math.max(raw, 1), groupSize);
-                                          if (!isNaN(newSeq) && newSeq !== m.sequence) {
-                                            updateMembership.mutate({ itemId: groupItem.id, membershipId: m.id!, sequence: newSeq });
-                                          }
-                                          const key = `${groupItem.id}-${group.familyId}`;
-                                          setSequenceInputValues((prev) => {
-                                            const next = new Map(prev);
-                                            next.delete(key);
-                                            return next;
-                                          });
-                                        }}
-                                        onKeyDown={(e) => {
-                                          if (e.key === 'Enter') e.currentTarget.blur();
-                                          if (e.key === 'Escape') {
+                                        <span className="text-sm truncate block" title={groupItem.originalName}>{groupItem.originalName}</span>
+                                      </button>
+                                      {/* Editable sequence position input */}
+                                      {m?.id && (
+                                        <input
+                                          type="number"
+                                          min={1}
+                                          max={group.items.length}
+                                          data-testid={`family-row-position-input-${groupItem.id}-${group.familyId}`}
+                                          className="w-12 text-xs border border-border rounded px-1 py-0.5 text-center bg-background text-foreground flex-shrink-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                          value={sequenceInputValues.has(`${groupItem.id}-${group.familyId}`)
+                                            ? sequenceInputValues.get(`${groupItem.id}-${group.familyId}`)!
+                                            : (m.sequence ?? '')}
+                                          title={isFr ? 'Modifier la position dans la famille' : 'Edit position in family'}
+                                          onChange={(e) => {
+                                            const key = `${groupItem.id}-${group.familyId}`;
+                                            setSequenceInputValues((prev) => {
+                                              const next = new Map(prev);
+                                              next.set(key, e.target.value);
+                                              return next;
+                                            });
+                                          }}
+                                          onBlur={(e) => {
+                                            const raw = parseInt(e.target.value, 10);
+                                            // Task #1589: clamp to valid range [1..groupSize].
+                                            const groupSize = group.items.length;
+                                            const newSeq = isNaN(raw) ? NaN : Math.min(Math.max(raw, 1), groupSize);
+                                            if (!isNaN(newSeq) && newSeq !== m.sequence) {
+                                              updateMembership.mutate({ itemId: groupItem.id, membershipId: m.id!, sequence: newSeq });
+                                            }
                                             const key = `${groupItem.id}-${group.familyId}`;
                                             setSequenceInputValues((prev) => {
                                               const next = new Map(prev);
                                               next.delete(key);
                                               return next;
                                             });
-                                            e.currentTarget.blur();
-                                          }
-                                        }}
-                                      />
-                                    )}
-                                    {/* Position within family (neighbor link) */}
-                                    {m?.neighborDocumentId && m.position && (
-                                      <span className="text-xs text-muted-foreground flex-shrink-0 truncate max-w-[10rem]">
-                                        {m.position === 'after'
-                                          ? (isFr ? `Après: ${groupItem.linkingNeighborDocumentName ?? m.neighborDocumentId}` : `After: ${groupItem.linkingNeighborDocumentName ?? m.neighborDocumentId}`)
-                                          : (isFr ? `Avant: ${groupItem.linkingNeighborDocumentName ?? m.neighborDocumentId}` : `Before: ${groupItem.linkingNeighborDocumentName ?? m.neighborDocumentId}`)}
-                                      </span>
-                                    )}
-                                    {/* Action buttons */}
+                                          }}
+                                          onKeyDown={(e) => {
+                                            if (e.key === 'Enter') e.currentTarget.blur();
+                                            if (e.key === 'Escape') {
+                                              const key = `${groupItem.id}-${group.familyId}`;
+                                              setSequenceInputValues((prev) => {
+                                                const next = new Map(prev);
+                                                next.delete(key);
+                                                return next;
+                                              });
+                                              e.currentTarget.blur();
+                                            }
+                                          }}
+                                        />
+                                      )}
+                                      {/* Position within family (neighbor link) */}
+                                      {m?.neighborDocumentId && m.position && (
+                                        <span className="text-xs text-muted-foreground flex-shrink-0 truncate max-w-[10rem]">
+                                          {m.position === 'after'
+                                            ? (isFr ? `Après: ${groupItem.linkingNeighborDocumentName ?? m.neighborDocumentId}` : `After: ${groupItem.linkingNeighborDocumentName ?? m.neighborDocumentId}`)
+                                            : (isFr ? `Avant: ${groupItem.linkingNeighborDocumentName ?? m.neighborDocumentId}` : `Before: ${groupItem.linkingNeighborDocumentName ?? m.neighborDocumentId}`)}
+                                        </span>
+                                      )}
+                                    </div>
+                                    {/* Line 2: action buttons */}
                                     <div
-                                      className="flex items-center gap-1 flex-shrink-0 ml-auto"
+                                      className="flex items-center gap-1 pl-6"
                                       onClick={(e) => e.stopPropagation()}
                                     >
                                       {!grpIsExcluded && groupItem.status === 'linked' && (
