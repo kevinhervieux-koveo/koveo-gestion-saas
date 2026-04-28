@@ -13,6 +13,16 @@
  *  - Is a no-op when the onboarding flag is disabled (see client/src/lib/onboarding-flag.ts).
  *
  * Keyboard navigation: driver.js handles Tab/Esc/Enter natively.
+ *
+ * Bug fixes (Task #1642):
+ *  1. Step index clamping: use d.getActiveIndex() instead of indexOf(step) to
+ *     avoid sending currentStep: -1 to the server (which 400s).
+ *  2. API failures are surfaced via console.warn instead of swallowed silently.
+ *     Cache invalidation always runs (try/finally) so the catalog refreshes
+ *     even when persistence fails transiently.
+ *  3. Tours with an entryPath navigate to that route before launching so
+ *     Start/Restart from /settings/onboarding lands on the right page first.
+ *  4. Zero eligible steps → friendly toast + status 'skipped' (not 'completed').
  */
 
 import {
@@ -31,6 +41,7 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
 import type { TourContent } from '@/content/onboarding/smoke';
 import { ALL_TOURS } from '@/content/onboarding/smoke';
+import { useToast } from '@/hooks/use-toast';
 
 import { ONBOARDING_ENABLED } from '@/lib/onboarding-flag';
 
@@ -77,7 +88,8 @@ interface TourProgress {
 
 export function OnboardingProvider({ children }: OnboardingProviderProps) {
   const { language } = useLanguage();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
+  const { toast } = useToast();
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [activeTourId, setActiveTourId] = useState<string | null>(null);
@@ -97,6 +109,9 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
   // the active tour completes we shift the next pending tour and start it.
   // Skipped or in-flight tours are excluded at enqueue time.
   const pendingQueueRef = useRef<string[]>([]);
+  // When start/restart needs to navigate before launching, the pending tour
+  // is stored here and consumed by the location effect after the route change.
+  const pendingTourStartRef = useRef<{ tourId: string; fromStep: number } | null>(null);
 
   const t = useCallback(
     (text: { fr: string; en: string }) =>
@@ -118,9 +133,17 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
           currentStep: step,
           seenVersion,
         });
+      } catch (err) {
+        console.warn(
+          '[Onboarding] persistProgress failed — tour will still advance.',
+          { tourId, status, step, seenVersion },
+          err,
+        );
+      } finally {
+        // Always refresh the catalog so the UI reflects the latest state,
+        // even when the POST failed transiently.
         queryClient.invalidateQueries({ queryKey: ['/api/onboarding/me'] });
         queryClient.invalidateQueries({ queryKey: ['/api/onboarding/catalog'] });
-      } catch {
       }
     },
     [],
@@ -143,9 +166,27 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
       );
 
       if (eligibleSteps.length === 0) {
-        // Nothing to show in the current context — mark as completed so we
-        // don't re-trigger forever.
-        persistProgress(tour.tourId, 'completed', 0, latestVersion);
+        // The tour has no renderable steps in the current context. Show a
+        // friendly toast and mark the tour as skipped rather than silently
+        // completing it (which would both 400 and confuse the user).
+        toast({
+          title: language === 'en' ? 'Tour not available' : 'Visite non disponible',
+          description:
+            language === 'en'
+              ? 'This tour requires features that aren\'t available in your current setup.'
+              : 'Cette visite nécessite des fonctionnalités non disponibles dans votre configuration.',
+        });
+        persistProgress(tour.tourId, 'skipped', 0, latestVersion);
+        // Advance the pending queue so chained tours continue to run even
+        // when a tour is skipped due to missing anchors (same logic as the
+        // completion branch in onDestroyStarted).
+        const nextId = pendingQueueRef.current.shift();
+        if (nextId) {
+          const nextTour = ALL_TOURS.find((tt) => tt.tourId === nextId);
+          if (nextTour) {
+            setTimeout(() => runTour(nextTour, 0), 250);
+          }
+        }
         return;
       }
 
@@ -163,20 +204,27 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
         driverRef.current.destroy();
       }
 
-      const d = driver({
+      // `d` is referenced by the callbacks below via closure. By the time
+      // driver.js calls onHighlighted/onDestroyStarted, `d` is already assigned.
+      let d: Driver;
+      d = driver({
         steps,
         animate: true,
         showButtons: ['next', 'previous', 'close'],
         allowClose: true,
-        onHighlighted: (_el, step, { config }) => {
-          const idx = config.steps?.indexOf(step) ?? 0;
+        onHighlighted: () => {
+          // Use driver's canonical cursor instead of indexOf(step) which can
+          // return -1 when driver.js doesn't preserve object references.
+          const raw = d.getActiveIndex() ?? 0;
+          const idx = Math.max(0, Math.min(raw, eligibleSteps.length - 1));
           setCurrentStep(idx);
           lastStepIndexRef.current = idx;
           persistProgress(tour.tourId, 'in_progress', idx, latestVersion);
         },
         onDestroyStarted: () => {
           const currentIdx = d.getActiveIndex() ?? 0;
-          const isLast = currentIdx >= eligibleSteps.length - 1;
+          const clampedIdx = Math.max(0, Math.min(currentIdx, eligibleSteps.length - 1));
+          const isLast = clampedIdx >= eligibleSteps.length - 1;
           const isPausingForNav = pausingForNavRef.current;
           pausingForNavRef.current = false;
 
@@ -224,16 +272,26 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
         d.drive();
       }
     },
-    [language, persistProgress],
+    [language, persistProgress, toast],
   );
 
   const start = useCallback(
     (tourId: string) => {
       const tour = ALL_TOURS.find((t) => t.tourId === tourId);
       if (!tour) return;
+
+      // If the tour has an entry page and we're not already there, navigate
+      // first. The location effect will pick up pendingTourStartRef and
+      // launch the tour after the destination page renders.
+      if (tour.entryPath && location !== tour.entryPath) {
+        pendingTourStartRef.current = { tourId, fromStep: 0 };
+        setLocation(tour.entryPath);
+        return;
+      }
+
       runTour(tour, 0);
     },
-    [runTour],
+    [runTour, location, setLocation],
   );
 
   const restart = useCallback(
@@ -241,7 +299,8 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
       try {
         await apiRequest('POST', '/api/onboarding/restart', { tourId });
         queryClient.invalidateQueries({ queryKey: ['/api/onboarding/me'] });
-      } catch {
+      } catch (err) {
+        console.warn('[Onboarding] restart API call failed', { tourId }, err);
       }
       start(tourId);
     },
@@ -346,6 +405,21 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
   }, [runTour]);
 
   useEffect(() => {
+    // After navigating to a tour's entryPath, launch the pending tour.
+    // This must run before the pause-for-navigation logic below so that
+    // intentional Start/Restart navigations don't pause immediately.
+    if (pendingTourStartRef.current) {
+      const { tourId, fromStep } = pendingTourStartRef.current;
+      pendingTourStartRef.current = null;
+      const tour = ALL_TOURS.find((t) => t.tourId === tourId);
+      if (tour) {
+        // Small delay allows the destination page's DOM to settle before
+        // driver.js tries to find anchors.
+        setTimeout(() => runTour(tour, fromStep), 400);
+      }
+      return;
+    }
+
     if (isActive && driverRef.current) {
       setHasResumable(true);
       // Mark this as a pause so onDestroyStarted preserves activeTourRef/Id

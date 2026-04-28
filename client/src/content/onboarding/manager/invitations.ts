@@ -11,6 +11,7 @@ import {
 export const INVITATIONS_TOUR: TourContent = {
   tourId: 'manager.core.invitations',
   roles: ['manager', 'demo_manager'],
+  entryPath: '/invitations',
   steps: [
     {
       id: 'inv.new',

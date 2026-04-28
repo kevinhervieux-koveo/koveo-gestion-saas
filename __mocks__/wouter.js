@@ -20,6 +20,10 @@ const __setParams = (params) => {
   mockParams = params;
 };
 
+const __getLocation = () => mockLocation;
+
+const __getNavigateMock = () => mockNavigateFunction;
+
 const __resetMocks = () => {
   mockLocation = '/';
   mockSearch = '';
@@ -177,6 +181,8 @@ module.exports.useNavigate = useNavigate;
 module.exports.__setLocation = __setLocation;
 module.exports.__setSearch = __setSearch;
 module.exports.__setParams = __setParams;
+module.exports.__getLocation = __getLocation;
+module.exports.__getNavigateMock = __getNavigateMock;
 module.exports.__resetMocks = __resetMocks;
 
 // ES module compatibility - set after named exports
@@ -198,5 +204,7 @@ module.exports.default = {
   __setLocation,
   __setSearch,
   __setParams,
+  __getLocation,
+  __getNavigateMock,
   __resetMocks
 };

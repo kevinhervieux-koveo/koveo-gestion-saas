@@ -71,6 +71,7 @@ export const PRED_HAS_BUILDING_DELETE_BTN = sel('building.delete-btn');
 // ── Financials tour helpers ──────────────────────────────────────────────────
 
 export const PRED_HAS_BUILDING_BILLS_TAB = sel('building.bills-tab');
+export const PRED_HAS_BILLS_NEW_BTN = sel('bills.new-btn');
 export const PRED_HAS_BILLS_ROW_STATUS = sel('bills.row-status');
 export const PRED_HAS_BILLS_ROW_NUMBER = sel('bills.row-number');
 export const PRED_HAS_BILLS_ROW_DELETE = sel('bills.row-delete');

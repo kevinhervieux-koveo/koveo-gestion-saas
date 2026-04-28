@@ -8,6 +8,7 @@ import {
 export const COMMUNICATIONS_TOUR: TourContent = {
   tourId: 'manager.core.communications',
   roles: ['manager', 'demo_manager'],
+  entryPath: '/communications',
   steps: [
     {
       id: 'comm.list',

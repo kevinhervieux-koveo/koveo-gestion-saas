@@ -8,6 +8,7 @@ import {
 export const WELCOME_TOUR: TourContent = {
   tourId: 'manager.core.welcome',
   roles: ['manager', 'demo_manager'],
+  entryPath: '/',
   steps: [
     {
       id: 'welcome.dashboard',

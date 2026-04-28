@@ -146,7 +146,7 @@ Six more files were cleaned up in task #1482 (see section above).
 
 ### `scripts/`
 - `scripts/create-admin-user.ts`
-- `scripts/create-kev-manager.ts`
+- `scripts/create-kev-manager.ts` — **LOW**: one-off dev seeding script (task #769)
 - `scripts/generate-security-report.ts`
 - `scripts/migrate-documents.ts`
 - `scripts/run-quality-check.ts`

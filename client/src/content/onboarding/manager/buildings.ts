@@ -11,6 +11,7 @@ import {
 export const BUILDINGS_TOUR: TourContent = {
   tourId: 'manager.core.buildings',
   roles: ['manager', 'demo_manager'],
+  entryPath: '/buildings',
   steps: [
     {
       id: 'bld.list',

@@ -1,6 +1,7 @@
 import type { TourContent } from '../types';
 import {
   PRED_HAS_BUILDING_BILLS_TAB,
+  PRED_HAS_BILLS_NEW_BTN,
   PRED_HAS_BILLS_ROW_STATUS,
   PRED_HAS_BILLS_ROW_DELETE,
   PRED_HAS_BILLS_ROW_NUMBER,
@@ -9,6 +10,7 @@ import {
 export const FINANCIALS_TOUR: TourContent = {
   tourId: 'manager.core.financials',
   roles: ['manager', 'demo_manager'],
+  entryPath: '/buildings',
   steps: [
     {
       id: 'fin.list',
@@ -40,6 +42,7 @@ export const FINANCIALS_TOUR: TourContent = {
       placement: 'bottom',
       allowSkip: true,
       covers: ['fr-7.create-bill'],
+      visibleIf: PRED_HAS_BILLS_NEW_BTN,
     },
     {
       id: 'fin.status',

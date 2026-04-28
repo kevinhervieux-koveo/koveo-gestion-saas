@@ -19,7 +19,6 @@ import { requireAuth } from '../../auth';
 import { db } from '../../db';
 import { isOnboardingEnabled } from '../../utils/feature-flags';
 import { asyncHandler } from '../../utils/async-handler';
-import { z } from 'zod';
 import { eq, and } from 'drizzle-orm';
 import {
   onboardingProgress,
@@ -28,17 +27,7 @@ import {
 } from '../../../shared/schemas/onboarding';
 import { SMOKE_TOUR_DEF } from './onboarding-content';
 import { analyzeOnboardingHealth } from '../../lib/onboarding-health-analyzer';
-
-const updateProgressSchema = z.object({
-  tourId: z.string().min(1),
-  status: z.enum(['not_started', 'in_progress', 'completed', 'skipped']),
-  currentStep: z.number().int().min(0),
-  seenVersion: z.number().int().min(0),
-});
-
-const restartSchema = z.object({
-  tourId: z.string().min(1),
-});
+import { updateProgressSchema, restartSchema } from './onboarding-schemas';
 
 function flagGuard(res: any): boolean {
   if (!isOnboardingEnabled()) {

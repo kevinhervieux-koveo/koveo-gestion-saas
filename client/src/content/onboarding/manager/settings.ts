@@ -7,6 +7,7 @@ import {
 export const SETTINGS_TOUR: TourContent = {
   tourId: 'manager.core.settings',
   roles: ['manager', 'demo_manager'],
+  entryPath: '/settings',
   steps: [
     {
       id: 'settings.entry',

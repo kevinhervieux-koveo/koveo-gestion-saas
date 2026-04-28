@@ -9,6 +9,7 @@ import {
 export const REQUESTS_TOUR: TourContent = {
   tourId: 'manager.core.requests',
   roles: ['manager', 'demo_manager'],
+  entryPath: '/demands',
   steps: [
     {
       id: 'req.demands-list',

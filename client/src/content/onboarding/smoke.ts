@@ -17,6 +17,7 @@ export type { OnboardingStep, TourContent } from './types';
 export const SMOKE_TOUR = {
   tourId: 'onboarding.smoke',
   roles: [] as string[],
+  entryPath: '/',
   steps: [
     {
       id: 'dashboard.header',

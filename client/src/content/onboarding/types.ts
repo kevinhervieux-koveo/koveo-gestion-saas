@@ -21,4 +21,11 @@ export interface TourContent {
   tourId: string;
   roles: string[];
   steps: OnboardingStep[];
+  /**
+   * The app route the tour must be started from so its anchors exist in the DOM.
+   * When `start()` or `restart()` is called from a different route, the engine
+   * navigates here first, then launches the tour after the page renders.
+   * Tours without an entryPath keep today's behavior (launch on whatever page is active).
+   */
+  entryPath?: string;
 }
