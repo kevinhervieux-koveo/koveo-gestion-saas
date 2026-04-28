@@ -8546,12 +8546,17 @@ export function registerBulkImportRoutes(app: Express): void {
    * Must be called after any INSERT or DELETE that changes the set of
    * sequence-carrying memberships (i.e. those with sequence IS NOT NULL).
    *
-   * Each membership is renumbered by its current relative order
-   * (ascending sequence, then id for stability). The function issues
-   * individual UPDATEs; for realistic batch sizes (<100 items per family)
-   * the overhead is negligible.
+   * Task #1655: `pinnedMembershipId` is the row the user explicitly moved.
+   * When two rows share the same sequence value after the UPDATE, the pinned
+   * row is sorted first so it always wins the requested slot and all others
+   * shift around it.  Without this the membership with the lexically smaller
+   * id would win the tie (old behaviour), causing "I typed 1 but it became 2".
    */
-  async function renumberFamilySequences(sessionId: string, familyId: string): Promise<void> {
+  async function renumberFamilySequences(
+    sessionId: string,
+    familyId: string,
+    pinnedMembershipId?: string,
+  ): Promise<void> {
     const rows = await db
       .select({
         id: schema.bulkImportItemFamilyMemberships.id,
@@ -8568,8 +8573,19 @@ export function registerBulkImportRoutes(app: Express): void {
           eq(schema.bulkImportItemFamilyMemberships.familyId, familyId),
           isNotNull(schema.bulkImportItemFamilyMemberships.sequence),
         ),
-      )
-      .orderBy(schema.bulkImportItemFamilyMemberships.sequence, schema.bulkImportItemFamilyMemberships.id);
+      );
+
+    // Sort in memory so pinnedMembershipId wins any sequence tie.
+    rows.sort((a, b) => {
+      const seqA = a.sequence ?? Infinity;
+      const seqB = b.sequence ?? Infinity;
+      if (seqA !== seqB) return seqA - seqB;
+      if (pinnedMembershipId) {
+        if (a.id === pinnedMembershipId) return -1;
+        if (b.id === pinnedMembershipId) return 1;
+      }
+      return a.id.localeCompare(b.id);
+    });
 
     for (let i = 0; i < rows.length; i++) {
       const newSeq = i + 1;
@@ -8808,8 +8824,9 @@ export function registerBulkImportRoutes(app: Express): void {
 
         // Task #1589: compact-renumber after sequence changes so per-family order
         // stays gap-free when the admin moves an item to a different slot.
+        // Task #1655: pass updated.id so the just-moved row wins any sequence tie.
         if (parsed.sequence !== undefined && updated?.familyId) {
-          await renumberFamilySequences(item.sessionId, updated.familyId);
+          await renumberFamilySequences(item.sessionId, updated.familyId, updated.id);
         }
 
         return res.json({ membership: updated });

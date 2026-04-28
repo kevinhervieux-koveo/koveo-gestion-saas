@@ -4292,6 +4292,10 @@ export default function BulkDocumentImportPage() {
 
   /**
    * Task #1589: update a membership's sequence (or other fields).
+   * Task #1655: uses optimistic updates so the UI responds instantly without
+   * a full re-render.  The cache is updated before the request fires; on
+   * success the optimistic state stays (no refetch); on error we roll back
+   * and then invalidate to resync with the server.
    */
   const updateMembership = useMutation({
     mutationFn: async ({
@@ -4304,6 +4308,7 @@ export default function BulkDocumentImportPage() {
       itemId: string;
       membershipId: string;
       sequence: number;
+      familyId?: string | null;
       neighborDocumentId?: string;
       position?: 'before' | 'after';
     }) => {
@@ -4321,18 +4326,76 @@ export default function BulkDocumentImportPage() {
       }
       return res.json();
     },
-    onSuccess: () => {
-      queryClient.invalidateQueries({
-        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
-      });
+    onMutate: async ({ membershipId, sequence: newSeq, familyId, neighborDocumentId, position }) => {
+      const queryKey = ['/api/admin/bulk-import/sessions', sessionId, 'lite'];
+      await queryClient.cancelQueries({ queryKey });
+      const snapshot = queryClient.getQueryData<SessionPayloadLite>(queryKey);
+      if (snapshot && familyId) {
+        // Collect sequence-carrying memberships in this family (mirrors the server's
+        // WHERE sequence IS NOT NULL filter in renumberFamilySequences).  The moved
+        // membership is always included — it is acquiring a sequence right now.
+        const siblings: Array<{ itemIdx: number; mIdx: number; id: string; sequence: number | null }> = [];
+        snapshot.items.forEach((item, itemIdx) => {
+          item.linkingMemberships.forEach((m, mIdx) => {
+            if (m.familyId === familyId && (m.sequence != null || m.id === membershipId)) {
+              siblings.push({ itemIdx, mIdx, id: m.id, sequence: m.sequence });
+            }
+          });
+        });
+        // Apply the new sequence to the pinned membership and optionally clear neighbor.
+        siblings.forEach((s) => {
+          if (s.id === membershipId) s.sequence = newSeq;
+        });
+        // Sort: ascending sequence; pinned row wins any tie.
+        siblings.sort((a, b) => {
+          const seqA = a.sequence ?? Infinity;
+          const seqB = b.sequence ?? Infinity;
+          if (seqA !== seqB) return seqA - seqB;
+          if (a.id === membershipId) return -1;
+          if (b.id === membershipId) return 1;
+          return a.id.localeCompare(b.id);
+        });
+        // Build a map from membershipId → new 1-based sequence.
+        const newSeqById = new Map<string, number>(siblings.map((s, i) => [s.id, i + 1]));
+        // Apply to the items in cache.
+        const newItems = snapshot.items.map((item) => {
+          const newMemberships = item.linkingMemberships.map((m) => {
+            if (m.familyId !== familyId) return m;
+            const updatedSeq = newSeqById.get(m.id);
+            if (updatedSeq === undefined) return m;
+            // Mirror the server's behavior: when sequence changes without an
+            // explicit neighbor, clear the stored neighborDocumentId/position.
+            const isTarget = m.id === membershipId;
+            const clearNeighbor = isTarget && neighborDocumentId == null && position == null;
+            return {
+              ...m,
+              sequence: updatedSeq,
+              neighborDocumentId: clearNeighbor ? null : (isTarget && neighborDocumentId != null ? neighborDocumentId : m.neighborDocumentId),
+              position: clearNeighbor ? null : (isTarget && position != null ? position : m.position),
+            };
+          });
+          return { ...item, linkingMemberships: newMemberships };
+        });
+        queryClient.setQueryData<SessionPayloadLite>(queryKey, { ...snapshot, items: newItems });
+      }
+      return { snapshot };
     },
-    onError: (err: Error) => {
+    onSuccess: () => {
+      // Optimistic state is already applied — no refetch needed on the happy path.
+    },
+    onError: (err: Error, _vars, context) => {
       toast({
         variant: 'destructive',
         title: isFr ? 'Échec du réordonnancement' : 'Reorder failed',
         description: err.message,
       });
-      // Refetch to reset to the server-authoritative order.
+      // Roll back to the pre-mutation snapshot, then resync with the server.
+      if (context?.snapshot) {
+        queryClient.setQueryData(
+          ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+          context.snapshot,
+        );
+      }
       queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       });
@@ -7408,6 +7471,7 @@ export default function BulkDocumentImportPage() {
                                             itemId: srcId,
                                             membershipId: srcMembership.id,
                                             sequence: newSeq,
+                                            familyId: srcMembership.familyId,
                                             neighborDocumentId: existingDoc.id,
                                             position: dropPos,
                                           });
@@ -7503,7 +7567,12 @@ export default function BulkDocumentImportPage() {
                                     setDragOverKey(dragKey);
                                     setDragOverPosition(pos);
                                   }}
-                                  onDragLeave={() => {
+                                  onDragLeave={(e) => {
+                                    // Task #1655: only clear the indicator when the cursor truly
+                                    // leaves this row — not when it moves onto a child element
+                                    // (which would fire onDragLeave before onDragOver on the child
+                                    // and make the indicator flicker on every child boundary).
+                                    if (e.currentTarget.contains(e.relatedTarget as Node | null)) return;
                                     setDragOverKey((prev) => prev === dragKey ? null : prev);
                                   }}
                                   onDrop={(e) => {
@@ -7566,6 +7635,7 @@ export default function BulkDocumentImportPage() {
                                         itemId: srcId,
                                         membershipId: srcMembership.id,
                                         sequence: newSeq ?? srcMembership.sequence ?? 1,
+                                        familyId: srcMembership.familyId,
                                         neighborDocumentId,
                                         position,
                                       });
@@ -7623,6 +7693,7 @@ export default function BulkDocumentImportPage() {
                                       itemId: groupItem.id,
                                       membershipId: m.id!,
                                       sequence: targetNewIdx + 1,
+                                      familyId: m.familyId,
                                       neighborDocumentId,
                                       position: neighborPosition,
                                     });
@@ -7686,7 +7757,7 @@ export default function BulkDocumentImportPage() {
                                         <input
                                           type="number"
                                           min={1}
-                                          max={group.items.length}
+                                          max={group.newCount || 1}
                                           data-testid={`family-row-position-input-${groupItem.id}-${group.familyId}`}
                                           className="w-12 text-xs border border-border rounded px-1 py-0.5 text-center bg-background text-foreground flex-shrink-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
                                           value={sequenceInputValues.has(`${groupItem.id}-${group.familyId}`)
@@ -7703,11 +7774,12 @@ export default function BulkDocumentImportPage() {
                                           }}
                                           onBlur={(e) => {
                                             const raw = parseInt(e.target.value, 10);
-                                            // Task #1589: clamp to valid range [1..groupSize].
-                                            const groupSize = group.items.length;
+                                            // Task #1655: clamp to count of sequence-carrying (new) rows only,
+                                            // not the total group size which includes read-only existing-library rows.
+                                            const groupSize = group.newCount || 1;
                                             const newSeq = isNaN(raw) ? NaN : Math.min(Math.max(raw, 1), groupSize);
                                             if (!isNaN(newSeq) && newSeq !== m.sequence) {
-                                              updateMembership.mutate({ itemId: groupItem.id, membershipId: m.id!, sequence: newSeq });
+                                              updateMembership.mutate({ itemId: groupItem.id, membershipId: m.id!, sequence: newSeq, familyId: m.familyId });
                                             }
                                             const key = `${groupItem.id}-${group.familyId}`;
                                             setSequenceInputValues((prev) => {
@@ -8444,6 +8516,7 @@ export default function BulkDocumentImportPage() {
                                                       itemId: item.id,
                                                       membershipId: membershipForFamily.id,
                                                       sequence: membershipForFamily.sequence ?? 1,
+                                                      familyId: membershipForFamily.familyId,
                                                     });
                                                   } else {
                                                     createMembership.mutate({
