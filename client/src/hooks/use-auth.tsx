@@ -142,24 +142,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       setUser(userData);
     }
 
-    // Only redirect after a complete auth check with proper delays
-    // Ensure we're not in any loading/fetching state before redirecting
-    if (
-      userData === null && 
-      !isPublicPage && 
-      !isLoading && 
-      !isFetching && 
-      !isAuthenticating && 
-      !isError &&
-      Date.now() - lastAuthCheck > 500 // 500ms stability window
-    ) {
-      const redirectTimer = setTimeout(() => {
-        setLocation('/login');
-      }, 200);
-      
-      return () => clearTimeout(redirectTimer);
-    }
-  }, [userData, isPublicPage, isLoading, isFetching, isAuthenticating, isError, lastAuthCheck, setLocation]);
+    // Navigation for unauthenticated users is now handled entirely by the
+    // Router component in App.tsx, which shows the 404 page for unknown routes
+    // and a spinner only during initial auth resolution. Redirecting here would
+    // prevent the 404 catch-all from ever rendering (task #1498).
+  }, [userData, isPublicPage, isLoading, isFetching, isAuthenticating, isError, lastAuthCheck]);
 
   // Login mutation
   const loginMutation = useMutation({

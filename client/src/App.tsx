@@ -343,11 +343,16 @@ function Router() {
     );
   }
 
-  // For protected routes, require authentication
+  // For protected routes, require authentication.
+  // Auth has fully resolved at this point (the isLoading/isAuthenticating guard
+  // above already handled the initial resolution window), so we can safely show
+  // the 404 page instead of a spinner to unauthenticated visitors.
   if (!isAuthenticated) {
-    // Show loading spinner instead of immediate redirect to prevent race conditions
-    // The redirect logic is now handled in the useAuth hook with proper delays
-    return <LoadingSpinner />;
+    return (
+      <Suspense fallback={<LoadingSpinner />}>
+        <NotFound />
+      </Suspense>
+    );
   }
 
   return <AuthenticatedLayout />;
