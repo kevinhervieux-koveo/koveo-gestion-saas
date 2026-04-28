@@ -98,6 +98,7 @@ export function PaginationControls({
           size='sm'
           onClick={handlePreviousPage}
           disabled={currentPage === 1}
+          className='min-h-11 min-w-11'
           data-testid='button-previous-page'
         >
           <ChevronLeft className='h-4 w-4 mr-1' />
@@ -111,7 +112,7 @@ export function PaginationControls({
               variant={currentPage === pageNum ? 'default' : 'outline'}
               size='sm'
               onClick={() => onPageChange(pageNum)}
-              className='w-10 h-9 p-0'
+              className='min-h-11 min-w-11 p-0'
               data-testid={`button-page-${pageNum}`}
             >
               {pageNum}
@@ -124,6 +125,7 @@ export function PaginationControls({
           size='sm'
           onClick={handleNextPage}
           disabled={currentPage === totalPages}
+          className='min-h-11 min-w-11'
           data-testid='button-next-page'
         >
           Next

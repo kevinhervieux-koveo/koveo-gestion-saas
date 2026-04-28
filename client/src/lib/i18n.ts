@@ -4493,6 +4493,9 @@ export interface Translations {
   impLogEmpty: string;
   impLogError: string;
   impLogPaginationLabel: string;
+  orgAccessTitle: string;
+  orgAccessUnderConstruction: string;
+  orgAccessUnavailable: string;
   orgCardCreate: string;
   orgCardNoOrgs: string;
   orgCardCreateFirst: string;
@@ -9013,6 +9016,9 @@ export const translations: Record<Language, Translations> = {
     impLogEmpty: 'No impersonation events recorded yet.',
     impLogError: 'Failed to load impersonation log. Please try again.',
     impLogPaginationLabel: 'Page {page} of {totalPages} — {total} total events',
+    orgAccessTitle: 'Org Access',
+    orgAccessUnderConstruction: 'Page under construction',
+    orgAccessUnavailable: 'This page is currently unavailable. Check back later.',
     orgCardCreate: 'Create',
     orgCardNoOrgs: 'No organizations found',
     orgCardCreateFirst: 'Create First Organization',
@@ -13538,6 +13544,9 @@ export const translations: Record<Language, Translations> = {
     impLogEmpty: 'Aucun événement d\'usurpation enregistré.',
     impLogError: 'Échec du chargement du journal d\'usurpation. Veuillez réessayer.',
     impLogPaginationLabel: 'Page {page} sur {totalPages} — {total} événements au total',
+    orgAccessTitle: 'Accès organisations',
+    orgAccessUnderConstruction: 'Page en construction',
+    orgAccessUnavailable: 'Cette page est actuellement indisponible. Revenez plus tard.',
     orgCardCreate: 'Créer',
     orgCardNoOrgs: 'Aucune organisation trouvée',
     orgCardCreateFirst: 'Créer la première organisation',

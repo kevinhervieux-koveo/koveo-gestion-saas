@@ -10,6 +10,12 @@ if (import.meta.hot) {
 
 createRoot(document.getElementById('root')!).render(<App />);
 
+if (!import.meta.env.PROD) {
+  const s = document.createElement('script');
+  s.src = 'https://replit.com/public/js/replit-dev-banner.js';
+  document.body.appendChild(s);
+}
+
 if ('serviceWorker' in navigator && import.meta.env.PROD) {
   window.addEventListener('load', () => {
     navigator.serviceWorker.register('/sw.js').catch(() => {
