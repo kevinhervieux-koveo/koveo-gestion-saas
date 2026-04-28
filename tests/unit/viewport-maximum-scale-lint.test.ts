@@ -50,11 +50,13 @@ describe('Build-time HTML lint — viewport maximum-scale regression guard (W65)
     const html = fs.readFileSync(DIST_HTML, 'utf-8');
     const matches = html.match(MAXIMUM_SCALE_PATTERN);
 
-    expect(
-      matches,
-      `dist/index.html contains "${matches?.[0]}" — this violates WCAG 1.4.4 (W65). ` +
-        'Remove maximum-scale=1 from the viewport meta tag in client/index.html.'
-    ).toBeNull();
+    if (matches) {
+      throw new Error(
+        `dist/index.html contains "${matches[0]}" — this violates WCAG 1.4.4 (W65). ` +
+          'Remove maximum-scale=1 from the viewport meta tag in client/index.html.'
+      );
+    }
+    expect(matches).toBeNull();
   });
 
   it('client/index.html (source) must NOT contain maximum-scale=1 in the viewport meta', () => {
@@ -63,11 +65,13 @@ describe('Build-time HTML lint — viewport maximum-scale regression guard (W65)
     const html = fs.readFileSync(SOURCE_HTML, 'utf-8');
     const matches = html.match(MAXIMUM_SCALE_PATTERN);
 
-    expect(
-      matches,
-      `client/index.html contains "${matches?.[0]}" — this violates WCAG 1.4.4 (W65). ` +
-        'Remove maximum-scale=1 from the viewport meta tag.'
-    ).toBeNull();
+    if (matches) {
+      throw new Error(
+        `client/index.html contains "${matches[0]}" — this violates WCAG 1.4.4 (W65). ` +
+          'Remove maximum-scale=1 from the viewport meta tag.'
+      );
+    }
+    expect(matches).toBeNull();
   });
 
   it('client/index.html (source) viewport meta contains viewport-fit=cover for notch support', () => {

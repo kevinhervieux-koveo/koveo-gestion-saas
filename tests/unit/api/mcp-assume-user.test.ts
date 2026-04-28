@@ -717,7 +717,7 @@ describe('assume_user / restore_acting_user tools (Task #642)', () => {
       expect(restoreTool!.description.startsWith(WARN_PREFIX + ' ')).toBe(true);
 
       // The original description content should still follow the prefix.
-      expect(assumeTool!.description).toContain('Admin-only QA tool');
+      expect(assumeTool!.description).toContain('ADMIN-ONLY QA TOOL');
       expect(restoreTool!.description).toContain('Clear any impersonation override');
     });
 
@@ -771,7 +771,7 @@ describe('assume_user / restore_acting_user tools (Task #642)', () => {
       expect(restoreTool!.description).not.toContain(WARN_PREFIX);
 
       // Original description content should be intact.
-      expect(assumeTool!.description).toContain('Admin-only QA tool');
+      expect(assumeTool!.description).toContain('ADMIN-ONLY QA TOOL');
       expect(restoreTool!.description).toContain('Clear any impersonation override');
     });
 

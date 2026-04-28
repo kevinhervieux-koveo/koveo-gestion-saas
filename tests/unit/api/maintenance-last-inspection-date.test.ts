@@ -85,7 +85,10 @@ jest.mock('../../../server/db', () => {
     })),
 
     delete: jest.fn(() => ({ where: jest.fn().mockResolvedValue(undefined) })),
-    transaction: jest.fn(),
+    // The route now wraps the history insert + audit-log insert in a transaction
+    // (Task #1663). Run the callback with `mockDb` itself acting as the tx so the
+    // chained insert/values/returning mocks above continue to apply.
+    transaction: jest.fn(async (cb: (tx: unknown) => unknown) => cb(mockDb)),
   };
 
   return {
