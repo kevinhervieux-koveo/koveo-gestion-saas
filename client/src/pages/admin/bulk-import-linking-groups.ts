@@ -393,7 +393,29 @@ export function computeLinkingMakeStandaloneChanges(
 
 // ---------------------------------------------------------------------------
 // Task #1425: Family-group resolver
+// Task #1608: Extended with mixed rows (existing library docs + new session items)
 // ---------------------------------------------------------------------------
+
+/**
+ * Task #1608: An existing committed library document shown inside a family card
+ * as a read-only anchor row, sourced from the family-context endpoint.
+ */
+export interface ExistingFamilyDoc {
+  id: string;
+  name: string;
+  effectiveDate?: string | Date | null;
+  mimeType?: string | null;
+  residenceId?: string | null;
+}
+
+/**
+ * Task #1608: A row in the mixed-sequence family card.
+ * - kind='existing': read-only anchor from the live library
+ * - kind='new': draggable session item
+ */
+export type FamilyRow<T extends FamilyGroupItemShape = FamilyGroupItemShape> =
+  | { kind: 'existing'; doc: ExistingFamilyDoc }
+  | { kind: 'new'; item: T };
 
 /**
  * A single item-to-family membership as returned by the API.
@@ -427,7 +449,20 @@ export interface FamilyGroup<T extends FamilyGroupItemShape = FamilyGroupItemSha
   /** Null ⟹ the "Unassigned" bucket. */
   familyId: string | null;
   familyName: string;
+  /** New session items in this group (backward compat, same as rows filtered to kind='new'). */
   items: T[];
+  /**
+   * Task #1608: ordered mixed list of rows — existing library docs interleaved
+   * with new session items. Existing rows are read-only anchors; new rows are
+   * draggable. The list is ordered by chain position: existing docs in their
+   * live chain order, new items inserted adjacent to their declared neighbor
+   * document (or appended at the end when no neighbor is set).
+   */
+  rows: FamilyRow<T>[];
+  /** Task #1608: number of new session items in this group. */
+  newCount: number;
+  /** Task #1608: number of existing library docs shown in this group. */
+  existingCount: number;
   /**
    * Deduplicated, ordered memberships across all items in this group,
    * keyed by item id, so the row can render its neighbor + position without
@@ -441,6 +476,9 @@ export interface FamilyGroup<T extends FamilyGroupItemShape = FamilyGroupItemSha
  * `memberships[]`) into an ordered list of named family groups plus an
  * "Unassigned" bucket for items with no memberships.
  *
+ * Task #1608: Extended with `existingDocsByFamilyId` to produce mixed rows
+ * (existing library docs interleaved with new session items in chain order).
+ *
  * Items can appear in **multiple** groups (many-to-many).
  *
  * Algorithm:
@@ -449,9 +487,14 @@ export interface FamilyGroup<T extends FamilyGroupItemShape = FamilyGroupItemSha
  *  3. Walk every item: for each of its memberships, add it to the appropriate group.
  *  4. Items with zero memberships go into the Unassigned bucket (familyId=null).
  *  5. Sort groups: named families first (alphabetical), Unassigned last.
+ *  6. For each group, build `rows` by interleaving existing docs with new items.
+ *
+ * @param existingDocsByFamilyId Optional map of familyId → ordered existing docs
+ *   from the family-context endpoint. Used to build mixed-row sequences.
  */
 export function resolveFamilyGroups<T extends FamilyGroupItemShape>(
   items: T[],
+  existingDocsByFamilyId?: Map<string, ExistingFamilyDoc[]>,
 ): { groups: FamilyGroup<T>[]; unassignedItems: T[] } {
   const groupMap = new Map<string, FamilyGroup<T>>();
   const unassignedItems: T[] = [];
@@ -473,6 +516,9 @@ export function resolveFamilyGroups<T extends FamilyGroupItemShape>(
           familyId: m.familyId,
           familyName: m.familyName ?? m.familyId,
           items: [],
+          rows: [],
+          newCount: 0,
+          existingCount: 0,
           membershipByItemId: new Map(),
         };
         groupMap.set(m.familyId, group);
@@ -494,11 +540,68 @@ export function resolveFamilyGroups<T extends FamilyGroupItemShape>(
       if (seqA === seqB) return 0;
       return seqA - seqB;
     });
+
+    // Task #1608: build the mixed rows list by interleaving existing library
+    // docs (from existingDocsByFamilyId) with the new session items.
+    // Algorithm:
+    //  1. Start with a mutable copy of existing docs in chain order.
+    //  2. For each new item (in sequence order), find its declared neighbor
+    //     document ID and position in its membership. If the neighbor is in the
+    //     existing docs list, insert the new item adjacent to it.
+    //  3. New items without a neighbor (or whose neighbor isn't in the existing
+    //     list) are appended at the end.
+    //  4. Always tag each element with its kind.
+    const existingDocs = group.familyId
+      ? (existingDocsByFamilyId?.get(group.familyId) ?? [])
+      : [];
+
+    // Build a mutable interleaved row list starting from existing docs.
+    const rowList: FamilyRow<T>[] = existingDocs.map((doc) => ({ kind: 'existing' as const, doc }));
+    const existingIdToIndex = new Map<string, number>(existingDocs.map((doc, i) => [doc.id, i]));
+
+    // Track insertion offsets so subsequent insertions stay correct.
+    // We use a simple approach: after each insertion, update the index map.
+    let appendStart = rowList.length; // where we start appending unpositioned items
+
+    for (const item of group.items) {
+      const m = group.membershipByItemId.get(item.id);
+      const neighborId = m?.neighborDocumentId ?? null;
+      const position = m?.position ?? null;
+
+      if (neighborId && position && existingIdToIndex.has(neighborId)) {
+        // Find the current position of the neighbor in rowList.
+        const neighborRowIdx = rowList.findIndex(
+          (r) => r.kind === 'existing' && r.doc.id === neighborId,
+        );
+        if (neighborRowIdx >= 0) {
+          const insertAt = position === 'before' ? neighborRowIdx : neighborRowIdx + 1;
+          rowList.splice(insertAt, 0, { kind: 'new' as const, item });
+          // Update appendStart since the list grew.
+          if (insertAt <= appendStart) appendStart++;
+          continue;
+        }
+      }
+      // No neighbor or neighbor not found — append after all positioned items.
+      rowList.splice(appendStart, 0, { kind: 'new' as const, item });
+      appendStart++;
+    }
+
+    group.rows = rowList;
+    group.newCount = group.items.length;
+    group.existingCount = existingDocs.length;
   }
 
   const namedGroups = Array.from(groupMap.values()).sort((a, b) =>
     a.familyName.localeCompare(b.familyName, undefined, { sensitivity: 'base' }),
   );
+
+  // Task #1608: also ensure groups that only exist because of existing docs
+  // (i.e. have 0 new items) are included. These come from existingDocsByFamilyId
+  // families that have no session items. We inject them from the caller's
+  // familyContextData (the caller must handle this externally since we only
+  // have new items in our map here). The resolver only produces groups for
+  // families that have ≥1 new item; caller should merge additional families.
+  // (This is handled in the page component's familyGroupsData call.)
 
   return { groups: namedGroups, unassignedItems };
 }

@@ -97,7 +97,7 @@ import {
   computeLinkingBreakGroupChanges,
   resolveFamilyGroups,
 } from './bulk-import-linking-groups';
-import type { LinkingGroup, FamilyGroup, FamilyMembership } from './bulk-import-linking-groups';
+import type { LinkingGroup, FamilyGroup, FamilyMembership, FamilyRow, ExistingFamilyDoc } from './bulk-import-linking-groups';
 import {
   AUTO_STEPS,
   NextStepBlock,
@@ -482,6 +482,20 @@ export interface BulkImportItemLite {
   linkingFamilyGuessName: string | null;
   /** Resolved server-side description for the guessed family (may be null if unset). */
   linkingFamilyGuessDescription: string | null;
+  /**
+   * Task #1608: multi-family AI guesses (zero, one, or several). Each entry
+   * carries a familyId, confidence, reason, and resolved familyName /
+   * familyDescription. These are the raw AI guesses from linkDecisions.familyGuesses,
+   * distinct from linkingMemberships (which are the committed membership rows).
+   * Null when the AI returned no guesses or when not on the linking step.
+   */
+  linkingFamilyGuesses: Array<{
+    familyId: string;
+    confidence: number;
+    reason: string;
+    familyName: string | null;
+    familyDescription: string | null;
+  }> | null;
   /**
    * Task #1589: real family membership rows for this item, as persisted in
    * `bulk_import_item_family_memberships` and batch-resolved by the lite
@@ -2257,6 +2271,80 @@ export default function BulkDocumentImportPage() {
   const items = payload?.items ?? [];
   const currentStep: BulkImportStep = session?.currentStep ?? 'upload';
 
+  /**
+   * Task #1608: Collect the unique family IDs that appear in membership rows
+   * across all items when on the linking step. This drives the family-context
+   * query below so each family card can render its existing library docs.
+   */
+  const linkingFamilyIds = useMemo(() => {
+    if ((session?.currentStep ?? 'upload') !== 'linking') return [];
+    const seen = new Set<string>();
+    for (const it of (payload?.items ?? [])) {
+      for (const m of it.linkingMemberships ?? []) {
+        if (m.familyId) seen.add(m.familyId);
+      }
+      // Task #1608: also include family IDs from AI guesses so we can render
+      // existing-library docs inside those family cards before any membership is created.
+      for (const g of it.linkingFamilyGuesses ?? []) {
+        if (g.familyId) seen.add(g.familyId);
+      }
+    }
+    return Array.from(seen).sort();
+  }, [session?.currentStep, payload?.items]);
+
+  /**
+   * Task #1608: Fetch the ordered existing docs for each family so the family
+   * card can render them as read-only anchor rows interleaved with new items.
+   * Only fires when there are family group IDs to resolve.
+   */
+  const { data: familyContextData } = useQuery<{
+    families: Array<{
+      familyId: string;
+      familyName: string;
+      familyDescription: string | null;
+      documents: Array<{
+        id: string;
+        name: string;
+        effectiveDate: string | Date | null;
+        mimeType: string | null;
+        residenceId: string | null;
+        hasBefore: boolean;
+        hasAfter: boolean;
+      }>;
+    }>;
+  }>({
+    queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'family-context', linkingFamilyIds],
+    enabled: !!sessionId && linkingFamilyIds.length > 0,
+    queryFn: async () => {
+      const params = new URLSearchParams({ familyIds: linkingFamilyIds.join(',') });
+      const res = await fetch(`/api/admin/bulk-import/sessions/${sessionId}/family-context?${params}`, {
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Failed to fetch family context');
+      return res.json();
+    },
+    staleTime: 60_000,
+  });
+
+  /**
+   * Task #1608: Build a Map<familyId, ExistingFamilyDoc[]> from the family
+   * context response so resolveFamilyGroups can produce interleaved rows.
+   */
+  const existingDocsByFamilyId = useMemo((): Map<string, ExistingFamilyDoc[]> => {
+    if (!familyContextData?.families) return new Map();
+    const map = new Map<string, ExistingFamilyDoc[]>();
+    for (const fam of familyContextData.families) {
+      map.set(fam.familyId, fam.documents.map((doc) => ({
+        id: doc.id,
+        name: doc.name,
+        effectiveDate: doc.effectiveDate,
+        mimeType: doc.mimeType,
+        residenceId: doc.residenceId,
+      })));
+    }
+    return map;
+  }, [familyContextData]);
+
   // Hide-ready toggle (Task #1045). Defaults OFF on every step; resets
   // automatically when the wizard advances to a new step so hidden rows
   // from one step never bleed into the next.
@@ -3913,6 +4001,22 @@ export default function BulkDocumentImportPage() {
   const [guesReasonOpenIds, setGuessReasonOpenIds] = useState<Set<string>>(new Set());
 
   /**
+   * Task #1608: IDs of family cards that the admin has manually collapsed.
+   * Cards auto-start expanded when they have 1 new item, collapsed when they
+   * have 2+ new items (to avoid a wall of rows on busy sessions). The admin
+   * can toggle any card at will.
+   */
+  const [collapsedFamilyIds, setCollapsedFamilyIds] = useState<Set<string>>(new Set());
+
+  /**
+   * Task #1608: Drag state for reordering new items within a family card.
+   * Tracks which item is being dragged and which slot it's hovering over.
+   * Format of dragOverKey: `${familyId}::${rowIndex}`.
+   */
+  const [dragSrcId, setDragSrcId] = useState<string | null>(null);
+  const [dragOverKey, setDragOverKey] = useState<string | null>(null);
+
+  /**
    * Task #1549: "Commit to Family" — first-anchor path.
    * Calls set-existing-link-decision (first-anchor) then commit sequentially.
    */
@@ -4063,19 +4167,45 @@ export default function BulkDocumentImportPage() {
    * Task #1589: update a membership's sequence (or other fields).
    */
   const updateMembership = useMutation({
-    mutationFn: async ({ itemId, membershipId, sequence }: { itemId: string; membershipId: string; sequence: number }) => {
+    mutationFn: async ({
+      itemId,
+      membershipId,
+      sequence,
+      neighborDocumentId,
+      position,
+    }: {
+      itemId: string;
+      membershipId: string;
+      sequence: number;
+      neighborDocumentId?: string;
+      position?: 'before' | 'after';
+    }) => {
+      const body: Record<string, unknown> = { sequence };
+      if (neighborDocumentId != null) body.neighborDocumentId = neighborDocumentId;
+      if (position != null) body.position = position;
       const res = await apiRequest(
         'PATCH',
         `/api/admin/bulk-import/items/${itemId}/family-memberships/${membershipId}`,
-        { sequence },
+        body,
       );
       if (!res.ok) {
-        const body = await res.json().catch(() => ({})) as { error?: string };
-        throw new Error(body.error ?? 'Failed to update membership');
+        const errBody = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(errBody.error ?? 'Failed to update membership');
       }
       return res.json();
     },
     onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+    },
+    onError: (err: Error) => {
+      toast({
+        variant: 'destructive',
+        title: isFr ? 'Échec du réordonnancement' : 'Reorder failed',
+        description: err.message,
+      });
+      // Refetch to reset to the server-authoritative order.
       queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       });
@@ -6596,7 +6726,7 @@ export default function BulkDocumentImportPage() {
                         // (batch-fetched from bulk_import_item_family_memberships) so that
                         // items appear in named family cards even when the family has 0
                         // anchor documents (empty-anchor AI-guess case from Task #1589).
-                        const familyGroupsData = currentStep === 'linking'
+                        const _resolvedFamilyGroupsData = currentStep === 'linking'
                           ? resolveFamilyGroups(
                               visibleItems.map((item) => ({
                                 id: item.id,
@@ -6616,8 +6746,40 @@ export default function BulkDocumentImportPage() {
                                 } satisfies FamilyMembership)),
                                 _item: item,
                               })),
+                              // Task #1608: pass existing docs map so resolver
+                              // produces interleaved mixed rows.
+                              existingDocsByFamilyId,
                             )
                           : { groups: [] as FamilyGroup[], unassignedItems: [] as Array<{ id: string; memberships: FamilyMembership[]; _item: BulkImportItemLite }> };
+
+                        // Task #1608: merge in "context-only" family groups — families that have
+                        // existing library docs but no session items assigned (newCount === 0).
+                        // These appear as collapsed cards showing only the existing anchors.
+                        // We need to include them so admins can drag new items onto those anchor rows.
+                        const contextOnlyGroups: FamilyGroup[] = [];
+                        if (currentStep === 'linking' && familyContextData?.families) {
+                          const assignedFamilyIds = new Set(
+                            _resolvedFamilyGroupsData.groups.map((g) => g.familyId).filter(Boolean),
+                          );
+                          for (const contextFam of familyContextData.families) {
+                            if (assignedFamilyIds.has(contextFam.familyId)) continue;
+                            const existingDocs = existingDocsByFamilyId.get(contextFam.familyId) ?? [];
+                            if (existingDocs.length === 0) continue;
+                            contextOnlyGroups.push({
+                              familyId: contextFam.familyId,
+                              familyName: contextFam.familyName,
+                              items: [],
+                              rows: existingDocs.map((doc) => ({ kind: 'existing' as const, doc })),
+                              newCount: 0,
+                              existingCount: existingDocs.length,
+                              membershipByItemId: new Map(),
+                            });
+                          }
+                        }
+                        const familyGroupsData = {
+                          ..._resolvedFamilyGroupsData,
+                          groups: [..._resolvedFamilyGroupsData.groups, ...contextOnlyGroups],
+                        };
 
                         const linkingGroupAllMemberIds = new Set<string>();
                         if (currentStep === 'linking') {
@@ -6921,23 +7083,60 @@ export default function BulkDocumentImportPage() {
                           const m = group.membershipByItemId.get(wrapped.id);
                           return m?.manualOverride;
                         });
+                        // Task #1608: collapse/expand toggle. Default: collapsed when newCount === 0
+                        // (existing-only cards) so admins focus on new items that need review.
+                        const defaultCollapsed = group.newCount === 0;
+                        const toggled = collapsedFamilyIds.has(group.familyId ?? '');
+                        const isCollapsed = defaultCollapsed ? !toggled : toggled;
+                        const toggleCollapse = () => {
+                          setCollapsedFamilyIds((prev) => {
+                            const next = new Set(prev);
+                            const id = group.familyId ?? '';
+                            if (next.has(id)) next.delete(id);
+                            else next.add(id);
+                            return next;
+                          });
+                        };
                         return (
                           <div
                             key={group.familyId}
                             data-testid={`family-group-${group.familyId}`}
                             className="rounded-lg border-2 border-indigo-300/60 bg-indigo-50/60 dark:border-indigo-700/60 dark:bg-indigo-950/30 space-y-1.5 p-2 mb-2"
                           >
-                            {/* Group header */}
+                            {/* Group header — Task #1608: shows new+existing counts, collapse/expand */}
                             <div className="flex items-center gap-2 px-1 pb-0.5 flex-wrap">
-                              <FolderOpen className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
-                              <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 truncate max-w-[16rem]">
-                                {group.familyName}
-                              </span>
-                              <span className="text-xs text-indigo-500 dark:text-indigo-400">
-                                {isFr
-                                  ? `· ${famGroupItems.length} fichier${famGroupItems.length > 1 ? 's' : ''}`
-                                  : `· ${famGroupItems.length} file${famGroupItems.length > 1 ? 's' : ''}`}
-                              </span>
+                              <button
+                                type="button"
+                                onClick={toggleCollapse}
+                                className="flex items-center gap-1.5 text-left min-w-0 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
+                                aria-label={isCollapsed
+                                  ? (isFr ? 'Développer la famille' : 'Expand family')
+                                  : (isFr ? 'Réduire la famille' : 'Collapse family')}
+                                data-testid={`family-card-toggle-${group.familyId}`}
+                              >
+                                {isCollapsed
+                                  ? <ChevronRight className="h-3.5 w-3.5 text-indigo-500 dark:text-indigo-400 flex-shrink-0" />
+                                  : <ChevronDown className="h-3.5 w-3.5 text-indigo-500 dark:text-indigo-400 flex-shrink-0" />}
+                                <FolderOpen className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400 flex-shrink-0" />
+                                <span className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 truncate max-w-[14rem]">
+                                  {group.familyName}
+                                </span>
+                              </button>
+                              {/* Task #1608: show new + existing counts separately */}
+                              {group.newCount > 0 && (
+                                <span className="text-xs text-indigo-600 dark:text-indigo-400 whitespace-nowrap">
+                                  {isFr
+                                    ? `${group.newCount} nouveau${group.newCount > 1 ? 'x' : ''}`
+                                    : `${group.newCount} new`}
+                                </span>
+                              )}
+                              {group.existingCount > 0 && (
+                                <span className="text-xs text-indigo-400 dark:text-indigo-500 whitespace-nowrap">
+                                  {isFr
+                                    ? `+ ${group.existingCount} existant${group.existingCount > 1 ? 's' : ''}`
+                                    : `+ ${group.existingCount} existing`}
+                                </span>
+                              )}
                               {hasManual && (
                                 <Badge
                                   variant="outline"
@@ -6986,8 +7185,87 @@ export default function BulkDocumentImportPage() {
                               </Button>
                             </div>
 
-                            {/* Group item rows */}
-                            {famGroupItems.map((groupItem) => {
+                            {/* Task #1608: Group rows — mixed existing (read-only) + new (draggable).
+                                Collapsed state hides all rows; header shows summary instead. */}
+                            {!isCollapsed && group.rows.map((row, rowIdx) => {
+                              // Task #1608: Existing library doc row — read-only anchor.
+                              if (row.kind === 'existing') {
+                                const existingDoc = row.doc;
+                                const ExistingDocIcon = iconForMime(existingDoc.mimeType ?? null, existingDoc.name);
+                                const isExistingDragOver = dragOverKey === `existing-${group.familyId}-${existingDoc.id}` && dragSrcId != null;
+                                return (
+                                  <div
+                                    key={`existing-${existingDoc.id}`}
+                                    data-testid={`family-row-existing-${existingDoc.id}-${group.familyId}`}
+                                    className={[
+                                      'rounded border bg-slate-50/60 dark:bg-slate-900/40 flex items-center gap-2 p-2 opacity-80 transition-colors',
+                                      isExistingDragOver
+                                        ? 'border-indigo-400 border-2 bg-indigo-50/30 dark:bg-indigo-950/20'
+                                        : 'border-slate-200 dark:border-slate-700',
+                                    ].join(' ')}
+                                    onDragOver={(e) => {
+                                      if (!dragSrcId) return;
+                                      e.preventDefault();
+                                      e.dataTransfer.dropEffect = 'move';
+                                      setDragOverKey(`existing-${group.familyId}-${existingDoc.id}`);
+                                    }}
+                                    onDragLeave={() => {
+                                      setDragOverKey((prev) => prev === `existing-${group.familyId}-${existingDoc.id}` ? null : prev);
+                                    }}
+                                    onDrop={(e) => {
+                                      e.preventDefault();
+                                      const srcId = e.dataTransfer.getData('text/plain') || dragSrcId;
+                                      setDragSrcId(null);
+                                      setDragOverKey(null);
+                                      if (!srcId) return;
+                                      // Place the dragged new item directly after this existing doc anchor.
+                                      const srcMembership = group.membershipByItemId.get(srcId);
+                                      // Compute fallback sequence: count new rows before rowIdx in mixed rows.
+                                      const newRowsBeforeHere = group.rows
+                                        .slice(0, rowIdx + 1)
+                                        .filter((r) => r.kind === 'new' && (r.item as { id: string }).id !== srcId)
+                                        .length;
+                                      const newSeq = newRowsBeforeHere + 1;
+                                      if (srcMembership?.id) {
+                                        updateMembership.mutate({
+                                          itemId: srcId,
+                                          membershipId: srcMembership.id,
+                                          sequence: newSeq,
+                                          neighborDocumentId: existingDoc.id,
+                                          position: 'after',
+                                        });
+                                      } else if (group.familyId) {
+                                        createMembership.mutate({
+                                          itemId: srcId,
+                                          familyId: group.familyId,
+                                          neighborDocumentId: existingDoc.id,
+                                          position: 'after',
+                                        });
+                                      }
+                                    }}
+                                  >
+                                    <ExistingDocIcon className="h-4 w-4 flex-shrink-0 text-slate-400 dark:text-slate-500" />
+                                    <span className="text-sm truncate text-slate-600 dark:text-slate-400 flex-1">
+                                      {existingDoc.name}
+                                    </span>
+                                    {existingDoc.effectiveDate && (
+                                      <span className="text-xs text-slate-400 dark:text-slate-500 flex-shrink-0">
+                                        {typeof existingDoc.effectiveDate === 'string'
+                                          ? existingDoc.effectiveDate.slice(0, 10)
+                                          : (existingDoc.effectiveDate as Date).toISOString().slice(0, 10)}
+                                      </span>
+                                    )}
+                                    <Badge
+                                      variant="outline"
+                                      className="text-[10px] flex-shrink-0 border-slate-300 dark:border-slate-600 text-slate-500 dark:text-slate-400"
+                                    >
+                                      {isFr ? 'Existant' : 'Existing'}
+                                    </Badge>
+                                  </div>
+                                );
+                              }
+                              // Task #1608: New session item row — full complex rendering unchanged.
+                              const groupItem = (row.item as { id: string; memberships: FamilyMembership[]; _item: BulkImportItemLite })._item;
                               const m = group.membershipByItemId.get(groupItem.id);
                               const grpDecision = getItemStepDecision(groupItem, 'linking');
                               const grpIsExcluded = groupItem.status === 'rejected';
@@ -6998,13 +7276,151 @@ export default function BulkDocumentImportPage() {
                               const grpCanToggleExclude =
                                 groupItem.status !== 'committed' && groupItem.status !== 'duplicate';
                               const GrpItemIcon = iconForMime(groupItem.mimeType, groupItem.originalName);
+                              // Task #1608: drag-and-drop state for reordering within the family card.
+                              const dragKey = `${group.familyId ?? ''}::${rowIdx}`;
+                              const isDragOver = dragOverKey === dragKey && dragSrcId !== groupItem.id;
+                              const isDragging = dragSrcId === groupItem.id;
                               return (
                                 <div
                                   key={groupItem.id}
                                   data-testid={`linking-row-${groupItem.id}`}
-                                  className="rounded border bg-background flex flex-col gap-1 p-2"
+                                  draggable={!!m?.id}
+                                  className={[
+                                    'rounded border bg-background flex flex-col gap-1 p-2 transition-colors',
+                                    isDragging ? 'opacity-50 border-dashed' : '',
+                                    isDragOver ? 'border-indigo-400 border-2 bg-indigo-50/40 dark:bg-indigo-950/30' : '',
+                                  ].filter(Boolean).join(' ')}
+                                  onDragStart={(e) => {
+                                    e.dataTransfer.effectAllowed = 'move';
+                                    e.dataTransfer.setData('text/plain', groupItem.id);
+                                    setDragSrcId(groupItem.id);
+                                  }}
+                                  onDragOver={(e) => {
+                                    e.preventDefault();
+                                    e.dataTransfer.dropEffect = 'move';
+                                    setDragOverKey(dragKey);
+                                  }}
+                                  onDragLeave={() => {
+                                    setDragOverKey((prev) => prev === dragKey ? null : prev);
+                                  }}
+                                  onDrop={(e) => {
+                                    e.preventDefault();
+                                    const srcId = e.dataTransfer.getData('text/plain') || dragSrcId;
+                                    setDragSrcId(null);
+                                    setDragOverKey(null);
+                                    if (!srcId || srcId === groupItem.id) return;
+                                    // Task #1608: compute (neighborDocumentId, position) from
+                                    // the mixed rows array so the backend can position relative
+                                    // to an existing-library anchor rather than a raw sequence.
+                                    const targetMixedIdx = group.rows.findIndex(
+                                      (r) => r.kind === 'new' && (r.item as { id: string }).id === groupItem.id,
+                                    );
+                                    // Count new-item rows before the target to derive fallback sequence.
+                                    const newRows = group.rows.filter((r) => r.kind === 'new');
+                                    const targetNewIdx = newRows.findIndex(
+                                      (r) => r.kind === 'new' && (r.item as { id: string }).id === groupItem.id,
+                                    );
+                                    const newSeq = targetNewIdx >= 0 ? targetNewIdx + 1 : undefined;
+                                    // Find the closest existing-doc row anchor.
+                                    let neighborDocumentId: string | undefined;
+                                    let position: 'before' | 'after' | undefined;
+                                    if (targetMixedIdx >= 0) {
+                                      // Search backwards for the nearest 'existing' row.
+                                      for (let i = targetMixedIdx - 1; i >= 0; i--) {
+                                        const r = group.rows[i];
+                                        if (r.kind === 'existing') {
+                                          neighborDocumentId = (r.doc as { id: string }).id;
+                                          position = 'after';
+                                          break;
+                                        }
+                                      }
+                                      if (!neighborDocumentId) {
+                                        // Search forwards.
+                                        for (let i = targetMixedIdx + 1; i < group.rows.length; i++) {
+                                          const r = group.rows[i];
+                                          if (r.kind === 'existing') {
+                                            neighborDocumentId = (r.doc as { id: string }).id;
+                                            position = 'before';
+                                            break;
+                                          }
+                                        }
+                                      }
+                                    }
+                                    const srcMembership = group.membershipByItemId.get(srcId);
+                                    if (srcMembership?.id) {
+                                      updateMembership.mutate({
+                                        itemId: srcId,
+                                        membershipId: srcMembership.id,
+                                        sequence: newSeq ?? srcMembership.sequence ?? 1,
+                                        neighborDocumentId,
+                                        position,
+                                      });
+                                    }
+                                  }}
+                                  onDragEnd={() => {
+                                    setDragSrcId(null);
+                                    setDragOverKey(null);
+                                  }}
+                                  tabIndex={m?.id ? 0 : undefined}
+                                  onKeyDown={(e) => {
+                                    if (!m?.id) return;
+                                    const newRows = group.rows.filter((r) => r.kind === 'new');
+                                    const currentNewIdx = newRows.findIndex(
+                                      (r) => r.kind === 'new' && (r.item as { id: string }).id === groupItem.id,
+                                    );
+                                    if (currentNewIdx < 0) return;
+                                    let targetNewIdx: number | null = null;
+                                    if (e.key === 'ArrowUp' && currentNewIdx > 0) {
+                                      e.preventDefault();
+                                      targetNewIdx = currentNewIdx - 1;
+                                    } else if (e.key === 'ArrowDown' && currentNewIdx < newRows.length - 1) {
+                                      e.preventDefault();
+                                      targetNewIdx = currentNewIdx + 1;
+                                    }
+                                    if (targetNewIdx == null) return;
+                                    const targetItem = newRows[targetNewIdx].item as { id: string };
+                                    const targetMixedIdx = group.rows.findIndex(
+                                      (r) => r.kind === 'new' && (r.item as { id: string }).id === targetItem.id,
+                                    );
+                                    let neighborDocumentId: string | undefined;
+                                    let neighborPosition: 'before' | 'after' | undefined;
+                                    if (targetMixedIdx >= 0) {
+                                      for (let i = targetMixedIdx - 1; i >= 0; i--) {
+                                        const r = group.rows[i];
+                                        if (r.kind === 'existing') {
+                                          neighborDocumentId = (r.doc as { id: string }).id;
+                                          neighborPosition = 'after';
+                                          break;
+                                        }
+                                      }
+                                      if (!neighborDocumentId) {
+                                        for (let i = targetMixedIdx + 1; i < group.rows.length; i++) {
+                                          const r = group.rows[i];
+                                          if (r.kind === 'existing') {
+                                            neighborDocumentId = (r.doc as { id: string }).id;
+                                            neighborPosition = 'before';
+                                            break;
+                                          }
+                                        }
+                                      }
+                                    }
+                                    updateMembership.mutate({
+                                      itemId: groupItem.id,
+                                      membershipId: m.id!,
+                                      sequence: targetNewIdx + 1,
+                                      neighborDocumentId,
+                                      position: neighborPosition,
+                                    });
+                                  }}
                                 >
                                   <div className="flex items-center gap-2 min-w-0">
+                                    {/* Task #1608: Drag handle — visible only when this item has a membership to reorder */}
+                                    {m?.id && (
+                                      <GripVertical
+                                        className="w-3.5 h-3.5 text-muted-foreground/50 flex-shrink-0 cursor-grab active:cursor-grabbing"
+                                        aria-hidden="true"
+                                      />
+                                    )}
                                     {/* File icon + filename */}
                                     <button
                                       type="button"
@@ -7668,118 +8084,178 @@ export default function BulkDocumentImportPage() {
                                     {isFr ? 'Manuel' : 'Manual'}
                                   </Badge>
                                 )}
-                                {/* Task #1549: AI family guess block — shown when AI picked a
-                                    family but no anchor exists yet and admin hasn't confirmed. */}
-                                {item.linkingFamilyGuessId && !item.linkingFamilyId && (
-                                  <div
-                                    className="flex flex-col gap-1 mt-1 rounded border border-violet-200 bg-violet-50 dark:border-violet-800 dark:bg-violet-950 px-2 py-1.5"
-                                    data-testid={`ai-family-guess-${item.id}`}
-                                  >
-                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                {/* Task #1608: Multi-family AI guess chips — shown for items with
+                                    one or more AI guesses but no committed family assignment yet.
+                                    Falls back to legacy single-guess block when no guesses array. */}
+                                {(() => {
+                                  const guesses = item.linkingFamilyGuesses;
+                                  const legacyGuessId = item.linkingFamilyGuessId;
+                                  // Build the effective guess list (new multi-guess or legacy single).
+                                  const effectiveGuesses: Array<{
+                                    familyId: string;
+                                    familyName: string | null;
+                                    confidence: number | null;
+                                    reason: string | null;
+                                    description: string | null;
+                                  }> = guesses && guesses.length > 0
+                                    ? guesses.map((g) => ({
+                                        familyId: g.familyId,
+                                        familyName: g.familyName,
+                                        confidence: g.confidence,
+                                        reason: g.reason,
+                                        description: g.familyDescription,
+                                      }))
+                                    : legacyGuessId
+                                    ? [{
+                                        familyId: legacyGuessId,
+                                        familyName: item.linkingFamilyGuessName,
+                                        confidence: item.linkingFamilyGuessConfidence,
+                                        reason: item.linkingFamilyGuessReason,
+                                        description: item.linkingFamilyGuessDescription,
+                                      }]
+                                    : [];
+                                  if (effectiveGuesses.length === 0 || item.linkingFamilyId) return null;
+                                  return (
+                                    <div
+                                      className="flex flex-col gap-1.5 mt-1 rounded border border-violet-200 bg-violet-50 dark:border-violet-800 dark:bg-violet-950 px-2 py-1.5"
+                                      data-testid={`ai-family-suggestion-${item.id}`}
+                                    >
                                       <span className="text-xs font-semibold text-violet-900 dark:text-violet-200 flex items-center gap-1">
                                         <Sparkles className="h-3 w-3 flex-shrink-0" />
-                                        {isFr ? 'Suggestion IA :' : 'AI suggestion:'}
+                                        {effectiveGuesses.length === 1
+                                          ? (isFr ? 'Suggestion IA :' : 'AI suggestion:')
+                                          : (isFr ? `${effectiveGuesses.length} suggestions IA :` : `${effectiveGuesses.length} AI suggestions:`)}
                                       </span>
-                                      <span
-                                        className="text-xs font-medium text-violet-800 dark:text-violet-300 truncate max-w-[180px]"
-                                        title={item.linkingFamilyGuessName ?? item.linkingFamilyGuessId ?? undefined}
-                                      >
-                                        {item.linkingFamilyGuessName ?? item.linkingFamilyGuessId}
-                                      </span>
-                                      {item.linkingFamilyGuessConfidence != null && (() => {
-                                        const conf = item.linkingFamilyGuessConfidence;
-                                        const level = conf >= 0.8 ? 'high' : conf >= 0.5 ? 'medium' : 'low';
-                                        const label = isFr
+                                      {/* One chip per guess */}
+                                      {effectiveGuesses.map((guess, gIdx) => {
+                                        const conf = guess.confidence;
+                                        const level = conf == null ? null : conf >= 0.8 ? 'high' : conf >= 0.5 ? 'medium' : 'low';
+                                        const confLabel = level == null ? null : isFr
                                           ? (level === 'high' ? 'élevée' : level === 'medium' ? 'moyenne' : 'faible')
                                           : level;
                                         const pillClass = level === 'high'
                                           ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
                                           : level === 'medium'
                                           ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
-                                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+                                          : level === 'low'
+                                          ? 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200'
+                                          : '';
+                                        const reasonKey = `${item.id}-guess-${gIdx}`;
+                                        const reasonOpen = guesReasonOpenIds.has(reasonKey);
                                         return (
-                                          <span
-                                            className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${pillClass}`}
-                                            data-testid={`ai-family-guess-confidence-${item.id}`}
+                                          <div
+                                            key={guess.familyId}
+                                            className="flex flex-col gap-1 rounded border border-violet-100 dark:border-violet-900 bg-white dark:bg-violet-900/30 px-2 py-1"
+                                            data-testid={`ai-family-suggestion-${item.id}-${guess.familyId}`}
                                           >
-                                            {label}
-                                          </span>
+                                            <div className="flex items-center gap-1.5 flex-wrap">
+                                              <span
+                                                className="text-xs font-medium text-violet-800 dark:text-violet-300 truncate max-w-[160px]"
+                                                title={guess.familyName ?? guess.familyId}
+                                              >
+                                                {guess.familyName ?? guess.familyId}
+                                              </span>
+                                              {confLabel && (
+                                                <span
+                                                  className={`text-xs font-medium px-1.5 py-0.5 rounded-full flex-shrink-0 ${pillClass}`}
+                                                  data-testid={`ai-family-suggestion-confidence-${item.id}-${guess.familyId}`}
+                                                >
+                                                  {confLabel}
+                                                </span>
+                                              )}
+                                              {guess.reason && (
+                                                <button
+                                                  type="button"
+                                                  className="text-xs text-violet-600 dark:text-violet-400 underline underline-offset-2 hover:text-violet-800 dark:hover:text-violet-200 flex-shrink-0"
+                                                  data-testid={`ai-family-suggestion-reason-${item.id}-${guess.familyId}`}
+                                                  onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setGuessReasonOpenIds((prev) => {
+                                                      const next = new Set(prev);
+                                                      if (next.has(reasonKey)) next.delete(reasonKey);
+                                                      else next.add(reasonKey);
+                                                      return next;
+                                                    });
+                                                  }}
+                                                >
+                                                  {reasonOpen
+                                                    ? (isFr ? 'Masquer' : 'Hide reason')
+                                                    : (isFr ? 'Raison' : 'Why?')}
+                                                </button>
+                                              )}
+                                              <Button
+                                                size="sm"
+                                                variant="default"
+                                                className="h-6 px-2 text-xs bg-violet-700 hover:bg-violet-800 text-white ml-auto flex-shrink-0"
+                                                data-testid={`accept-family-suggestion-${item.id}-${guess.familyId}`}
+                                                disabled={updateMembership.isPending || createMembership.isPending}
+                                                onClick={(e) => {
+                                                  e.stopPropagation();
+                                                  // Task #1608: confirm the AI-suggested family without committing the item.
+                                                  // If a membership row already exists (AI pre-created), patch its sequence
+                                                  // to mark as manually accepted. Otherwise create the membership fresh.
+                                                  const membershipForFamily = item.linkingMemberships?.find(
+                                                    (lm) => lm.familyId === guess.familyId,
+                                                  );
+                                                  if (membershipForFamily?.id) {
+                                                    updateMembership.mutate({
+                                                      itemId: item.id,
+                                                      membershipId: membershipForFamily.id,
+                                                      sequence: membershipForFamily.sequence ?? 1,
+                                                    });
+                                                  } else {
+                                                    createMembership.mutate({
+                                                      itemId: item.id,
+                                                      familyId: guess.familyId,
+                                                      neighborDocumentId: null,
+                                                      position: null,
+                                                    });
+                                                  }
+                                                }}
+                                              >
+                                                {(updateMembership.isPending || createMembership.isPending)
+                                                  ? <Loader2 className="h-3 w-3 animate-spin" />
+                                                  : (isFr ? 'Accepter' : 'Accept')}
+                                              </Button>
+                                            </div>
+                                            {guess.description && (
+                                              <p className="text-xs text-violet-600 dark:text-violet-400">
+                                                {guess.description}
+                                              </p>
+                                            )}
+                                            {reasonOpen && guess.reason && (
+                                              <p className="text-xs text-violet-700 dark:text-violet-300 italic">
+                                                {guess.reason}
+                                              </p>
+                                            )}
+                                          </div>
                                         );
-                                      })()}
-                                      {item.linkingFamilyGuessReason && (
-                                        <button
-                                          type="button"
-                                          className="text-xs text-violet-600 dark:text-violet-400 underline underline-offset-2 hover:text-violet-800 dark:hover:text-violet-200"
-                                          data-testid={`ai-family-guess-reason-toggle-${item.id}`}
+                                      })}
+                                      {/* Choose a different family (not one of the guesses) */}
+                                      <div className="flex gap-1.5 mt-0.5">
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-6 px-2 text-xs text-violet-700 dark:text-violet-400 hover:text-violet-900"
+                                          data-testid={`choose-different-family-button-${item.id}`}
                                           onClick={(e) => {
                                             e.stopPropagation();
-                                            setGuessReasonOpenIds((prev) => {
-                                              const next = new Set(prev);
-                                              if (next.has(item.id)) next.delete(item.id);
-                                              else next.add(item.id);
-                                              return next;
-                                            });
+                                            if (existingLinkPickerItemId === item.id) {
+                                              setExistingLinkPickerItemId(null);
+                                            } else {
+                                              setExistingLinkPickerItemId(item.id);
+                                              setExistingLinkPickerFamilyId('');
+                                              setExistingLinkPickerDocId('');
+                                              setExistingLinkPickerPosition('before');
+                                            }
                                           }}
                                         >
-                                          {guesReasonOpenIds.has(item.id)
-                                            ? (isFr ? 'Masquer' : 'Hide reason')
-                                            : (isFr ? 'Voir la raison' : 'Show reason')}
-                                        </button>
-                                      )}
+                                          {isFr ? 'Autre famille…' : 'Choose different family…'}
+                                        </Button>
+                                      </div>
                                     </div>
-                                    {item.linkingFamilyGuessDescription && (
-                                      <p className="text-xs text-violet-600 dark:text-violet-400">
-                                        {item.linkingFamilyGuessDescription}
-                                      </p>
-                                    )}
-                                    {guesReasonOpenIds.has(item.id) && item.linkingFamilyGuessReason && (
-                                      <p className="text-xs text-violet-700 dark:text-violet-300 italic">
-                                        {item.linkingFamilyGuessReason}
-                                      </p>
-                                    )}
-                                    <div className="flex gap-1.5 mt-0.5 flex-wrap">
-                                      <Button
-                                        size="sm"
-                                        variant="default"
-                                        className="h-6 px-2 text-xs bg-violet-700 hover:bg-violet-800 text-white"
-                                        data-testid={`commit-to-family-button-${item.id}`}
-                                        disabled={commitToFamilyGuess.isPending}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          commitToFamilyGuess.mutate({
-                                            itemId: item.id,
-                                            familyId: item.linkingFamilyGuessId!,
-                                          });
-                                        }}
-                                      >
-                                        {commitToFamilyGuess.isPending
-                                          ? <Loader2 className="h-3 w-3 animate-spin" />
-                                          : (isFr
-                                            ? `Valider dans « ${item.linkingFamilyGuessName ?? item.linkingFamilyGuessId} »`
-                                            : `Commit to "${item.linkingFamilyGuessName ?? item.linkingFamilyGuessId}"`)}
-                                      </Button>
-                                      <Button
-                                        size="sm"
-                                        variant="ghost"
-                                        className="h-6 px-2 text-xs text-violet-700 dark:text-violet-400 hover:text-violet-900"
-                                        data-testid={`choose-different-family-button-${item.id}`}
-                                        onClick={(e) => {
-                                          e.stopPropagation();
-                                          if (existingLinkPickerItemId === item.id) {
-                                            setExistingLinkPickerItemId(null);
-                                          } else {
-                                            setExistingLinkPickerItemId(item.id);
-                                            setExistingLinkPickerFamilyId('');
-                                            setExistingLinkPickerDocId('');
-                                            setExistingLinkPickerPosition('before');
-                                          }
-                                        }}
-                                      >
-                                        {isFr ? 'Autre famille…' : 'Choose different family…'}
-                                      </Button>
-                                    </div>
-                                  </div>
-                                )}
+                                  );
+                                })()}
                                 {/* Task #1386: existing-library link badge + picker */}
                                 {item.linkingFamilyId && (
                                   <Badge

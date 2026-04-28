@@ -2122,13 +2122,23 @@ async function processItemForStep(
       linkDecisionsToStore.beforeDocumentId = null;
       linkDecisionsToStore.afterDocumentId = null;
     }
-    // Task #1549: store the AI family guess fields so the lite endpoint
+    // Task #1549/1608: store the AI family guess fields so the lite endpoint
     // can surface them to the UI for one-click "Commit to Family" action.
-    if (result.familyGuess) {
+    // Task #1608: also store the full familyGuesses array for multi-guess support.
+    if (result.familyGuesses && result.familyGuesses.length > 0) {
+      linkDecisionsToStore.familyGuesses = result.familyGuesses;
+      // Backward-compat alias: first entry as the single familyGuess.
+      const fg0 = result.familyGuesses[0];
+      linkDecisionsToStore.familyGuessId = fg0.familyId;
+      linkDecisionsToStore.familyGuessConfidence = fg0.confidence;
+      linkDecisionsToStore.familyGuessReason = fg0.reason;
+    } else if (result.familyGuess) {
+      linkDecisionsToStore.familyGuesses = [result.familyGuess];
       linkDecisionsToStore.familyGuessId = result.familyGuess.familyId;
       linkDecisionsToStore.familyGuessConfidence = result.familyGuess.confidence;
       linkDecisionsToStore.familyGuessReason = result.familyGuess.reason;
     } else {
+      linkDecisionsToStore.familyGuesses = null;
       linkDecisionsToStore.familyGuessId = null;
       linkDecisionsToStore.familyGuessConfidence = null;
       linkDecisionsToStore.familyGuessReason = null;
@@ -2180,46 +2190,62 @@ async function processItemForStep(
             })),
           )
           .onConflictDoNothing();
-      } else if (result.familyGuess?.familyId) {
-        // Task #1589: no direct neighbor matches but AI guessed a family.
-        // Persist as an AI membership with neighborDocumentId=null so the
-        // Linking step can render this item inside its suggested family group
-        // even when the family has zero anchor documents.
-        // Compute the next sequence in this family across the entire session
-        // so newly inserted guess-only items get an incrementing slot.
+      }
+      // Task #1608: persist ALL familyGuesses (zero-anchor guesses) as membership rows.
+      // This replaces the old single-guess path (Task #1549) with a multi-guess path.
+      // Each guess gets its own membership row (neighborDocumentId=null, position=null).
+      // Deduplicated against families already covered by aiMemberships to avoid conflicts.
+      const coveredFamilyIds = new Set(aiMemberships.map((m) => m.familyId));
+      const guessesToPersist = (result.familyGuesses ?? (result.familyGuess ? [result.familyGuess] : []))
+        .filter((fg) => fg.familyId && !coveredFamilyIds.has(fg.familyId));
+      if (guessesToPersist.length > 0) {
         const now = new Date();
-        const existingInFamily = await db
-          .select({ sequence: schema.bulkImportItemFamilyMemberships.sequence })
-          .from(schema.bulkImportItemFamilyMemberships)
-          .innerJoin(
-            schema.bulkImportItems,
-            eq(schema.bulkImportItemFamilyMemberships.itemId, schema.bulkImportItems.id),
-          )
-          .where(
-            and(
-              eq(schema.bulkImportItems.sessionId, item.sessionId),
-              eq(schema.bulkImportItemFamilyMemberships.familyId, result.familyGuess.familyId),
-            ),
-          );
-        const maxSeq = existingInFamily.reduce(
-          (max, r) => Math.max(max, r.sequence ?? 0),
-          0,
-        );
-        await db
-          .insert(schema.bulkImportItemFamilyMemberships)
-          .values({
-            itemId: item.id,
-            familyId: result.familyGuess.familyId,
-            neighborDocumentId: null,
-            position: null,
-            source: 'ai' as const,
-            aiConfidence: result.familyGuess.confidence,
-            manualOverride: false,
-            reason: result.familyGuess.reason ?? null,
-            sequence: maxSeq + 1,
-            updatedAt: now,
-          })
-          .onConflictDoNothing();
+        // Compute max sequence per family so each new guess gets an incrementing slot.
+        const guessedFamilyIds = guessesToPersist.map((fg) => fg.familyId);
+        const existingInFamilies = guessedFamilyIds.length > 0
+          ? await db
+              .select({
+                familyId: schema.bulkImportItemFamilyMemberships.familyId,
+                sequence: schema.bulkImportItemFamilyMemberships.sequence,
+              })
+              .from(schema.bulkImportItemFamilyMemberships)
+              .innerJoin(
+                schema.bulkImportItems,
+                eq(schema.bulkImportItemFamilyMemberships.itemId, schema.bulkImportItems.id),
+              )
+              .where(
+                and(
+                  eq(schema.bulkImportItems.sessionId, item.sessionId),
+                  inArray(schema.bulkImportItemFamilyMemberships.familyId, guessedFamilyIds),
+                ),
+              )
+          : [];
+        const maxSeqByFamily = new Map<string, number>();
+        for (const r of existingInFamilies) {
+          if (r.familyId) {
+            const cur = maxSeqByFamily.get(r.familyId) ?? 0;
+            maxSeqByFamily.set(r.familyId, Math.max(cur, r.sequence ?? 0));
+          }
+        }
+        for (const fg of guessesToPersist) {
+          const nextSeq = (maxSeqByFamily.get(fg.familyId) ?? 0) + 1;
+          maxSeqByFamily.set(fg.familyId, nextSeq);
+          await db
+            .insert(schema.bulkImportItemFamilyMemberships)
+            .values({
+              itemId: item.id,
+              familyId: fg.familyId,
+              neighborDocumentId: null,
+              position: null,
+              source: 'ai' as const,
+              aiConfidence: fg.confidence,
+              manualOverride: false,
+              reason: fg.reason ?? null,
+              sequence: nextSeq,
+              updatedAt: now,
+            })
+            .onConflictDoNothing();
+        }
       }
     } catch (membershipErr) {
       // Non-fatal: log but don't block item commit progression.
@@ -3462,10 +3488,12 @@ export function registerBulkImportRoutes(app: Express): void {
               linkingFamilyId: lk.familyId,
               linkingBeforeDocumentId: lk.beforeDocumentId,
               linkingAfterDocumentId: lk.afterDocumentId,
-              // Task #1549: AI family guess fields.
+              // Task #1549: AI family guess fields (single-guess backward compat).
               linkingFamilyGuessId: lk.familyGuessId,
               linkingFamilyGuessConfidence: lk.familyGuessConfidence,
               linkingFamilyGuessReason: lk.familyGuessReason,
+              // Task #1608: multi-family guesses array.
+              linkingFamilyGuesses: ((lk as unknown as Record<string, unknown>).familyGuesses as Array<{ familyId: string; confidence: number; reason: string }> | null | undefined) ?? null,
             };
           })(),
         };
@@ -3482,10 +3510,17 @@ export function registerBulkImportRoutes(app: Express): void {
         const lkBefore = (it as typeof it & { linkingBeforeDocumentId?: string | null }).linkingBeforeDocumentId;
         const lkAfter = (it as typeof it & { linkingAfterDocumentId?: string | null }).linkingAfterDocumentId;
         const lkGuess = (it as typeof it & { linkingFamilyGuessId?: string | null }).linkingFamilyGuessId;
+        const lkGuesses = (it as typeof it & { linkingFamilyGuesses?: Array<{ familyId: string }> | null }).linkingFamilyGuesses;
         if (lkFam) linkedFamilyIds.add(lkFam);
         if (lkBefore) linkedNeighborDocIds.add(lkBefore);
         if (lkAfter) linkedNeighborDocIds.add(lkAfter);
         if (lkGuess) linkedFamilyIds.add(lkGuess);
+        // Task #1608: collect all guess family IDs so names can be resolved.
+        if (lkGuesses) {
+          for (const fg of lkGuesses) {
+            if (fg.familyId) linkedFamilyIds.add(fg.familyId);
+          }
+        }
       }
       const familyNameMap = new Map<string, string>();
       const familyDescriptionMap = new Map<string, string | null>();
@@ -3609,6 +3644,8 @@ export function registerBulkImportRoutes(app: Express): void {
         linkingFamilyGuessReason?: string | null;
         linkingFamilyGuessName?: string | null;
         linkingFamilyGuessDescription?: string | null;
+        /** Task #1608: multi-family guesses array from linkDecisions.familyGuesses. */
+        linkingFamilyGuesses?: Array<{ familyId: string; confidence: number; reason: string }> | null;
         /** Task #1589: real membership rows from bulk_import_item_family_memberships. */
         linkingMemberships?: LiteMembership[];
       };
@@ -3618,6 +3655,7 @@ export function registerBulkImportRoutes(app: Express): void {
         const lkAfter = (it as ItemWithLinking).linkingAfterDocumentId ?? null;
         const neighborId = lkBefore ?? lkAfter;
         const lkGuess = (it as ItemWithLinking).linkingFamilyGuessId ?? null;
+        const lkGuesses = (it as ItemWithLinking).linkingFamilyGuesses ?? null;
         return {
           ...it,
           linkingFamilyName: lkFam ? (familyNameMap.get(lkFam) ?? null) : null,
@@ -3625,6 +3663,18 @@ export function registerBulkImportRoutes(app: Express): void {
           linkingNeighborPosition: lkBefore ? 'before' : lkAfter ? 'after' : null,
           linkingFamilyGuessName: lkGuess ? (familyNameMap.get(lkGuess) ?? null) : null,
           linkingFamilyGuessDescription: lkGuess ? (familyDescriptionMap.get(lkGuess) ?? null) : null,
+          // Task #1608: resolve family names for all guess entries.
+          linkingFamilyGuesses: lkGuesses
+            ? lkGuesses
+                .map((fg) => ({
+                  familyId: fg.familyId,
+                  confidence: fg.confidence,
+                  reason: fg.reason,
+                  familyName: familyNameMap.get(fg.familyId) ?? null,
+                  familyDescription: familyDescriptionMap.get(fg.familyId) ?? null,
+                }))
+                .filter((fg) => fg.familyName !== null)
+            : null,
           linkingMemberships: membershipsByItemId.get(it.id) ?? [],
         };
       });

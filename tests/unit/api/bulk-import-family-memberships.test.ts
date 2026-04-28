@@ -215,3 +215,80 @@ describe('resolveFamilyGroups — Task #1589 sequence ordering', () => {
     expect(group.membershipByItemId.get('i2')?.sequence).toBe(2);
   });
 });
+
+describe('resolveFamilyGroups — Task #1608 mixed rows (existing + new)', () => {
+  it('produces rows with kind=new only when no existingDocsByFamilyId is provided', () => {
+    const items = [makeItem('i1', [makeMembership({ id: 'm1', itemId: 'i1', familyId: 'fam-a', familyName: 'Alpha' })])];
+    const { groups } = resolveFamilyGroups(items);
+    const group = groups[0];
+    expect(group.rows).toHaveLength(1);
+    expect(group.rows[0].kind).toBe('new');
+    expect(group.newCount).toBe(1);
+    expect(group.existingCount).toBe(0);
+  });
+
+  it('interleaves existing docs with new items when existingDocsByFamilyId is provided', () => {
+    const items = [makeItem('i1', [makeMembership({ id: 'm1', itemId: 'i1', familyId: 'fam-a', familyName: 'Alpha' })])];
+    const existingDocsByFamilyId = new Map([
+      ['fam-a', [{ id: 'doc-1', name: 'Doc One' }, { id: 'doc-2', name: 'Doc Two' }]],
+    ]);
+    const { groups } = resolveFamilyGroups(items, existingDocsByFamilyId);
+    const group = groups[0];
+    expect(group.existingCount).toBe(2);
+    expect(group.newCount).toBe(1);
+    const existingRows = group.rows.filter((r) => r.kind === 'existing');
+    const newRows = group.rows.filter((r) => r.kind === 'new');
+    expect(existingRows).toHaveLength(2);
+    expect(newRows).toHaveLength(1);
+  });
+
+  it('inserts a new item before its neighbor when position is before', () => {
+    const items = [
+      makeItem('i1', [makeMembership({
+        id: 'm1', itemId: 'i1', familyId: 'fam-a', familyName: 'Alpha',
+        neighborDocumentId: 'doc-2', position: 'before',
+      })]),
+    ];
+    const existingDocsByFamilyId = new Map([
+      ['fam-a', [{ id: 'doc-1', name: 'Doc One' }, { id: 'doc-2', name: 'Doc Two' }]],
+    ]);
+    const { groups } = resolveFamilyGroups(items, existingDocsByFamilyId);
+    const group = groups[0];
+    // Expected order: doc-1, i1 (before doc-2), doc-2
+    expect(group.rows).toHaveLength(3);
+    expect(group.rows[0].kind).toBe('existing');
+    expect((group.rows[0] as { kind: 'existing'; doc: { id: string } }).doc.id).toBe('doc-1');
+    expect(group.rows[1].kind).toBe('new');
+    expect(group.rows[2].kind).toBe('existing');
+    expect((group.rows[2] as { kind: 'existing'; doc: { id: string } }).doc.id).toBe('doc-2');
+  });
+
+  it('appends new items without a neighbor at the end', () => {
+    const items = [
+      makeItem('i1', [makeMembership({
+        id: 'm1', itemId: 'i1', familyId: 'fam-a', familyName: 'Alpha',
+        neighborDocumentId: null, position: null,
+      })]),
+    ];
+    const existingDocsByFamilyId = new Map([
+      ['fam-a', [{ id: 'doc-1', name: 'Doc One' }]],
+    ]);
+    const { groups } = resolveFamilyGroups(items, existingDocsByFamilyId);
+    const group = groups[0];
+    expect(group.rows).toHaveLength(2);
+    expect(group.rows[0].kind).toBe('existing');
+    expect(group.rows[1].kind).toBe('new');
+  });
+
+  it('groups with no existing docs have rows only of kind=new', () => {
+    const items = [
+      makeItem('i1', [makeMembership({ id: 'm1', itemId: 'i1', familyId: 'fam-a', familyName: 'Alpha' })]),
+      makeItem('i2', [makeMembership({ id: 'm2', itemId: 'i2', familyId: 'fam-a', familyName: 'Alpha', sequence: 2 })]),
+    ];
+    const existingDocsByFamilyId = new Map([['fam-a', []]]);
+    const { groups } = resolveFamilyGroups(items, existingDocsByFamilyId);
+    const group = groups[0];
+    expect(group.rows.every((r) => r.kind === 'new')).toBe(true);
+    expect(group.existingCount).toBe(0);
+  });
+});
