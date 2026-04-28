@@ -370,8 +370,6 @@ beforeAll(() => {
   // transient retry can push the 10th render's findByTestId past the
   // 4 000 ms limit. With retries off the lite query either resolves on
   // the first request or throws — keeping every test deterministic.
-  // The same pattern is used in
-  // tests/unit/components/bulk-document-import-linking-overrides-clear.test.tsx.
   originalQueryDefaults = queryClient.getDefaultOptions();
   queryClient.setDefaultOptions({
     ...originalQueryDefaults,

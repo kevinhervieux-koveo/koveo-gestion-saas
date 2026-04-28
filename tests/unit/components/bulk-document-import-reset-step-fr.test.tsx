@@ -285,8 +285,7 @@ let originalQueryDefaults: ReturnType<typeof queryClient.getDefaultOptions>;
 beforeAll(() => {
   // Disable React Query retries so a transient 401/404 on a `/lite`
   // poll cannot tack on a 2 s retry delay that would push the next
-  // test's `findByTestId` past its 4 000 ms ceiling. Mirrors
-  // tests/unit/components/bulk-document-import-linking-overrides-clear.test.tsx.
+  // test's `findByTestId` past its 4 000 ms ceiling.
   originalQueryDefaults = queryClient.getDefaultOptions();
   queryClient.setDefaultOptions({
     ...originalQueryDefaults,
