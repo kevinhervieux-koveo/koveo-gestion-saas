@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import { useState, useEffect, useMemo, useRef, useCallback, Fragment } from 'react';
 import { debugLog } from '@/lib/debug-log';
 import { useQuery, useMutation } from '@tanstack/react-query';
 import { Header } from '@/components/layout/header';
@@ -4012,9 +4012,15 @@ export default function BulkDocumentImportPage() {
    * Task #1608: Drag state for reordering new items within a family card.
    * Tracks which item is being dragged and which slot it's hovering over.
    * Format of dragOverKey: `${familyId}::${rowIndex}`.
+   *
+   * Task #1616: `dragOverPosition` records whether the cursor is in the upper
+   * half ('before') or lower half ('after') of the hovered row, so a thin
+   * horizontal drop-zone bar can be rendered between rows instead of
+   * highlighting the row itself.
    */
   const [dragSrcId, setDragSrcId] = useState<string | null>(null);
   const [dragOverKey, setDragOverKey] = useState<string | null>(null);
+  const [dragOverPosition, setDragOverPosition] = useState<'before' | 'after' | null>(null);
 
   /**
    * Task #1549: "Commit to Family" — first-anchor path.
@@ -7192,58 +7198,74 @@ export default function BulkDocumentImportPage() {
                               if (row.kind === 'existing') {
                                 const existingDoc = row.doc;
                                 const ExistingDocIcon = iconForMime(existingDoc.mimeType ?? null, existingDoc.name);
-                                const isExistingDragOver = dragOverKey === `existing-${group.familyId}-${existingDoc.id}` && dragSrcId != null;
+                                // Task #1616: position-aware drop indicator for existing-doc rows.
+                                const existingDragKey = `existing-${group.familyId}-${existingDoc.id}`;
+                                const showExistingIndicatorBefore =
+                                  dragSrcId != null && dragOverKey === existingDragKey && dragOverPosition === 'before';
+                                const showExistingIndicatorAfter =
+                                  dragSrcId != null && dragOverKey === existingDragKey && dragOverPosition === 'after';
                                 return (
-                                  <div
-                                    key={`existing-${existingDoc.id}`}
-                                    data-testid={`family-row-existing-${existingDoc.id}-${group.familyId}`}
-                                    className={[
-                                      'rounded border bg-slate-50/60 dark:bg-slate-900/40 flex items-center gap-2 p-2 opacity-80 transition-colors',
-                                      isExistingDragOver
-                                        ? 'border-indigo-400 border-2 bg-indigo-50/30 dark:bg-indigo-950/20'
-                                        : 'border-slate-200 dark:border-slate-700',
-                                    ].join(' ')}
-                                    onDragOver={(e) => {
-                                      if (!dragSrcId) return;
-                                      e.preventDefault();
-                                      e.dataTransfer.dropEffect = 'move';
-                                      setDragOverKey(`existing-${group.familyId}-${existingDoc.id}`);
-                                    }}
-                                    onDragLeave={() => {
-                                      setDragOverKey((prev) => prev === `existing-${group.familyId}-${existingDoc.id}` ? null : prev);
-                                    }}
-                                    onDrop={(e) => {
-                                      e.preventDefault();
-                                      const srcId = e.dataTransfer.getData('text/plain') || dragSrcId;
-                                      setDragSrcId(null);
-                                      setDragOverKey(null);
-                                      if (!srcId) return;
-                                      // Place the dragged new item directly after this existing doc anchor.
-                                      const srcMembership = group.membershipByItemId.get(srcId);
-                                      // Compute fallback sequence: count new rows before rowIdx in mixed rows.
-                                      const newRowsBeforeHere = group.rows
-                                        .slice(0, rowIdx + 1)
-                                        .filter((r) => r.kind === 'new' && (r.item as { id: string }).id !== srcId)
-                                        .length;
-                                      const newSeq = newRowsBeforeHere + 1;
-                                      if (srcMembership?.id) {
-                                        updateMembership.mutate({
-                                          itemId: srcId,
-                                          membershipId: srcMembership.id,
-                                          sequence: newSeq,
-                                          neighborDocumentId: existingDoc.id,
-                                          position: 'after',
-                                        });
-                                      } else if (group.familyId) {
-                                        createMembership.mutate({
-                                          itemId: srcId,
-                                          familyId: group.familyId,
-                                          neighborDocumentId: existingDoc.id,
-                                          position: 'after',
-                                        });
-                                      }
-                                    }}
-                                  >
+                                  <Fragment key={`existing-${existingDoc.id}`}>
+                                    {showExistingIndicatorBefore && (
+                                      <div
+                                        data-testid={`family-row-drop-indicator-${group.familyId}-${rowIdx}-before`}
+                                        aria-hidden="true"
+                                        className="h-1 my-0.5 rounded-full bg-indigo-500 dark:bg-indigo-400"
+                                      />
+                                    )}
+                                    <div
+                                      data-testid={`family-row-existing-${existingDoc.id}-${group.familyId}`}
+                                      className="rounded border bg-slate-50/60 dark:bg-slate-900/40 flex items-center gap-2 p-2 opacity-80 border-slate-200 dark:border-slate-700"
+                                      onDragOver={(e) => {
+                                        if (!dragSrcId) return;
+                                        e.preventDefault();
+                                        e.dataTransfer.dropEffect = 'move';
+                                        const rect = e.currentTarget.getBoundingClientRect();
+                                        const pos: 'before' | 'after' =
+                                          e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
+                                        setDragOverKey(existingDragKey);
+                                        setDragOverPosition(pos);
+                                      }}
+                                      onDragLeave={() => {
+                                        setDragOverKey((prev) => prev === existingDragKey ? null : prev);
+                                      }}
+                                      onDrop={(e) => {
+                                        e.preventDefault();
+                                        const srcId = e.dataTransfer.getData('text/plain') || dragSrcId;
+                                        const dropPos: 'before' | 'after' = dragOverPosition ?? 'after';
+                                        setDragSrcId(null);
+                                        setDragOverKey(null);
+                                        setDragOverPosition(null);
+                                        if (!srcId) return;
+                                        // Place the dragged new item adjacent to this existing doc anchor,
+                                        // honoring the upper/lower half of the hovered row (Task #1616).
+                                        const srcMembership = group.membershipByItemId.get(srcId);
+                                        // Compute fallback sequence: count new rows up to (and including
+                                        // when 'after') this anchor's index in the mixed rows list.
+                                        const upTo = dropPos === 'after' ? rowIdx + 1 : rowIdx;
+                                        const newRowsBeforeHere = group.rows
+                                          .slice(0, upTo)
+                                          .filter((r) => r.kind === 'new' && (r.item as { id: string }).id !== srcId)
+                                          .length;
+                                        const newSeq = newRowsBeforeHere + 1;
+                                        if (srcMembership?.id) {
+                                          updateMembership.mutate({
+                                            itemId: srcId,
+                                            membershipId: srcMembership.id,
+                                            sequence: newSeq,
+                                            neighborDocumentId: existingDoc.id,
+                                            position: dropPos,
+                                          });
+                                        } else if (group.familyId) {
+                                          createMembership.mutate({
+                                            itemId: srcId,
+                                            familyId: group.familyId,
+                                            neighborDocumentId: existingDoc.id,
+                                            position: dropPos,
+                                          });
+                                        }
+                                      }}
+                                    >
                                     <ExistingDocIcon className="h-4 w-4 flex-shrink-0 text-slate-400 dark:text-slate-500" />
                                     <span className="text-sm truncate text-slate-600 dark:text-slate-400 flex-1">
                                       {existingDoc.name}
@@ -7261,7 +7283,15 @@ export default function BulkDocumentImportPage() {
                                     >
                                       {isFr ? 'Existant' : 'Existing'}
                                     </Badge>
-                                  </div>
+                                    </div>
+                                    {showExistingIndicatorAfter && (
+                                      <div
+                                        data-testid={`family-row-drop-indicator-${group.familyId}-${rowIdx}-after`}
+                                        aria-hidden="true"
+                                        className="h-1 my-0.5 rounded-full bg-indigo-500 dark:bg-indigo-400"
+                                      />
+                                    )}
+                                  </Fragment>
                                 );
                               }
                               // Task #1608: New session item row — full complex rendering unchanged.
@@ -7277,28 +7307,46 @@ export default function BulkDocumentImportPage() {
                                 groupItem.status !== 'committed' && groupItem.status !== 'duplicate';
                               const GrpItemIcon = iconForMime(groupItem.mimeType, groupItem.originalName);
                               // Task #1608: drag-and-drop state for reordering within the family card.
+                              // Task #1616: dragOverPosition determines whether to show the drop
+                              // indicator above ('before') or below ('after') this row.
                               const dragKey = `${group.familyId ?? ''}::${rowIdx}`;
-                              const isDragOver = dragOverKey === dragKey && dragSrcId !== groupItem.id;
                               const isDragging = dragSrcId === groupItem.id;
+                              const isHoverTarget =
+                                dragOverKey === dragKey && dragSrcId != null && dragSrcId !== groupItem.id;
+                              const showIndicatorBefore = isHoverTarget && dragOverPosition === 'before';
+                              const showIndicatorAfter = isHoverTarget && dragOverPosition === 'after';
                               return (
-                                <div
-                                  key={groupItem.id}
-                                  data-testid={`linking-row-${groupItem.id}`}
-                                  draggable={!!m?.id}
-                                  className={[
-                                    'rounded border bg-background flex flex-col gap-1 p-2 transition-colors',
-                                    isDragging ? 'opacity-50 border-dashed' : '',
-                                    isDragOver ? 'border-indigo-400 border-2 bg-indigo-50/40 dark:bg-indigo-950/30' : '',
-                                  ].filter(Boolean).join(' ')}
+                                <Fragment key={groupItem.id}>
+                                  {showIndicatorBefore && (
+                                    <div
+                                      data-testid={`family-row-drop-indicator-${group.familyId}-${rowIdx}-before`}
+                                      aria-hidden="true"
+                                      className="h-1 my-0.5 rounded-full bg-indigo-500 dark:bg-indigo-400"
+                                    />
+                                  )}
+                                  <div
+                                    data-testid={`linking-row-${groupItem.id}`}
+                                    draggable={!!m?.id}
+                                    className={[
+                                      'rounded border bg-background flex flex-col gap-1 p-2',
+                                      isDragging ? 'opacity-50 border-dashed' : '',
+                                    ].filter(Boolean).join(' ')}
                                   onDragStart={(e) => {
                                     e.dataTransfer.effectAllowed = 'move';
                                     e.dataTransfer.setData('text/plain', groupItem.id);
                                     setDragSrcId(groupItem.id);
                                   }}
                                   onDragOver={(e) => {
+                                    if (dragSrcId === groupItem.id) return;
                                     e.preventDefault();
                                     e.dataTransfer.dropEffect = 'move';
+                                    // Task #1616: choose 'before' or 'after' based on cursor Y
+                                    // relative to the row's vertical midpoint.
+                                    const rect = e.currentTarget.getBoundingClientRect();
+                                    const pos: 'before' | 'after' =
+                                      e.clientY < rect.top + rect.height / 2 ? 'before' : 'after';
                                     setDragOverKey(dragKey);
+                                    setDragOverPosition(pos);
                                   }}
                                   onDragLeave={() => {
                                     setDragOverKey((prev) => prev === dragKey ? null : prev);
@@ -7306,22 +7354,33 @@ export default function BulkDocumentImportPage() {
                                   onDrop={(e) => {
                                     e.preventDefault();
                                     const srcId = e.dataTransfer.getData('text/plain') || dragSrcId;
+                                    // Task #1616: capture position before clearing state.
+                                    const dropPos: 'before' | 'after' = dragOverPosition ?? 'before';
                                     setDragSrcId(null);
                                     setDragOverKey(null);
+                                    setDragOverPosition(null);
                                     if (!srcId || srcId === groupItem.id) return;
+                                    // Task #1616: compute the dragged item's new 1-based sequence
+                                    // by simulating the post-drop list. This makes 'before' vs
+                                    // 'after' the target row produce the right slot regardless of
+                                    // whether the dragged item was originally above or below it.
+                                    const newRowIds = group.rows
+                                      .filter((r) => r.kind === 'new')
+                                      .map((r) => (r.item as { id: string }).id);
+                                    const reordered = newRowIds.filter((id) => id !== srcId);
+                                    const targetIdxInReordered = reordered.indexOf(groupItem.id);
+                                    let newSeq: number | undefined;
+                                    if (targetIdxInReordered >= 0) {
+                                      const insertAt =
+                                        dropPos === 'before' ? targetIdxInReordered : targetIdxInReordered + 1;
+                                      newSeq = insertAt + 1; // 1-based
+                                    }
                                     // Task #1608: compute (neighborDocumentId, position) from
                                     // the mixed rows array so the backend can position relative
                                     // to an existing-library anchor rather than a raw sequence.
                                     const targetMixedIdx = group.rows.findIndex(
                                       (r) => r.kind === 'new' && (r.item as { id: string }).id === groupItem.id,
                                     );
-                                    // Count new-item rows before the target to derive fallback sequence.
-                                    const newRows = group.rows.filter((r) => r.kind === 'new');
-                                    const targetNewIdx = newRows.findIndex(
-                                      (r) => r.kind === 'new' && (r.item as { id: string }).id === groupItem.id,
-                                    );
-                                    const newSeq = targetNewIdx >= 0 ? targetNewIdx + 1 : undefined;
-                                    // Find the closest existing-doc row anchor.
                                     let neighborDocumentId: string | undefined;
                                     let position: 'before' | 'after' | undefined;
                                     if (targetMixedIdx >= 0) {
@@ -7360,6 +7419,7 @@ export default function BulkDocumentImportPage() {
                                   onDragEnd={() => {
                                     setDragSrcId(null);
                                     setDragOverKey(null);
+                                    setDragOverPosition(null);
                                   }}
                                   tabIndex={m?.id ? 0 : undefined}
                                   onKeyDown={(e) => {
@@ -7797,7 +7857,15 @@ export default function BulkDocumentImportPage() {
                                       )}
                                     </div>
                                   )}
-                                </div>
+                                  </div>
+                                  {showIndicatorAfter && (
+                                    <div
+                                      data-testid={`family-row-drop-indicator-${group.familyId}-${rowIdx}-after`}
+                                      aria-hidden="true"
+                                      className="h-1 my-0.5 rounded-full bg-indigo-500 dark:bg-indigo-400"
+                                    />
+                                  )}
+                                </Fragment>
                               );
                             })}
                           </div>
