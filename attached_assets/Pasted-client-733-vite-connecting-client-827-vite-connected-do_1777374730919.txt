@@ -1,0 +1,166 @@
+client:733 [vite] connecting...
+client:827 [vite] connected.
+document-tags:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+debug-log.ts:3 [bulk-import] runAll start {sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', step: 'linking'}
+debug-log.ts:3 [bulk-import] runAll success {sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', step: 'linking'}
+debug-log.ts:3 [bulk-import] resetStep start {sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', step: 'linking'}
+debug-log.ts:3 [bulk-import] resetStep success {sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', step: 'linking'}
+debug-log.ts:3 [bulk-import] run-all transition pending→running {sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', step: 'linking', startedAt: '2026-04-28T11:05:02.142Z', total: 4}
+debug-log.ts:3 [bulk-import] run-all transition running→done {sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', step: 'linking', finishedAt: '2026-04-28T11:05:26.871Z', processed: 4, failed: 0, …}
+client:810 [vite] hot updated: /src/index.css
+client:810 [vite] invalidate /src/contexts/OnboardingContext.tsx: Could not Fast Refresh ("useOnboarding" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/contexts/OnboardingContext.tsx
+client:810 [vite] invalidate /src/pages/auto/settings-onboarding.tsx: Could not Fast Refresh ("route" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/pages/auto/settings-onboarding.tsx
+client:810 [vite] hot updated: /src/index.css
+client:810 [vite] hot updated: /src/contexts/OnboardingContext.tsx
+client:810 [vite] hot updated: /src/pages/auto/settings-onboarding.tsx
+client:810 [vite] hot updated: /src/index.css
+client:810 [vite] invalidate /src/contexts/OnboardingContext.tsx: Could not Fast Refresh ("useOnboarding" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/contexts/OnboardingContext.tsx
+client:810 [vite] invalidate /src/pages/auto/settings-onboarding.tsx: Could not Fast Refresh ("route" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/pages/auto/settings-onboarding.tsx
+client:810 [vite] hot updated: /src/index.css
+client:810 [vite] invalidate /src/contexts/OnboardingContext.tsx: Could not Fast Refresh ("useOnboarding" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/contexts/OnboardingContext.tsx
+client:810 [vite] invalidate /src/pages/auto/settings-onboarding.tsx: Could not Fast Refresh ("route" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/pages/auto/settings-onboarding.tsx
+client:810 [vite] hot updated: /src/index.css
+client:810 [vite] invalidate /src/contexts/OnboardingContext.tsx: Could not Fast Refresh ("useOnboarding" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/contexts/OnboardingContext.tsx
+client:810 [vite] invalidate /src/pages/auto/settings-onboarding.tsx: Could not Fast Refresh ("route" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/pages/auto/settings-onboarding.tsx
+client:810 [vite] hot updated: /src/index.css
+client:810 [vite] invalidate /src/contexts/OnboardingContext.tsx: Could not Fast Refresh ("useOnboarding" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/contexts/OnboardingContext.tsx
+client:810 [vite] hot updated: /src/index.css
+client:810 [vite] hot updated: /src/index.css
+client:810 [vite] invalidate /src/contexts/OnboardingContext.tsx: Could not Fast Refresh ("useOnboarding" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/contexts/OnboardingContext.tsx
+client:810 [vite] invalidate /src/pages/auto/settings-onboarding.tsx: Could not Fast Refresh ("route" export is incompatible). Learn more at https://github.com/vitejs/vite-plugin-react/tree/main/packages/plugin-react#consistent-components-exports
+client:810 [vite] hot updated: /src/pages/auto/settings-onboarding.tsx
+client:810 [vite] hot updated: /src/App.tsx
+client:810 [vite] hot updated: /src/pages/auto/settings-onboarding.tsx
+client:810 [vite] hot updated: /src/pages/auto/_register.tsx
+debug-log.ts:3 [bulk-import] runAll start {sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', step: 'linking'}
+[Violation] Forced reflow while executing JavaScript took 74ms
+debug-log.ts:3 [bulk-import] runAll success {sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', step: 'linking'}
+debug-log.ts:3 [bulk-import] run-all transition running→done {sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', step: 'linking', finishedAt: '2026-04-28T11:09:13.034Z', processed: 0, failed: 0, …}
+debug-log.ts:3 [bulk-import] runStep start {itemId: '6586bd38-4d49-4a8f-838c-725c8a108f15', action: 'link', sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25'}
+debug-log.ts:3 [bulk-import] runStep success {itemId: '6586bd38-4d49-4a8f-838c-725c8a108f15', action: 'link', sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25'}
+debug-log.ts:3 [bulk-import] runStep start {itemId: '7319d113-337e-4225-8237-f2443c395caa', action: 'commit', sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25'}
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/items/7319d113-337e-4225-8237-f2443c395caa/commit 409 (Conflict)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ bulk-document-import.tsx:2856
+fn @ @tanstack_react-query.js?v=fedc29e6:1200
+run @ @tanstack_react-query.js?v=fedc29e6:491
+start @ @tanstack_react-query.js?v=fedc29e6:533
+execute @ @tanstack_react-query.js?v=fedc29e6:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=fedc29e6:2642
+(anonymous) @ @tanstack_react-query.js?v=fedc29e6:3356
+(anonymous) @ bulk-document-import.tsx:7752
+executeDispatch @ react-dom_client.js?v=fedc29e6:11736
+runWithFiberInDEV @ react-dom_client.js?v=fedc29e6:1485
+processDispatchQueue @ react-dom_client.js?v=fedc29e6:11772
+(anonymous) @ react-dom_client.js?v=fedc29e6:12182
+batchedUpdates$1 @ react-dom_client.js?v=fedc29e6:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=fedc29e6:11877
+dispatchEvent @ react-dom_client.js?v=fedc29e6:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=fedc29e6:14773
+debug-log.ts:3 [bulk-import] runStep error {itemId: '7319d113-337e-4225-8237-f2443c395caa', action: 'commit', sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', error: '409: {"error":"Another document was already commit…or instead.","errorCode":"first_anchor_conflict"}'}
+debug-log.ts:3 [bulk-import] runStep start {itemId: '6586bd38-4d49-4a8f-838c-725c8a108f15', action: 'commit', sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25'}
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/items/6586bd38-4d49-4a8f-838c-725c8a108f15/commit 409 (Conflict)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ bulk-document-import.tsx:2856
+fn @ @tanstack_react-query.js?v=fedc29e6:1200
+run @ @tanstack_react-query.js?v=fedc29e6:491
+start @ @tanstack_react-query.js?v=fedc29e6:533
+execute @ @tanstack_react-query.js?v=fedc29e6:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=fedc29e6:2642
+(anonymous) @ @tanstack_react-query.js?v=fedc29e6:3356
+(anonymous) @ bulk-document-import.tsx:7752
+executeDispatch @ react-dom_client.js?v=fedc29e6:11736
+runWithFiberInDEV @ react-dom_client.js?v=fedc29e6:1485
+processDispatchQueue @ react-dom_client.js?v=fedc29e6:11772
+(anonymous) @ react-dom_client.js?v=fedc29e6:12182
+batchedUpdates$1 @ react-dom_client.js?v=fedc29e6:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=fedc29e6:11877
+dispatchEvent @ react-dom_client.js?v=fedc29e6:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=fedc29e6:14773
+debug-log.ts:3 [bulk-import] runStep error {itemId: '6586bd38-4d49-4a8f-838c-725c8a108f15', action: 'commit', sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', error: '409: {"error":"Another document was already commit…or instead.","errorCode":"first_anchor_conflict"}'}

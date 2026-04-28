@@ -423,7 +423,7 @@ export class OptimizedDatabaseStorage implements IStorage {
       conditions.push(sql`EXISTS (
         SELECT 1 FROM user_organizations uo_mgr 
         WHERE uo_mgr.user_id = u.id 
-        AND uo_mgr.organization_id = ANY(${orgIds})
+        AND uo_mgr.organization_id = ANY(${orgIds}::text[])
         AND uo_mgr.is_active = true
       )`);
     }

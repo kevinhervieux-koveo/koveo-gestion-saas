@@ -26,7 +26,7 @@
 import type { Express } from 'express';
 import { db } from '../../db';
 import { mcpAssumeUserLog, users } from '../../../shared/schema';
-import { desc, eq, and, sql } from 'drizzle-orm';
+import { desc, eq, and, inArray, sql } from 'drizzle-orm';
 import { requireAuth } from '../../auth';
 import { asyncHandler } from '../../utils/async-handler';
 import { recordImpersonationEvent } from '../../services/impersonation-audit';
@@ -101,7 +101,7 @@ export default function registerImpersonationLogRoutes(app: Express): void {
             lastName: users.lastName,
           })
           .from(users)
-          .where(sql`${users.id} = ANY(${idList})`);
+          .where(inArray(users.id, idList));
         for (const u of userRows) {
           userMap.set(u.id, {
             id: u.id,
