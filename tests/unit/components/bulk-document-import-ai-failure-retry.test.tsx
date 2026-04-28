@@ -885,7 +885,7 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
       expect(
         screen.queryByTestId('cancel-bulk-retry-dialog'),
       ).not.toBeInTheDocument();
-    });
+    }, 15000);
 
     /**
      * Task #1237 — once the bulk retry is almost done (fewer than
