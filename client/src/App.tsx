@@ -147,6 +147,11 @@ const ManagerElementHistoryPage = createOptimizedLoader(
 );
 
 // Optimized lazy-loaded Residents pages
+const ResidentsDashboard = createOptimizedLoader(
+  () => import('@/pages/residents/dashboard'),
+  'residents-dashboard',
+  { enableMemoryCleanup: true }
+);
 const ResidentsResidence = createOptimizedLoader(
   () => import('@/pages/residents/residence'),
   'residents-residence',
@@ -439,6 +444,7 @@ function AuthenticatedLayout() {
 
               {/* Residents routes */}
               <Route path='/residents' component={ResidentsOverviewRedirect} />
+              <Route path='/residents/dashboard'>{() => <ResidentsDashboard />}</Route>
               <Route path='/residents/residence'>{() => <ResidentsResidence />}</Route>
               <Route
                 path='/residents/residence/documents'
