@@ -12,6 +12,80 @@ This document is the end-to-end runbook for using that harness on the **staging 
 
 ---
 
+## Environment Architecture
+
+| Environment | URL | NODE_ENV | MCP_ASSUME_USER |
+|-------------|-----|----------|-----------------|
+| **Staging** | Replit dev container — see "Finding the staging URL" below | `development` | `1` (set in Replit development scope) |
+| **Production** | `https://koveo-gestion.com` | `production` | *(not set — and code-locked off)* |
+
+### Finding the staging URL
+
+The staging server runs inside the Replit development container. Its public URL is runtime-managed by Replit as `REPLIT_DEV_DOMAIN` and changes each time the Replit workspace is restarted in a new session. To get the current URL:
+
+1. Open the Replit workspace for this project.
+2. Click **Run** (or confirm the "Start application" workflow is running).
+3. The webview pane shows the app at `https://<repl-name>.<user>.replit.dev`. The MCP endpoint is at that same host at path `/mcp`.
+
+Alternatively, look at the URL bar in the Replit webview — that is the staging base URL.
+
+**Example:** `https://koveo-mcp.kevin-hervieux.replit.dev/mcp`
+
+### Confirmed env-var state (as of 2026-04-28)
+
+```
+# Development (staging) environment
+MCP_ASSUME_USER=1          ← set in Replit "development" environment scope
+NODE_ENV=development
+
+# Production environment
+MCP_ASSUME_USER            ← NOT SET
+NODE_ENV=production
+ENABLE_MCP_SERVER=true
+MCP_OAUTH_ISSUER=https://koveo-gestion.com   ← shared scope (both envs)
+```
+
+The code-level hard-lock in `isMcpAssumeUserEnabled()` (`server/utils/feature-flags.ts`) independently guarantees `assume_user` is blocked on production even if `MCP_ASSUME_USER` were accidentally added there.
+
+---
+
+## Seeded QA Tenant Accounts
+
+These accounts are auto-seeded on every non-production boot by `server/mcp/seed-mcp-data.ts`. They are the canonical accounts for MCP tenant-POV QA.
+
+### Account credentials
+
+| Account | Email | Password | Role | Org scope |
+|---------|-------|----------|------|-----------|
+| MCP Admin | `mcp-admin@koveo-mcp.test` | `McpTest2024!` | `super_admin` | MCP-1, MCP-2 |
+| MCP Manager | `mcp-manager@koveo-mcp.test` | `McpTest2024!` | `manager` | MCP-1, MCP-2 (all 3 buildings) |
+| MCP Tenant | `mcp-tenant@koveo-mcp.test` | `McpTest2024!` | `tenant` | MCP-1, MCP-2 |
+
+### Tenant residence links
+
+`mcp-tenant@koveo-mcp.test` is linked to **3 residences** (one per building), each with `relationshipType = 'tenant'` and `startDate = 2024-01-01`:
+
+| Building | Unit number | Floor | Org |
+|----------|-------------|-------|-----|
+| Résidence du Parc (MCP-1) | 101 | 1 | MCP-1 |
+| Les Terrasses MCP (MCP-1) | 101 | 1 | MCP-1 |
+| Condo Vieux-Québec (MCP-2) | 101 | 1 | MCP-2 |
+
+### MCP role mapping note
+
+The staging DB stores `mcp-admin@koveo-mcp.test` with `role = 'super_admin'`. MCP maps this to `"admin"` in all response fields (`oauthBoundRole`, `actingRole`, etc.). So when you call `get_mcp_info` as that user you will see `"actingRole": "admin"`, not `"actingRole": "super_admin"`. This is expected — MCP collapses `super_admin` and `admin` DB roles into the `"admin"` MCP role for tool-permission purposes.
+
+### About the kevhervieux+* Gmail accounts
+
+The task brief (Pass #28 QA report) referenced three Gmail addresses:
+- `kevhervieux+mcp1-resident@gmail.com`
+- `kevhervieux+mcp2-tenant@gmail.com`
+- `kevhervieux+mcp1-tenant-unit102@gmail.com`
+
+**These accounts are not currently seeded** in the staging database. They are real Google OAuth identities that would need to be created manually in the staging DB (with an appropriate `role`, `userOrganizations`, and `userResidences` row) before they can be used. Until that work is done, use the `mcp-tenant@koveo-mcp.test` seed account for all tenant-POV MCP tests.
+
+---
+
 ## Which Environment and How to Confirm You Are on Staging
 
 The harness is enabled **only on the staging deployment**. The `MCP_ASSUME_USER=1` environment variable is set there and absent from production.
@@ -20,8 +94,8 @@ The harness is enabled **only on the staging deployment**. The `MCP_ASSUME_USER=
 
 To confirm you are on staging (not production):
 
-1. The staging URL pattern is your Replit dev-domain URL (e.g. `https://<repl-name>.<user>.replit.dev/mcp`).
-2. Call `get_mcp_info` with your admin session — the `serverInfo.nodeEnv` field in the JSON response will be `"development"` (or absent) on staging. If it says `"production"`, you are on the production deployment.
+1. The staging URL follows the Replit dev-domain pattern (e.g. `https://<repl-name>.<user>.replit.dev`). The production URL is always `https://koveo-gestion.com`.
+2. Call `get_mcp_info` with your admin session — the `serverInfo.nodeEnv` field in the JSON response will be `"development"` on staging. If it says `"production"`, you are on the production deployment.
 3. Try calling `assume_user` with any userId. On staging it will either succeed or return a role/target error. On production it always returns the "not enabled" message regardless of input.
 
 ---
@@ -30,10 +104,10 @@ To confirm you are on staging (not production):
 
 | Requirement | Details |
 |-------------|---------|
-| Admin user account | A user with `role = 'admin'` in the staging database. |
-| MCP OAuth client | Registered via `POST /register` or pre-seeded by `seedMcpData`. The MCP-1 and MCP-2 sandbox clients are auto-seeded on non-production boot. |
-| Target tenant user | A user with `role = 'tenant'` (or `'resident'`) and at least one `userResidences` row linking them to a residence. Note their `id` (UUID). |
-| Network access | HTTPS access to the staging deployment URL. |
+| Admin user account | Use `mcp-admin@koveo-mcp.test` / `McpTest2024!` — auto-seeded on staging. |
+| MCP OAuth client | The MCP-1 and MCP-2 sandbox clients are auto-seeded on non-production boot. No manual registration needed. |
+| Target tenant user | Use `mcp-tenant@koveo-mcp.test` — has `role = 'tenant'` and 3 `userResidences` rows. Note the UUID from the DB or from `get_mcp_info` after `assume_user`. |
+| Network access | HTTPS access to the staging deployment URL (see "Finding the staging URL" above). |
 
 ---
 
@@ -44,7 +118,7 @@ To confirm you are on staging (not production):
 1. In Claude.ai, open **Settings → Integrations → Add Integration**.
 2. Enter the staging MCP endpoint: `https://<staging-host>/mcp`.
 3. Click **Connect**. Claude.ai will redirect to `/authorize` on staging.
-4. Log in as the admin user and click **Allow**.
+4. Log in as `mcp-admin@koveo-mcp.test` and click **Allow**.
 5. Claude.ai now holds an access token bound to the admin's role. All subsequent tool calls on this connection run as that admin.
 
 ### Option B — MCP Inspector (recommended for scripted / CI QA)
@@ -63,7 +137,36 @@ See `tests/integration/mcp/assume-user-http-e2e.test.ts` for a working example o
 
 ---
 
-## Step 3 — Call `assume_user`
+## Step 3 — Parallel Chrome Profile Setup for Browser-Based Tenant Testing
+
+The QA browser is typically logged in as `kevin.hervieux@koveo-gestion.com` (super_admin). To test tenant pages (W13 org picker, MOB-T01–T10, Q2/Q5/Q6) from a genuine tenant browser session, use a **separate Chrome profile** so both sessions run simultaneously without logging each other out.
+
+### Creating a parallel Chrome profile
+
+1. In Chrome, click your profile avatar in the top-right corner → **Add** → **Add new profile**.
+2. Name it "Tenant QA" (no Google account sign-in required).
+3. A new Chrome window opens isolated from your main session (separate cookies, separate localStorage).
+4. In the new window, navigate to the staging app URL and sign in as `mcp-tenant@koveo-mcp.test` with password `McpTest2024!`.
+
+The tenant window is now fully isolated. You can have both the admin window and tenant window open side by side.
+
+### What to verify in the tenant browser session
+
+| Test case | What to check |
+|-----------|--------------|
+| W13 — Org picker on resident pages | Sign-in as tenant → navigate to resident dashboard → confirm org picker shows only MCP-1 / MCP-2, not all orgs |
+| MOB-T01–T10 — Mobile tenant suite | Use Chrome DevTools → Toggle device toolbar → test on 390×844 (iPhone 14 viewport) |
+| Q2 — Tenant isolation | Confirm `/api/residences` returns only the tenant's own residences |
+| Q5 — Cross-org isolation | Switch org context to MCP-2 → confirm MCP-1 data is not visible |
+| Q6 — Role-based UI gating | Confirm admin/manager UI controls are hidden or disabled for the tenant |
+
+---
+
+## Step 4 — Call `assume_user`
+
+Use `assume_user` for **MCP tool-level** tenant-POV tests. Pair it with the parallel Chrome profile method (Step 3) for **browser-level** tenant tests.
+
+To find the tenant's UUID before calling `assume_user`: look it up in the staging DB or call a tool that returns user info. The `mcp-tenant@koveo-mcp.test` UUID is stable after the first seed run.
 
 ### From Claude.ai
 
@@ -121,7 +224,7 @@ curl -s -X POST https://<staging-host>/mcp \
 
 ---
 
-## Step 4 — Verify Tenant-Scoped Behaviour
+## Step 5 — Verify Tenant-Scoped Behaviour
 
 After a successful `assume_user`, run a business tool to confirm scoping:
 
@@ -142,7 +245,7 @@ Then call `list_residences` with the `buildingId` that contains the tenant's uni
 
 ---
 
-## Step 5 — Verify the Audit Log Entry
+## Step 6 — Verify the Audit Log Entry
 
 Every call to `assume_user` and `restore_acting_user` writes a row to `mcp_assume_user_log`. Confirm the row exists:
 
@@ -163,7 +266,7 @@ A successful `assume_user` call produces a row with:
 
 ---
 
-## Step 6 — Clear the Override with `restore_acting_user`
+## Step 7 — Clear the Override with `restore_acting_user`
 
 Call `restore_acting_user` with no arguments to revert to the OAuth-bound admin identity:
 
@@ -206,6 +309,41 @@ If `MCP_ASSUME_USER` is set in the production environment, the server logs a sta
 
 ---
 
+## Next QA Pass Prep Checklist
+
+Use this checklist at the start of each QA pass that includes tenant-POV test cases (W13, MOB-T01–T10, Q2/Q5/Q6).
+
+### Before the session
+
+- [ ] Confirm the Replit "Start application" workflow is running and the webview loads at the staging URL.
+- [ ] Confirm staging is NOT production: check that the URL ends in `.replit.dev` (not `koveo-gestion.com`).
+- [ ] Open a second Chrome profile named "Tenant QA" and sign in as `mcp-tenant@koveo-mcp.test` / `McpTest2024!`.
+- [ ] In Claude.ai (or MCP Inspector), connect to the staging `/mcp` endpoint and authenticate as `mcp-admin@koveo-mcp.test`.
+- [ ] Run `get_mcp_info` to confirm `actingRole = "admin"` and `impersonationActive = false`.
+- [ ] Confirm `MCP_ASSUME_USER=1` is active: call `assume_user` with any UUID — on staging it should return a target-not-found or success error, not the "hard-locked" message.
+
+### For MCP tool tests (assume_user workflow)
+
+1. Look up the UUID for `mcp-tenant@koveo-mcp.test` in the staging DB.
+2. Call `assume_user({ userId: "<tenant-uuid>" })` — confirm `"ok": true` and `"actingRole": "tenant"`.
+3. Execute the tool under test — confirm results are scoped to the tenant's residences only.
+4. Call `restore_acting_user({})` — confirm `"actingRole": "admin"` is restored.
+5. Verify audit rows appear in `mcp_assume_user_log`.
+
+### For browser-based tenant tests (Chrome profile workflow)
+
+1. In the "Tenant QA" Chrome profile, navigate to the page under test.
+2. Verify the tenant sees only their own data (W13: only MCP-1/MCP-2 in the org picker).
+3. For mobile tests (MOB-T01–T10): open DevTools → Toggle device toolbar → set to 390×844 viewport.
+4. For isolation tests (Q2, Q5, Q6): cross-check what the tenant sees against what the admin sees in the main window.
+
+### After the session
+
+- [ ] Call `restore_acting_user` if any MCP session was left in impersonation state.
+- [ ] Close or reset the "Tenant QA" Chrome profile if it will not be used again that day.
+
+---
+
 ## Summary of Tool Call Shapes
 
 | Tool | Arguments | When to use |
@@ -220,6 +358,8 @@ If `MCP_ASSUME_USER` is set in the production environment, the server logs a sta
 
 - [RBAC System](./RBAC_SYSTEM.md) — role hierarchy and permission model
 - [Development Workflow](./references/DEVELOPMENT_WORKFLOW.md) — general development process
+- [End-to-End Verification Report](./MCP_STAGING_QA_HARNESS_VERIFICATION.md) — smoke-test results from 2026-04-26
 - Task #642 — original `assume_user` / `restore_acting_user` implementation
 - Task #980 — production lock and this QA harness doc
 - Task #660 — admin UI for reading the `mcp_assume_user_log` audit log
+- `server/mcp/seed-mcp-data.ts` — source of truth for seeded tenant accounts
