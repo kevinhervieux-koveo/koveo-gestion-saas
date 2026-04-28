@@ -17,47 +17,63 @@ if [[ -f "$LOCK_FILE" && -f "$HASH_SENTINEL" ]]; then
     echo "[post-merge] lockfile unchanged — skipping npm install"
   else
     echo "[post-merge] lockfile changed — running npm install"
-    npm install
+    npm install --prefer-offline --no-audit --no-fund
     sha256sum "$LOCK_FILE" | awk '{print $1}' > "$HASH_SENTINEL"
   fi
 else
   echo "[post-merge] lockfile or sentinel not found — running npm install"
-  npm install
+  npm install --prefer-offline --no-audit --no-fund
   # Write the sentinel so future runs can skip when unchanged.
   if [[ -f "$LOCK_FILE" && -d "node_modules" ]]; then
     sha256sum "$LOCK_FILE" | awk '{print $1}' > "$HASH_SENTINEL"
   fi
 fi
 
-# Idempotent guard: ensure `ai_suggestion_cache` exists. It lives in
-# shared/schemas/infrastructure.ts but does NOT yet have a numbered
-# migration of its own — historically it was created via `drizzle-kit
-# push` only. Until it is folded into a numbered migration, we create it
-# here so post-merge dev databases match the schema. Safe on fresh DBs
-# and no-ops on databases that already have it.
-PGURL="${DATABASE_URL_KOVEO:-${DATABASE_URL:-}}"
-if [ -n "$PGURL" ]; then
-  psql "$PGURL" -v ON_ERROR_STOP=1 <<'SQL'
-CREATE TABLE IF NOT EXISTS ai_suggestion_cache (
-  cache_key text PRIMARY KEY,
-  value json NOT NULL,
-  expires_at timestamp NOT NULL,
-  created_at timestamp NOT NULL DEFAULT now()
-);
-CREATE INDEX IF NOT EXISTS ai_suggestion_cache_expires_idx
-  ON ai_suggestion_cache(expires_at);
-CREATE INDEX IF NOT EXISTS ai_suggestion_cache_created_idx
-  ON ai_suggestion_cache(created_at);
-SQL
-fi
+# Skip `npm run migrate` when no numbered migration files have changed since the
+# last successful run. We compute a combined sha256 over the sorted list of
+# NNNN_*.sql filenames + their contents and compare to a sentinel stored at
+# node_modules/.migrations.sha256. If the hashes match, migrations are already
+# up to date. If they differ (or the sentinel is missing), we run the migration
+# runner and write the new sentinel only after a successful exit, so a failure
+# never poisons future runs. Using node_modules/ as the sentinel location means
+# it is automatically wiped whenever node_modules is rebuilt.
+MIGRATIONS_DIR="migrations"
+MIGRATIONS_SENTINEL="node_modules/.migrations.sha256"
 
-# Apply the numbered SQL migrations under migrations/ (see
-# scripts/run-migrations.ts). Replaces the previous `npm run db:push`
-# call as part of Task #815: pushing the Drizzle schema directly let dev
-# and prod drift apart because nothing got recorded in the migration
-# chain. New schema changes must ship as numbered migrations alongside
-# the schema.ts diff — see docs/migrations.md.
-RUN_DB_MIGRATIONS=true npm run migrate
+compute_migrations_hash() {
+  # Only consider numbered migration files matching NNNN_*.sql (same regex as
+  # the runner). Hash filenames + contents so renames also trigger a rerun.
+  find "$MIGRATIONS_DIR" -maxdepth 1 -name '*.sql' \
+    | grep -E '/[0-9]{4}_.+\.sql$' \
+    | sort \
+    | xargs -I{} sh -c 'echo "{}"; sha256sum "{}"' \
+    | sha256sum \
+    | awk '{print $1}'
+}
+
+if [[ -d "$MIGRATIONS_DIR" && -f "$MIGRATIONS_SENTINEL" ]]; then
+  CURRENT_MIG_HASH=$(compute_migrations_hash)
+  SAVED_MIG_HASH=$(cat "$MIGRATIONS_SENTINEL" 2>/dev/null || echo "")
+  if [[ "$CURRENT_MIG_HASH" == "$SAVED_MIG_HASH" ]]; then
+    echo "[post-merge] migrations unchanged — skipping migrate"
+  else
+    echo "[post-merge] migrations changed — running migrate"
+    RUN_DB_MIGRATIONS=true npm run migrate
+    echo "$CURRENT_MIG_HASH" > "$MIGRATIONS_SENTINEL"
+  fi
+else
+  echo "[post-merge] migrations sentinel not found — running migrate"
+  # Apply the numbered SQL migrations under migrations/ (see
+  # scripts/run-migrations.ts). Replaces the previous `npm run db:push`
+  # call as part of Task #815: pushing the Drizzle schema directly let dev
+  # and prod drift apart because nothing got recorded in the migration
+  # chain. New schema changes must ship as numbered migrations alongside
+  # the schema.ts diff — see docs/migrations.md.
+  RUN_DB_MIGRATIONS=true npm run migrate
+  if [[ -d "$MIGRATIONS_DIR" && -d "node_modules" ]]; then
+    compute_migrations_hash > "$MIGRATIONS_SENTINEL"
+  fi
+fi
 
 # Prune the `subrepl-*` local branches and remotes that Replit sub-agents
 # auto-create on every isolated task run. Without this they accumulate in
