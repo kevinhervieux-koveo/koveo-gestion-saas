@@ -1,6 +1,33 @@
 #!/bin/bash
 set -e
-npm install
+
+# Skip `npm install` when package-lock.json hasn't changed since the last
+# successful install. After each install we write the sha256 of package-lock.json
+# to node_modules/.package-lock.json.sha256 (a plain sentinel file). On the next
+# run we compare: if the hashes match, node_modules is already in sync and we can
+# skip the install entirely. This avoids ~30–60 s of redundant network activity on
+# every merge when dependencies have not changed.
+LOCK_FILE="package-lock.json"
+HASH_SENTINEL="node_modules/.package-lock.json.sha256"
+
+if [[ -f "$LOCK_FILE" && -f "$HASH_SENTINEL" ]]; then
+  CURRENT_HASH=$(sha256sum "$LOCK_FILE" | awk '{print $1}')
+  SAVED_HASH=$(cat "$HASH_SENTINEL" 2>/dev/null || echo "")
+  if [[ "$CURRENT_HASH" == "$SAVED_HASH" ]]; then
+    echo "[post-merge] lockfile unchanged — skipping npm install"
+  else
+    echo "[post-merge] lockfile changed — running npm install"
+    npm install
+    sha256sum "$LOCK_FILE" | awk '{print $1}' > "$HASH_SENTINEL"
+  fi
+else
+  echo "[post-merge] lockfile or sentinel not found — running npm install"
+  npm install
+  # Write the sentinel so future runs can skip when unchanged.
+  if [[ -f "$LOCK_FILE" && -d "node_modules" ]]; then
+    sha256sum "$LOCK_FILE" | awk '{print $1}' > "$HASH_SENTINEL"
+  fi
+fi
 
 # Idempotent guard: ensure `ai_suggestion_cache` exists. It lives in
 # shared/schemas/infrastructure.ts but does NOT yet have a numbered

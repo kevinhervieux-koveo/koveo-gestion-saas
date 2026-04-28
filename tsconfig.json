@@ -19,7 +19,7 @@
     "moduleResolution": "bundler",
     "allowImportingTsExtensions": true,
     "incremental": true,
-    "tsBuildInfoFile": "./.cache/tsbuildinfo",
+    "tsBuildInfoFile": "/tmp/.tsbuildinfo",
     "typeRoots": ["./node_modules/@types", "./types"],
     "types": ["jest", "@testing-library/jest-dom"],
     "skipLibCheck": true,
