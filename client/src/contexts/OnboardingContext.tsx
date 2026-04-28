@@ -108,7 +108,7 @@ interface TourProgress {
  *
  * Response shape from `/api/manager/buildings`: `{ buildings: [...] }`
  */
-function resolveEntryPath(entryPath: string): string {
+export function resolveEntryPath(entryPath: string): string {
   if (!entryPath.includes(':buildingId')) return entryPath;
   try {
     // Scan all query-cache entries whose key starts with '/api/manager/buildings'
