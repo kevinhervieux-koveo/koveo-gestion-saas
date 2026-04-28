@@ -21,6 +21,28 @@ import request from 'supertest';
 jest.mock('drizzle-orm', () => require('../../manual-mocks/drizzle-orm'));
 jest.mock('drizzle-orm/pg-core', () => require('../../manual-mocks/drizzle-orm/pg-core'));
 
+// ── DB / query helper mocks ─────────────────────────────────────────────────
+// The route module imports `server/db/queries/maintenance-queries` (used by
+// the GET handler) and `server/db/queries/scope-query`. Both of those load
+// `server/db.ts`, which imports `drizzle-orm/neon-serverless` —
+// a CJS/ESM interop landmine that ts-jest cannot evaluate (the classic
+// "Class extends value undefined" error from neon-serverless's session.ts).
+// The POST tests in this suite only need the storage seam, so stub the
+// query helpers and the db module to keep the real Neon driver out of the
+// test process entirely.
+jest.mock('../../../server/db', () => ({
+  db: {},
+  pool: {},
+}));
+jest.mock('../../../server/db/queries/maintenance-queries', () => ({
+  getMaintenanceRequestsForUser: jest.fn(async () => []),
+  getMaintenanceRequestsForResidence: jest.fn(async () => []),
+}));
+jest.mock('../../../server/db/queries/scope-query', () => ({
+  buildUserContext: jest.fn(async (userId: string, role: string) => ({ userId, role })),
+  scopeQuery: jest.fn((q: any) => q),
+}));
+
 // ── Storage mock ────────────────────────────────────────────────────────────
 // The endpoint now routes through storage.createMaintenanceRequest() rather
 // than db.insert() directly, so mock the storage module.
