@@ -358,6 +358,22 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
   // Users can still switch to 'urgent' or 'suggested' from the mode toggle;
   // see tests/unit/budget/overview-budget-parity.test.ts for the parity lock.
   const [capitalInvestmentMode, setCapitalInvestmentMode] = useState<'urgent' | 'suggested' | 'custom'>('custom');
+  // Switching the capital-investment mode re-keys the heavy
+  // `/api/budgets/forecast` query AND triggers the auto-generated
+  // investments effect, which together can run 600ms+ of synchronous
+  // work in React's commit phase. `startTransition` alone isn't enough:
+  // React 18 still kicks off the transition render inside the click
+  // event, so the click handler stays on the main thread until the
+  // re-render finishes. Defer the mode swap one macrotask so the click
+  // returns to the browser within ~1 frame; the transition-tagged
+  // setState then runs at low priority on the next event-loop tick.
+  // Guard task: tests/unit/components/budget-page-jank.test.tsx
+  // ("switching the capital investment mode stays responsive").
+  const scheduleCapitalInvestmentModeChange = useCallback((next: 'urgent' | 'suggested' | 'custom') => {
+    setTimeout(() => {
+      startTransition(() => setCapitalInvestmentMode(next));
+    }, 0);
+  }, []);
   const [investmentFilters, setInvestmentFilters] = useState<InvestmentFilters>({
     urgency: 'all',
   });
@@ -5143,7 +5159,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                                 checked={capitalInvestmentMode === 'urgent'}
                                 onChange={(e) => {
                                   const next = e.target.value as 'urgent' | 'suggested' | 'custom';
-                                  startTransition(() => setCapitalInvestmentMode(next));
+                                  scheduleCapitalInvestmentModeChange(next);
                                 }}
                                 className='text-blue-600 focus:ring-blue-500'
                                 data-testid="radio-urgent-capital-mode"
@@ -5171,7 +5187,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                                 checked={capitalInvestmentMode === 'suggested'}
                                 onChange={(e) => {
                                   const next = e.target.value as 'urgent' | 'suggested' | 'custom';
-                                  startTransition(() => setCapitalInvestmentMode(next));
+                                  scheduleCapitalInvestmentModeChange(next);
                                 }}
                                 className='text-blue-600 focus:ring-blue-500'
                                 data-testid="radio-suggested-capital-mode"
@@ -5199,7 +5215,7 @@ function BudgetInner({ organizationId, buildingId, buildingName }: BudgetProps) 
                                 checked={capitalInvestmentMode === 'custom'}
                                 onChange={(e) => {
                                   const next = e.target.value as 'urgent' | 'suggested' | 'custom';
-                                  startTransition(() => setCapitalInvestmentMode(next));
+                                  scheduleCapitalInvestmentModeChange(next);
                                 }}
                                 className='text-blue-600 focus:ring-blue-500'
                                 data-testid="radio-custom-capital-mode"
