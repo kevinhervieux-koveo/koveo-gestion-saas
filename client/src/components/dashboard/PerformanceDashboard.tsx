@@ -1,10 +1,9 @@
-// @ts-nocheck — Pre-existing type errors tracked in TYPE_CHECK_DEBT.md (task #769)
 /**
  * Comprehensive Performance Dashboard for Quebec Property Management SaaS
  * Real-time monitoring of frontend, backend, and user experience metrics
  */
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Component, ErrorInfo, ReactNode } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
@@ -14,49 +13,63 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid } from 'recharts';
 import { ChartContainer, ChartTooltip, ChartTooltipContent } from '@/components/ui/chart';
 import { chartColors, buildChartConfig } from '@/lib/chart-colors';
-import { AlertTriangle, Activity, Zap, Timer, Database, Cpu, MemoryStick, TrendingUp, TrendingDown, RefreshCw, HardDrive } from 'lucide-react';
-import { useWebVitals, WebVitalsMetrics } from '@/utils/web-vitals-monitor';
+import { AlertTriangle, Activity, Zap, Timer, Database, Cpu, TrendingUp, TrendingDown, RefreshCw, HardDrive } from 'lucide-react';
+import { useWebVitals } from '@/utils/web-vitals-monitor';
 import { complexityAnalyzer } from '@/utils/component-complexity-analyzer';
-import { performanceMonitor } from '@/utils/performance-monitor';
 import { useQuery } from '@tanstack/react-query';
 import { useLanguage } from '@/hooks/use-language';
 
-interface PerformanceData {
-  database: {
-    averageQueryTime: string;
-    maxQueryTime: string;
-    minQueryTime: string;
-    totalQueries: number;
-    slowQueries: number;
-    recentSlowQueries: any[];
-  };
-  cache: {
-    hitRate: number;
-    size: number;
-    entries: number;
-  };
+interface DatabaseStats {
+  averageQueryTime: string;
+  maxQueryTime: string;
+  minQueryTime: string;
+  totalQueries: number;
+  slowQueries: number;
+  recentSlowQueries: Array<{ query: string; duration: number; timestamp: string }>;
+}
+
+interface CacheTypeStats {
+  size: number;
+  maxSize: number;
+  hits: number;
+  misses: number;
+  hitRate: string;
+  memoryUsage: number;
+}
+
+interface PerformanceStatsData {
+  database: DatabaseStats;
+  cache: Record<string, CacheTypeStats>;
   optimization: {
     enabled: boolean;
-    indexesOptimized: number;
-    queriesOptimized: number;
-  };
-  trends: {
-    current: {
-      averageQueryTime: string;
-      totalQueries: number;
-      slowQueries: number;
-    };
-    improvement: {
-      percentage: string;
-      achieved: boolean;
-      targetReached: boolean;
-    };
     status: string;
+    currentAverage: string;
+    target: string;
+    indexesOptimized?: number;
+    queriesOptimized?: number;
   };
   timestamp: string;
 }
 
-interface WebVitalsData {
+interface TrendsData {
+  current: {
+    averageQueryTime: string;
+    totalQueries: number;
+    slowQueries: number;
+  };
+  baseline: {
+    averageQueryTime: string;
+    target: string;
+  };
+  improvement: {
+    percentage: string;
+    achieved: boolean;
+    targetReached: boolean;
+  };
+  status: string;
+}
+
+interface WebVitalsHistoryEntry {
   name: string;
   value: number;
   rating: string;
@@ -77,34 +90,92 @@ function formatBytes(bytes: number): string {
     Math.floor(Math.log(bytes) / Math.log(1024)),
   );
   const value = bytes / Math.pow(1024, exp);
-  // Two decimals up to GB, one for larger units to keep the number compact.
   const fixed = exp >= 4 ? 1 : 2;
   return `${value.toFixed(fixed)} ${units[exp]}`;
 }
 
-export function PerformanceDashboard() {
+/**
+ * Compute an aggregate cache hit-rate across all cache types.
+ * Returns a formatted percentage string or null when no data is available.
+ */
+function aggregateCacheHitRate(cache: Record<string, CacheTypeStats> | undefined): string | null {
+  if (!cache) return null;
+  let totalHits = 0;
+  let totalRequests = 0;
+  for (const stats of Object.values(cache)) {
+    totalHits += stats.hits ?? 0;
+    totalRequests += (stats.hits ?? 0) + (stats.misses ?? 0);
+  }
+  if (totalRequests === 0) return null;
+  return `${((totalHits / totalRequests) * 100).toFixed(1)}%`;
+}
+
+interface PageErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class PerformancePageErrorBoundary extends Component<
+  { children: ReactNode },
+  PageErrorBoundaryState
+> {
+  constructor(props: { children: ReactNode }) {
+    super(props);
+    this.state = { hasError: false, error: null };
+  }
+
+  static getDerivedStateFromError(error: Error): PageErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, info: ErrorInfo) {
+    console.error('[PerformanceDashboard] render error:', error, info);
+  }
+
+  handleRetry = () => {
+    this.setState({ hasError: false, error: null });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <div className="flex flex-col items-center justify-center min-h-[400px] gap-4 p-8">
+          <AlertTriangle className="h-12 w-12 text-red-500" />
+          <h2 className="text-xl font-semibold text-gray-900 dark:text-gray-100">
+            Performance Dashboard failed to load
+          </h2>
+          <p className="text-sm text-gray-600 dark:text-gray-400 text-center max-w-md">
+            {this.state.error?.message ?? 'An unexpected error occurred while rendering the dashboard.'}
+          </p>
+          <Button onClick={this.handleRetry} variant="outline">
+            <RefreshCw className="h-4 w-4 mr-2" />
+            Retry
+          </Button>
+        </div>
+      );
+    }
+    return this.props.children;
+  }
+}
+
+function PerformanceDashboardInner() {
   const { t } = useLanguage();
-  const [refreshInterval, setRefreshInterval] = useState(30000); // 30 seconds
+  const [refreshInterval, setRefreshInterval] = useState(30000);
   const [isAutoRefresh, setIsAutoRefresh] = useState(true);
-  const [webVitalsHistory, setWebVitalsHistory] = useState<WebVitalsData[]>([]);
-  
+  const [webVitalsHistory, setWebVitalsHistory] = useState<WebVitalsHistoryEntry[]>([]);
+
   const { metrics: webVitalsMetrics, recommendations, performanceScore, userExperienceRating } = useWebVitals();
 
-  // Fetch server-side performance data
-  const { data: performanceData, isLoading: isLoadingPerformance, refetch: refetchPerformance } = useQuery({
+  const { data: performanceData, isLoading: isLoadingPerformance, refetch: refetchPerformance } = useQuery<PerformanceStatsData>({
     queryKey: ['/api/performance/stats'],
     refetchInterval: isAutoRefresh ? refreshInterval : false,
   });
 
-  const { data: trendsData, isLoading: isLoadingTrends } = useQuery({
+  const { data: trendsData, isLoading: isLoadingTrends } = useQuery<TrendsData>({
     queryKey: ['/api/performance/trends'],
     refetchInterval: isAutoRefresh ? refreshInterval : false,
   });
 
-  // Task #1095: surface the bulk-import staging disk-usage snapshot
-  // exposed by `/api/health` so an admin can see free/total bytes and
-  // a clear LOW indicator without ssh-ing in to grep the janitor logs.
-  // Refreshes on the same cadence as the rest of the dashboard.
   const { data: healthData, isLoading: isLoadingHealth } = useQuery<{
     status?: string;
     bulkImportStaging?: {
@@ -120,56 +191,38 @@ export function PerformanceDashboard() {
   });
   const staging = healthData?.bulkImportStaging ?? null;
 
-  // Component complexity data
-  const [complexityData, setComplexityData] = useState(complexityAnalyzer.generateOptimizationReport());
+  const [complexityData, setComplexityData] = useState(() =>
+    complexityAnalyzer.generateOptimizationReport()
+  );
 
-  // Update complexity data periodically
   useEffect(() => {
     const interval = setInterval(() => {
       setComplexityData(complexityAnalyzer.generateOptimizationReport());
-    }, 10000); // Every 10 seconds
-
+    }, 10000);
     return () => clearInterval(interval);
   }, []);
 
-  // Store Web Vitals history for trending
   useEffect(() => {
     if (Object.keys(webVitalsMetrics).length > 0) {
-      const entry: WebVitalsData = {
+      const entry: WebVitalsHistoryEntry = {
         name: 'composite',
-        value: performanceScore || 0,
-        rating: userExperienceRating || 'unknown',
+        value: performanceScore ?? 0,
+        rating: userExperienceRating ?? 'unknown',
         timestamp: Date.now(),
         url: window.location.href,
       };
-
-      setWebVitalsHistory(prev => {
-        const updated = [...prev, entry];
-        // Keep only last 20 entries
-        return updated.slice(-20);
-      });
+      setWebVitalsHistory(prev => [...prev, entry].slice(-20));
     }
   }, [webVitalsMetrics, performanceScore, userExperienceRating]);
 
-  // Prepare chart data
   const webVitalsChartData = useMemo(() => {
     return webVitalsHistory.map((entry, index) => ({
       time: index,
       score: entry.value,
-      rating: entry.rating,
     }));
   }, [webVitalsHistory]);
 
-  const getStatusColor = (rating: string) => {
-    switch (rating) {
-      case 'good': return 'text-green-600';
-      case 'needs-improvement': return 'text-yellow-600';
-      case 'poor': return 'text-red-600';
-      default: return 'text-gray-600';
-    }
-  };
-
-  const getStatusBadgeVariant = (rating: string): "default" | "secondary" | "destructive" | "outline" => {
+  const getStatusBadgeVariant = (rating: string): 'default' | 'secondary' | 'destructive' | 'outline' => {
     switch (rating) {
       case 'good': return 'default';
       case 'needs-improvement': return 'secondary';
@@ -177,6 +230,8 @@ export function PerformanceDashboard() {
       default: return 'outline';
     }
   };
+
+  const aggregatedCacheHitRate = aggregateCacheHitRate(performanceData?.cache);
 
   return (
     <div className="space-y-6" data-testid="performance-dashboard">
@@ -190,7 +245,7 @@ export function PerformanceDashboard() {
           <div className="flex items-center gap-2">
             <label className="text-sm font-medium">Auto-refresh:</label>
             <Button
-              variant={isAutoRefresh ? "default" : "outline"}
+              variant={isAutoRefresh ? 'default' : 'outline'}
               size="sm"
               onClick={() => setIsAutoRefresh(!isAutoRefresh)}
               data-testid="button-toggle-auto-refresh"
@@ -219,14 +274,14 @@ export function PerformanceDashboard() {
             <Activity className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{performanceScore || 0}/100</div>
-            <Progress value={performanceScore || 0} className="mt-2" />
-            <Badge 
-              variant={getStatusBadgeVariant(userExperienceRating || 'unknown')} 
+            <div className="text-2xl font-bold">{performanceScore ?? 0}/100</div>
+            <Progress value={performanceScore ?? 0} className="mt-2" />
+            <Badge
+              variant={getStatusBadgeVariant(userExperienceRating ?? 'unknown')}
               className="mt-2"
-              data-testid={`badge-rating-${userExperienceRating}`}
+              data-testid={`badge-rating-${userExperienceRating ?? 'unknown'}`}
             >
-              {userExperienceRating || 'Unknown'}
+              {userExperienceRating ?? 'Unknown'}
             </Badge>
           </CardContent>
         </Card>
@@ -238,7 +293,7 @@ export function PerformanceDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {webVitalsMetrics.LCP ? `${Math.round(webVitalsMetrics.LCP)}ms` : 'N/A'}
+              {webVitalsMetrics.LCP != null ? `${Math.round(webVitalsMetrics.LCP)}ms` : 'N/A'}
             </div>
             <p className="text-xs text-muted-foreground">Largest Contentful Paint</p>
           </CardContent>
@@ -246,14 +301,14 @@ export function PerformanceDashboard() {
 
         <Card data-testid="card-web-vitals-fid">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">FID</CardTitle>
+            <CardTitle className="text-sm font-medium">INP</CardTitle>
             <Zap className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {webVitalsMetrics.FID ? `${Math.round(webVitalsMetrics.FID)}ms` : 'N/A'}
+              {webVitalsMetrics.INP != null ? `${Math.round(webVitalsMetrics.INP)}ms` : 'N/A'}
             </div>
-            <p className="text-xs text-muted-foreground">First Input Delay</p>
+            <p className="text-xs text-muted-foreground">Interaction to Next Paint</p>
           </CardContent>
         </Card>
 
@@ -264,7 +319,7 @@ export function PerformanceDashboard() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">
-              {webVitalsMetrics.CLS ? webVitalsMetrics.CLS.toFixed(3) : 'N/A'}
+              {webVitalsMetrics.CLS != null ? webVitalsMetrics.CLS.toFixed(3) : 'N/A'}
             </div>
             <p className="text-xs text-muted-foreground">Cumulative Layout Shift</p>
           </CardContent>
@@ -300,7 +355,6 @@ export function PerformanceDashboard() {
         {/* Frontend Performance Tab */}
         <TabsContent value="frontend" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Web Vitals Chart */}
             <Card data-testid="card-web-vitals-chart">
               <CardHeader>
                 <CardTitle>Performance Score Trend</CardTitle>
@@ -313,9 +367,9 @@ export function PerformanceDashboard() {
                     <XAxis dataKey="time" />
                     <YAxis domain={[0, 100]} />
                     <ChartTooltip content={<ChartTooltipContent />} />
-                    <Line 
-                      type="monotone" 
-                      dataKey="score" 
+                    <Line
+                      type="monotone"
+                      dataKey="score"
                       stroke={chartColors.purple}
                       strokeWidth={2}
                       dot={{ r: 4 }}
@@ -325,32 +379,28 @@ export function PerformanceDashboard() {
               </CardContent>
             </Card>
 
-            {/* Web Vitals Details */}
             <Card data-testid="card-web-vitals-details">
               <CardHeader>
                 <CardTitle>Core Web Vitals Details</CardTitle>
                 <CardDescription>{t('currentPerformanceMetricsBreakdown')}</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                {Object.entries(webVitalsMetrics).map(([key, value]) => {
-                  if (typeof value === 'number' && ['LCP', 'FID', 'FCP', 'TTFB'].includes(key)) {
-                    return (
-                      <div key={key} className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{key}</span>
-                        <span className="text-sm">{Math.round(value)}ms</span>
-                      </div>
-                    );
-                  }
-                  if (key === 'CLS' && typeof value === 'number') {
-                    return (
-                      <div key={key} className="flex items-center justify-between">
-                        <span className="text-sm font-medium">{key}</span>
-                        <span className="text-sm">{value.toFixed(3)}</span>
-                      </div>
-                    );
-                  }
-                  return null;
+                {(['LCP', 'INP', 'FCP', 'TTFB'] as const).map(key => {
+                  const value = webVitalsMetrics[key];
+                  if (value == null) return null;
+                  return (
+                    <div key={key} className="flex items-center justify-between">
+                      <span className="text-sm font-medium">{key}</span>
+                      <span className="text-sm">{Math.round(value)}ms</span>
+                    </div>
+                  );
                 })}
+                {webVitalsMetrics.CLS != null && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm font-medium">CLS</span>
+                    <span className="text-sm">{webVitalsMetrics.CLS.toFixed(3)}</span>
+                  </div>
+                )}
               </CardContent>
             </Card>
           </div>
@@ -359,7 +409,6 @@ export function PerformanceDashboard() {
         {/* Backend Performance Tab */}
         <TabsContent value="backend" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Database Performance */}
             <Card data-testid="card-database-performance">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -389,7 +438,7 @@ export function PerformanceDashboard() {
                       <div>
                         <p className="text-sm font-medium">Cache Hit Rate</p>
                         <p className="text-2xl font-bold text-green-600">
-                          {performanceData.cache?.hitRate ? `${performanceData.cache.hitRate}%` : 'N/A'}
+                          {aggregatedCacheHitRate ?? 'N/A'}
                         </p>
                       </div>
                     </div>
@@ -398,9 +447,7 @@ export function PerformanceDashboard() {
               </CardContent>
             </Card>
 
-            {/* Bulk-import staging volume (Task #1095). Mirrors the
-                snapshot the Task #1088 janitor logs every pass so an
-                admin can spot a filling-up staging disk without ssh. */}
+            {/* Bulk-import staging volume (Task #1095) */}
             <Card data-testid="card-bulk-import-staging-disk">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
@@ -454,9 +501,7 @@ export function PerformanceDashboard() {
                       <div>
                         <p className="text-sm font-medium">Free</p>
                         <p
-                          className={`text-2xl font-bold ${
-                            staging.isLow ? 'text-red-600' : 'text-green-600'
-                          }`}
+                          className={`text-2xl font-bold ${staging.isLow ? 'text-red-600' : 'text-green-600'}`}
                           data-testid="text-bulk-import-staging-free"
                         >
                           {formatBytes(staging.freeBytes)}
@@ -476,9 +521,7 @@ export function PerformanceDashboard() {
                       <div className="flex items-center justify-between mb-1">
                         <p className="text-sm font-medium">Free %</p>
                         <span
-                          className={`text-sm font-bold ${
-                            staging.isLow ? 'text-red-600' : ''
-                          }`}
+                          className={`text-sm font-bold ${staging.isLow ? 'text-red-600' : ''}`}
                           data-testid="text-bulk-import-staging-free-percent"
                         >
                           {staging.freePercent.toFixed(1)}%
@@ -521,7 +564,7 @@ export function PerformanceDashboard() {
                   <div className="space-y-4">
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Status</span>
-                      <Badge 
+                      <Badge
                         variant={trendsData.status === 'optimal' ? 'default' : 'secondary'}
                         data-testid={`badge-server-status-${trendsData.status}`}
                       >
@@ -530,9 +573,7 @@ export function PerformanceDashboard() {
                     </div>
                     <div className="flex items-center justify-between">
                       <span className="text-sm font-medium">Performance Improvement</span>
-                      <span className={`text-sm font-bold ${
-                        trendsData.improvement.achieved ? 'text-green-600' : 'text-red-600'
-                      }`}>
+                      <span className={`text-sm font-bold ${trendsData.improvement.achieved ? 'text-green-600' : 'text-red-600'}`}>
                         {trendsData.improvement.percentage}
                         {trendsData.improvement.achieved ? (
                           <TrendingUp className="inline h-4 w-4 ml-1" />
@@ -551,7 +592,6 @@ export function PerformanceDashboard() {
         {/* Component Performance Tab */}
         <TabsContent value="components" className="space-y-6">
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Component Complexity Overview */}
             <Card data-testid="card-component-complexity">
               <CardHeader>
                 <CardTitle>Component Complexity Analysis</CardTitle>
@@ -578,7 +618,6 @@ export function PerformanceDashboard() {
               </CardContent>
             </Card>
 
-            {/* Top Issues */}
             <Card data-testid="card-top-issues">
               <CardHeader>
                 <CardTitle>Top Performance Issues</CardTitle>
@@ -591,12 +630,14 @@ export function PerformanceDashboard() {
                       {issue}
                     </div>
                   ))}
+                  {complexityData.summary.topIssues.length === 0 && (
+                    <p className="text-sm text-muted-foreground">No issues detected.</p>
+                  )}
                 </div>
               </CardContent>
             </Card>
           </div>
 
-          {/* Component Recommendations */}
           {complexityData.recommendations.length > 0 && (
             <Card data-testid="card-component-recommendations">
               <CardHeader>
@@ -609,9 +650,9 @@ export function PerformanceDashboard() {
                     <div key={index} className="border rounded-lg p-4">
                       <div className="flex items-center justify-between mb-2">
                         <h4 className="font-medium">{rec.component}</h4>
-                        <Badge 
+                        <Badge
                           variant={
-                            rec.priority === 'high' ? 'destructive' : 
+                            rec.priority === 'high' ? 'destructive' :
                             rec.priority === 'medium' ? 'secondary' : 'outline'
                           }
                           data-testid={`badge-priority-${rec.priority}`}
@@ -649,13 +690,13 @@ export function PerformanceDashboard() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="text-center">
                   <div className="text-2xl font-bold">
-                    {trendsData?.improvement.percentage || 'N/A'}
+                    {trendsData?.improvement.percentage ?? 'N/A'}
                   </div>
                   <p className="text-sm text-muted-foreground">Performance Improvement</p>
                 </div>
                 <div className="text-center">
                   <div className="text-2xl font-bold">
-                    {performanceScore || 0}/100
+                    {(performanceScore ?? 0)}/100
                   </div>
                   <p className="text-sm text-muted-foreground">Current Score</p>
                 </div>
@@ -673,3 +714,13 @@ export function PerformanceDashboard() {
     </div>
   );
 }
+
+export function PerformanceDashboard() {
+  return (
+    <PerformancePageErrorBoundary>
+      <PerformanceDashboardInner />
+    </PerformancePageErrorBoundary>
+  );
+}
+
+export default PerformanceDashboard;
