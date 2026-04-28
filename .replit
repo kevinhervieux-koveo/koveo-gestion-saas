@@ -135,6 +135,8 @@ MCP_OAUTH_ISSUER = "https://koveo-gestion.com"
 
 [userenv.production]
 ENABLE_MCP_SERVER = "true"
+ONBOARDING_ENABLED = "true"
+VITE_ONBOARDING_ENABLED = "true"
 
 [userenv.development]
 MCP_ASSUME_USER = "1"

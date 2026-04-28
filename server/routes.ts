@@ -28,6 +28,7 @@ import { registerDocumentTagRoutes } from './api/document-tags';
 import { seedKoveoDocumentTags } from './api/document-tags-seed';
 import { registerDocumentLinkFamilyRoutes } from './api/document-link-families';
 import { seedKoveoDocumentLinkFamilies } from './api/document-link-families-seed';
+import { seedOnboardingVersions } from './api/onboarding-versions-seed';
 import { registerResidenceRoutes } from './api/residences';
 import { registerContactRoutes } from './api/contacts';
 import { registerPermissionsRoutes } from './api/permissions';
@@ -182,6 +183,9 @@ export async function registerRoutes(app: Express) {
   void seedKoveoDocumentTags();
   registerDocumentLinkFamilyRoutes(app);
   void seedKoveoDocumentLinkFamilies();
+  // Idempotent seeding of onboarding_versions from code-defined tour catalog.
+  // Gated on isOnboardingEnabled(); no-op when the feature is off.
+  void seedOnboardingVersions();
 
   registerResidenceRoutes(app);
   registerContactRoutes(app);

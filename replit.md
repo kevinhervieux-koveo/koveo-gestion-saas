@@ -74,6 +74,12 @@ The platform exposes an MCP server at `/mcp` for LLM integration (e.g., Claude D
 - **Input Validation Guards (Task #1308)**: Property write tools enforce numeric constraints at the MCP input schema layer. `create_building` / `update_building`: `totalUnits ≥ 1`, `totalFloors ≥ 1`, `parkingSpaces ≥ 0`, `storageSpaces ≥ 0`. `create_residence` / `update_residence`: `bedrooms ≥ 0`, `bathrooms ≥ 0`, `monthlyFees ≥ 0`, `squareFootage > 0`. `create_demand_comment`: `commentText` has `.trim().min(1)` guard rejecting empty and whitespace-only strings.
 - **Dependencies**: `@modelcontextprotocol/sdk`
 
+### Onboarding Tours
+- **Feature flag**: `ONBOARDING_ENABLED` (backend) and `VITE_ONBOARDING_ENABLED` (frontend build). In dev: ON by default; in production: must be set explicitly to `true`. Both are set to `true` in the production environment.
+- **Adding a new tour**: Add the tour to the content files under `client/src/content/onboarding/` and register it in `client/src/content/onboarding/smoke.ts` (`ALL_TOURS`). The deploy will register it automatically in `onboarding_versions` — **no SQL migration required**. The runtime seeder (`server/api/onboarding-versions-seed.ts`) runs on every server start, computes each tour's `content_hash`, and upserts rows: insert for new tours, version bump for changed tours, no-op for unchanged tours. A summary log line (`[ONBOARDING SEED] registered N new tours, bumped M to new version, K unchanged`) confirms what happened.
+- **Version bumping**: The seeder uses `computeTourContentHash` (from `server/lib/onboarding-health-analyzer.ts`) which hashes the ordered step ids + anchors + covers. Changing copy alone does NOT bump the version; changing anchors, covers, or step structure does.
+- **Historical migrations**: `migrations/0034_onboarding_tables.sql` and `migrations/0035_manager_onboarding_tours.sql` remain in place (already applied). They are not the source of truth going forward — the runtime seeder is.
+
 ### Deployment & Production
 - **Deployment Target**: Autoscale (configured in `.replit` `[deployment]` section)
 - **Build Command**: `npm run build:production` (runs drizzle-kit push, Vite build, esbuild server bundle)
