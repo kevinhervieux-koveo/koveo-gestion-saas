@@ -767,6 +767,98 @@ export const STEP_LABEL_FR: Record<BulkImportStep, string> = {
 
 const STORAGE_KEY = 'bulkImportActiveSessionId';
 
+/**
+ * Task #1617: per-session storage key for the family-card collapse preference.
+ * Persists which family IDs the admin has manually toggled away from the
+ * auto-collapse default so the preference survives page reloads.
+ */
+export const COLLAPSED_FAMILIES_STORAGE_PREFIX = 'bulkImportCollapsedFamilies:';
+export const collapsedFamiliesStorageKey = (sessionId: string): string =>
+  `${COLLAPSED_FAMILIES_STORAGE_PREFIX}${sessionId}`;
+
+/**
+ * Task #1608/#1617: family-card auto-collapse default.
+ *
+ * A card auto-starts collapsed when:
+ *   - it has nothing new to review (`newCount === 0`, e.g. existing-only
+ *     cards rendered for context), so admins focus on cards that need
+ *     attention; OR
+ *   - it has 2+ new items, so busy sessions don't render a wall of rows.
+ *
+ * Cards with exactly one new item auto-start expanded so the single
+ * pending doc is reviewable at a glance. The admin can toggle any card,
+ * and the toggled-away IDs are persisted per session by Task #1617.
+ */
+export function familyCardAutoCollapsed(newCount: number): boolean {
+  return newCount !== 1;
+}
+
+/**
+ * Task #1608/#1617: apparent collapse state of a family card. Combines
+ * the auto-collapse default with the admin's "toggled away from default"
+ * set: a card whose ID is in the set displays the OPPOSITE of its default.
+ */
+export function isFamilyCardCollapsed(
+  newCount: number,
+  familyId: string,
+  toggledFamilyIds: ReadonlySet<string>,
+): boolean {
+  const auto = familyCardAutoCollapsed(newCount);
+  const toggled = toggledFamilyIds.has(familyId);
+  return auto ? !toggled : toggled;
+}
+
+/**
+ * Task #1608/#1617: returns a new "toggled away from default" set with
+ * `familyId` flipped in/out. Pure (does not mutate `prev`) so it can be
+ * used inside React state updaters and unit-tested in isolation.
+ */
+export function toggleFamilyCardCollapsed(
+  prev: ReadonlySet<string>,
+  familyId: string,
+): Set<string> {
+  const next = new Set(prev);
+  if (next.has(familyId)) next.delete(familyId);
+  else next.add(familyId);
+  return next;
+}
+
+/**
+ * Task #1617: read the persisted "toggled away from default" set for a
+ * session. Returns an empty set on missing entry, malformed JSON, or any
+ * storage access failure (e.g. private browsing).
+ */
+export function readPersistedCollapsedFamilyIds(sessionId: string): Set<string> {
+  try {
+    const raw = localStorage.getItem(collapsedFamiliesStorageKey(sessionId));
+    if (!raw) return new Set();
+    const parsed = JSON.parse(raw) as unknown;
+    if (!Array.isArray(parsed)) return new Set();
+    return new Set(parsed.filter((v): v is string => typeof v === 'string'));
+  } catch {
+    return new Set();
+  }
+}
+
+/**
+ * Task #1617: persist the "toggled away from default" set for a session.
+ * Silently tolerates quota errors and disabled storage so a write failure
+ * never breaks the in-memory toggle.
+ */
+export function writePersistedCollapsedFamilyIds(
+  sessionId: string,
+  ids: ReadonlySet<string>,
+): void {
+  try {
+    localStorage.setItem(
+      collapsedFamiliesStorageKey(sessionId),
+      JSON.stringify(Array.from(ids)),
+    );
+  } catch {
+    // ignored — collapse still works for this session, just not persisted.
+  }
+}
+
 const TYPE_GUESS_LABEL_EN: Record<string, string> = {
   invoice: 'Invoice',
   contract: 'Contract',
@@ -4002,12 +4094,28 @@ export default function BulkDocumentImportPage() {
   const [guesReasonOpenIds, setGuessReasonOpenIds] = useState<Set<string>>(new Set());
 
   /**
-   * Task #1608: IDs of family cards that the admin has manually collapsed.
-   * Cards auto-start expanded when they have 1 new item, collapsed when they
-   * have 2+ new items (to avoid a wall of rows on busy sessions). The admin
-   * can toggle any card at will.
+   * Task #1608/#1617: IDs of family cards whose collapse state the admin
+   * has manually toggled AWAY from the auto-collapse default (see
+   * `familyCardAutoCollapsed` for the rule). Storing the toggled-away set
+   * — rather than absolute collapse state — preserves the auto-default
+   * for any new cards that appear after a reload, satisfying #1617's
+   * "untouched cards still follow the default" requirement.
    */
   const [collapsedFamilyIds, setCollapsedFamilyIds] = useState<Set<string>>(new Set());
+
+  /**
+   * Task #1617: hydrate the collapse preference from localStorage whenever
+   * the active session changes. Runs once on mount (after the resume effect
+   * sets sessionId from STORAGE_KEY) and again whenever the admin switches
+   * sessions, so each session keeps its own preference.
+   */
+  useEffect(() => {
+    if (!sessionId) {
+      setCollapsedFamilyIds(new Set());
+      return;
+    }
+    setCollapsedFamilyIds(readPersistedCollapsedFamilyIds(sessionId));
+  }, [sessionId]);
 
   /**
    * Task #1608: Drag state for reordering new items within a family card.
@@ -7092,19 +7200,23 @@ export default function BulkDocumentImportPage() {
                           const m = group.membershipByItemId.get(wrapped.id);
                           return m?.manualOverride;
                         });
-                        // Task #1608: collapse/expand toggle. Default: collapsed when newCount === 0
-                        // (existing-only cards) so admins focus on new items that need review.
-                        const defaultCollapsed = group.newCount === 0;
-                        const toggled = collapsedFamilyIds.has(group.familyId ?? '');
-                        const isCollapsed = defaultCollapsed ? !toggled : toggled;
+                        // Task #1608/#1617: collapse/expand toggle. The auto-collapse
+                        // default + admin override come from `isFamilyCardCollapsed`
+                        // (see `familyCardAutoCollapsed` for the rule). The toggled-away
+                        // set is persisted per session so the preference survives
+                        // page reloads.
+                        const familyId = group.familyId ?? '';
+                        const isCollapsed = isFamilyCardCollapsed(
+                          group.newCount,
+                          familyId,
+                          collapsedFamilyIds,
+                        );
                         const toggleCollapse = () => {
-                          setCollapsedFamilyIds((prev) => {
-                            const next = new Set(prev);
-                            const id = group.familyId ?? '';
-                            if (next.has(id)) next.delete(id);
-                            else next.add(id);
-                            return next;
-                          });
+                          const next = toggleFamilyCardCollapsed(collapsedFamilyIds, familyId);
+                          setCollapsedFamilyIds(next);
+                          if (sessionId) {
+                            writePersistedCollapsedFamilyIds(sessionId, next);
+                          }
                         };
                         return (
                           <div
