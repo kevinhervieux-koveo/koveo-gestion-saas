@@ -74,6 +74,22 @@
 
 ## Quality Assurance
 
+### QA Pass #28 Verification — 2026-04-28 ✅
+
+Five items flagged as potentially still open in the Pass #28 report were re-verified
+against the current codebase and database. All five confirmed fixed; no reproductions.
+
+| ID | Item | Verdict | Evidence |
+|----|------|---------|----------|
+| H1-H7 | Help system shell | ✅ Confirmed Fixed | `client/src/pages/help.tsx` renders bilingual title, FR body, EN body, and support email CTA. All 4 i18n keys present. `/admin/help` and `/dashboard/help` redirect to `/help`. |
+| W11 | 404 page | ✅ Confirmed Fixed | `not-found.tsx` renders heading (`notFoundTitle`), message (`notFoundMessage`), and a `<Link>` to `/dashboard/overview`. Catch-all registered at `App.tsx:481`. |
+| W38 | element_history audit log | ✅ Confirmed Fixed | DB: 16 rows in `element_history_audit_log`, latest 2026-04-28. All required fields populated: `action`, `audit_source`, `performed_by`, `previous_values`, `new_values`. |
+| W67 | Language toggle + sidebar collapse touch targets | ✅ Confirmed Fixed | Both EN/FR buttons and collapse toggle carry `min-h-11 min-w-11` (44×44 CSS px). |
+| W77 | Manager pages buildings load | ✅ Confirmed Fixed | All 5 pages use `withHierarchicalSelection` HOC which calls `/api/organizations/:id/buildings`. Endpoint IS registered in `server/api/organizations.ts:750`. |
+
+Side finding: `/api/organizations/:id/buildings` grants admin fast-path to `role === 'admin'`
+but not `role === 'super_admin'` (line 781). Tracked as follow-up task #1700.
+
 ### Testing Framework ✅
 - **Test Infrastructure**: Advanced Jest configuration with ES module support and strategic server mocking
 - **Core Tests**: Dashboard Components (15/15), Form Validation (12/12), API Routes Validation (15/15)
