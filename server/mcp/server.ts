@@ -29,6 +29,7 @@ import {
 import { demandNotificationService } from "../services/demand-notification-service";
 import {
   advanceLastInspectionDateForward,
+  eventSetsLastInspectionDate,
   isInspectionEventType,
   recomputeLastInspectionDate,
 } from "../services/inventory-inspection-date";
@@ -4787,11 +4788,13 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
         eventUpdate.updatedBy = actingUserId;
       }
 
-      // Recompute lastInspectionDate when the edit could shift the MAX over
-      // inspection-type events for this element — i.e. when the event date or
-      // event type changed. The recompute runs after the row update so the
-      // SELECT MAX sees the new state. (Task #1135.)
-      const inspectionRecomputeNeeded = 'eventDate' in diffFields || 'eventType' in diffFields;
+      // Recompute lastInspectionDate only when the event being edited was the
+      // one that originally established the current value (its stored eventDate
+      // matches the element's lastInspectionDate). If the current value was
+      // set manually via update_inventory_element, no event date will match it
+      // and the column is left untouched (Task #994).
+      const inspectionRecomputeNeeded = ('eventDate' in diffFields || 'eventType' in diffFields) &&
+        eventSetsLastInspectionDate(existing.eventType, existing.eventDate, element.lastInspectionDate);
 
       try {
         const result = await withRetryableDbCall(() => db.transaction(async (tx) => {
@@ -4937,12 +4940,14 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
               .set({ currentLifespan: newCurrentLifespan, updatedAt: new Date() })
               .where(eq(schema.buildingElements.id, element.id));
           }
-          // Always recompute lastInspectionDate after delete so removing the
-          // event that held the current MAX(eventDate) doesn't leave the
-          // element pointing at a date it no longer has any evidence for
-          // (Task #1135). When no inspection events remain the helper writes
-          // NULL, correctly clearing the column.
-          await recomputeLastInspectionDate(tx, element.id);
+          // Only recompute lastInspectionDate when the deleted event was the
+          // one that established the current stored value (its eventDate
+          // matches the element's lastInspectionDate). If the current value
+          // was set manually via update_inventory_element, no event date will
+          // match it and the column is left untouched (Task #994).
+          if (eventSetsLastInspectionDate(existing.eventType, existing.eventDate, element.lastInspectionDate)) {
+            await recomputeLastInspectionDate(tx, element.id);
+          }
           const [el] = await tx
             .select({
               id: schema.buildingElements.id,

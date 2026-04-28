@@ -73,6 +73,7 @@ import { maintenanceJobsScheduler } from '../jobs/maintenanceJobs';
 import { projectPaymentService } from '../services/project-payment-service';
 import {
   advanceLastInspectionDateForward,
+  eventSetsLastInspectionDate,
   isInspectionEventType,
   recomputeLastInspectionDate,
 } from '../services/inventory-inspection-date';
@@ -1937,10 +1938,14 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         updatedBy: user.id,
       };
 
-      // Recompute lastInspectionDate when the edit could shift MAX(eventDate)
-      // over inspection-type events for this element — i.e. when the event
-      // date or event type changed. Mirrors the MCP path (Task #1135).
-      const inspectionRecomputeNeeded = 'eventDate' in diffFields || 'eventType' in diffFields;
+      // Recompute lastInspectionDate only when the event being edited was the
+      // one that originally established the current value (i.e. its stored
+      // eventDate matches the element's lastInspectionDate). If the current
+      // value was set manually via update_inventory_element, no event date
+      // will match it and the column is left untouched (Task #994).
+      const elementLastInspectionDate = existingRows[0].building_elements.lastInspectionDate;
+      const inspectionRecomputeNeeded = ('eventDate' in diffFields || 'eventType' in diffFields) &&
+        eventSetsLastInspectionDate(existing.eventType, existing.eventDate, elementLastInspectionDate);
       const elementId = existing.elementId;
 
       // Build full before/after snapshots for the new audit log columns.
@@ -2139,7 +2144,10 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
       const historyResult = await db
         .select({ 
           elementId: elementHistory.elementId,
-          buildingId: buildingElements.buildingId 
+          buildingId: buildingElements.buildingId,
+          eventType: elementHistory.eventType,
+          eventDate: elementHistory.eventDate,
+          lastInspectionDate: buildingElements.lastInspectionDate,
         })
         .from(elementHistory)
         .innerJoin(buildingElements, eq(elementHistory.elementId, buildingElements.id))
@@ -2164,11 +2172,19 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         .where(eq(elementHistory.id, id))
         .limit(1);
 
-      // Write audit row + delete element_history + recompute in one transaction.
-      // The audit log FK uses ON DELETE SET NULL (migration 0036), so the
-      // 'deleted' audit row survives the deletion with history_id set to NULL —
-      // it remains queryable via previousValues->>'id'.
+      // Write audit row + delete element_history + conditionally recompute in
+      // one transaction. The audit log FK uses ON DELETE SET NULL (migration
+      // 0036), so the 'deleted' audit row survives with history_id = NULL —
+      // queryable via previousValues->>'id'. lastInspectionDate is only
+      // recomputed when the deleted event was the one that established the
+      // current stored value; manual overrides set via update_inventory_element
+      // are left untouched (Task #994).
       const elementId = historyResult[0].elementId;
+      const shouldRecompute = eventSetsLastInspectionDate(
+        historyResult[0].eventType,
+        historyResult[0].eventDate,
+        historyResult[0].lastInspectionDate,
+      );
       await db.transaction(async (tx) => {
         // Write the 'deleted' audit row BEFORE deleting element_history so the
         // FK reference is valid at insert time.  After the delete below, Postgres
@@ -2185,7 +2201,9 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         await tx
           .delete(elementHistory)
           .where(eq(elementHistory.id, id));
-        await recomputeLastInspectionDate(tx, elementId);
+        if (shouldRecompute) {
+          await recomputeLastInspectionDate(tx, elementId);
+        }
       });
 
       res.json({

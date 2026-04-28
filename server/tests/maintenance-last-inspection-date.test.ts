@@ -397,4 +397,141 @@ describeIfDb('lastInspectionDate forward-only guard — integration (real Postgr
       await db.delete(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
     }
   });
+
+  // ---------------------------------------------------------------------
+  // W41 regression (Task #994) — manual lastInspectionDate is preserved
+  // when deleting a backdated inspection event
+  //
+  // Scenario: admin manually sets lastInspectionDate (e.g. via
+  // update_inventory_element). A backdated repair event is later created;
+  // the W36 forward-only guard leaves the manual date untouched. When that
+  // backdated event is deleted, the manual date must survive — the old code
+  // incorrectly cleared it to NULL.
+  // ---------------------------------------------------------------------
+  it('W41 — DELETE /history/:id preserves manually-set lastInspectionDate when deleting a backdated event', async () => {
+    const elementId = await seedElement('w41-manual');
+    try {
+      // Simulate admin manually setting lastInspectionDate (via update_inventory_element).
+      await db
+        .update(schema.buildingElements)
+        .set({ lastInspectionDate: '2026-04-26' })
+        .where(eq(schema.buildingElements.id, elementId));
+      expect(await fetchLastInspectionDate(elementId)).toBe('2026-04-26');
+
+      // Insert a backdated repair event. The W36 forward-only guard in the
+      // POST handler leaves lastInspectionDate at the manually-set value
+      // because the event date is older.
+      const createRes = await postHistory(elementId, 'repair', '2026-04-20');
+      expect(createRes.status).toBe(201);
+      // Confirm the guard worked — manual date is still in place.
+      expect(await fetchLastInspectionDate(elementId)).toBe('2026-04-26');
+
+      // Now delete the backdated event.
+      const eventId = await fetchHistoryIdByDate(elementId, '2026-04-20');
+      const delRes = await deleteHistory(eventId);
+      expect(delRes.status).toBe(200);
+
+      // The manually-set date must NOT have been cleared (W41 regression).
+      expect(await fetchLastInspectionDate(elementId)).toBe('2026-04-26');
+    } finally {
+      await db.delete(schema.elementHistory).where(eq(schema.elementHistory.elementId, elementId));
+      await db.delete(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
+    }
+  });
+
+  // ---------------------------------------------------------------------
+  // W74 regression (Task #994) — manually-set date survives delete even
+  // when a prior inspection event had advanced the date (then a different
+  // manual override replaced it).
+  //
+  // Scenario: admin first creates an old repair event (2024-09-12) which
+  // sets lastInspectionDate. Admin then manually overrides to 2026-04-28.
+  // A new backdated event (2026-04-15) is created — guard leaves the date.
+  // Deleting that backdated event must NOT regress lastInspectionDate to
+  // 2024-09-12 (old broken behavior).
+  // ---------------------------------------------------------------------
+  it('W74 — DELETE /history/:id preserves manual override even when a prior event had set the date', async () => {
+    const elementId = await seedElement('w74-override');
+    try {
+      // Insert an older repair event — this advances lastInspectionDate to
+      // 2024-09-12 via the forward-only guard.
+      expect((await postHistory(elementId, 'repair', '2024-09-12')).status).toBe(201);
+      expect(await fetchLastInspectionDate(elementId)).toBe('2024-09-12');
+
+      // Admin manually overrides lastInspectionDate (simulates
+      // update_inventory_element setting the field directly).
+      await db
+        .update(schema.buildingElements)
+        .set({ lastInspectionDate: '2026-04-28' })
+        .where(eq(schema.buildingElements.id, elementId));
+      expect(await fetchLastInspectionDate(elementId)).toBe('2026-04-28');
+
+      // Insert a backdated repair event (2026-04-15). Forward-only guard
+      // leaves lastInspectionDate at the manual override.
+      const createRes = await postHistory(elementId, 'repair', '2026-04-15');
+      expect(createRes.status).toBe(201);
+      expect(await fetchLastInspectionDate(elementId)).toBe('2026-04-28');
+
+      // Delete the backdated event.
+      const backdatedId = await fetchHistoryIdByDate(elementId, '2026-04-15');
+      const delRes = await deleteHistory(backdatedId);
+      expect(delRes.status).toBe(200);
+
+      // Must preserve the manual override (2026-04-28), NOT revert to the
+      // old event date (2024-09-12).
+      expect(await fetchLastInspectionDate(elementId)).toBe('2026-04-28');
+    } finally {
+      await db.delete(schema.elementHistory).where(eq(schema.elementHistory.elementId, elementId));
+      await db.delete(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
+    }
+  });
+
+  // ---------------------------------------------------------------------
+  // PUT /history/:id — manual lastInspectionDate preserved on edit
+  //
+  // Editing a backdated inspection event (whose date doesn't match the
+  // manually-set lastInspectionDate) must not trigger a recompute.
+  // ---------------------------------------------------------------------
+  it('PUT /history/:id preserves manually-set lastInspectionDate when editing a backdated event', async () => {
+    const elementId = await seedElement('put-manual');
+    try {
+      // Manually set lastInspectionDate.
+      await db
+        .update(schema.buildingElements)
+        .set({ lastInspectionDate: '2026-04-28' })
+        .where(eq(schema.buildingElements.id, elementId));
+
+      // Insert a backdated repair event.
+      expect((await postHistory(elementId, 'repair', '2026-04-10')).status).toBe(201);
+      expect(await fetchLastInspectionDate(elementId)).toBe('2026-04-28');
+
+      // Edit the backdated event's date — must NOT recompute and wipe the manual value.
+      const eventId = await fetchHistoryIdByDate(elementId, '2026-04-10');
+      const putRes = await putHistory(eventId, { eventDate: '2026-04-05' });
+      expect(putRes.status).toBe(200);
+
+      expect(await fetchLastInspectionDate(elementId)).toBe('2026-04-28');
+    } finally {
+      await db.delete(schema.elementHistory).where(eq(schema.elementHistory.elementId, elementId));
+      await db.delete(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
+    }
+  });
+
+  // Cross-check: the W36 forward-only guard on create is unaffected. A
+  // backdated create must not clobber a newer lastInspectionDate.
+  it('W36 cross-check — backdated repair insert does not clobber a newer lastInspectionDate', async () => {
+    const elementId = await seedElement('w36-xcheck');
+    try {
+      // Establish a later inspection date.
+      expect((await postHistory(elementId, 'repair', '2025-06-01')).status).toBe(201);
+      expect(await fetchLastInspectionDate(elementId)).toBe('2025-06-01');
+
+      // Insert a backdated repair — W36 guard must leave the date untouched.
+      expect((await postHistory(elementId, 'repair', '2024-01-01')).status).toBe(201);
+      expect(await fetchLastInspectionDate(elementId)).toBe('2025-06-01');
+    } finally {
+      await db.delete(schema.elementHistory).where(eq(schema.elementHistory.elementId, elementId));
+      await db.delete(schema.buildingElements).where(eq(schema.buildingElements.id, elementId));
+    }
+  });
 });

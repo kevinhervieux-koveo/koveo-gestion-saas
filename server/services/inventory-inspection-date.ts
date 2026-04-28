@@ -64,6 +64,30 @@ export async function advanceLastInspectionDateForward(
 }
 
 /**
+ * Returns true when the given history event is the one that established
+ * the element's current `lastInspectionDate`.
+ *
+ * The rule: an event "sets" lastInspectionDate only when (a) its event type
+ * is an inspection type AND (b) its stored `eventDate` string equals the
+ * element's current `lastInspectionDate`. If the dates match, deleting or
+ * re-dating this event requires a full recompute; if they don't match, the
+ * current value must have been set manually via `update_inventory_element`
+ * and must be left untouched.
+ *
+ * Both the REST and MCP delete/update paths use this helper so the semantics
+ * are defined in exactly one place.
+ */
+export function eventSetsLastInspectionDate(
+  eventType: string,
+  eventDate: string | null | undefined,
+  elementLastInspectionDate: string | null | undefined,
+): boolean {
+  if (!isInspectionEventType(eventType)) return false;
+  if (!eventDate || !elementLastInspectionDate) return false;
+  return eventDate === elementLastInspectionDate;
+}
+
+/**
  * Recompute `lastInspectionDate` from the current state of `element_history`.
  *
  * Uses `MAX(event_date)` over the inspection-type rows for the element. When
