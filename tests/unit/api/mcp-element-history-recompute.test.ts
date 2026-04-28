@@ -1,6 +1,7 @@
 /**
- * Task #1150 — MCP element-history write tools must keep
- * `building_elements.last_inspection_date` in sync via the shared helpers.
+ * Task #1150 + Task #994 — MCP element-history write tools must keep
+ * `building_elements.last_inspection_date` in sync via the shared helpers,
+ * BUT must also leave a manually-set value untouched.
  *
  * Three MCP tools share the centralized helpers in
  * `server/services/inventory-inspection-date.ts`:
@@ -8,13 +9,25 @@
  *   create_element_history_event  → advanceLastInspectionDateForward
  *                                   (only when eventType is an inspection type)
  *   update_element_history_event  → recomputeLastInspectionDate
- *                                   (only when eventDate or eventType change)
- *   delete_element_history_event  → recomputeLastInspectionDate (always)
+ *                                   (only when eventDate or eventType change
+ *                                   AND the existing event "set" the
+ *                                   current value — Task #994 gate)
+ *   delete_element_history_event  → recomputeLastInspectionDate
+ *                                   (only when the deleted event "set" the
+ *                                   current value — Task #994 gate)
  *
- * This file mocks those helpers and asserts each MCP tool calls them under
- * the right conditions. If a future change re-introduces an inline UPDATE on
- * `building_elements.last_inspection_date` that bypasses the helpers, the
- * spy assertions here will fail because the helpers will not be invoked.
+ * The Task #994 gate (`eventSetsLastInspectionDate`) returns true only
+ * when the event type is an inspection type AND its stored eventDate
+ * matches the element's current lastInspectionDate. When the current
+ * value was set manually via `update_inventory_element`, no event date
+ * will match it and the column is left untouched.
+ *
+ * This file mocks those helpers and asserts each MCP tool calls them
+ * under the right conditions. If a future change re-introduces an inline
+ * UPDATE on `building_elements.last_inspection_date` that bypasses the
+ * helpers, OR re-introduces an unconditional recompute on every write
+ * (the pre-#994 behavior that wiped manual overrides), the spy
+ * assertions here will fail.
  */
 import { describe, it, expect, jest, beforeEach } from '@jest/globals';
 
@@ -386,10 +399,12 @@ describe('delete_element_history_event — lastInspectionDate recompute (task #1
     expect(advanceForwardSpy).not.toHaveBeenCalled();
   });
 
-  it('still calls recomputeLastInspectionDate when the deleted row was a non-inspection event', async () => {
-    // Override the existing row to a non-inspection event type so we prove
-    // the recompute runs unconditionally on delete (the helper's job is to
-    // re-derive MAX(eventDate) over the remaining inspection rows).
+  it('does NOT call recomputeLastInspectionDate when the deleted row was a non-inspection event (preserves manual override — Task #994)', async () => {
+    // Pre-#994 behavior unconditionally recomputed on delete, which wiped
+    // a manually-set lastInspectionDate when an unrelated backdated event
+    // (e.g. `construction`) was removed. The Task #994 gate
+    // (`eventSetsLastInspectionDate`) returns false for non-inspection
+    // event types, so recompute is skipped and the manual value survives.
     selectQueue.push([{ id: ORG_ID }]);
     selectQueue.push([{ ...EXISTING_HISTORY, eventType: 'construction' }]);
     selectQueue.push([ELEMENT_ROW]);
@@ -409,7 +424,34 @@ describe('delete_element_history_event — lastInspectionDate recompute (task #1
     });
 
     expect(res.content[0].text).not.toContain('Access denied');
-    expect(recomputeSpy).toHaveBeenCalledTimes(1);
+    expect(recomputeSpy).not.toHaveBeenCalled();
+    expect(advanceForwardSpy).not.toHaveBeenCalled();
+  });
+
+  it('does NOT call recomputeLastInspectionDate when the deleted inspection event was NOT the one that set the value (manual override case — Task #994)', async () => {
+    // Same inspection event type ('repair'), but the element's current
+    // lastInspectionDate was set manually to a date that does NOT match
+    // this event's eventDate. The gate must leave the manual value alone.
+    selectQueue.push([{ id: ORG_ID }]);
+    selectQueue.push([{ ...EXISTING_HISTORY }]);
+    selectQueue.push([{ ...ELEMENT_ROW, lastInspectionDate: '2025-01-01' }]);
+    selectQueue.push([BUILDING_ROW]);
+    selectQueue.push([
+      {
+        id: ELEMENT_ID,
+        currentLifespan: 10,
+        lastInspectionDate: '2025-01-01',
+      },
+    ]);
+
+    const handler = registeredTools.get('delete_element_history_event');
+    const res = await handler!({
+      role: 'manager',
+      historyId: HISTORY_ID,
+    });
+
+    expect(res.content[0].text).not.toContain('Access denied');
+    expect(recomputeSpy).not.toHaveBeenCalled();
     expect(advanceForwardSpy).not.toHaveBeenCalled();
   });
 });

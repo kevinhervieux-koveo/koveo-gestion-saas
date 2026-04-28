@@ -1,24 +1,35 @@
 /**
- * Task #1150 — REST element-history write paths must keep
- * `building_elements.last_inspection_date` in sync via the shared helper.
+ * Task #1150 + Task #994 — REST element-history write paths must keep
+ * `building_elements.last_inspection_date` in sync via the shared helper,
+ * BUT must also leave a manually-set value untouched.
  *
  * `recomputeLastInspectionDate` (in
  * `server/services/inventory-inspection-date.ts`) is the single source of
  * truth for re-deriving `last_inspection_date` from `MAX(event_date)` over
- * inspection-type rows. This test file mocks that helper and asserts the
- * REST PUT and DELETE handlers call it under the right conditions:
+ * inspection-type rows. Task #994 added the `eventSetsLastInspectionDate`
+ * gate so recompute now runs only when the event being edited or deleted
+ * was the one that originally established the current
+ * `lastInspectionDate` (i.e. its stored eventDate matches the element's
+ * current value AND its eventType is an inspection type). When the
+ * current value was set manually via `update_inventory_element`, no event
+ * date will match it and the column is left untouched.
+ *
+ * This file mocks that helper and asserts the REST PUT and DELETE
+ * handlers call it under the right conditions:
  *
  *   PUT  /api/maintenance/history/:id
- *     - eventDate change                → recompute called once
- *     - eventType change                → recompute called once
- *     - description-only change         → recompute NOT called
+ *     - eventDate change AND existing event "set" the value → recompute called once
+ *     - eventType change AND existing event "set" the value → recompute called once
+ *     - description-only change                              → recompute NOT called
  *
  *   DELETE /api/maintenance/history/:id
- *     - any successful delete           → recompute called once
+ *     - delete of the inspection event that "set" the value  → recompute called once
+ *     - delete of a non-inspection event (manual override)   → recompute NOT called
  *
- * If a future change re-introduces an inline UPDATE on
- * `building_elements.last_inspection_date` that bypasses the helper, the
- * spy assertions here will fail because the helper will not be invoked.
+ * If a future change re-introduces an unconditional recompute on every
+ * write (the pre-#994 behavior that wiped manual overrides), or
+ * re-introduces an inline UPDATE on `building_elements.last_inspection_date`
+ * that bypasses the helper, the spy assertions here will fail.
  */
 import { describe, it, expect, jest, beforeAll, beforeEach } from '@jest/globals';
 import express from 'express';
@@ -160,12 +171,32 @@ beforeEach(() => {
   selectQueue = [];
 });
 
-/** Pre-load the SELECT queue with the rows the PUT/DELETE handlers fetch. */
-function queueExistingRow(overrides: Partial<typeof EXISTING_HISTORY> = {}) {
+/**
+ * Pre-load the SELECT queue with the rows the PUT handler fetches.
+ *
+ * The joined `building_elements` row carries `lastInspectionDate` because the
+ * Task #994 gate (`eventSetsLastInspectionDate`) compares it to the
+ * existing history row's `eventDate`. By default we make them match so an
+ * eventDate/eventType change on this inspection-type event triggers the
+ * recompute as the pre-#994 tests expected. Tests that need a manual
+ * override scenario can pass `elementLastInspectionDate` to force a
+ * mismatch.
+ */
+function queueExistingRow(
+  overrides: Partial<typeof EXISTING_HISTORY> & {
+    elementLastInspectionDate?: string | null;
+  } = {},
+) {
+  const { elementLastInspectionDate, ...historyOverrides } = overrides;
+  const merged = { ...EXISTING_HISTORY, ...historyOverrides };
+  const lastInspectionDate =
+    elementLastInspectionDate === undefined
+      ? merged.eventDate
+      : elementLastInspectionDate;
   selectQueue.push([
     {
-      element_history: { ...EXISTING_HISTORY, ...overrides },
-      building_elements: { buildingId: BUILDING_ID },
+      element_history: merged,
+      building_elements: { buildingId: BUILDING_ID, lastInspectionDate },
     },
   ]);
 }
@@ -236,17 +267,43 @@ describe('PUT /api/maintenance/history/:id — lastInspectionDate recompute (tas
   });
 });
 
-describe('DELETE /api/maintenance/history/:id — lastInspectionDate recompute (task #1150)', () => {
-  function queueDeleteSelect() {
+describe('DELETE /api/maintenance/history/:id — lastInspectionDate recompute (task #1150 + #994)', () => {
+  /**
+   * Pre-load the SELECT row the DELETE handler fetches.
+   *
+   * Task #994 expanded that SELECT to also project `eventType`, `eventDate`,
+   * and the joined `building_elements.lastInspectionDate` so the handler can
+   * call `eventSetsLastInspectionDate(...)` before deciding to recompute.
+   * Defaults assume the deleted event "set" the current value (inspection
+   * type, eventDate matches lastInspectionDate) so recompute fires.
+   */
+  function queueDeleteSelect(
+    overrides: Partial<{
+      eventType: string;
+      eventDate: string;
+      lastInspectionDate: string | null;
+    }> = {},
+  ) {
+    const eventType = overrides.eventType ?? EXISTING_HISTORY.eventType;
+    const eventDate = overrides.eventDate ?? EXISTING_HISTORY.eventDate;
+    const lastInspectionDate =
+      overrides.lastInspectionDate === undefined
+        ? eventDate
+        : overrides.lastInspectionDate;
     selectQueue.push([
       {
         elementId: ELEMENT_ID,
         buildingId: BUILDING_ID,
+        eventType,
+        eventDate,
+        lastInspectionDate,
       },
     ]);
+    // The handler also re-selects the full row for the audit snapshot.
+    selectQueue.push([{ ...EXISTING_HISTORY, eventType, eventDate }]);
   }
 
-  it('always calls recomputeLastInspectionDate after a successful delete', async () => {
+  it('calls recomputeLastInspectionDate after deleting the inspection event that set the value', async () => {
     queueDeleteSelect();
 
     const res = await supertest(app)
@@ -257,19 +314,31 @@ describe('DELETE /api/maintenance/history/:id — lastInspectionDate recompute (
     expect(recomputeSpy).toHaveBeenCalledWith(expect.anything(), ELEMENT_ID);
   });
 
-  it('still calls recomputeLastInspectionDate when the deleted row was a non-inspection event', async () => {
-    // The handler does not branch on eventType for deletes — recompute runs
-    // unconditionally so deleting (e.g.) a `construction` row that was the
-    // last write on the element still re-derives MAX(event_date) over
-    // inspection rows. We model this by simulating a delete on an element
-    // whose other rows include inspection events (the helper's job).
-    queueDeleteSelect();
+  it('does NOT call recomputeLastInspectionDate when the deleted row was a non-inspection event (preserves manual override)', async () => {
+    // Task #994: deleting (e.g.) a `construction` row must NOT recompute,
+    // because non-inspection events can never have set lastInspectionDate.
+    // Re-running MAX(event_date) over the remaining inspection rows would
+    // wipe a manually-set value.
+    queueDeleteSelect({ eventType: 'construction', lastInspectionDate: '2024-06-15' });
 
     const res = await supertest(app)
       .delete(`/api/maintenance/history/${HISTORY_ID}`);
 
     expect(res.status).toBe(200);
-    expect(recomputeSpy).toHaveBeenCalledTimes(1);
+    expect(recomputeSpy).not.toHaveBeenCalled();
+  });
+
+  it('does NOT call recomputeLastInspectionDate when the deleted inspection event was NOT the one that set the value (manual override case)', async () => {
+    // Same inspection event type ('repair'), but the element's current
+    // lastInspectionDate was set manually to a date that does NOT match
+    // this event's eventDate. The gate must leave the manual value alone.
+    queueDeleteSelect({ lastInspectionDate: '2025-01-01' });
+
+    const res = await supertest(app)
+      .delete(`/api/maintenance/history/${HISTORY_ID}`);
+
+    expect(res.status).toBe(200);
+    expect(recomputeSpy).not.toHaveBeenCalled();
   });
 
   it('does NOT call advanceLastInspectionDateForward on the delete path', async () => {
