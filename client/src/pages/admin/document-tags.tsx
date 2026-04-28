@@ -60,7 +60,7 @@ import { Header } from '@/components/layout/header';
 import type { DocumentTag } from '@/components/document-tags/TagPicker';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
-import { getSystemFamilyDisplay } from '@/lib/system-family-display';
+import { getSystemFamilyDisplay, makeFamilyNameComparator } from '@/lib/system-family-display';
 
 // ─── Tag form schema ──────────────────────────────────────────────────────────
 
@@ -97,7 +97,7 @@ type FamilyFormValues = z.infer<typeof familyFormSchema>;
 // ─── Main page ────────────────────────────────────────────────────────────────
 
 export default function AdminDocumentTags() {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   const { user } = useAuth();
   const isSuperAdmin = user?.role === 'super_admin';
@@ -367,8 +367,9 @@ export default function AdminDocumentTags() {
     );
   };
 
-  const systemFamilies = families.filter((f) => f.isSystem && familyMatchesSearch(f));
-  const customFamilies = families.filter((f) => !f.isSystem && familyMatchesSearch(f));
+  const familyCmp = makeFamilyNameComparator(language, t);
+  const systemFamilies = families.filter((f) => f.isSystem && familyMatchesSearch(f)).sort(familyCmp);
+  const customFamilies = families.filter((f) => !f.isSystem && familyMatchesSearch(f)).sort(familyCmp);
 
   return (
     <div className="flex-1">

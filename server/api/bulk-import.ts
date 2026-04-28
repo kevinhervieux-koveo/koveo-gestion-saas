@@ -7676,7 +7676,10 @@ export function registerBulkImportRoutes(app: Express): void {
           });
         }
 
-        const result = families.map((fam) => {
+        const result = families
+          .slice()
+          .sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }))
+          .map((fam) => {
           const docs = Array.from(familyDocMap.get(fam.id)?.values() ?? [])
             .filter((d) => !d.hasBefore || !d.hasAfter)
             .slice(0, 50);
@@ -8293,6 +8296,8 @@ export function registerBulkImportRoutes(app: Express): void {
         if (famRows.length === 0) {
           return res.json({ families: [] });
         }
+
+        famRows.sort((a, b) => a.name.localeCompare(b.name, undefined, { sensitivity: 'base' }));
 
         // Load existing documents scoped to the session building.
         const scopedDocs = session.buildingId

@@ -45,6 +45,30 @@ export const SYSTEM_FAMILY_TRANSLATION_MAP: Record<string, FamilyTranslationEntr
 };
 
 /**
+ * Returns a locale-aware comparator that sorts family objects alphabetically
+ * by their displayed (localized) name. Uses localeCompare with
+ * { sensitivity: 'base' } so accented French names sort naturally and the
+ * order updates automatically when the active language changes.
+ *
+ * Usage:
+ *   const cmp = makeFamilyNameComparator(language, t);
+ *   families.slice().sort(cmp);
+ */
+export function makeFamilyNameComparator(
+  locale: string,
+  t: TFn,
+): (
+  a: { name: string; description: string | null; isSystem: boolean },
+  b: { name: string; description: string | null; isSystem: boolean },
+) => number {
+  return (a, b) => {
+    const nameA = getSystemFamilyDisplay(a, t).name;
+    const nameB = getSystemFamilyDisplay(b, t).name;
+    return nameA.localeCompare(nameB, locale, { sensitivity: 'base' });
+  };
+}
+
+/**
  * Returns the localized name and description for a Koveo system family.
  * - When isSystem is true and the DB name matches a known canonical name,
  *   returns the translated label via the provided `t()` function.

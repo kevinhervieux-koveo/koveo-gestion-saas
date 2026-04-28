@@ -230,7 +230,9 @@ export async function resolveAllFamilyNeighbors(
     }),
   );
 
-  return results.filter((r): r is FamilyNeighbors => r !== null);
+  return results
+    .filter((r): r is FamilyNeighbors => r !== null)
+    .sort((a, b) => a.family.name.localeCompare(b.family.name, undefined, { sensitivity: 'base' }));
 }
 
 /**

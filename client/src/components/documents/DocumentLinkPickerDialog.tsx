@@ -16,7 +16,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
 import { parseDateOnlyLoose } from '@/lib/utils';
-import { getSystemFamilyDisplay } from '@/lib/system-family-display';
+import { getSystemFamilyDisplay, makeFamilyNameComparator } from '@/lib/system-family-display';
 
 interface SuggestionItem {
   document: {
@@ -59,7 +59,7 @@ export function DocumentLinkPickerDialog({
   position,
   initialFamilyId,
 }: Props) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const { toast } = useToast();
   const [query, setQuery] = useState('');
   const [activePosition, setActivePosition] = useState<'before' | 'after'>(position);
@@ -78,7 +78,9 @@ export function DocumentLinkPickerDialog({
     enabled: open,
   });
 
-  const families = familiesData?.families ?? [];
+  const families = (familiesData?.families ?? [])
+    .slice()
+    .sort(makeFamilyNameComparator(language, t));
 
   // Auto-select first family when list loads and none is selected
   useEffect(() => {

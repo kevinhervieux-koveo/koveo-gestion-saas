@@ -37,6 +37,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { useToast } from '@/hooks/use-toast';
 import { apiRequest, queryClient, ApiError } from '@/lib/queryClient';
 import { useLanguage } from '@/hooks/use-language';
+import { getSystemFamilyDisplay, makeFamilyNameComparator } from '@/lib/system-family-display';
 import {
   Upload,
   Trash2,
@@ -6784,7 +6785,9 @@ export default function BulkDocumentImportPage() {
                         }
                         const familyGroupsData = {
                           ..._resolvedFamilyGroupsData,
-                          groups: [..._resolvedFamilyGroupsData.groups, ...contextOnlyGroups],
+                          groups: [..._resolvedFamilyGroupsData.groups, ...contextOnlyGroups].sort(
+                            (a, b) => (a.familyName ?? '').localeCompare(b.familyName ?? '', language, { sensitivity: 'base' }),
+                          ),
                         };
 
                         const linkingGroupAllMemberIds = new Set<string>();
@@ -7746,13 +7749,16 @@ export default function BulkDocumentImportPage() {
                                                   <option value="">
                                                     {isFr ? '— Choisir une famille —' : '— Choose a family —'}
                                                   </option>
-                                                  {linkCandidatesQuery.data.families.map((f) => (
+                                                  {linkCandidatesQuery.data.families
+                                                    .slice()
+                                                    .sort(makeFamilyNameComparator(language, t))
+                                                    .map((f) => (
                                                     <option
                                                       key={f.id}
                                                       value={f.id}
                                                       disabled={(groupItem.linkingMemberships ?? []).some((lm) => lm.familyId === f.id)}
                                                     >
-                                                      {f.name}{(groupItem.linkingMemberships ?? []).some((lm) => lm.familyId === f.id) ? (isFr ? ' (déjà ajouté)' : ' (already added)') : ''}
+                                                      {getSystemFamilyDisplay(f, t).name}{(groupItem.linkingMemberships ?? []).some((lm) => lm.familyId === f.id) ? (isFr ? ' (déjà ajouté)' : ' (already added)') : ''}
                                                     </option>
                                                   ))}
                                                 </select>

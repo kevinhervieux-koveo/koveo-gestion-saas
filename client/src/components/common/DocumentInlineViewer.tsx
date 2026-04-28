@@ -22,7 +22,7 @@ import { useLanguage } from '@/hooks/use-language';
 import { DocumentLinkPickerDialog } from '@/components/documents/DocumentLinkPickerDialog';
 import { DocumentSequencePanel } from '@/components/documents/DocumentSequencePanel';
 import { parseDateOnlyLoose } from '@/lib/utils';
-import { getSystemFamilyDisplay } from '@/lib/system-family-display';
+import { getSystemFamilyDisplay, makeFamilyNameComparator } from '@/lib/system-family-display';
 
 export interface ChainSibling {
   id: string;
@@ -139,7 +139,7 @@ export function DocumentInlineViewer({
   onChainNavigate,
 }: DocumentInlineViewerProps) {
   const { toast } = useToast();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   // Family navigation state
   const [activeFamilyIdx, setActiveFamilyIdx] = useState(0);
@@ -152,7 +152,11 @@ export function DocumentInlineViewer({
     enabled: !!documentId && isOpen,
   });
 
-  const families: FamilyRow[] = neighbors?.families ?? [];
+  const families: FamilyRow[] = (neighbors?.families ?? []).slice().sort((a, b) => {
+    const nameA = getSystemFamilyDisplay({ name: a.familyName, description: a.familyDescription, isSystem: a.familyIsSystem ?? false }, t).name;
+    const nameB = getSystemFamilyDisplay({ name: b.familyName, description: b.familyDescription, isSystem: b.familyIsSystem ?? false }, t).name;
+    return nameA.localeCompare(nameB, language, { sensitivity: 'base' });
+  });
   const activeFamily: FamilyRow | undefined = families[activeFamilyIdx];
 
   // Clamp active index when families change
