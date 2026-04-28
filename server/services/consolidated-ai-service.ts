@@ -1324,9 +1324,14 @@ IMPORTANT: Retournez UNIQUEMENT l'objet JSON, sans formatage markdown ni explica
     'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
   ]);
 
+  /**
+   * MIME types for Excel-format spreadsheets supported by ExcelJS.
+   * Note: legacy binary .xls (application/vnd.ms-excel) is NOT included
+   * because ExcelJS does not support the old binary format.
+   */
   private static readonly XLSX_MIME_TYPES = new Set([
-    'application/vnd.ms-excel',
     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-excel.sheet.macroEnabled.12',
   ]);
 
   private static readonly PLAIN_TEXT_TAG_SUGGESTION_TYPES = new Set([
@@ -1350,18 +1355,28 @@ IMPORTANT: Retournez UNIQUEMENT l'objet JSON, sans formatage markdown ni explica
         return (result.value || '').slice(0, 20000);
       }
       if (ConsolidatedAIService.XLSX_MIME_TYPES.has(mimeType)) {
-        const XLSX = await import('xlsx');
-        const workbook = XLSX.read(fileBuffer, { type: 'buffer' });
+        const ExcelJS = await import('exceljs');
+        const workbook = new ExcelJS.default.Workbook();
+        // @ts-expect-error ExcelJS Buffer type predates the generic Buffer<T> introduced in @types/node >=22; compatible at runtime
+        await workbook.xlsx.load(fileBuffer);
         const lines: string[] = [];
-        for (const sheetName of workbook.SheetNames) {
-          const worksheet = workbook.Sheets[sheetName];
-          const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }) as unknown[][];
+        for (const worksheet of workbook.worksheets) {
+          const rows: string[][] = [];
+          const colCount = worksheet.columnCount;
+          worksheet.eachRow({ includeEmpty: false }, (row) => {
+            const cells: string[] = [];
+            for (let i = 1; i <= colCount; i++) {
+              const v = row.getCell(i).value;
+              cells.push(v == null ? '' : String(v));
+            }
+            rows.push(cells);
+          });
           const csvRows = rows
-            .filter((row) => row.some((v) => v !== ''))
-            .map((row) => row.map((v) => (v == null ? '' : String(v))).join(','));
+            .filter((row) => row.some((c) => c !== ''))
+            .map((row) => row.join(','));
           const csv = csvRows.join('\n');
           if (csv.trim()) {
-            lines.push(`# ${sheetName}\n${csv}`);
+            lines.push(`# ${worksheet.name}\n${csv}`);
           }
           if (lines.join('\n').length > 20000) break;
         }

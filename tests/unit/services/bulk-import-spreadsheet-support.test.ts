@@ -7,7 +7,8 @@
  *      branching and identification with RFC 4180 quoting.
  *   2. A .csv with browser-reported `application/octet-stream` MIME is
  *      normalised to `text/csv` and not marked `unsupported_mime`.
- *   3. An .ods upload is extracted via the xlsx library.
+ *   3. .ods and legacy .xls uploads are flagged as `unsupported_mime`
+ *      because ExcelJS only supports the .xlsx / .xlsm formats.
  *   4. Unit-level CSV serializer: a cell containing `","\n` round-trips
  *      correctly through the RFC 4180 quoting layer.
  */
@@ -116,21 +117,20 @@ describe('Task #1536 — analyzer spreadsheet extraction', () => {
   }
 
   it('screening prompt contains Spreadsheet contents: block with RFC 4180 quoted cells from multi-sheet xlsx', async () => {
-    const XLSX = await import('xlsx');
-
-    const ws1 = XLSX.utils.aoa_to_sheet([
+    const ExcelJS = await import('exceljs');
+    const workbook = new ExcelJS.default.Workbook();
+    const ws1 = workbook.addWorksheet('Invoices');
+    ws1.addRows([
       ['Vendor', 'Amount', 'Note'],
       ['Acme Co.', '1,200.00', 'Payment for "repairs"'],
       ['BuilderX', '450', 'Cost\nwith newline'],
     ]);
-    const ws2 = XLSX.utils.aoa_to_sheet([
+    const ws2 = workbook.addWorksheet('Summary');
+    ws2.addRows([
       ['Month', 'Total'],
       ['January', '1650'],
     ]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws1, 'Invoices');
-    XLSX.utils.book_append_sheet(wb, ws2, 'Summary');
-    const buffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
+    const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
 
     const create = makeFakeClient({
       isComplete: true,
@@ -169,14 +169,14 @@ describe('Task #1536 — analyzer spreadsheet extraction', () => {
   });
 
   it('screening and branching both surface Spreadsheet contents: block for same xlsx', async () => {
-    const XLSX = await import('xlsx');
-    const ws = XLSX.utils.aoa_to_sheet([
+    const ExcelJS = await import('exceljs');
+    const workbook = new ExcelJS.default.Workbook();
+    const ws = workbook.addWorksheet('Data');
+    ws.addRows([
       ['Date', 'Amount'],
       ['2024-01', '500'],
     ]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Data');
-    const buffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
+    const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
 
     const screenCreate = makeFakeClient({
       isComplete: true,
@@ -255,11 +255,11 @@ describe('Task #1536 — analyzer spreadsheet extraction', () => {
   });
 
   it('treats application/octet-stream + .xlsx extension as xlsx, not unsupported_mime', async () => {
-    const XLSX = await import('xlsx');
-    const ws = XLSX.utils.aoa_to_sheet([['Col'], ['Val']]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Sheet1');
-    const buffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
+    const ExcelJS = await import('exceljs');
+    const workbook = new ExcelJS.default.Workbook();
+    const ws = workbook.addWorksheet('Sheet1');
+    ws.addRows([['Col'], ['Val']]);
+    const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
 
     makeFakeClient({
       isComplete: true,
@@ -282,28 +282,12 @@ describe('Task #1536 — analyzer spreadsheet extraction', () => {
     expect(r.fallbackReason).not.toBe('unsupported_mime');
   });
 
-  it('extracts .ods file via the xlsx library (not unsupported_mime)', async () => {
-    const XLSX = await import('xlsx');
-    const ws = XLSX.utils.aoa_to_sheet([
-      ['Poste', 'Montant'],
-      ['Loyer', '1200'],
-      ['Charges', '300'],
-    ]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Budget');
-
-    const buffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'ods' }));
-
-    const create = makeFakeClient({
-      isComplete: true,
-      isMultiDocument: false,
-      pageOrderHint: null,
-      rotationDegrees: 0,
-      suggestedFilename: 'budget.ods',
-      description: 'Budget ODS',
-      confidence: 0.78,
-      quickAnalysis: { typeGuess: 'invoice', bucketGuess: 'bill', reason: 'ods', confidence: 0.78 },
-    });
+  it('marks .ods uploads as unsupported_mime (ExcelJS does not support the ODS format)', async () => {
+    // ExcelJS only handles .xlsx / .xlsm; the ODS format is not supported.
+    // Uploads with application/vnd.oasis.opendocument.spreadsheet should
+    // receive fallbackReason: 'unsupported_mime' rather than attempting
+    // to parse an incompatible file.
+    const buffer = Buffer.from('dummy-ods-content');
 
     const r = await bulkImportAnalyzer.screen({
       originalName: 'budget.ods',
@@ -311,34 +295,25 @@ describe('Task #1536 — analyzer spreadsheet extraction', () => {
       buffer,
     });
 
-    expect(r.fallbackReason).toBeNull();
-    expect(create).toHaveBeenCalledTimes(1);
-
-    const sentPrompt: string = create.mock.calls[0][0].messages[0].content
-      .filter((b: { type: string }) => b.type === 'text')
-      .map((b: { text: string }) => b.text)
-      .join('\n');
-
-    expect(sentPrompt).toContain('Spreadsheet contents:');
-    expect(sentPrompt).toContain('Budget');
+    expect(r.fallbackReason).toBe('unsupported_mime');
   });
 
   it('per-sheet truncation: a large first sheet does not starve the second sheet', async () => {
-    const XLSX = await import('xlsx');
+    const ExcelJS = await import('exceljs');
+    const workbook = new ExcelJS.default.Workbook();
 
     const bigRows: string[][] = [['Col1', 'Col2']];
     for (let i = 0; i < 1000; i++) {
       bigRows.push([`Row${i}`, 'A'.repeat(20)]);
     }
-    const ws1 = XLSX.utils.aoa_to_sheet(bigRows);
-    const ws2 = XLSX.utils.aoa_to_sheet([
+    const ws1 = workbook.addWorksheet('BigSheet');
+    ws1.addRows(bigRows);
+    const ws2 = workbook.addWorksheet('SmallSheet');
+    ws2.addRows([
       ['SmallSheet', 'Value'],
       ['KeyRow', 'UniqueValue'],
     ]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws1, 'BigSheet');
-    XLSX.utils.book_append_sheet(wb, ws2, 'SmallSheet');
-    const buffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
+    const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
 
     const create = makeFakeClient({
       isComplete: true,
@@ -370,11 +345,11 @@ describe('Task #1536 — analyzer spreadsheet extraction', () => {
 
 describe('Task #1536 — RFC 4180 CSV serializer round-trip', () => {
   it('quotes cells containing commas', async () => {
-    const XLSX = await import('xlsx');
-    const ws = XLSX.utils.aoa_to_sheet([['a,b', 'c']]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'S');
-    const buffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
+    const ExcelJS = await import('exceljs');
+    const workbook = new ExcelJS.default.Workbook();
+    const ws = workbook.addWorksheet('S');
+    ws.addRows([['a,b', 'c']]);
+    const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
 
     const create = jest.fn().mockResolvedValue({
       content: [{ type: 'text', text: JSON.stringify({
@@ -400,11 +375,11 @@ describe('Task #1536 — RFC 4180 CSV serializer round-trip', () => {
   });
 
   it('doubles internal quotes in quoted cells', async () => {
-    const XLSX = await import('xlsx');
-    const ws = XLSX.utils.aoa_to_sheet([['say "hello"']]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'S');
-    const buffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
+    const ExcelJS = await import('exceljs');
+    const workbook = new ExcelJS.default.Workbook();
+    const ws = workbook.addWorksheet('S');
+    ws.addRows([['say "hello"']]);
+    const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
 
     const create = jest.fn().mockResolvedValue({
       content: [{ type: 'text', text: JSON.stringify({
@@ -430,12 +405,12 @@ describe('Task #1536 — RFC 4180 CSV serializer round-trip', () => {
   });
 
   it('quotes cells containing commas and newlines (",\\n) and round-trips RFC 4180', async () => {
-    const XLSX = await import('xlsx');
+    const ExcelJS = await import('exceljs');
+    const workbook = new ExcelJS.default.Workbook();
+    const ws = workbook.addWorksheet('Test');
     const cell = '","\n';
-    const ws = XLSX.utils.aoa_to_sheet([[cell]]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Test');
-    const buffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
+    ws.addRows([[cell]]);
+    const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
 
     const create = jest.fn().mockResolvedValue({
       content: [{ type: 'text', text: JSON.stringify({
@@ -463,11 +438,11 @@ describe('Task #1536 — RFC 4180 CSV serializer round-trip', () => {
   });
 
   it('does not quote plain cells without special characters', async () => {
-    const XLSX = await import('xlsx');
-    const ws = XLSX.utils.aoa_to_sheet([['hello', 'world']]);
-    const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'S');
-    const buffer = Buffer.from(XLSX.write(wb, { type: 'buffer', bookType: 'xlsx' }));
+    const ExcelJS = await import('exceljs');
+    const workbook = new ExcelJS.default.Workbook();
+    const ws = workbook.addWorksheet('S');
+    ws.addRows([['hello', 'world']]);
+    const buffer = Buffer.from(await workbook.xlsx.writeBuffer());
 
     const create = jest.fn().mockResolvedValue({
       content: [{ type: 'text', text: JSON.stringify({

@@ -464,11 +464,15 @@ const DOCX_MIMES = new Set([
   'application/msword',
   'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
 ]);
+/**
+ * MIME types for Excel-format spreadsheets supported by ExcelJS.
+ * Note: legacy binary .xls (application/vnd.ms-excel) and .ods
+ * (application/vnd.oasis.opendocument.spreadsheet) are NOT included
+ * because ExcelJS does not support those formats.
+ */
 const XLSX_MIMES = new Set([
-  'application/vnd.ms-excel',
   'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   'application/vnd.ms-excel.sheet.macroEnabled.12',
-  'application/vnd.oasis.opendocument.spreadsheet',
 ]);
 const PLAIN_TEXT_MIMES = new Set(['text/plain', 'text/csv', 'text/tab-separated-values']);
 
@@ -729,22 +733,31 @@ async function loadFileForClaude(
   }
   if (XLSX_MIMES.has(mimeType)) {
     try {
-      const XLSX = await import('xlsx');
-      const workbook = XLSX.read(buffer, { type: 'buffer' });
-      const sheetCount = workbook.SheetNames.length;
+      const ExcelJS = await import('exceljs');
+      const workbook = new ExcelJS.default.Workbook();
+      // @ts-expect-error ExcelJS Buffer type predates the generic Buffer<T> introduced in @types/node >=22; compatible at runtime
+      await workbook.xlsx.load(buffer);
+      const sheets = workbook.worksheets;
       // Give each sheet a fair share of the character budget so a large
       // first sheet cannot starve subsequent ones (per-sheet truncation).
-      const perSheetBudget = Math.floor(MAX_EXTRACTED_TEXT / Math.max(1, sheetCount));
+      const perSheetBudget = Math.floor(MAX_EXTRACTED_TEXT / Math.max(1, sheets.length));
       const lines: string[] = [];
-      for (const sheetName of workbook.SheetNames) {
-        const worksheet = workbook.Sheets[sheetName];
-        const rows = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }) as unknown[][];
+      for (const worksheet of sheets) {
+        const rows: string[][] = [];
+        const colCount = worksheet.columnCount;
+        worksheet.eachRow({ includeEmpty: false }, (row) => {
+          const cells: string[] = [];
+          for (let i = 1; i <= colCount; i++) {
+            const v = row.getCell(i).value;
+            cells.push(v == null ? '' : String(v));
+          }
+          rows.push(cells);
+        });
         const csvRows = rows
-          .filter((row) => row.some((v) => v !== ''))
+          .filter((row) => row.some((c) => c !== ''))
           .map((row) =>
             row
-              .map((v) => {
-                const cell = v == null ? '' : String(v);
+              .map((cell) => {
                 // RFC 4180: wrap cells containing comma, double-quote,
                 // newline or carriage return in double-quotes, and
                 // double any internal double-quote characters.
@@ -767,7 +780,7 @@ async function loadFileForClaude(
         const cleanCsv = csv.replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\uFFFF]/g, '').trim();
         if (cleanCsv) {
           const truncated = cleanCsv.slice(0, perSheetBudget);
-          lines.push(`# ${sheetName}\n${truncated}`);
+          lines.push(`# ${worksheet.name}\n${truncated}`);
         }
       }
       const text = lines.join('\n').slice(0, MAX_EXTRACTED_TEXT);

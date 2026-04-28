@@ -241,19 +241,22 @@ export function DocumentInlineViewer({
         if (!response.ok) throw new Error(`${response.status} ${response.statusText}`);
         const arrayBuffer = await response.arrayBuffer();
         if (cancelled) return;
-        const XLSX = await import('xlsx');
-        const workbook = XLSX.read(new Uint8Array(arrayBuffer), { type: 'array' });
-        const sheets: SheetData[] = workbook.SheetNames.map((name) => {
-          const worksheet = workbook.Sheets[name];
-          const raw = XLSX.utils.sheet_to_json(worksheet, { header: 1, defval: '' }) as unknown[][];
-          const rows = raw
-            .filter((row) => row.some((v) => v !== ''))
-            .map((row) =>
-              row
-                .slice(0, SPREADSHEET_MAX_COLS)
-                .map((v) => (v == null ? '' : String(v))),
-            );
-          return { name, rows };
+        const ExcelJS = await import('exceljs');
+        const workbook = new ExcelJS.default.Workbook();
+        // @ts-expect-error ExcelJS Buffer type predates the generic Buffer<T> introduced in @types/node >=22; ArrayBuffer is compatible at runtime
+        await workbook.xlsx.load(arrayBuffer);
+        const sheets: SheetData[] = workbook.worksheets.map((worksheet) => {
+          const colCount = Math.min(worksheet.columnCount, SPREADSHEET_MAX_COLS);
+          const rows: string[][] = [];
+          worksheet.eachRow({ includeEmpty: false }, (row) => {
+            const cells: string[] = [];
+            for (let i = 1; i <= colCount; i++) {
+              const v = row.getCell(i).value;
+              cells.push(v == null ? '' : String(v));
+            }
+            if (cells.some((c) => c !== '')) rows.push(cells);
+          });
+          return { name: worksheet.name, rows };
         });
         if (cancelled) return;
         setSpreadsheet({ status: 'ready', sheets, activeSheet: 0, page: 0 });
