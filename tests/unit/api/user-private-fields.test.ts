@@ -10,13 +10,23 @@
  *   Pure function: serializeUserForResponse
  *     - admin caller sees phone + profileImage
  *     - owner (same id) sees phone + profileImage
- *     - manager sees neither phone nor profileImage
+ *     - manager / demo_manager see phone + profileImage (contact details)
+ *       but do NOT see notificationsStartingDate
+ *     - non-owner tenants/residents do NOT see phone, profileImage, or
+ *       notificationsStartingDate
  *     - password is always stripped regardless of caller
  *
  *   HTTP layer (GET /api/users, GET /api/users/:id):
  *     - admin caller receives phone + profileImage for others
- *     - manager caller does NOT receive phone or profileImage
+ *     - manager caller receives phone + profileImage (contact details) but
+ *       NOT notificationsStartingDate
  *     - self lookup (owner) receives phone + profileImage
+ *
+ * NOTE: The original Task #1307 tests asserted that managers MUST NOT see
+ * `phone`/`profileImage`. Task #1486 deliberately changed the serializer to
+ * grant managers visibility on those contact fields (see JSDoc on
+ * serializeUserForResponse). These tests were reconciled with that policy
+ * in Task #1593.
  */
 
 jest.mock('../../../server/db', () => ({
@@ -116,17 +126,23 @@ describe('serializeUserForResponse — pure function', () => {
     expect(result.profileImage).toBe(BASE_USER.profileImage);
   });
 
-  it('manager caller does NOT see phone or profileImage', () => {
+  it('manager caller sees phone and profileImage but NOT notificationsStartingDate', () => {
+    // Per Task #1486 policy (documented on serializeUserForResponse):
+    // managers need contact details, so they DO see phone and profileImage.
+    // notificationsStartingDate remains owner/admin-only.
     const result = serializeUserForResponse(BASE_USER, MANAGER_ID, 'manager') as any;
     expect(result).not.toHaveProperty('password');
-    expect(result).not.toHaveProperty('phone');
-    expect(result).not.toHaveProperty('profileImage');
+    expect(result.phone).toBe(BASE_USER.phone);
+    expect(result.profileImage).toBe(BASE_USER.profileImage);
+    expect(result).not.toHaveProperty('notificationsStartingDate');
   });
 
-  it('demo_manager caller does NOT see phone or profileImage', () => {
+  it('demo_manager caller sees phone and profileImage but NOT notificationsStartingDate', () => {
     const result = serializeUserForResponse(BASE_USER, 'demo-mgr-id', 'demo_manager') as any;
-    expect(result).not.toHaveProperty('phone');
-    expect(result).not.toHaveProperty('profileImage');
+    expect(result).not.toHaveProperty('password');
+    expect(result.phone).toBe(BASE_USER.phone);
+    expect(result.profileImage).toBe(BASE_USER.profileImage);
+    expect(result).not.toHaveProperty('notificationsStartingDate');
   });
 
   it('different tenant caller does NOT see phone or profileImage', () => {
@@ -212,14 +228,18 @@ describe('HTTP — private fields redaction (Task #1307)', () => {
       expect(users[0]).not.toHaveProperty('password');
     });
 
-    it('manager does NOT see phone or profileImage in user list', async () => {
+    it('manager sees phone and profileImage in user list (contact details) but NOT notificationsStartingDate', async () => {
+      // Per Task #1486 policy: managers need contact details, so phone +
+      // profileImage are exposed. notificationsStartingDate remains
+      // owner/admin-only.
       const res = await request(appAsManager).get('/api/users').expect(200);
       // /api/users without pagination params MUST return a flat User[] directly
       expect(Array.isArray(res.body)).toBe(true);
       const users: any[] = res.body;
       expect(users.length).toBeGreaterThan(0);
-      expect(users[0]).not.toHaveProperty('phone');
-      expect(users[0]).not.toHaveProperty('profileImage');
+      expect(users[0].phone).toBe(BASE_USER.phone);
+      expect(users[0].profileImage).toBe(BASE_USER.profileImage);
+      expect(users[0]).not.toHaveProperty('notificationsStartingDate');
       expect(users[0]).not.toHaveProperty('password');
     });
   });
@@ -234,12 +254,14 @@ describe('HTTP — private fields redaction (Task #1307)', () => {
       expect(res.body).not.toHaveProperty('password');
     });
 
-    it('manager does NOT see phone or profileImage when fetching another user', async () => {
+    it('manager sees phone and profileImage when fetching another user but NOT notificationsStartingDate', async () => {
+      // Per Task #1486 policy: managers need contact details to do their job.
       const res = await request(appAsManager)
         .get(`/api/users/${TENANT_ID}`)
         .expect(200);
-      expect(res.body).not.toHaveProperty('phone');
-      expect(res.body).not.toHaveProperty('profileImage');
+      expect(res.body.phone).toBe(BASE_USER.phone);
+      expect(res.body.profileImage).toBe(BASE_USER.profileImage);
+      expect(res.body).not.toHaveProperty('notificationsStartingDate');
       expect(res.body).not.toHaveProperty('password');
     });
 
