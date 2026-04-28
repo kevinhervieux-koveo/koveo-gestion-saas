@@ -2090,6 +2090,38 @@ const RETRYABLE_AI_FALLBACK_REASON_SET: ReadonlySet<BulkImportFallbackReason> =
  */
 export const BULK_RETRY_CONFIRM_THRESHOLD = 5;
 
+/**
+ * Task #1671: Minimum number of selected items that triggers a confirmation
+ * prompt before the bulk-commit action is dispatched.
+ */
+export const BULK_COMMIT_CONFIRM_THRESHOLD = 10;
+
+/**
+ * Task #1671: Maps a per-item commit error to a short, actionable EN/FR
+ * string suitable for inline display next to the row's Commit button.
+ */
+function getCommitErrorMessage(
+  error: { errorCode?: string; message: string; predecessorSequence?: number },
+  isFr: boolean,
+): string {
+  if (error.errorCode === 'first_anchor_conflict') {
+    return isFr
+      ? 'Un autre admin a déjà ancré cette famille — rechargez pour voir la nouvelle chaîne.'
+      : 'Another admin already anchored this family — refresh to see the new chain.';
+  }
+  if (error.errorCode === 'awaiting_family_predecessor') {
+    if (error.predecessorSequence != null) {
+      return isFr
+        ? `En attente que le document #${error.predecessorSequence} soit sauvegardé en premier.`
+        : `Waiting for document #${error.predecessorSequence} to commit first.`;
+    }
+    return isFr
+      ? 'En attente que le prédécesseur soit sauvegardé en premier.'
+      : 'Waiting for predecessor to commit first.';
+  }
+  return error.message || (isFr ? 'Échec de la validation' : 'Commit failed');
+}
+
 export default function BulkDocumentImportPage() {
   const { language, tp, t } = useLanguage();
   const { toast } = useToast();
@@ -2862,12 +2894,41 @@ export default function BulkDocumentImportPage() {
     },
     onSuccess: (_data, { itemId, action }) => {
       debugLog('runStep success', { itemId, action, sessionId });
+      // Task #1671: clear any stale commit error for this item on success.
+      // Also clear on 'link' success so a re-link doesn't leave the old
+      // commit error message visible while the row is back to linked state.
+      if (action === 'commit' || action === 'link') {
+        setCommitErrors((prev) => {
+          if (!prev.has(itemId)) return prev;
+          const next = new Map(prev);
+          next.delete(itemId);
+          return next;
+        });
+      }
       queryClient.invalidateQueries({
         queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
       });
     },
     onError: (err, { itemId, action }) => {
       debugLog('runStep error', { itemId, action, sessionId, error: err instanceof Error ? err.message : String(err) });
+      // Task #1671: store commit errors per-item for friendlier inline messages.
+      if (action === 'commit') {
+        const body =
+          err instanceof ApiError && err.body && typeof err.body === 'object'
+            ? (err.body as Record<string, unknown>)
+            : undefined;
+        const errorCode = body?.errorCode as string | undefined;
+        const predecessorSequence = body?.predecessorSequence as number | undefined;
+        setCommitErrors((prev) => {
+          const next = new Map(prev);
+          next.set(itemId, {
+            errorCode,
+            predecessorSequence,
+            message: err instanceof Error ? err.message : String(err),
+          });
+          return next;
+        });
+      }
     },
   });
 
@@ -3056,6 +3117,95 @@ export default function BulkDocumentImportPage() {
   );
 
   /**
+   * Task #1671: Bulk-commit orchestrator for the Linking step.
+   *
+   * Given the list of commit-eligible item IDs, groups them by their
+   * primary familyId (first membership row), sorts each group by
+   * sequence ascending (nulls last), then commits the items
+   * sequentially within each family group while the groups themselves
+   * run in parallel.  Items with no family membership are committed in
+   * a separate parallel group.
+   *
+   * A confirmation prompt is shown before dispatching when the count
+   * exceeds BULK_COMMIT_CONFIRM_THRESHOLD.
+   */
+  const commitSelectedItems = useCallback(
+    async (itemIds: string[]) => {
+      if (itemIds.length === 0) return;
+      if (
+        itemIds.length > BULK_COMMIT_CONFIRM_THRESHOLD &&
+        !window.confirm(
+          isFr
+            ? `Sauvegarder ${itemIds.length} fichiers d'un coup ?`
+            : `Commit ${itemIds.length} files at once?`,
+        )
+      ) {
+        return;
+      }
+
+      type CommitEntry = { id: string; sequence: number | null };
+      const familyGroups = new Map<string, CommitEntry[]>();
+      const noFamilyGroup: CommitEntry[] = [];
+
+      for (const id of itemIds) {
+        const item = items.find((i) => i.id === id);
+        const memberships = item?.linkingMemberships ?? [];
+        if (memberships.length === 0) {
+          noFamilyGroup.push({ id, sequence: null });
+        } else {
+          const primaryFamilyId = memberships[0].familyId;
+          if (!familyGroups.has(primaryFamilyId)) {
+            familyGroups.set(primaryFamilyId, []);
+          }
+          familyGroups.get(primaryFamilyId)!.push({ id, sequence: memberships[0].sequence });
+        }
+      }
+
+      // Sort each family group by sequence ascending, nulls last.
+      for (const group of familyGroups.values()) {
+        group.sort((a, b) => {
+          if (a.sequence === null && b.sequence === null) return 0;
+          if (a.sequence === null) return 1;
+          if (b.sequence === null) return -1;
+          return a.sequence - b.sequence;
+        });
+      }
+
+      const total = itemIds.length;
+      let processed = 0;
+
+      bulkCommitAbortRef.current = false;
+      setBulkCommitRunning(true);
+      setBulkCommitProgress({ processed: 0, total });
+
+      const runGroup = async (group: CommitEntry[]) => {
+        for (const { id } of group) {
+          if (bulkCommitAbortRef.current) break;
+          try {
+            await runStep.mutateAsync({ itemId: id, action: 'commit' });
+          } catch {
+            // Error stored in commitErrors via runStep onError; keep iterating.
+          }
+          processed += 1;
+          setBulkCommitProgress({ processed, total });
+        }
+      };
+
+      try {
+        await Promise.all([
+          ...Array.from(familyGroups.values()).map(runGroup),
+          runGroup(noFamilyGroup),
+        ]);
+      } finally {
+        setBulkCommitRunning(false);
+        setBulkCommitProgress({ processed: 0, total: 0 });
+      }
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [items, isFr, runStep],
+  );
+
+  /**
    * Snapshot used by the confirm-cancel AlertDialog. Captured at the
    * moment the admin clicks Cancel so the dialog body can show
    * "Stop retrying X of N?" with stable numbers even though the loop
@@ -3064,6 +3214,18 @@ export default function BulkDocumentImportPage() {
   const [pendingBulkRetryCancel, setPendingBulkRetryCancel] = useState<
     { total: number; remaining: number } | null
   >(null);
+
+  // Task #1671: per-item commit error map for friendlier inline messages.
+  const [commitErrors, setCommitErrors] = useState<
+    Map<string, { errorCode?: string; message: string; predecessorSequence?: number }>
+  >(new Map());
+  // Task #1671: bulk-commit progress and abort control (mirrors bulkRetryProgress pattern).
+  const [bulkCommitRunning, setBulkCommitRunning] = useState(false);
+  const [bulkCommitProgress, setBulkCommitProgress] = useState<{
+    processed: number;
+    total: number;
+  }>({ processed: 0, total: 0 });
+  const bulkCommitAbortRef = useRef(false);
 
   /**
    * Task #1208 (immediate-cancel path) + Task #1213 (confirmation
@@ -7068,6 +7230,17 @@ export default function BulkDocumentImportPage() {
                         const selectedHasIndeterminate =
                           selectedVisibleCount > 0 && !selectedAllOnPage;
                         const bulkExcludePending = bulkToggleExclude.isPending;
+                        // Task #1671: IDs of ALL selected items (across all
+                        // views including family-card members) that are
+                        // commit-eligible (status === 'linked') on the linking step.
+                        const commitEligibleIds =
+                          currentStep === 'linking'
+                            ? [...selectedItemIds].filter((id) => {
+                                const it = items.find((i) => i.id === id);
+                                return it?.status === 'linked';
+                              })
+                            : [];
+                        const commitEligibleCount = commitEligibleIds.length;
                         return (
                           <>
                       {/* Task #1273 — bulk-selection toolbar. Renders above the
@@ -7165,6 +7338,43 @@ export default function BulkDocumentImportPage() {
                                 ? `Réinclure la sélection${selectedVisibleCount > 0 ? ` (${selectedVisibleCount})` : ''}`
                                 : `Re-include selected${selectedVisibleCount > 0 ? ` (${selectedVisibleCount})` : ''}`}
                             </Button>
+                            {/* Task #1671 — "Commit selected (N)" button. Only on the
+                                linking step; disabled when no commit-eligible items are
+                                selected or when a bulk commit is already running. */}
+                            {currentStep === 'linking' && (
+                              <Button
+                                size="sm"
+                                variant="default"
+                                className="h-8 text-xs"
+                                data-testid="bulk-commit-button"
+                                disabled={commitEligibleCount === 0 || bulkCommitRunning}
+                                title={
+                                  bulkCommitRunning
+                                    ? undefined
+                                    : commitEligibleCount === 0
+                                      ? (isFr
+                                          ? 'Sélectionnez des fichiers liés pour les sauvegarder'
+                                          : 'Select linked files to commit')
+                                      : undefined
+                                }
+                                onClick={() => {
+                                  void commitSelectedItems(commitEligibleIds);
+                                }}
+                              >
+                                {bulkCommitRunning ? (
+                                  <>
+                                    <Loader2 className="mr-1 h-3.5 w-3.5 animate-spin" />
+                                    {isFr
+                                      ? `Sauvegarde ${bulkCommitProgress.processed} sur ${bulkCommitProgress.total}…`
+                                      : `Committing ${bulkCommitProgress.processed} of ${bulkCommitProgress.total}…`}
+                                  </>
+                                ) : (
+                                  isFr
+                                    ? `Sauvegarder la sélection${commitEligibleCount > 0 ? ` (${commitEligibleCount})` : ''}`
+                                    : `Commit selected${commitEligibleCount > 0 ? ` (${commitEligibleCount})` : ''}`
+                                )}
+                              </Button>
+                            )}
                             {selectedVisibleCount > 0 && (
                               <Button
                                 size="sm"
@@ -7828,6 +8038,15 @@ export default function BulkDocumentImportPage() {
                                           {isFr ? 'Sauvegarder' : 'Commit'}
                                         </Button>
                                       )}
+                                      {/* Task #1671: inline commit error message */}
+                                      {commitErrors.has(groupItem.id) && (
+                                        <span
+                                          className="text-xs text-destructive"
+                                          data-testid={`commit-error-${groupItem.id}`}
+                                        >
+                                          {getCommitErrorMessage(commitErrors.get(groupItem.id)!, isFr)}
+                                        </span>
+                                      )}
                                       {!grpIsExcluded && (
                                         <Button
                                           size="sm"
@@ -8172,6 +8391,12 @@ export default function BulkDocumentImportPage() {
                                     <div className="flex items-center gap-1 flex-shrink-0 ml-auto" onClick={(e) => e.stopPropagation()}>
                                       {!grpIsExcluded && groupItem.status === 'linked' && (
                                         <Button size="sm" variant="default" className="h-7 text-xs" onClick={() => runStep.mutate({ itemId: groupItem.id, action: 'commit' })} disabled={grpRetryPending} data-testid={`button-commit-${groupItem.id}`}>{isFr ? 'Sauvegarder' : 'Commit'}</Button>
+                                      )}
+                                      {/* Task #1671: inline commit error */}
+                                      {commitErrors.has(groupItem.id) && (
+                                        <span className="text-xs text-destructive" data-testid={`commit-error-${groupItem.id}`}>
+                                          {getCommitErrorMessage(commitErrors.get(groupItem.id)!, isFr)}
+                                        </span>
                                       )}
                                       {!grpIsExcluded && (
                                         <Button size="sm" variant="outline" className="h-7 text-xs" onClick={() => runStep.mutate({ itemId: groupItem.id, action: 'link' })} disabled={grpRetryPending} data-testid={`button-retry-linking-${groupItem.id}`}>
@@ -10047,6 +10272,15 @@ export default function BulkDocumentImportPage() {
                                       {isFr ? 'Sauvegarder' : 'Commit'}
                                     </Button>
                                   )}
+                                {/* Task #1671: inline commit error */}
+                                {commitErrors.has(item.id) && (
+                                  <span
+                                    className="text-xs text-destructive"
+                                    data-testid={`commit-error-${item.id}`}
+                                  >
+                                    {getCommitErrorMessage(commitErrors.get(item.id)!, isFr)}
+                                  </span>
+                                )}
                                 {canToggleExclude && (
                                   <Button
                                     size="sm"

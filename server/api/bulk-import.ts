@@ -10235,6 +10235,55 @@ export function registerBulkImportRoutes(app: Express): void {
           }),
         );
 
+        // Task #1671: Deferred-predecessor check.
+        // For sequence-ordered first-anchor candidates (neighborDocumentId still null after
+        // sequence resolution above), verify there is no *pending* predecessor (same
+        // session + family, lower sequence, not yet committed or excluded). If one
+        // exists the caller must commit in sequence order → return 409
+        // awaiting_family_predecessor so the bulk-commit orchestrator can retry later.
+        for (const mr of resolvedMembershipRows) {
+          if (mr.neighborDocumentId !== null || !mr.familyId || mr.sequence === null) continue;
+          const pendingPredecessors = await db
+            .select({
+              id: schema.bulkImportItems.id,
+              sequence: schema.bulkImportItemFamilyMemberships.sequence,
+            })
+            .from(schema.bulkImportItemFamilyMemberships)
+            .innerJoin(
+              schema.bulkImportItems,
+              eq(schema.bulkImportItemFamilyMemberships.itemId, schema.bulkImportItems.id),
+            )
+            .where(
+              and(
+                eq(schema.bulkImportItems.sessionId, item.sessionId),
+                eq(schema.bulkImportItemFamilyMemberships.familyId, mr.familyId),
+                ne(schema.bulkImportItems.id, item.id),
+                isNotNull(schema.bulkImportItemFamilyMemberships.sequence),
+                eq(schema.bulkImportItems.status, 'linked'),
+              ),
+            );
+          const pendingLower = pendingPredecessors
+            .filter((p) => (p.sequence ?? 0) < mr.sequence!)
+            .sort((a, b) => (b.sequence ?? 0) - (a.sequence ?? 0));
+          if (pendingLower.length > 0) {
+            logDebug('[bulk-import] commit deferred: awaiting_family_predecessor', {
+              metadata: {
+                itemId: item.id,
+                familyId: mr.familyId,
+                predecessorItemId: pendingLower[0].id,
+                predecessorSequence: pendingLower[0].sequence,
+                currentSequence: mr.sequence,
+              },
+            });
+            return res.status(409).json({
+              error: 'A predecessor item in the same family must be committed first.',
+              errorCode: 'awaiting_family_predecessor',
+              predecessorItemId: pendingLower[0].id,
+              predecessorSequence: pendingLower[0].sequence,
+            });
+          }
+        }
+
         let linksToCommit: CommitLinkRow[];
         if (resolvedMembershipRows.length > 0) {
           // Task #1549: First-anchor conflict guard — if any membership row is a
