@@ -2359,4 +2359,336 @@ describeIfDb('MCP inventory tools — real Postgres', () => {
       expect(stillThere).toHaveLength(1);
     }, 30000);
   });
+
+  // -------------------------------------------------------------------
+  // W41 / W74 regression — manual lastInspectionDate survives MCP-path
+  // edits and deletes (Task #994 / #1674)
+  //
+  // Mirrors the REST W41 / W74 cases in
+  // `maintenance-last-inspection-date.test.ts`, but drives them through
+  // the MCP tool handlers so a future refactor of the MCP delete /
+  // update path cannot silently regress the manual-date preservation
+  // we already have REST coverage for. The shared
+  // `eventSetsLastInspectionDate` helper under test lives in
+  // `server/services/inventory-inspection-date.ts` and is invoked from
+  // both the REST and MCP code paths — these tests lock in the second
+  // half of that contract.
+  // -------------------------------------------------------------------
+  describe('W41 / W74 — manual lastInspectionDate survives MCP delete / edit', () => {
+    it('W74 — delete_element_history_event preserves manually-set lastInspectionDate when deleting a backdated repair event (and refunds lifespanImpact)', async () => {
+      // Seed an element and manually set lastInspectionDate via direct
+      // DB write — mirrors what `update_inventory_element` would do.
+      const initialLifespan = 25;
+      const lifespanImpact = 6;
+      const [el] = await db
+        .insert(schema.buildingElements)
+        .values({
+          buildingId: inScopeBuildingId,
+          uniformatCode: TEST_LEVEL3_CODE,
+          name: `inv-it-w74-${randomUUID().slice(0, 8)}`,
+          currentCondition: 'good',
+          currentLifespan: initialLifespan,
+          lastInspectionDate: '2026-04-26',
+        })
+        .returning({ id: schema.buildingElements.id });
+      createdElementIds.push(el.id);
+
+      // Create a backdated repair event via the MCP create tool. The
+      // W36 forward-only guard must leave the manual lastInspectionDate
+      // alone because the event date is older than the manual value.
+      const createHandler = getToolHandler(server, 'create_element_history_event');
+      const createRes = await createHandler(
+        {
+          role: 'admin',
+          elementId: el.id,
+          eventType: 'repair',
+          eventDate: '2026-04-20',
+          workDescription: 'W74 backdated repair',
+          lifespanImpact,
+        },
+        {},
+      );
+      const createParsed = JSON.parse(parseToolText(createRes)) as {
+        event: { id: string };
+        updatedElement: {
+          lastInspectionDate: string | null;
+          currentLifespan: number | null;
+        } | null;
+      };
+      createdHistoryIds.push(createParsed.event.id);
+      // Forward-only guard worked — manual date survives the create.
+      expect(createParsed.updatedElement).not.toBeNull();
+      expect(createParsed.updatedElement!.lastInspectionDate).toBe('2026-04-26');
+      expect(createParsed.updatedElement!.currentLifespan).toBe(
+        initialLifespan + lifespanImpact,
+      );
+
+      // Delete the backdated event via the MCP delete tool. The
+      // handler must NOT recompute lastInspectionDate (the deleted
+      // event's date does not match the stored manual value, so
+      // `eventSetsLastInspectionDate` returns false), but the
+      // lifespanImpact refund must still fire inside the same
+      // transaction.
+      const deleteHandler = getToolHandler(server, 'delete_element_history_event');
+      const deleteRes = await deleteHandler(
+        { role: 'admin', historyId: createParsed.event.id },
+        {},
+      );
+      const deleteParsed = JSON.parse(parseToolText(deleteRes)) as {
+        deleted: { id: string };
+        updatedElement: {
+          lastInspectionDate: string | null;
+          currentLifespan: number | null;
+        } | null;
+      };
+      expect(deleteParsed.deleted.id).toBe(createParsed.event.id);
+      expect(deleteParsed.updatedElement).not.toBeNull();
+      // W74: the manual date must be intact in the response.
+      expect(deleteParsed.updatedElement!.lastInspectionDate).toBe('2026-04-26');
+      // Refund applied — currentLifespan rolls back to its initial value.
+      expect(deleteParsed.updatedElement!.currentLifespan).toBe(initialLifespan);
+
+      // DB read-back confirms the persisted state matches the response.
+      const [row] = await db
+        .select({
+          lastInspectionDate: schema.buildingElements.lastInspectionDate,
+          currentLifespan: schema.buildingElements.currentLifespan,
+        })
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, el.id));
+      expect(row!.lastInspectionDate).toBe('2026-04-26');
+      expect(row!.currentLifespan).toBe(initialLifespan);
+    }, 30000);
+
+    it('W74 — delete_element_history_event preserves a manual override even when a prior event had previously set lastInspectionDate', async () => {
+      // Mirrors the second REST W74 case: an older repair event first
+      // advances lastInspectionDate via the create-side forward-only
+      // guard. An admin then manually overrides the date to a newer
+      // value (simulating update_inventory_element). A second backdated
+      // event is created and then deleted — the delete must NOT regress
+      // lastInspectionDate to the older event's date, it must preserve
+      // the manual override.
+      const [el] = await db
+        .insert(schema.buildingElements)
+        .values({
+          buildingId: inScopeBuildingId,
+          uniformatCode: TEST_LEVEL3_CODE,
+          name: `inv-it-w74-override-${randomUUID().slice(0, 8)}`,
+          currentCondition: 'good',
+          currentLifespan: 30,
+        })
+        .returning({ id: schema.buildingElements.id });
+      createdElementIds.push(el.id);
+
+      const createHandler = getToolHandler(server, 'create_element_history_event');
+
+      // Older repair event — advances lastInspectionDate to 2024-09-12.
+      const firstRes = await createHandler(
+        {
+          role: 'admin',
+          elementId: el.id,
+          eventType: 'repair',
+          eventDate: '2024-09-12',
+          workDescription: 'W74 prior event (sets initial lastInspectionDate)',
+        },
+        {},
+      );
+      const firstParsed = JSON.parse(parseToolText(firstRes)) as {
+        event: { id: string };
+        updatedElement: { lastInspectionDate: string | null } | null;
+      };
+      createdHistoryIds.push(firstParsed.event.id);
+      expect(firstParsed.updatedElement).not.toBeNull();
+      expect(firstParsed.updatedElement!.lastInspectionDate).toBe('2024-09-12');
+
+      // Admin manually overrides lastInspectionDate via direct DB write.
+      await db
+        .update(schema.buildingElements)
+        .set({ lastInspectionDate: '2026-04-28' })
+        .where(eq(schema.buildingElements.id, el.id));
+
+      // Backdated repair event — guard leaves the manual override alone.
+      const secondRes = await createHandler(
+        {
+          role: 'admin',
+          elementId: el.id,
+          eventType: 'repair',
+          eventDate: '2026-04-15',
+          workDescription: 'W74 backdated event (after manual override)',
+        },
+        {},
+      );
+      const secondParsed = JSON.parse(parseToolText(secondRes)) as {
+        event: { id: string };
+        updatedElement: { lastInspectionDate: string | null } | null;
+      };
+      createdHistoryIds.push(secondParsed.event.id);
+      expect(secondParsed.updatedElement).not.toBeNull();
+      expect(secondParsed.updatedElement!.lastInspectionDate).toBe('2026-04-28');
+
+      // Delete the backdated event.
+      const deleteHandler = getToolHandler(server, 'delete_element_history_event');
+      const deleteRes = await deleteHandler(
+        { role: 'admin', historyId: secondParsed.event.id },
+        {},
+      );
+      const deleteParsed = JSON.parse(parseToolText(deleteRes)) as {
+        updatedElement: { lastInspectionDate: string | null } | null;
+      };
+      // W74: must preserve the manual override (2026-04-28). The old
+      // broken behavior would regress to the older event's 2024-09-12.
+      expect(deleteParsed.updatedElement).not.toBeNull();
+      expect(deleteParsed.updatedElement!.lastInspectionDate).toBe('2026-04-28');
+
+      const [row] = await db
+        .select({ lastInspectionDate: schema.buildingElements.lastInspectionDate })
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, el.id));
+      expect(row!.lastInspectionDate).toBe('2026-04-28');
+    }, 30000);
+
+    it('W41 edit variant — update_element_history_event preserves manually-set lastInspectionDate when re-dating a backdated event', async () => {
+      // Manually set lastInspectionDate, create a backdated event via
+      // the MCP create tool, then re-date that event via the MCP update
+      // tool. The update path must NOT recompute lastInspectionDate
+      // because the event's stored date does not match the manual
+      // value (so `eventSetsLastInspectionDate` returns false and the
+      // recompute branch is skipped).
+      const [el] = await db
+        .insert(schema.buildingElements)
+        .values({
+          buildingId: inScopeBuildingId,
+          uniformatCode: TEST_LEVEL3_CODE,
+          name: `inv-it-w41-edit-${randomUUID().slice(0, 8)}`,
+          currentCondition: 'good',
+          currentLifespan: 20,
+          lastInspectionDate: '2026-04-28',
+        })
+        .returning({ id: schema.buildingElements.id });
+      createdElementIds.push(el.id);
+
+      // Create a backdated repair event via the MCP create tool. The
+      // forward-only guard leaves the manual lastInspectionDate alone.
+      const createHandler = getToolHandler(server, 'create_element_history_event');
+      const createRes = await createHandler(
+        {
+          role: 'admin',
+          elementId: el.id,
+          eventType: 'repair',
+          eventDate: '2026-04-10',
+          workDescription: 'W41 backdated event',
+        },
+        {},
+      );
+      const createParsed = JSON.parse(parseToolText(createRes)) as {
+        event: { id: string };
+        updatedElement: { lastInspectionDate: string | null } | null;
+      };
+      createdHistoryIds.push(createParsed.event.id);
+      expect(createParsed.updatedElement).not.toBeNull();
+      expect(createParsed.updatedElement!.lastInspectionDate).toBe('2026-04-28');
+
+      // Edit the backdated event's date — must NOT trigger a recompute
+      // and wipe the manual value.
+      const updateHandler = getToolHandler(server, 'update_element_history_event');
+      const updateRes = await updateHandler(
+        {
+          role: 'admin',
+          historyId: createParsed.event.id,
+          eventDate: '2026-04-05',
+        },
+        {},
+      );
+      const updateParsed = JSON.parse(parseToolText(updateRes)) as {
+        event: { id: string; eventDate: string };
+        updatedElement: { lastInspectionDate: string | null } | null;
+      };
+      expect(updateParsed.event.eventDate).toBe('2026-04-05');
+      // The functional contract is: the manual lastInspectionDate must
+      // survive the edit. Today the handler signals this by skipping
+      // the element write entirely and returning `updatedElement: null`,
+      // but the durable assertion is the DB read-back below — if a
+      // future refactor returns a non-null snapshot for cosmetic
+      // reasons (e.g. always echoing the element row), the test must
+      // still hold as long as the snapshot's stored date is intact.
+      if (updateParsed.updatedElement !== null) {
+        expect(updateParsed.updatedElement.lastInspectionDate).toBe('2026-04-28');
+      }
+
+      // Primary assertion: the persisted state shows the manual value
+      // is intact regardless of how the handler shapes its response.
+      const [row] = await db
+        .select({ lastInspectionDate: schema.buildingElements.lastInspectionDate })
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, el.id));
+      expect(row!.lastInspectionDate).toBe('2026-04-28');
+    }, 30000);
+
+    it('W74 + currentLifespan refund clamp — delete_element_history_event clamps refund at 0 while still preserving manual lastInspectionDate', async () => {
+      // Element starts with currentLifespan=2 and a manually-set
+      // lastInspectionDate. We attach a backdated repair event with a
+      // lifespanImpact larger than the element's current lifespan via
+      // a direct insert (mirroring a state where the element was later
+      // trimmed below the prior bump — the only way to reach this
+      // state since `create_element_history_event` always adds the
+      // bump). Deleting the event via the MCP tool must:
+      //   1. Preserve the manual lastInspectionDate (W74).
+      //   2. Refund lifespanImpact, clamped at 0 — never negative.
+      const [el] = await db
+        .insert(schema.buildingElements)
+        .values({
+          buildingId: inScopeBuildingId,
+          uniformatCode: TEST_LEVEL3_CODE,
+          name: `inv-it-w74-clamp-${randomUUID().slice(0, 8)}`,
+          currentCondition: 'good',
+          currentLifespan: 2,
+          lastInspectionDate: '2026-04-26',
+        })
+        .returning({ id: schema.buildingElements.id });
+      createdElementIds.push(el.id);
+
+      const [hist] = await db
+        .insert(schema.elementHistory)
+        .values({
+          elementId: el.id,
+          eventType: 'repair',
+          eventDate: '2026-04-20',
+          workDescription: 'W74 clamp seed (backdated)',
+          createdBy: adminUserId,
+          lifespanImpact: 12,
+        })
+        .returning({ id: schema.elementHistory.id });
+      createdHistoryIds.push(hist.id);
+
+      const deleteHandler = getToolHandler(server, 'delete_element_history_event');
+      const deleteRes = await deleteHandler(
+        { role: 'admin', historyId: hist.id },
+        {},
+      );
+      const deleteParsed = JSON.parse(parseToolText(deleteRes)) as {
+        deleted: { id: string };
+        updatedElement: {
+          lastInspectionDate: string | null;
+          currentLifespan: number | null;
+        } | null;
+      };
+      expect(deleteParsed.deleted.id).toBe(hist.id);
+      expect(deleteParsed.updatedElement).not.toBeNull();
+      // Manual date preserved (W74).
+      expect(deleteParsed.updatedElement!.lastInspectionDate).toBe('2026-04-26');
+      // Refund clamped at 0 — never goes negative even though the
+      // recorded lifespanImpact (12) exceeds currentLifespan (2).
+      expect(deleteParsed.updatedElement!.currentLifespan).toBe(0);
+
+      const [row] = await db
+        .select({
+          lastInspectionDate: schema.buildingElements.lastInspectionDate,
+          currentLifespan: schema.buildingElements.currentLifespan,
+        })
+        .from(schema.buildingElements)
+        .where(eq(schema.buildingElements.id, el.id));
+      expect(row!.lastInspectionDate).toBe('2026-04-26');
+      expect(row!.currentLifespan).toBe(0);
+    }, 30000);
+  });
 });
