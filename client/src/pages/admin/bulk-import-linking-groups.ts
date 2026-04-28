@@ -5,6 +5,60 @@
  * of the large BulkDocumentImportPage component.
  */
 
+// ---------------------------------------------------------------------------
+// Task #1635: Display-name helper for Linking-step file rows
+// ---------------------------------------------------------------------------
+
+/**
+ * Minimal shape required by getLinkingDisplayName (structural typing).
+ * All fields are optional so the helper works without narrowing on the
+ * call site — missing/null fields simply fall through to the next
+ * precedence level.
+ */
+export interface LinkingDisplayNameSource {
+  originalName: string;
+  /** Admin-supplied rename stem (no extension). Set at branching time. */
+  finalFileName?: string | null;
+  /** AI-produced clean filename stem (no extension). */
+  branchSuggestedFinalFileName?: string | null;
+  /**
+   * True when `branchSuggestedFinalFileName` is just the sanitised stem
+   * of the original filename — NOT a real AI suggestion.
+   */
+  branchSuggestedFinalFileNameIsFallback?: boolean;
+}
+
+/**
+ * Returns the most descriptive display name for a bulk-import item row in
+ * the Linking step, following the precedence:
+ *
+ *  1. Admin override (`finalFileName`) + original extension.
+ *  2. Real AI suggestion (`branchSuggestedFinalFileName` when not flagged as
+ *     a fallback) + original extension.
+ *  3. `originalName` verbatim (today's behaviour).
+ *
+ * The original extension is always taken from `originalName` so the
+ * displayed label stays consistent with the underlying file.
+ */
+export function getLinkingDisplayName(item: LinkingDisplayNameSource): string {
+  const extMatch = item.originalName.match(/(\.[^/.]+)$/);
+  const ext = extMatch ? extMatch[1] : '';
+
+  if (item.finalFileName && item.finalFileName.trim()) {
+    return item.finalFileName.trim() + ext;
+  }
+
+  if (
+    item.branchSuggestedFinalFileName &&
+    item.branchSuggestedFinalFileName.trim() &&
+    item.branchSuggestedFinalFileNameIsFallback === false
+  ) {
+    return item.branchSuggestedFinalFileName.trim() + ext;
+  }
+
+  return item.originalName;
+}
+
 /** Minimal shape required by resolveLinkingGroups (structural typing). */
 export interface LinkingItemShape {
   id: string;

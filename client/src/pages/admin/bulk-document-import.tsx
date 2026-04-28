@@ -97,6 +97,7 @@ import {
   computeLinkingMakeStandaloneChanges,
   computeLinkingBreakGroupChanges,
   resolveFamilyGroups,
+  getLinkingDisplayName,
 } from './bulk-import-linking-groups';
 import type { LinkingGroup, FamilyGroup, FamilyMembership, FamilyRow, ExistingFamilyDoc } from './bulk-import-linking-groups';
 import {
@@ -412,6 +413,13 @@ export interface BulkImportItemLite {
    * the original-stem placeholder.
    */
   branchSuggestedFinalFileName: string | null;
+  /**
+   * Task #1454 — true when `branchSuggestedFinalFileName` is just the
+   * sanitised stem of the original filename (i.e. not a real AI proposal).
+   * Used to suppress the "AI suggestion" badge and the Linking-step display
+   * name upgrade (Task #1635).
+   */
+  branchSuggestedFinalFileNameIsFallback: boolean;
   /**
    * Task #1401 — pair of clean filename stems for split rows, in slice
    * order (Part 1 / Part 2). Only populated when the AI itself flagged
@@ -7627,7 +7635,7 @@ export default function BulkDocumentImportPage() {
                                           chainIndex: famGroupItems.indexOf(groupItem),
                                         })}
                                       >
-                                        <span className="text-sm truncate block" title={groupItem.originalName}>{groupItem.originalName}</span>
+                                        <span className="text-sm truncate block" title={groupItem.originalName}>{getLinkingDisplayName(groupItem)}</span>
                                       </button>
                                       {/* Editable sequence position input */}
                                       {m?.id && (
@@ -9858,8 +9866,9 @@ export default function BulkDocumentImportPage() {
                                       : ''
                                   }`}
                                   data-testid={`item-name-${item.id}`}
+                                  title={item.originalName}
                                 >
-                                  {item.originalName}
+                                  {getLinkingDisplayName(item)}
                                 </span>
                                 <span className="text-xs text-muted-foreground">
                                   {item.status}

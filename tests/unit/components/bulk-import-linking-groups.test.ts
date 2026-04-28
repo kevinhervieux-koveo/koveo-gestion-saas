@@ -1,11 +1,13 @@
 /**
  * Task #1233 — Unit tests for resolveLinkingGroups.
+ * Task #1635 — Unit tests for getLinkingDisplayName.
  *
  * Covers: empty list, single chain, multiple chains, cycle detection,
- * optimistic override application, standalone detection, cross-item linking.
+ * optimistic override application, standalone detection, cross-item linking,
+ * and the three display-name precedence branches for Linking-step rows.
  */
 import { describe, it, expect } from '@jest/globals';
-import { resolveLinkingGroups } from '@/pages/admin/bulk-import-linking-groups';
+import { resolveLinkingGroups, getLinkingDisplayName } from '@/pages/admin/bulk-import-linking-groups';
 import type { LinkingItemShape } from '@/pages/admin/bulk-import-linking-groups';
 
 function item(
@@ -188,6 +190,169 @@ describe('resolveLinkingGroups', () => {
       expect(groups[0].id).toBe('x');
       expect(groups[0].items.map((i) => i.id)).toEqual(['x', 'y']);
       expect(standaloneIds).toEqual(new Set(['a', 'b']));
+    });
+  });
+});
+
+// ---------------------------------------------------------------------------
+// Task #1635 — getLinkingDisplayName
+// ---------------------------------------------------------------------------
+
+describe('getLinkingDisplayName', () => {
+  const ORIGINAL = 'Reglements_7_NoCentris_28525705.pdf';
+
+  describe('branch 1 — admin override (finalFileName)', () => {
+    it('returns finalFileName + original extension', () => {
+      expect(
+        getLinkingDisplayName({
+          originalName: ORIGINAL,
+          finalFileName: "Règlement de l'immeuble",
+          branchSuggestedFinalFileName: 'Procès-verbal AGA 2024-09-12',
+          branchSuggestedFinalFileNameIsFallback: false,
+        }),
+      ).toBe("Règlement de l'immeuble.pdf");
+    });
+
+    it('trims whitespace from finalFileName', () => {
+      expect(
+        getLinkingDisplayName({
+          originalName: ORIGINAL,
+          finalFileName: '  Police assurance 2024  ',
+        }),
+      ).toBe('Police assurance 2024.pdf');
+    });
+
+    it('ignores a real AI suggestion when finalFileName is also set', () => {
+      expect(
+        getLinkingDisplayName({
+          originalName: ORIGINAL,
+          finalFileName: 'Admin Override',
+          branchSuggestedFinalFileName: 'AI Suggestion',
+          branchSuggestedFinalFileNameIsFallback: false,
+        }),
+      ).toBe('Admin Override.pdf');
+    });
+  });
+
+  describe('branch 2 — real AI suggestion (not a fallback)', () => {
+    it('returns branchSuggestedFinalFileName + extension when not a fallback', () => {
+      expect(
+        getLinkingDisplayName({
+          originalName: ORIGINAL,
+          finalFileName: null,
+          branchSuggestedFinalFileName: 'Procès-verbal AGA 2024-09-12',
+          branchSuggestedFinalFileNameIsFallback: false,
+        }),
+      ).toBe('Procès-verbal AGA 2024-09-12.pdf');
+    });
+
+    it('falls through to originalName when branchSuggestedFinalFileNameIsFallback is true', () => {
+      expect(
+        getLinkingDisplayName({
+          originalName: ORIGINAL,
+          finalFileName: null,
+          branchSuggestedFinalFileName: 'Reglements_7_NoCentris_28525705',
+          branchSuggestedFinalFileNameIsFallback: true,
+        }),
+      ).toBe(ORIGINAL);
+    });
+
+    it('falls through when branchSuggestedFinalFileName is null', () => {
+      expect(
+        getLinkingDisplayName({
+          originalName: ORIGINAL,
+          finalFileName: null,
+          branchSuggestedFinalFileName: null,
+          branchSuggestedFinalFileNameIsFallback: false,
+        }),
+      ).toBe(ORIGINAL);
+    });
+
+    it('falls through when branchSuggestedFinalFileName is blank whitespace', () => {
+      expect(
+        getLinkingDisplayName({
+          originalName: ORIGINAL,
+          finalFileName: null,
+          branchSuggestedFinalFileName: '   ',
+          branchSuggestedFinalFileNameIsFallback: false,
+        }),
+      ).toBe(ORIGINAL);
+    });
+
+    it('falls through when branchSuggestedFinalFileNameIsFallback is undefined (absent flag)', () => {
+      expect(
+        getLinkingDisplayName({
+          originalName: ORIGINAL,
+          finalFileName: null,
+          branchSuggestedFinalFileName: 'Procès-verbal AGA 2024-09-12',
+          // flag absent — helper must NOT promote the suggestion
+        }),
+      ).toBe(ORIGINAL);
+    });
+  });
+
+  describe('branch 3 — original filename verbatim', () => {
+    it('returns originalName when no optional fields are provided', () => {
+      expect(getLinkingDisplayName({ originalName: ORIGINAL })).toBe(ORIGINAL);
+    });
+
+    it('returns originalName when finalFileName is empty string', () => {
+      expect(
+        getLinkingDisplayName({ originalName: ORIGINAL, finalFileName: '' }),
+      ).toBe(ORIGINAL);
+    });
+
+    it('returns originalName when both override and AI suggestion are null', () => {
+      expect(
+        getLinkingDisplayName({
+          originalName: ORIGINAL,
+          finalFileName: null,
+          branchSuggestedFinalFileName: null,
+        }),
+      ).toBe(ORIGINAL);
+    });
+  });
+
+  describe('extension handling', () => {
+    it('preserves .jpg extension for admin override', () => {
+      expect(
+        getLinkingDisplayName({
+          originalName: 'scan001.jpg',
+          finalFileName: 'Police assurance 2024',
+        }),
+      ).toBe('Police assurance 2024.jpg');
+    });
+
+    it('preserves .pdf extension for AI suggestion', () => {
+      expect(
+        getLinkingDisplayName({
+          originalName: 'IMG_20231204.pdf',
+          branchSuggestedFinalFileName: 'Facture entretien janvier 2024',
+          branchSuggestedFinalFileNameIsFallback: false,
+        }),
+      ).toBe('Facture entretien janvier 2024.pdf');
+    });
+
+    it('appends no extension when originalName has none', () => {
+      expect(
+        getLinkingDisplayName({
+          originalName: 'noextfile',
+          finalFileName: 'Override name',
+        }),
+      ).toBe('Override name');
+    });
+  });
+
+  describe('originalName is never mutated', () => {
+    it('the helper is pure and does not modify the item object', () => {
+      const item2 = {
+        originalName: ORIGINAL,
+        finalFileName: "Règlement de l'immeuble",
+        branchSuggestedFinalFileName: 'Procès-verbal',
+        branchSuggestedFinalFileNameIsFallback: false,
+      };
+      getLinkingDisplayName(item2);
+      expect(item2.originalName).toBe(ORIGINAL);
     });
   });
 });
