@@ -41,6 +41,10 @@ export interface Translations {
   chainRemoveErrorTitle: string;
   notFoundTitle: string;
   notFoundMessage: string;
+  helpPlaceholderTitle: string;
+  helpPlaceholderBodyFr: string;
+  helpPlaceholderBodyEn: string;
+  helpPlaceholderCta: string;
   // Project workflow status names (used by ProjectForm select & StatusStepper)
   projectStatusPlanned: string;
   projectStatusEvaluation: string;
@@ -6794,6 +6798,13 @@ export const translations: Record<Language, Translations> = {
     notFoundTitle: 'Page not found',
     notFoundMessage: 'Page not found. Check the URL or return to the dashboard.',
 
+    helpPlaceholderTitle: 'Aide / Help — bientôt disponible',
+    helpPlaceholderBodyFr:
+      "Le centre d'aide Koveo Gestion est en cours de développement. En attendant, contactez-nous : support@koveo-gestion.com.",
+    helpPlaceholderBodyEn:
+      'The Koveo Gestion help centre is under development. In the meantime, please reach us at: support@koveo-gestion.com.',
+    helpPlaceholderCta: 'support@koveo-gestion.com',
+
     // Budget filter labels & section helpers
     budgetViewType: 'View Type',
     budgetPeriodWindow: 'Period Window',
@@ -11301,6 +11312,13 @@ export const translations: Record<Language, Translations> = {
     chainRemoveErrorTitle: 'Échec du retrait',
     notFoundTitle: 'Page introuvable',
     notFoundMessage: "Page introuvable. Vérifiez l'URL ou retournez au tableau de bord.",
+
+    helpPlaceholderTitle: 'Aide / Help — bientôt disponible',
+    helpPlaceholderBodyFr:
+      "Le centre d'aide Koveo Gestion est en cours de développement. En attendant, contactez-nous : support@koveo-gestion.com.",
+    helpPlaceholderBodyEn:
+      'The Koveo Gestion help centre is under development. In the meantime, please reach us at: support@koveo-gestion.com.',
+    helpPlaceholderCta: 'support@koveo-gestion.com',
 
     // Budget filter labels & section helpers
     budgetViewType: 'Type de vue',

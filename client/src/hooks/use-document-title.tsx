@@ -37,6 +37,8 @@ const ROUTE_TITLE_KEYS: Array<{ pattern: RegExp | string; key: TranslationKey }>
   { pattern: '/admin/kpi-dashboard', key: 'navKpiDashboard' },
   { pattern: '/admin/impersonation-log', key: 'navImpersonationLog' },
   { pattern: '/admin/org-access', key: 'navOrgAccess' },
+  // NOTE: /help is a public route rendered outside AuthenticatedLayout.
+  // Its title is managed directly in client/src/pages/help.tsx via useEffect.
 ];
 
 function findTitleKey(pathname: string): TranslationKey | null {

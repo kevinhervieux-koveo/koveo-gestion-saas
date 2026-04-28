@@ -202,6 +202,11 @@ const HomePage = createOptimizedLoader(() => import('@/pages/home'), 'home-page'
   enableMemoryCleanup: true,
 });
 
+// Help placeholder page (public route — no auth required)
+const HelpPlaceholderPage = createOptimizedLoader(() => import('@/pages/help'), 'help-placeholder-page', {
+  enableMemoryCleanup: true,
+});
+
 // New public pages
 const FeaturesPage = createOptimizedLoader(() => import('@/pages/features'), 'features-page', {
   enableMemoryCleanup: true,
@@ -299,6 +304,9 @@ function Router() {
     '/story',
     '/privacy-policy',
     '/terms-of-service',
+    '/help',
+    '/admin/help',
+    '/dashboard/help',
   ].includes(location);
 
   // Root path: redirect to dashboard if authenticated, login otherwise.
@@ -327,6 +335,9 @@ function Router() {
           <Route path='/accept-invitation' component={InvitationAcceptancePage} />
           <Route path='/auth/accept-invitation' component={InvitationAcceptancePage} />
           <Route path='/register' component={InvitationAcceptancePage} />
+          <Route path='/help' component={HelpPlaceholderPage} />
+          <Route path='/admin/help' component={HelpRedirect} />
+          <Route path='/dashboard/help' component={HelpRedirect} />
         </Switch>
       </Suspense>
     );
@@ -448,6 +459,10 @@ function AuthenticatedLayout() {
               <Route path='/resident/common-spaces'>{() => <SingularCommonSpacesRedirect />}</Route>
               <Route path='/resident/my-calendar' component={ResidentsMyCalendar} />
 
+              {/* Help redirects — both go to the public /help placeholder */}
+              <Route path='/admin/help' component={HelpRedirect} />
+              <Route path='/dashboard/help' component={HelpRedirect} />
+
               {/* Settings routes */}
               <Route path='/settings' component={SettingsOverviewRedirect} />
               <Route path='/settings/general' component={SettingsSettings} />
@@ -552,6 +567,16 @@ function LoginRedirect() {
 
   useEffect(() => {
     setLocation('/dashboard/overview');
+  }, [setLocation]);
+
+  return <LoadingSpinner />;
+}
+
+function HelpRedirect() {
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    setLocation('/help');
   }, [setLocation]);
 
   return <LoadingSpinner />;

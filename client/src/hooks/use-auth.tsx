@@ -57,7 +57,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     location === '/security' ||
     location === '/story' ||
     location === '/privacy-policy' ||
-    location === '/terms-of-service';
+    location === '/terms-of-service' ||
+    location === '/help' ||
+    location === '/admin/help' ||
+    location === '/dashboard/help';
 
   // Query to get current user with optimized caching and minimal refetches
   const {
