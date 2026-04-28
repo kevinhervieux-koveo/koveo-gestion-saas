@@ -216,7 +216,7 @@ export function InvitationManagement() {
               iconSize={12}
             />
           ) : (
-            <div className="overflow-x-auto">
+            <div className="overflow-x-auto" data-onboarding="invitations.list">
               <Table>
                 <TableHeader>
                   <TableRow>
@@ -290,12 +290,13 @@ export function InvitationManagement() {
                         </Badge>
                       </TableCell>
                       <TableCell className="text-right">
-                        <div className="flex items-center justify-end gap-2">
+                        <div className="flex items-center justify-end gap-2" data-onboarding="invitations.row-actions">
                           <Button
                             variant="outline"
                             size="sm"
                             onClick={() => setHistoryInvitation(invitation)}
                             data-testid={`button-view-history-${invitation.id}`}
+                            data-onboarding="invitations.history-btn"
                             title={t('viewInvitationHistory')}
                             aria-label={t('viewInvitationHistory')}
                           >

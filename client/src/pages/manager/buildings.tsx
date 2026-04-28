@@ -615,7 +615,7 @@ function BuildingsInner({ organizationId }: { organizationId?: string }) {
             </div>
 
             {user?.role === 'admin' && (
-              <Button onClick={() => setIsAddDialogOpen(true)}>
+              <Button data-onboarding="buildings.new-btn" onClick={() => setIsAddDialogOpen(true)}>
                 <Plus className='w-4 h-4 mr-2' />
                 {t('addBuilding')}
               </Button>

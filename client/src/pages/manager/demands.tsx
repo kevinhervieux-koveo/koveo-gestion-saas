@@ -671,7 +671,7 @@ export default function ManagerDemandsPage() {
                     value={residenceFilter}
                     onValueChange={(value) => startTransition(() => setResidenceFilter(value))}
                   >
-                    <SelectTrigger data-testid='select-residence-filter'>
+                    <SelectTrigger data-testid='select-residence-filter' data-onboarding="demands.residence-input">
                       <SelectValue placeholder={t('allResidences')} />
                     </SelectTrigger>
                     <SelectContent>

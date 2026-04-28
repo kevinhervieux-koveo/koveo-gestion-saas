@@ -994,7 +994,7 @@ function BillsPage({ buildingId, organizationId }: BillsProps) {
             </div>
             <Dialog open={showCreateDialog} onOpenChange={setShowCreateDialog}>
               <DialogTrigger asChild>
-                <Button disabled={!buildingId}>
+                <Button disabled={!buildingId} data-onboarding="bills.new-btn">
                   {t('createBill')}
                 </Button>
               </DialogTrigger>
@@ -1356,7 +1356,7 @@ function BillCard({
                     </Badge>
                   )}
                 </div>
-                <p className='text-xs text-gray-500 mb-1'>
+                <p className='text-xs text-gray-500 mb-1' data-onboarding="bills.row-number">
                   #{bill.billNumber}
                   {bill.vendorInvoiceNumber && (
                     <span className='ml-2'>
@@ -1385,7 +1385,7 @@ function BillCard({
                 >
                   <Edit2 className="h-4 w-4" />
                 </Button>
-                <Badge className={statusColors[bill.status as keyof typeof statusColors]}>
+                <Badge className={statusColors[bill.status as keyof typeof statusColors]} data-onboarding="bills.row-status">
                   {bill.status === 'draft' ? t('bills.statusDraft') : 
                    bill.status === 'sent' ? (isPartiallyPaid ? t('bills.statusSentPartiallyPaid') : t('bills.statusSent')) :
                    bill.status === 'overdue' ? t('bills.statusOverdue') :

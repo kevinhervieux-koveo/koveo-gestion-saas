@@ -162,7 +162,7 @@ export default function Dashboard() {
   const roleActions = getRoleBasedActions();
 
   return (
-    <div className='flex-1 flex flex-col overflow-hidden'>
+    <div className='flex-1 flex flex-col overflow-hidden' data-onboarding="dashboard.root">
       <Header
         title={`${t('welcomeBack')}, ${user?.firstName || 'User'}`}
         subtitle={t('personalizedDashboard')}

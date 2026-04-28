@@ -97,7 +97,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     requiredRole: 'tenant',
     items: [
       { nameKey: 'overview', href: '/dashboard/overview', icon: LayoutDashboard },
-      { nameKey: 'communication', href: '/dashboard/communication', icon: MessageSquare },
+      { nameKey: 'communication', href: '/dashboard/communication', icon: MessageSquare, dataOnboarding: 'nav.communications' },
     ],
   },
   {
@@ -123,20 +123,20 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     icon: Building,
     requiredRole: 'manager',
     items: [
-      { nameKey: 'buildings', href: '/manager/buildings', icon: Building },
+      { nameKey: 'buildings', href: '/manager/buildings', icon: Building, dataOnboarding: 'nav.buildings' },
       { nameKey: 'residences', href: '/manager/residences', icon: Home },
       { nameKey: 'budget', href: '/manager/budget', icon: DollarSign },
       { nameKey: 'bills', href: '/manager/bills', icon: FileText },
-      { nameKey: 'demands', href: '/manager/demands', icon: AlertCircle },
+      { nameKey: 'demands', href: '/manager/demands', icon: AlertCircle, dataOnboarding: 'nav.demands' },
       { nameKey: 'navUserManagement', href: '/manager/user-management', icon: Users },
-      { nameKey: 'manageCommonSpaces', href: '/manager/common-spaces-stats', icon: AreaChart },
+      { nameKey: 'manageCommonSpaces', href: '/manager/common-spaces-stats', icon: AreaChart, dataOnboarding: 'building.common-spaces-tab' },
       {
         nameKey: 'maintenanceJournal',
         _key: 'maintenanceJournal',
         icon: Wrench,
         items: [
           { nameKey: 'inventory', href: '/manager/maintenance/inventory', icon: Package },
-          { nameKey: 'projects', href: '/manager/maintenance/projects', icon: Folder },
+          { nameKey: 'projects', href: '/manager/maintenance/projects', icon: Folder, dataOnboarding: 'nav.maintenance' },
         ],
       },
     ],
@@ -173,7 +173,7 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     icon: Settings,
     requiredRole: 'tenant',
     items: [
-      { nameKey: 'settings', href: '/settings', icon: Settings },
+      { nameKey: 'settings', href: '/settings', icon: Settings, dataOnboarding: 'topbar.settings-link' },
       {
         nameKey: 'helpOnboarding',
         href: '/settings/onboarding',

@@ -1600,7 +1600,7 @@ export default function CommunicationDashboard() {
             <>
               <Separator className="my-8" />
               
-              <Card>
+              <Card data-onboarding="communications.new-btn">
                 <CardHeader>
                   <CardTitle className="flex items-center gap-2">
                     <MessageSquare className="w-5 h-5" />

@@ -494,13 +494,13 @@ export function Sidebar({ forceExpanded = false }: SidebarProps) {
               </div>
             )
           ) : (
-            <div className='flex items-center space-x-3'>
+            <div className='flex items-center space-x-3' data-onboarding="topbar.user-menu">
               <div className='w-8 h-8 bg-koveo-navy rounded-full flex items-center justify-center'>
                 <span className='text-white text-sm font-medium'>{initials}</span>
               </div>
               <div>
                 <p className='text-sm font-medium text-gray-900'>{displayName}</p>
-                <p className='text-xs text-gray-500'>{roleLabel}</p>
+                <p className='text-xs text-gray-500' data-onboarding="topbar.role-badge">{roleLabel}</p>
               </div>
             </div>
           )}

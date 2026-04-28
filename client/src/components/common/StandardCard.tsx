@@ -21,6 +21,7 @@ interface ActionConfig {
   size?: 'default' | 'sm' | 'lg' | 'icon';
   className?: string;
   testId?: string;
+  dataOnboarding?: string;
 }
 
 type SpacingVariant = 'compact' | 'normal' | 'relaxed';
@@ -155,6 +156,7 @@ export function StandardCard({
           action.className
         )}
         data-testid={action.testId}
+        data-onboarding={action.dataOnboarding}
         title={action.label}
       >
         {hasIcon && action.icon}

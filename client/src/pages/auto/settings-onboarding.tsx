@@ -150,6 +150,7 @@ export default function SettingsOnboardingPage() {
               size="sm"
               onClick={handleRestartAll}
               className="flex items-center gap-2"
+              data-onboarding="settings.onboarding.restart-all"
             >
               <RefreshCw className="h-3.5 w-3.5" />
               {language === 'en' ? 'Restart all' : 'Relancer tout'}

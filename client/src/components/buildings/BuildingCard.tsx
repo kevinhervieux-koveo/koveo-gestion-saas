@@ -76,6 +76,7 @@ export function BuildingCard({
       variant: 'ghost' as const,
       className: 'text-red-600 hover:text-red-700',
       testId: `button-delete-${building.id}`,
+      dataOnboarding: 'building.delete-btn',
     });
   }
 
@@ -123,6 +124,7 @@ export function BuildingCard({
             variant='outline' 
             className='w-full'
             data-testid={`button-residences-${building.id}`}
+            data-onboarding="building.residences-tab"
           >
             {t('residences')}
           </Button>

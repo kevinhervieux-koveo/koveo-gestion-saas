@@ -612,7 +612,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                     <FormItem>
                       <FormLabel>{t('emailAddress')} *</FormLabel>
                       <FormControl>
-                        <Input placeholder={t('enterEmailAddress')} type='email' {...field} />
+                        <Input placeholder={t('enterEmailAddress')} type='email' data-onboarding="invitations.email-input" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -671,6 +671,7 @@ export function SendInvitationDialog({ open, onOpenChange, onSuccess }: SendInvi
                           <select
                             {...field}
                             onChange={field.onChange}
+                            data-onboarding="invitations.residence-input"
                             className='flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50'
                           >
                             <option value=''>{t('authSelectResidence')}</option>

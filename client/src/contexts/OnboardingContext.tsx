@@ -134,7 +134,22 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
       const latestVersion =
         progressRef.current.find((p) => p.tourId === tour.tourId)?.latestVersion ?? 1;
 
-      const steps: DriveStep[] = tour.steps.map((step) => ({
+      // Honor per-step visibleIf predicates (Task #1590 M.4): steps whose
+      // predicate returns false are silently skipped, e.g. when the targeted
+      // UI element isn't rendered for the current user/page.  Predicates are
+      // evaluated synchronously at tour-start time.
+      const eligibleSteps = tour.steps.filter(
+        (s) => typeof s.visibleIf !== 'function' || s.visibleIf(),
+      );
+
+      if (eligibleSteps.length === 0) {
+        // Nothing to show in the current context — mark as completed so we
+        // don't re-trigger forever.
+        persistProgress(tour.tourId, 'completed', 0, latestVersion);
+        return;
+      }
+
+      const steps: DriveStep[] = eligibleSteps.map((step) => ({
         element: step.anchor,
         popover: {
           title: step.title[lang as 'fr' | 'en'],
@@ -161,12 +176,17 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
         },
         onDestroyStarted: () => {
           const currentIdx = d.getActiveIndex() ?? 0;
-          const isLast = currentIdx >= tour.steps.length - 1;
+          const isLast = currentIdx >= eligibleSteps.length - 1;
           const isPausingForNav = pausingForNavRef.current;
           pausingForNavRef.current = false;
 
           if (isLast) {
-            persistProgress(tour.tourId, 'completed', tour.steps.length - 1, latestVersion);
+            persistProgress(
+              tour.tourId,
+              'completed',
+              eligibleSteps.length - 1,
+              latestVersion,
+            );
           }
           setIsActive(false);
           driverRef.current = null;

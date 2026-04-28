@@ -1477,6 +1477,7 @@ export default function UserManagement() {
                       onClick={() => setShowInviteDialog(true)}
                       disabled={currentUser?.role === 'demo_manager'}
                       data-testid="button-invite-user"
+                      data-onboarding="invitations.new-btn"
                     >
                       <UserPlus className='h-4 w-4 mr-2' />
                       {t('inviteUser')}
