@@ -96,7 +96,75 @@ async function loginAsAdmin(page: Page): Promise<void> {
   );
 }
 
+async function setLanguage(page: Page, lang: 'en' | 'fr'): Promise<void> {
+  await page.evaluate((l) => localStorage.setItem('language', l), lang);
+}
+
 describe('/admin/permissions (real browser, real app)', () => {
+  it('role-hierarchy card shows 5-role chain in French', async () => {
+    const page = await browser.newPage();
+    try {
+      await page.setViewport({ width: 1400, height: 900 });
+      await loginAsAdmin(page);
+      await setLanguage(page, 'fr');
+      await page.goto(`${BASE_URL}/admin/permissions`, {
+        waitUntil: 'networkidle2',
+        timeout: 30_000,
+      });
+      await page.waitForFunction(
+        () => !document.querySelector('[data-testid=loader-permissions-page]'),
+        { timeout: 30_000 }
+      );
+
+      const count = await page.$eval(
+        '[data-testid=role-hierarchy-count]',
+        (el) => el.textContent?.trim()
+      );
+      expect(count).toBe('5');
+
+      const chain = await page.$eval(
+        '[data-testid=role-hierarchy-chain]',
+        (el) => el.textContent?.trim()
+      );
+      expect(chain).toBe(
+        'Super administrateur → Administrateur → Gestionnaire → Résident → Locataire'
+      );
+    } finally {
+      await page.close();
+    }
+  }, 120_000);
+
+  it('role-hierarchy card shows 5-role chain in English', async () => {
+    const page = await browser.newPage();
+    try {
+      await page.setViewport({ width: 1400, height: 900 });
+      await loginAsAdmin(page);
+      await setLanguage(page, 'en');
+      await page.goto(`${BASE_URL}/admin/permissions`, {
+        waitUntil: 'networkidle2',
+        timeout: 30_000,
+      });
+      await page.waitForFunction(
+        () => !document.querySelector('[data-testid=loader-permissions-page]'),
+        { timeout: 30_000 }
+      );
+
+      const count = await page.$eval(
+        '[data-testid=role-hierarchy-count]',
+        (el) => el.textContent?.trim()
+      );
+      expect(count).toBe('5');
+
+      const chain = await page.$eval(
+        '[data-testid=role-hierarchy-chain]',
+        (el) => el.textContent?.trim()
+      );
+      expect(chain).toBe('Super Admin → Admin → Manager → Resident → Tenant');
+    } finally {
+      await page.close();
+    }
+  }, 120_000);
+
   it('renders the permissions matrix table with at least one row', async () => {
     const page = await browser.newPage();
     page.on('pageerror', (err) => {

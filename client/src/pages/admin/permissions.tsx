@@ -55,6 +55,18 @@ const permissionsConfig = {
 };
 
 /**
+ * Canonical role hierarchy, highest privilege first.
+ * Exported so unit tests can assert on the order and length directly.
+ */
+export const ROLE_HIERARCHY = [
+  'super_admin',
+  'admin',
+  'manager',
+  'resident',
+  'tenant',
+] as const;
+
+/**
  *
  */
 interface Permission {
@@ -174,7 +186,7 @@ export default function Permissions() {
   );
 
   // Available roles (now from actual RBAC system)
-  const roles = ['admin', 'manager', 'tenant', 'resident'];
+  const roles = ROLE_HIERARCHY;
 
   // Fetch permission categories for filtering
   const { data: permissionCategories } = useQuery<any[]>({
@@ -389,9 +401,17 @@ export default function Permissions() {
                 <div className='flex items-center justify-between'>
                   <div>
                     <p className='text-sm font-medium text-gray-600'>{t('permRoleHierarchy')}</p>
-                    <p className='text-2xl font-bold text-koveo-navy'>{roles.length}</p>
-                    <p className='text-xs text-gray-500 mt-1'>
-                      {t('adminManagerResidentTenant')}
+                    <p
+                      className='text-2xl font-bold text-koveo-navy'
+                      data-testid='role-hierarchy-count'
+                    >
+                      {roles.length}
+                    </p>
+                    <p
+                      className='text-xs text-gray-500 mt-1'
+                      data-testid='role-hierarchy-chain'
+                    >
+                      {ROLE_HIERARCHY.map((r) => enumLabels.role(r, language)).join(' → ')}
                     </p>
                   </div>
                   <Users className='h-8 w-8 text-koveo-navy' />

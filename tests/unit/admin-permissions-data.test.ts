@@ -6,6 +6,7 @@
  * view of the matrix — even when the API returns garbage.
  *
  * @see client/src/pages/admin/permissions-data.ts
+ * @see client/src/pages/admin/permissions.tsx
  */
 
 import { describe, it, expect } from '@jest/globals';
@@ -15,6 +16,7 @@ import {
   coerceToArray,
   coerceToObject,
 } from '../../client/src/pages/admin/permissions-data';
+import { ROLE_HIERARCHY } from '../../client/src/pages/admin/permissions';
 
 interface FakePermission {
   id: string;
@@ -209,6 +211,11 @@ describe('buildPermissionsMatrixView', () => {
     expect(filtered[0].id).toBe('p-2');
   });
 
+  it('has the correct shape for the real API shape', () => {
+    const view = buildPermissionsMatrixView<FakePermission, FakeRolePermission>(realApiShape);
+    expect(view.permissions).toHaveLength(2);
+  });
+
   it('survives the original production crash: object where array was expected', () => {
     // This is the exact production failure mode: every "should-be-array"
     // field arrives as a truthy object, so `|| []` never fires and the
@@ -236,5 +243,25 @@ describe('buildPermissionsMatrixView', () => {
       view.rolePermissions.reduce<Record<string, FakeRolePermission[]>>((acc) => acc, {})
     ).not.toThrow();
     expect(() => coerceRolePermissionIds(view.roleMatrix['admin'])).not.toThrow();
+  });
+});
+
+describe('ROLE_HIERARCHY constant', () => {
+  it('has length 5 (super_admin through tenant)', () => {
+    expect(ROLE_HIERARCHY).toHaveLength(5);
+  });
+
+  it('starts with super_admin at index 0', () => {
+    expect(ROLE_HIERARCHY[0]).toBe('super_admin');
+  });
+
+  it('contains the full canonical chain in order', () => {
+    expect(Array.from(ROLE_HIERARCHY)).toEqual([
+      'super_admin',
+      'admin',
+      'manager',
+      'resident',
+      'tenant',
+    ]);
   });
 });
