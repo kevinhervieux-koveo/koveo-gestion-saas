@@ -215,7 +215,7 @@ async function main(): Promise<void> {
   // uncovered. Version skew is reported but does not fail the check unless
   // it caused the coverage gap. This keeps the health script useful in
   // environments where the version registry is intentionally empty (e.g.,
-  // before scripts/onboarding-register.ts runs).
+  // before any onboarding tour-version registration step has run).
   const uncoveredCount =
     report.summary.uncoveredRequiredManifest + report.summary.uncoveredRequiredTour;
 
