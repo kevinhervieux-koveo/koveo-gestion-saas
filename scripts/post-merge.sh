@@ -80,4 +80,13 @@ fi
 # `.git/config` / `.git/packed-refs` and slow every git operation down
 # (Task #1124). The cleanup script never fails the caller, but we still
 # guard with `|| true` so a transient git issue can't break post-merge.
-bash scripts/cleanup-subrepl-refs.sh --quiet || true
+#
+# We wrap the call in `timeout` so a pathological git state (e.g. hundreds
+# of stale `.lock` files in `.git/refs/heads/` left behind by interrupted
+# git ops) can never hang past the post-merge window. The cleanup is
+# best-effort hygiene — if it doesn't finish in 60 s the next merge will
+# pick up where this one left off, and the lock-file pruning at the top
+# of the cleanup script keeps the backlog from growing unbounded.
+timeout --signal=TERM --kill-after=10s 60s \
+  bash scripts/cleanup-subrepl-refs.sh --quiet \
+  || echo "[post-merge] cleanup-subrepl-refs skipped/aborted (exit=$?)"

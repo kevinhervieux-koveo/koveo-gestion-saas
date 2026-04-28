@@ -142,9 +142,14 @@ describe('OrganizationsCard — buildings display (task #1690)', () => {
 
     expect(screen.getByText('Beta Org')).toBeInTheDocument();
 
-    expect(screen.getByText('Tower A')).toBeInTheDocument();
-    expect(screen.getByText('Tower B')).toBeInTheDocument();
-    expect(screen.getByText('Villa C')).toBeInTheDocument();
+    // Each building <li> renders as `<name> — <city>` after Task #1690 added
+    // the city suffix, so an exact-string `getByText` no longer matches the
+    // building name on its own. Use anchored regexes against the full
+    // displayed text instead — still asserts the name is present and now
+    // also pins the city, which is the user-visible behavior we care about.
+    expect(screen.getByText(/^Tower A\s+—\s+Montreal$/)).toBeInTheDocument();
+    expect(screen.getByText(/^Tower B\s+—\s+Montreal$/)).toBeInTheDocument();
+    expect(screen.getByText(/^Villa C\s+—\s+Quebec$/)).toBeInTheDocument();
   });
 
   it('does NOT call the non-existent /api/organizations/:id/buildings endpoint', async () => {

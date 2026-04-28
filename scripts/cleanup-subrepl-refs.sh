@@ -45,6 +45,18 @@ fi
 
 CURRENT_BRANCH="$(git symbolic-ref --quiet --short HEAD 2>/dev/null || true)"
 
+# Prune stale ref lock files left behind by interrupted git operations.
+# Without this, every `git branch -D subrepl-X` whose matching
+# `.git/refs/heads/subrepl-X.lock` still exists will retry/fail and the
+# accumulating lock files compound across runs (see Task #1124 follow-up).
+# Lock files older than 5 minutes can never belong to a live process given
+# our largest single git op finishes in seconds.
+GIT_DIR="$(git rev-parse --git-dir 2>/dev/null || true)"
+if [ -n "$GIT_DIR" ] && [ -d "$GIT_DIR/refs/heads" ] && [ "$DRY_RUN" -eq 0 ]; then
+  find "$GIT_DIR/refs/heads" -maxdepth 1 -name 'subrepl-*.lock' \
+    -mmin +5 -type f -delete 2>/dev/null || true
+fi
+
 branches_removed=0
 branches_skipped=0
 remotes_removed=0

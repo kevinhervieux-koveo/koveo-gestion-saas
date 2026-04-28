@@ -498,6 +498,14 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
       };
     }
 
+    // Per-test timeout bumped from the 3 s default because under the
+    // heavily-parallel "Full unit tests" workflow this case routinely
+    // sums:
+    //   waitForRow (≤4 s)  +  findByTestId(cancel) (≤4 s)
+    //   + waitFor first POST (≤4 s) + 200 ms stagger + 800 ms tail
+    // which can easily push past 3 s of wall-clock when worker CPU
+    // contention slows down React's act() scheduling. 15 s leaves
+    // generous headroom while still catching real regressions.
     it('shows Cancel during bulk retry and halts further runStep calls when clicked', async () => {
       // Track every per-item retry POST so we can prove the loop
       // stopped firing after Cancel. The loop's per-item endpoint on
@@ -612,7 +620,7 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
       expect(
         screen.queryByTestId('cancel-bulk-retry-dialog'),
       ).not.toBeInTheDocument();
-    });
+    }, 15000);
   });
 
   /**
@@ -828,7 +836,9 @@ describe('BulkDocumentImportPage — Task #1202 AI failure retry surfaces', () =
           screen.queryByTestId('auto-run-retry-cancel-sorting'),
         ).not.toBeInTheDocument();
       });
-    });
+      // See timeout-bump rationale on the Task #1208 test above —
+      // same waitFor / per-iteration stagger budget applies here.
+    }, 15000);
 
     it('lets the bulk retry continue when the admin dismisses the confirm-cancel dialog', async () => {
       const perItemSortPosts = installAboveThresholdFetchMock();
