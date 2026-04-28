@@ -1,0 +1,247 @@
+# Koveo Gestion — Bugs ouverts après Pass #28
+
+Build testé : `35de81a97` (`2026-04-28T15:28:33Z`)
+Date : 2026-04-28 16:00 UTC
+
+## Sommaire des sévérités
+
+| Sévérité | Compte | IDs |
+|----------|--------|-----|
+| HIGH | 2 | W77, W78 |
+| MEDIUM | 2 | W67, W80 |
+| LOW (Help) | 7 | H1, H2, H3, H4, H5, H6, H7 |
+| LOW (autres) | 9 | W11, W13, W55, W75, W76, W79, W81, W38 (partiel), W41 (n/a — fixed) |
+| INFO (par design) | 1 | M9 |
+| CANNOT-VERIFY (anciens) | 11 | W2, W4, W5, W6, W7, W8, W10, W16, W18, W30, plus W13 tenant POV |
+
+**Total actionnable : 20 bugs ouverts** (2 HIGH + 2 MEDIUM + 16 LOW).
+
+---
+
+## 🔴 HIGH (2)
+
+### W77 — `/api/organizations/<id>/buildings` retourne 0 rangée pour chaque org
+- **Surface :** Web/API
+- **Rôles touchés :** super_admin (vérifié), manager + admin (probable)
+- **Symptôme :** 5 pages manager affichent « Aucun élément trouvé » après le choix d'org :
+  - `/manager/bills`
+  - `/manager/budget`
+  - `/manager/common-spaces-stats`
+  - `/manager/maintenance/inventory`
+  - `/manager/maintenance/projects`
+- **Cause racine :** `GET /api/organizations/<orgId>/buildings` retourne 200 avec `[]` pour Demo, 563, Koveo, MCP-1 et MCP-2 — tandis que `/api/buildings?organizationId=<id>` retourne les bonnes données.
+- **Régression de :** Pass #25 W43 (même classe d'impact, endpoint différent).
+- **Fix proposé :** repointer les pages cassées vers `/api/buildings?organizationId=<id>` OU corriger le scope-resolver de la route per-org.
+
+### W78 — `/admin/performance` reste figé sur « Loading... »
+- **Surface :** Web
+- **Rôles touchés :** super_admin (vérifié), admin (probable)
+- **Symptôme :** Page jamais rendue. Aucun `<main>`, aucun `<h1>`, aucun message d'erreur visible. Titre du browser tombe sur le tagline marketing.
+- **Cause racine :** `TypeError: Cannot convert object to primitive value` lancé 6× durant le rendu React, attrapé par l'error boundary qui re-monte et re-bondit dans la même erreur. Les fetch API réussissent (auth/user, impersonation-status, users/me/buildings, onboarding/me, performance/web-vitals — tous 200) — la page plante avant même d'aller chercher ses données.
+- **Indice :** typique d'un objet rendu directement comme enfant JSX (`{someObj}` au lieu de `{someObj.field}`).
+- **Fix proposé :** localiser le node JSX qui rend un objet ; ajouter un error boundary visible pour éviter le « Loading... » infini.
+
+---
+
+## 🟡 MEDIUM (2)
+
+### W67 — Cibles tactiles sous 44×44 px (a11y, WCAG 2.5.5)
+- **Surface :** Web (mobile + desktop)
+- **Rôles touchés :** tous
+- **Symptôme :** Sur `/dashboard/overview`, **25 sur 29 (86 %)** des éléments interactifs visibles sont sous 44×44 CSS px. Pires offenseurs : toggle EN/FR (47×36), Collapse-sidebar (40×40), flèches de pagination (~40×36).
+- **Source :** Pass #26 (mobile sweep) — toujours ouvert sur 3 builds consécutifs.
+- **Fix proposé :** padding ou min-width/min-height à 44 px sur les boutons icônes du nav et de la pagination.
+
+### W80 — `?organization=<id>` ignoré sur 2 pages
+- **Surface :** Web
+- **Rôles touchés :** super_admin (vérifié), admin + manager multi-org (probable)
+- **Symptôme :** `/manager/residences?organization=<id>` et `/residents/building?organization=<id>` affichent **toutes les 13 bâtisses** sous l'en-tête de l'org sélectionnée. Bâtisses 563, MCP-1, MCP-2 mal-regroupées sous « Demo ».
+- **Cause racine :** la page consume `/api/users/me/buildings` (qui retourne tout le scope) sans filtrer par `?organization=`.
+- **Fix proposé :** swap pour `/api/buildings?organizationId=<query.organization>` (le pattern que `/manager/buildings` utilise déjà correctement).
+
+---
+
+## 🟢 LOW — Help system (cluster le plus vieux, depuis Pass #14)
+
+### H1, H2, H3, H4, H5, H6, H7
+- **Symptôme :** `/help`, `/admin/help`, `/dashboard/help` retournent un shell SPA vide (4626 octets, ~700 chars de chrome feedback-widget seulement). `/api/help`, `/api/help/topics`, `/api/i18n/help/fr` retournent tous 404.
+- **Aucun progrès** entre Pass #21 et Pass #28.
+- **Fix proposé minimum :** déployer un placeholder bilingue sur `/help` (« Aide / Help — bientôt disponible / coming soon, contactez support@koveo-gestion.com ») pour éviter l'expérience de shell silencieusement vide. Le système Help complet reste un epic séparé.
+
+---
+
+## 🟢 LOW — Autres bugs ouverts
+
+### W11 — Aucune page 404 utilisateur
+- `/this-route-does-not-exist` retourne SPA shell 4626 octets, sans `<main>`, sans message d'erreur, sans titre par-route.
+- **Fix :** ajouter une route `<Route path="*">` avec composant 404 bilingue + lien retour `/dashboard`.
+
+### W13 — Picker d'org sur les pages résident pour super_admin
+- `/residents/building` affiche un selector d'org au super_admin, alors que la page est censée être pour les résidents (single-building).
+- **Note :** comportement tenant non testé (pas de creds tenant). À retester quand creds disponibles.
+
+### W38 — Audit log d'éléments d'historique (PARTIEL)
+- `update_element_history_event` populates `updatedAt` + `updatedBy` ✅, mais aucune table d'audit séparée. Les valeurs précédentes (ex. cost: 14500 → 14501 → 14500) sont irrécupérables.
+- **Fix :** créer table `element_history_audit_log` calquée sur `invitation_audit_log`.
+
+### W55 — Routes résident mélangent singulier et pluriel
+- SPA bundle Pass #28 : 6 routes `/residents/...` plurielles + 2 routes singulières (`/resident/common-spaces` historique + `/resident/my-calendar` ajoutée au Pass #27).
+- **Fix :** consolider sous une seule convention (recommandation : tout sous `/residents/...`).
+
+### W75 — Replit Agent Inbox dev widget en production
+- Chaque page rend `<div id="replit-agent-inbox-i18n-mirror">` + un overlay « Bug report / Feature request / Design / Content / Other / Submit ». Le widget devrait être dev/staging-only.
+- **Fix :** retirer le bundle entry-point du build prod (probablement un Vite plugin gated par `process.env.NODE_ENV !== 'production'`).
+
+### W76 — Test plan mobile référence 9 routes inexistantes
+- MOB-T03 à MOB-T10 visent des routes qui n'existent pas dans le SPA bundle (`/residents/maintenance`, `/residents/bills`, `/residents/bookings`, `/residents/profile`, `/residents/comms`, `/residents/meetings`, `/residents/dashboard`).
+- **Fix :** soit livrer ces pages, soit corriger le test plan.
+
+### W79 — `/admin/org-access` est un stub anglais sur l'UI FR
+- H1 : « Org Access » (EN). Body : « Page under construction » / « This page is currently unavailable. Check back later. » (EN).
+- Tab title FR existe — donc traduire les strings ou retirer la route.
+
+### W81 — Routes super_admin nommées sous `/admin/...` au lieu de `/super_admin/...`
+- **Surface :** Web (architecture d'information / taxonomie de routes)
+- **Rôles touchés :** super_admin, admin (clarté de scope)
+- **Symptôme :** Plusieurs pages dans la section `/admin/...` sont en réalité **super_admin-only** par leur fonctionnalité (gestion d'orgs, audit logs, impersonation, qualité, compliance, performance, bulk import, KPI). Le nommage `/admin/...` suggère qu'un admin régulier peut y accéder, alors qu'une grande partie est gated à super_admin uniquement (création d'org = super_admin par règle canonique).
+- **Exemples concrets à renommer :**
+  - `/admin/organizations` → `/super_admin/organizations` (création d'org = super_admin only)
+  - `/admin/impersonation-log` → `/super_admin/impersonation-log` (audit d'usurpation système)
+  - `/admin/kpi-dashboard` → `/super_admin/kpi-dashboard` (télémétrie produit)
+  - `/admin/quality` → `/super_admin/quality` (métriques internes de build)
+  - `/admin/compliance` → `/super_admin/compliance` (analyse Loi 25)
+  - `/admin/performance` → `/super_admin/performance` (perf interne)
+  - `/admin/org-access` → `/super_admin/org-access` (accès cross-org)
+  - `/admin/bulk-document-import` → `/super_admin/bulk-document-import` (admin only)
+  - `/admin/permissions` → `/super_admin/permissions` (RBAC matrix gestion)
+  - `/admin/document-tags` → `/super_admin/document-tags` (Koveo system tags)
+- **Pourquoi ça compte :**
+  - Reflète fidèlement la hiérarchie canonique des rôles (`super_admin > admin > manager > resident > tenant`).
+  - Évite la confusion pour un admin régulier qui voit des liens `/admin/...` dans le sidebar mais reçoit 403 sur la moitié.
+  - Aide le routing / role-guard middleware à appliquer le bon check par préfixe d'URL.
+  - Aligne le nommage avec le pattern existant `/manager/...` qui est manager+admin+ (pas confondu avec `/admin/...`).
+- **Fix proposé :**
+  1. Identifier chaque page `/admin/...` qui est super_admin-only (vs vraie admin+).
+  2. Créer les nouvelles routes `/super_admin/...` avec le même composant.
+  3. Garder `/admin/...` comme alias avec redirection 301 vers `/super_admin/...` pendant 1–2 cycles pour préserver les bookmarks.
+  4. Mettre à jour le sidebar nav et les breadcrumbs.
+  5. Éventuellement déplacer les pages réellement admin+ (genre `/admin/document-tags` si admin peut aussi y toucher) sous le bon préfixe selon leur scope réel.
+- **Décision préalable nécessaire :** valider page-par-page lesquelles sont vraiment super_admin-only vs admin+ avant de bouger les routes.
+
+---
+
+## 🔵 INFO — Différé par design
+
+### M9 — `assume_user` bloqué en production
+- `MCP_ASSUME_USER` env-flag hard-locked en `NODE_ENV=production`. Pointe vers `docs/MCP_STAGING_QA_HARNESS.md`. Pas une régression — comportement intentionnel pour QA staging.
+
+---
+
+## ⚪ CANNOT-VERIFY (anciens, à reprouver)
+
+Ces findings ont été filés dans des passes 14–22 mais n'ont pas été reproduits dans les passes 23+ par manque d'accès direct ou parce que le code a changé. À reprouver si pertinent :
+
+| ID | Sévérité | Surface | Titre court |
+|----|----------|---------|-------------|
+| W2 | LOW | Web | Marketing homepage logo broken image |
+| W4 | LOW | Web | `/manager/buildings` header EN sur FR UI |
+| W5 | LOW | Web | Upload hint liste DOCX/XLSX en double |
+| W6 | LOW | Web | Manager pages affichent « Gestion de bâtiments » sur sub-routes |
+| W7 | LOW | Web | `/manager/budget` détail EN/FR mélangé |
+| W8 | MEDIUM | Web | Budget page blanc pour bâtisses sans config |
+| W10 | MEDIUM | Web | Budget projection vs « 12 Mois » désaccord |
+| W16 | LOW | Web | `/admin/compliance` panneau entièrement EN |
+| W18 | LOW | Web | `/settings/settings` URL doublé + EN privacy strings |
+| W30 | LOW | Web | Information leak en admin |
+| W13 (tenant POV) | LOW | Web | Picker d'org pour résidents — uniquement testable avec creds tenant |
+
+---
+
+## Bloqueurs pour Pass #29
+
+### 1. Pas de creds tenant/résident dans Chrome — bloque ~30 % des cas de test
+
+**Ce qui est cassé :** la session Chrome est uniquement super_admin (`kevin.hervieux@koveo-gestion.com`). Aucun compte tenant ou résident n'est disponible côté Web.
+
+**Conséquences directes :**
+- **W13 (tenant POV)** ne peut pas être validé — la question « est-ce que la page `/residents/building` montre encore un picker d'org pour un vrai tenant single-org ? » reste ouverte depuis Pass #14.
+- **MOB-T01 à MOB-T10** (Mobile Test Suite tenant) tous en CANNOT-VERIFY depuis Pass #26 — ce sont 10 cas couvrant login mobile, soumission de demande, paiement de factures, réservation d'espace commun, profil, communications, meetings et dashboard tenant.
+- **Tests d'isolation tenant** (Q-series Q2/Q5/Q6 du Pass #14) — pas de moyen de prouver qu'un tenant ne voit pas les données d'un autre tenant via l'UI Web.
+- **Validation cross-role** des fixes Pass #28 — W65 (pinch-zoom), W67 (touch targets), W37 (source field) ont tous été vérifiés en super_admin, mais l'expérience tenant pourrait avoir des différences (composants conditionnels, `if (role === 'tenant')` branches).
+
+**Comment débloquer :** Kevin se connecte à Chrome avec un des comptes existants (`kevhervieux+mcp1-resident@gmail.com`, `kevhervieux+mcp2-tenant@gmail.com`, `kevhervieux+mcp1-tenant-unit102@gmail.com`) avant la prochaine passe. Idéalement deux sessions Chrome en parallèle (super_admin + tenant) pour pouvoir basculer rapidement entre POV.
+
+---
+
+### 2. `assume_user` hard-locked en `NODE_ENV=production` (M9 depuis Pass #14)
+
+**Ce qui est cassé :** l'outil MCP `assume_user(<userId>)` retourne :
+```
+MCP_ASSUME_USER hard-locked off in NODE_ENV=production
+See docs/MCP_STAGING_QA_HARNESS.md
+```
+
+**Conséquences directes :**
+- Aucun workaround côté MCP pour tester ce qu'un autre utilisateur voit.
+- `downgrade_acting_role(tenant)` fonctionne ✅ mais résout vers l'identité OAuth (Kevin Hervieux super_admin) — donc le scope est correct mais l'identité ne change pas. Les tests qui dépendent de l'identité (création de demande, commentaire, attribution `createdBy`) sortent toujours `bd318cc4-…` au lieu d'un ID tenant.
+- Empêche la couverture des règles tenant-only : « tenants only see their own demands », « tenants cannot post internal comments », « tenants only see their own bookings », etc.
+- Bloque la validation MCP-side complète des fixes côté autorisation (ex. la moitié des fixes W43/W44/W45 testés uniquement en super_admin).
+
+**Comment débloquer :** option (a) déployer un environnement staging avec `MCP_ASSUME_USER=true` (recommandé par `docs/MCP_STAGING_QA_HARNESS.md`), option (b) Kevin ré-OAuth le connecteur MCP avec un user tenant pour basculer le ceiling vers tenant pour une passe.
+
+---
+
+### 3. W77 — workflow financier manager/admin cassé bout-en-bout
+
+**Ce qui est cassé :** 5 pages clés du workflow gestionnaire affichent « Aucun élément trouvé » après le choix d'organisation :
+- `/manager/bills` — saisie/consultation de factures
+- `/manager/budget` — projection budgétaire annuelle
+- `/manager/common-spaces-stats` — statistiques d'utilisation espaces communs
+- `/manager/maintenance/inventory` — inventaire UNIFORMAT
+- `/manager/maintenance/projects` — projets de maintenance
+
+**Conséquences directes :**
+- Un manager qui se connecte aujourd'hui et choisit son organisation **ne peut pas accéder à 5 fonctions principales du produit** par le chemin documenté.
+- Le seul side-door qui marche est `/manager/buildings` (qui utilise un endpoint différent).
+- Tests Pass #29 prévus sur ces flux (création de bill, saisie de budget, génération de projet) **tous bloqués jusqu'au fix**.
+- La régression a la même forme que W43 (Pass #25) qui était déjà signalée comme HIGH — c'est la deuxième fois en deux passes que ce cluster financier casse.
+
+**Comment débloquer :** fix W77 prioritaire avant la prochaine passe. Mitigation rapide possible : repointer les 5 pages vers `/api/buildings?organizationId=<id>` (endpoint qui marche) au lieu de `/api/organizations/<id>/buildings` (endpoint cassé). Le fix propre est de corriger le scope-resolver de la route per-org pour qu'il retourne les mêmes données que la version query-string.
+
+---
+
+### 4. W78 — `/admin/performance` complètement inaccessible
+
+**Ce qui est cassé :** la page admin de performance reste figée sur « Loading… » indéfiniment, console crash en boucle (TypeError React).
+
+**Conséquences directes :**
+- Aucun monitoring de perf accessible aux admins via UI.
+- Bloque la validation manuelle de KPI / web-vitals (l'API `/api/performance/web-vitals` retourne 200 mais la page qui les visualise est cassée).
+- Pas d'error message visible — un admin pense que la page charge encore après 30 s.
+
+**Comment débloquer :** repro local sur `/admin/performance` (probablement un objet rendu directement comme enfant JSX dans le composant — Date, chart datum, ou similaire), ajouter un error boundary visible.
+
+---
+
+### 5. Mémoire 2 jours obsolète sur les findings MCP
+
+**Ce qui est cassé :** la mémoire `koveo_qa_project.md` (datée du 2026-04-25) contient des affirmations qui ont été contredites par le runtime :
+- Mémoire dit « W37 STILL-OPEN, no source field » → Pass #28 confirme que `source` est shipped.
+- Mémoire dit « W41 STILL-OPEN » → Pass #28 confirme FIXED.
+- L'ID élément `3c7a1e90-f445-40a6-86bc-1d9f3b33bfab` était noté comme `3c7a1e90-c84c-4dec-9c5b-cf28cf18f87f` dans une référence courte qui ne correspond plus.
+
+**Conséquences directes :** sans rafraîchissement, la prochaine passe pourrait re-tester des findings déjà fixés ou rater des régressions sur des findings supposés ouverts.
+
+**Comment débloquer :** au début du Pass #29, faire un sync entre le `bug_list.xlsx` (source de vérité) et la mémoire `koveo_qa_project.md`. Mettre à jour les statuts des fixes Pass #28 dans la mémoire.
+
+---
+
+### 6. Test plan mobile (W76) référence des routes inexistantes
+
+**Ce qui est cassé :** 9 des 10 cas MOB-T## visent des routes qui n'existent pas dans le SPA bundle (`/residents/maintenance`, `/residents/bills`, `/residents/bookings`, `/residents/profile`, `/residents/comms`, `/residents/meetings`, `/residents/dashboard`).
+
+**Conséquences directes :**
+- Suite mobile non exécutable même avec creds tenant.
+- Les tests Puppeteer RT-32 à RT-36 (Pass #26) ne peuvent pas tourner cleanly tant que la décision « livrer ces pages OU corriger le test plan » n'est pas prise.
+
+**Comment débloquer :** décision produit nécessaire — sont-elles roadmap ou hors-scope ? Si roadmap, livrer en priorité ; si hors-scope, mettre à jour les test cases pour pointer vers les routes qui existent (`/residents/residence`, `/residents/building`, `/residents/demands`, `/residents/common-spaces`).
