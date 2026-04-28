@@ -77,7 +77,41 @@ UNIT_PATHS=(
 # Smoke subset used when the affected cascade would exceed AFFECTED_SUITE_CAP.
 # Bounded set of high-signal tests that cover the most critical server paths
 # without pulling in the full import graph via --changedSince. Intentionally
-# excludes the broad `tests/unit/` directory tree to keep the run bounded.
+# excludes the broad `tests/unit/` directory tree to keep the run bounded,
+# but cherry-picks a handful of `tests/unit/` files that exercise critical
+# cross-cutting paths (auth/org-scope, MCP role enforcement, error
+# sanitisation, foundational pure-utility logic) so a deeply-shared-module
+# diff that trips the cap (Task #1612) still gets coverage of the highest-
+# signal unit tests in addition to the AI route handlers.
+#
+# Selection rationale:
+#   server/tests/*               — AI route handlers + bill/document/upload
+#                                  REST endpoints (preserved from Task #1611
+#                                  smoke set).
+#   tests/integration/mcp/*      — impersonation E2E (skips cleanly without
+#                                  _INTEGRATION_DB_URL, see UNIT_PATHS note).
+#   tests/unit/api/mcp-acting-role.test.ts
+#                                — MCP acting-role / permission enforcement.
+#   tests/unit/api/mcp-write-error-extended-codes.test.ts
+#                                — MCP write error code mapping (FK blockers,
+#                                  Task #1591 family).
+#   tests/unit/api/invitations-list-org-scope.test.ts
+#                                — guards `/api/invitations` org isolation.
+#   tests/unit/api/user-password-not-leaked.test.ts
+#                                — guards user serialisers against password
+#                                  hash leaks across REST + MCP responses.
+#   tests/unit/api/communications-visibility-rule.test.ts
+#                                — recipient-role visibility rule for the
+#                                  communications endpoint.
+#   tests/unit/utils/budgetCalculations.test.ts
+#                                — pure budget math (very fast, foundational
+#                                  for projects/budget features).
+#   tests/unit/utils/parseDateOnly.test.ts
+#                                — pure date-only parser used across bills,
+#                                  budget, and bulk-import flows.
+#
+# Total wall-clock for the smoke subset is ~20s on the Replit runner, well
+# under the 60s budget that keeps the validation gate snappy.
 SMOKE_PATHS=(
   server/tests/ai-bill-analyze-route.test.ts
   server/tests/ai-document-analyze.test.ts
@@ -87,6 +121,13 @@ SMOKE_PATHS=(
   server/tests/document-text-endpoint.test.ts
   server/tests/upload-filename-normalization-secondary-routes.test.ts
   tests/integration/mcp/assume-user-http-e2e.test.ts
+  tests/unit/api/mcp-acting-role.test.ts
+  tests/unit/api/mcp-write-error-extended-codes.test.ts
+  tests/unit/api/invitations-list-org-scope.test.ts
+  tests/unit/api/user-password-not-leaked.test.ts
+  tests/unit/api/communications-visibility-rule.test.ts
+  tests/unit/utils/budgetCalculations.test.ts
+  tests/unit/utils/parseDateOnly.test.ts
 )
 
 COMMON_FLAGS=(
