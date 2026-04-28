@@ -390,7 +390,7 @@ export function Sidebar({ forceExpanded = false }: SidebarProps) {
             {/* Mobile close button */}
             <Button
               variant='ghost'
-              size='sm'
+              size='icon'
               className='md:hidden'
               onClick={closeMobileMenu}
               aria-label='Close navigation menu'
@@ -405,13 +405,15 @@ export function Sidebar({ forceExpanded = false }: SidebarProps) {
               onClick={toggleCollapsed}
               aria-label={collapsed ? 'Expand sidebar' : 'Collapse sidebar'}
               data-testid='button-toggle-sidebar'
-              className='hidden md:flex absolute -right-3 top-1/2 -translate-y-1/2 z-10 h-6 w-6 items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm hover:bg-gray-50 hover:text-koveo-navy transition-colors'
+              className='group hidden md:flex absolute -right-[22px] top-1/2 -translate-y-1/2 z-10 min-h-11 min-w-11 items-center justify-center transition-colors'
             >
-              {collapsed ? (
-                <ChevronRight className='h-3.5 w-3.5' />
-              ) : (
-                <ChevronLeft className='h-3.5 w-3.5' />
-              )}
+              <span className='h-6 w-6 flex items-center justify-center rounded-full border border-gray-200 bg-white text-gray-600 shadow-sm group-hover:bg-gray-50 group-hover:text-koveo-navy transition-colors pointer-events-none'>
+                {collapsed ? (
+                  <ChevronRight className='h-3.5 w-3.5' />
+                ) : (
+                  <ChevronLeft className='h-3.5 w-3.5' />
+                )}
+              </span>
             </button>
           )}
         </div>

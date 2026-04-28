@@ -67,7 +67,7 @@ export function Header({ title, subtitle, onboardingAnchor }: HeaderProps) {
           {/* Mobile menu button - always show on mobile for debugging */}
           <Button
             variant='ghost'
-            size='sm'
+            size='icon'
             className='md:hidden'
             onClick={handleMobileMenuClick}
             aria-label='Toggle navigation menu'

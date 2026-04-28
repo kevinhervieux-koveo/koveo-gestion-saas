@@ -28,7 +28,7 @@ export function LanguageSwitcher() {
       <button
         data-testid='button-language-en'
         onClick={() => setLanguage('en')}
-        className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+        className={`flex-1 min-h-11 min-w-11 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
           language === 'en' ? 'bg-koveo-navy text-white' : 'text-koveo-navy hover:bg-gray-200'
         }`}
       >
@@ -37,7 +37,7 @@ export function LanguageSwitcher() {
       <button
         data-testid='button-language-fr'
         onClick={() => setLanguage('fr')}
-        className={`flex-1 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
+        className={`flex-1 min-h-11 min-w-11 py-2 px-3 rounded-md text-sm font-medium transition-colors ${
           language === 'fr' ? 'bg-koveo-navy text-white' : 'text-koveo-navy hover:bg-gray-200'
         }`}
       >
