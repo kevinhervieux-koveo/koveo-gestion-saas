@@ -1796,12 +1796,26 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
       delete (historyData as any).description;
       delete (historyData as any).warrantyEndDate;
       
-      // Create element history
-      const [history] = await db
-        .insert(elementHistory)
-        .values([historyData])
-        .returning();
-      
+      // Create element history + audit log row in a single transaction.
+      const [history] = await db.transaction(async (tx) => {
+        const [row] = await tx
+          .insert(elementHistory)
+          .values([historyData])
+          .returning();
+
+        // Audit: 'created' action — previousValues is null, newValues is the full row.
+        await tx.insert(elementHistoryAuditLog).values({
+          historyId: row.id,
+          action: 'created',
+          auditSource: 'rest_api',
+          performedBy: user.id,
+          previousValues: null,
+          newValues: row as any,
+        });
+
+        return [row];
+      });
+
       // Update element's last inspection date if this is a minor rehab or repair that included inspection.
       // Forward-only advance: the helper's WHERE clause ensures the update is skipped
       // (atomically) when the stored date is already equal-to or newer than the new event's
@@ -1929,6 +1943,22 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
       const inspectionRecomputeNeeded = 'eventDate' in diffFields || 'eventType' in diffFields;
       const elementId = existing.elementId;
 
+      // Build full before/after snapshots for the new audit log columns.
+      // The snapshots cover all mutable fields (not id/createdBy/createdAt/source,
+      // which cannot be changed by this endpoint).
+      const previousValuesSnapshot = {
+        eventType: existing.eventType,
+        eventDate: existing.eventDate,
+        workDescription: existing.workDescription,
+        cost: existing.cost,
+        vendorId: existing.vendorId,
+        vendorName: existing.vendorName,
+        lifespanImpact: existing.lifespanImpact,
+        warranty: existing.warranty,
+        updatedAt: existing.updatedAt,
+        updatedBy: existing.updatedBy,
+      };
+
       const [updatedHistory] = await db.transaction(async (tx) => {
         const [row] = await tx
           .update(elementHistory)
@@ -1936,9 +1966,26 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
           .where(eq(elementHistory.id, id))
           .returning();
 
+        const newValuesSnapshot = {
+          eventType: row.eventType,
+          eventDate: row.eventDate,
+          workDescription: row.workDescription,
+          cost: row.cost,
+          vendorId: row.vendorId,
+          vendorName: row.vendorName,
+          lifespanImpact: row.lifespanImpact,
+          warranty: row.warranty,
+          updatedAt: row.updatedAt,
+          updatedBy: row.updatedBy,
+        };
+
         await tx.insert(elementHistoryAuditLog).values({
           historyId: id,
+          action: 'updated',
+          auditSource: 'rest_api',
           performedBy: user.id,
+          previousValues: previousValuesSnapshot as any,
+          newValues: newValuesSnapshot as any,
           changes: diffFields,
         });
 
@@ -2009,6 +2056,11 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
           id: elementHistoryAuditLog.id,
           historyId: elementHistoryAuditLog.historyId,
           performedBy: elementHistoryAuditLog.performedBy,
+          action: elementHistoryAuditLog.action,
+          auditSource: elementHistoryAuditLog.auditSource,
+          performedAt: elementHistoryAuditLog.performedAt,
+          previousValues: elementHistoryAuditLog.previousValues,
+          newValues: elementHistoryAuditLog.newValues,
           changes: elementHistoryAuditLog.changes,
           createdAt: elementHistoryAuditLog.createdAt,
           editorFirstName: editorUsers.firstName,
@@ -2021,7 +2073,7 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         .orderBy(desc(elementHistoryAuditLog.createdAt));
 
       const entries = auditRows.map((row) => {
-        const changes = row.changes as Record<string, unknown>;
+        const changes = row.changes as Record<string, unknown> | null;
         const isMcpApiKey =
           !row.performedBy &&
           typeof changes === 'object' &&
@@ -2044,6 +2096,11 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
           id: row.id,
           historyId: row.historyId,
           performedBy: row.performedBy,
+          action: row.action,
+          auditSource: row.auditSource,
+          performedAt: row.performedAt,
+          previousValues: row.previousValues,
+          newValues: row.newValues,
           editorName,
           changes: row.changes,
           createdAt: row.createdAt,
@@ -2100,12 +2157,31 @@ export function registerMaintenanceRoutes(app: import('../utils/lazy-mount').Rou
         });
       }
 
-      // Delete + recompute lastInspectionDate in a single transaction so the
-      // element's stored MAX(eventDate) over inspection-type rows can never
-      // outlive the row that established it (Task #1135). When no inspection
-      // events remain the helper writes NULL, correctly clearing the column.
+      // Fetch the full row for the 'deleted' audit snapshot before deleting it.
+      const [fullExistingRow] = await db
+        .select()
+        .from(elementHistory)
+        .where(eq(elementHistory.id, id))
+        .limit(1);
+
+      // Write audit row + delete element_history + recompute in one transaction.
+      // The audit log FK uses ON DELETE SET NULL (migration 0036), so the
+      // 'deleted' audit row survives the deletion with history_id set to NULL —
+      // it remains queryable via previousValues->>'id'.
       const elementId = historyResult[0].elementId;
       await db.transaction(async (tx) => {
+        // Write the 'deleted' audit row BEFORE deleting element_history so the
+        // FK reference is valid at insert time.  After the delete below, Postgres
+        // sets audit_row.history_id = NULL via the SET NULL rule.
+        await tx.insert(elementHistoryAuditLog).values({
+          historyId: id,
+          action: 'deleted',
+          auditSource: 'rest_api',
+          performedBy: user.id,
+          previousValues: fullExistingRow as any,
+          newValues: null,
+        });
+
         await tx
           .delete(elementHistory)
           .where(eq(elementHistory.id, id));

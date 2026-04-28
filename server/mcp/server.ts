@@ -4359,7 +4359,7 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
 
   server.tool(
     "list_element_history",
-    "List the repair / minor_rehab / major_rehab / replacement / construction history for a single inventory element. Admin/manager only. Returns events ordered by event date (most recent first).",
+    "List the repair / minor_rehab / major_rehab / replacement / construction history for a single inventory element. Admin/manager only. Returns events ordered by event date (most recent first). Each row includes a `source` field (enum: 'manual' | 'project' | 'import' | 'system') that identifies how the event was entered: 'manual' for UI / REST API entries, 'project' for auto-generated events from a completed maintenance project, 'import' for bulk-import rows, and 'system' for background job writes. The `source` field is immutable after creation and can be used to filter or group events by origin.",
     { role: roleParam, elementId: z.string().describe("Building element ID") },
     async ({ role, elementId }) => {
       if (role === "tenant") {
@@ -4576,6 +4576,17 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
               ...(warranty !== undefined && { warranty }),
             })
             .returning();
+
+          // Audit: 'created' action — write audit row in same transaction.
+          await tx.insert(schema.elementHistoryAuditLog).values({
+            historyId: event.id,
+            action: 'created',
+            auditSource: 'mcp',
+            performedBy: user.id,
+            previousValues: null,
+            newValues: event as any,
+          });
+
           let updatedElement: { id: string; currentLifespan: number | null; lastInspectionDate: string | null } | null = null;
           let needsReadBack = false;
 
@@ -4800,9 +4811,37 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
             if (!actingUserId) {
               auditChanges.meta = { system: true, source: 'mcp_api_key' };
             }
+            const prevSnap = {
+              eventType: existing.eventType,
+              eventDate: existing.eventDate,
+              workDescription: existing.workDescription,
+              cost: existing.cost,
+              vendorId: existing.vendorId,
+              vendorName: existing.vendorName,
+              lifespanImpact: existing.lifespanImpact,
+              warranty: existing.warranty,
+              updatedAt: existing.updatedAt,
+              updatedBy: existing.updatedBy,
+            };
+            const newSnap = {
+              eventType: updatedEvent.eventType,
+              eventDate: updatedEvent.eventDate,
+              workDescription: updatedEvent.workDescription,
+              cost: updatedEvent.cost,
+              vendorId: updatedEvent.vendorId,
+              vendorName: updatedEvent.vendorName,
+              lifespanImpact: updatedEvent.lifespanImpact,
+              warranty: updatedEvent.warranty,
+              updatedAt: updatedEvent.updatedAt,
+              updatedBy: updatedEvent.updatedBy,
+            };
             await tx.insert(schema.elementHistoryAuditLog).values({
               historyId,
+              action: 'updated',
+              auditSource: 'mcp',
               performedBy: actingUserId,
+              previousValues: prevSnap as any,
+              newValues: newSnap as any,
               changes: auditChanges,
             });
           }
@@ -4870,8 +4909,22 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
       if (!building || !orgIds.includes(building.organizationId)) {
         return { content: [{ type: "text" as const, text: "Access denied" }] };
       }
+      const mcpUser = await getMcpUser(role).catch(() => null);
+      const actingUserIdForDelete: string | null = mcpUser?.id ?? null;
       try {
         const result = await withRetryableDbCall(() => db.transaction(async (tx) => {
+          // Write the 'deleted' audit row BEFORE deleting element_history so the
+          // FK reference is valid at insert time.  After the delete below, Postgres
+          // sets audit_row.history_id = NULL via the SET NULL rule (migration 0036).
+          await tx.insert(schema.elementHistoryAuditLog).values({
+            historyId,
+            action: 'deleted',
+            auditSource: 'mcp',
+            performedBy: actingUserIdForDelete,
+            previousValues: existing as any,
+            newValues: null,
+          });
+
           const [deleted] = await tx
             .delete(schema.elementHistory)
             .where(eq(schema.elementHistory.id, historyId))

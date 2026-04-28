@@ -22,6 +22,48 @@ import { buildings, residences } from './property';
 import { schedulePaymentEnum } from './financial';
 
 // Maintenance enums
+
+/**
+ * Enum for the origin/source of an element_history row.
+ * 'manual'  — entered directly by a manager/admin via the UI or REST API.
+ * 'project' — generated automatically when a maintenance project completes.
+ * 'import'  — loaded from an external data import.
+ * 'system'  — written by an automated background job or system process.
+ *
+ * Immutable after insert; updates must not change this column.
+ */
+export const elementHistorySourceEnum = pgEnum('element_history_source', [
+  'manual',
+  'project',
+  'import',
+  'system',
+]);
+
+/**
+ * Enum for the action recorded in element_history_audit_log.
+ */
+export const elementHistoryAuditActionEnum = pgEnum('element_history_audit_action', [
+  'created',
+  'updated',
+  'deleted',
+]);
+
+/**
+ * Enum for the mechanism that triggered the audited write.
+ * 'rest_api'          — a REST endpoint call (HTTP).
+ * 'mcp'               — a Model Context Protocol tool call.
+ * 'project_workflow'  — an automated step inside a maintenance project workflow.
+ * 'import'            — a bulk-import pipeline.
+ * 'system'            — background job or other automated process.
+ */
+export const elementHistoryAuditSourceEnum = pgEnum('element_history_audit_source', [
+  'rest_api',
+  'mcp',
+  'project_workflow',
+  'import',
+  'system',
+]);
+
 /**
  * Enum for building element condition assessment
  */
@@ -332,6 +374,13 @@ export const elementHistory = pgTable('element_history', {
   warranty: jsonb('warranty'), // warranty details like duration, terms
   lifespanImpact: integer('lifespan_impact'), // years added to element's life
   workDescription: text('work_description').notNull(),
+  /**
+   * Discriminator that identifies how this history row was entered.
+   * Immutable after creation — handlers must never update this column.
+   * Defaults to 'manual' so that existing rows and new UI-entered events
+   * are classified correctly without any migration backfill.
+   */
+  source: elementHistorySourceEnum('source').notNull().default('manual'),
   createdBy: text('created_by')
     .notNull()
     .references(() => users.id),
@@ -345,6 +394,7 @@ export const elementHistory = pgTable('element_history', {
   eventDateIdx: index('element_history_event_date_idx').on(table.eventDate),
   vendorIdIdx: index('element_history_vendor_id_idx').on(table.vendorId),
   eventTypeIdx: index('element_history_event_type_idx').on(table.eventType),
+  sourceIdx: index('element_history_source_idx').on(table.source),
   // Date indexes for range queries
   createdAtIdx: index('element_history_created_at_idx').on(table.createdAt),
   // Validation constraints
@@ -352,24 +402,58 @@ export const elementHistory = pgTable('element_history', {
 }));
 
 /**
- * Audit log for edits to element history events.
- * Every successful update to an element_history row writes one row here
- * with a structured before/after diff. Inserts and deletes are out of scope.
+ * Audit log for all create / update / delete operations on element_history rows.
+ *
+ * One row is written per successful write inside the same DB transaction,
+ * capturing full before/after snapshots so the complete edit history is
+ * preserved even when subsequent writes overwrite the same field.
+ *
+ * FK design note — ON DELETE SET NULL
+ * ------------------------------------
+ * `history_id` uses ON DELETE SET NULL (not CASCADE) so that 'deleted'-action
+ * audit rows survive the element_history deletion that triggered them. When
+ * element_history is hard-deleted (directly or via building_element CASCADE),
+ * audit rows lose their FK reference (history_id → NULL) but remain queryable
+ * via previousValues->>'id'. This is intentional: a 'deleted' audit row that
+ * cascaded away would be indistinguishable from no audit at all.
+ *
+ * For the same reason, history_id is nullable: 'deleted'-action rows are
+ * inserted with a non-null history_id in the same transaction, but after the
+ * element_history parent is deleted the column is set to NULL by Postgres.
  */
 export const elementHistoryAuditLog = pgTable('element_history_audit_log', {
   id: uuid('id').primaryKey().default(sql`gen_random_uuid()`),
+  /**
+   * FK to the element_history row being audited.
+   * NULL for 'deleted'-action rows after the parent row is removed.
+   * Uses ON DELETE SET NULL so audit rows are never cascaded away.
+   */
   historyId: uuid('history_id')
-    .notNull()
-    .references(() => elementHistory.id, { onDelete: 'cascade' }),
-  // Nullable so legacy MCP_API_KEY sessions (no bound user) can still be audited.
+    .references(() => elementHistory.id, { onDelete: 'set null' }),
+  /** Action that generated this audit row. */
+  action: elementHistoryAuditActionEnum('action').notNull(),
+  /** Mechanism that triggered the write. Defaults to 'rest_api'. */
+  auditSource: elementHistoryAuditSourceEnum('audit_source').notNull().default('rest_api'),
+  /** User who performed the action. NULL for legacy MCP_API_KEY sessions. */
   performedBy: text('performed_by').references(() => users.id, { onDelete: 'set null' }),
-  // Structured diff: { field: { before, after } } for each changed field.
-  // May also contain a `meta` key for non-field audit metadata.
-  changes: jsonb('changes').notNull(),
+  /** Timestamp when the audit entry was written. */
+  performedAt: timestamp('performed_at').defaultNow(),
+  /** Full snapshot of the element_history row before the write (null for 'created' action). */
+  previousValues: jsonb('previous_values'),
+  /** Full snapshot of the element_history row after the write (null for 'deleted' action). */
+  newValues: jsonb('new_values'),
+  /**
+   * Legacy before/after diff column (Task #987). Kept for backward compatibility
+   * with existing audit-log rows and the GET /history/:id/audit endpoint.
+   * New code should use previousValues / newValues instead.
+   */
+  changes: jsonb('changes'),
   createdAt: timestamp('created_at').defaultNow(),
 }, (table) => ({
   historyIdIdx: index('element_history_audit_log_history_id_idx').on(table.historyId),
   performedByIdx: index('element_history_audit_log_performed_by_idx').on(table.performedBy),
+  actionIdx: index('element_history_audit_log_action_idx').on(table.action),
+  performedAtIdx: index('element_history_audit_log_performed_at_idx').on(table.performedAt),
 }));
 
 /**
@@ -904,9 +988,13 @@ export type ElementHistory = typeof elementHistory.$inferSelect;
 export type InsertElementHistory = z.infer<typeof insertElementHistorySchema>;
 
 export const insertElementHistoryAuditLogSchema = z.object({
-  historyId: z.string().uuid(),
+  historyId: z.string().uuid().nullable().optional(),
+  action: z.enum(['created', 'updated', 'deleted']),
+  auditSource: z.enum(['rest_api', 'mcp', 'project_workflow', 'import', 'system']).optional(),
   performedBy: z.string().nullable().optional(),
-  changes: z.record(z.any()),
+  previousValues: z.record(z.any()).nullable().optional(),
+  newValues: z.record(z.any()).nullable().optional(),
+  changes: z.record(z.any()).optional(),
 });
 export type ElementHistoryAuditLog = typeof elementHistoryAuditLog.$inferSelect;
 export type InsertElementHistoryAuditLog = z.infer<typeof insertElementHistoryAuditLogSchema>;

@@ -321,6 +321,7 @@ describeIfDb('GET /api/maintenance/history/:id/audit — integration', () => {
       .insert(maintenanceSchema.elementHistoryAuditLog)
       .values({
         historyId,
+        action: 'updated' as const,
         performedBy,
         changes,
         ...(createdAt ? { createdAt } : {}),
@@ -414,5 +415,133 @@ describeIfDb('GET /api/maintenance/history/:id/audit — integration', () => {
       .set('x-test-user-id', adminUserId);
 
     expect(res.status).toBe(404);
+  }, 30000);
+
+  // ── W37: source column on element_history ──────────────────────────────────
+
+  it('(W37) element_history rows created via REST API default to source=manual', async () => {
+    const maintenanceSchema = require('@shared/schemas/maintenance') as typeof import('@shared/schemas/maintenance');
+    const historyId = await seedHistoryEntry('W37 source default test');
+
+    const [row] = await db
+      .select({ source: maintenanceSchema.elementHistory.source })
+      .from(maintenanceSchema.elementHistory)
+      .where(eq(maintenanceSchema.elementHistory.id, historyId));
+
+    expect(row).toBeDefined();
+    expect(row!.source).toBe('manual');
+  }, 30000);
+
+  // ── W38: action + auditSource + before/after snapshots ────────────────────
+
+  it('(W38) seed audit rows carry action field and it is exposed in GET response', async () => {
+    const maintenanceSchema = require('@shared/schemas/maintenance') as typeof import('@shared/schemas/maintenance');
+    const historyId = await seedHistoryEntry('W38 action field test');
+
+    // Seed a 'created' audit row directly to verify schema.
+    const [createdRow] = await db
+      .insert(maintenanceSchema.elementHistoryAuditLog)
+      .values({
+        historyId,
+        action: 'created' as const,
+        auditSource: 'rest_api' as const,
+        performedBy: adminUserId,
+        previousValues: null,
+        newValues: { eventType: 'repair' },
+      })
+      .returning({ id: maintenanceSchema.elementHistoryAuditLog.id });
+    createdAuditIds.push(createdRow.id);
+
+    const res = await request
+      .get(`/api/maintenance/history/${historyId}/audit`)
+      .set('x-test-user-id', adminUserId);
+
+    expect(res.status).toBe(200);
+    const entries = res.body.entries as Array<{ action?: string; auditSource?: string }>;
+    const matched = entries.find((e) => (e as any).id === createdRow.id || (e as any).action === 'created');
+    expect(matched).toBeDefined();
+    expect(matched!.action).toBe('created');
+  }, 30000);
+
+  it('(W38) audit rows with previousValues/newValues survive and are queryable', async () => {
+    const maintenanceSchema = require('@shared/schemas/maintenance') as typeof import('@shared/schemas/maintenance');
+    const historyId = await seedHistoryEntry('W38 before/after snapshot test');
+    const prev = { eventType: 'repair', workDescription: 'old description' };
+    const next = { eventType: 'repair', workDescription: 'new description' };
+
+    const [row] = await db
+      .insert(maintenanceSchema.elementHistoryAuditLog)
+      .values({
+        historyId,
+        action: 'updated' as const,
+        auditSource: 'rest_api' as const,
+        performedBy: adminUserId,
+        previousValues: prev,
+        newValues: next,
+        changes: { workDescription: { from: 'old description', to: 'new description' } },
+      })
+      .returning({ id: maintenanceSchema.elementHistoryAuditLog.id });
+    createdAuditIds.push(row.id);
+
+    const [fetched] = await db
+      .select({
+        previousValues: maintenanceSchema.elementHistoryAuditLog.previousValues,
+        newValues: maintenanceSchema.elementHistoryAuditLog.newValues,
+      })
+      .from(maintenanceSchema.elementHistoryAuditLog)
+      .where(eq(maintenanceSchema.elementHistoryAuditLog.id, row.id));
+
+    expect(fetched).toBeDefined();
+    expect(fetched!.previousValues).toMatchObject(prev);
+    expect(fetched!.newValues).toMatchObject(next);
+  }, 30000);
+
+  it('(W38) deleted-action audit row persists after element_history deletion with history_id=NULL', async () => {
+    const maintenanceSchema = require('@shared/schemas/maintenance') as typeof import('@shared/schemas/maintenance');
+    const historyId = await seedHistoryEntry('W38 deleted tombstone test');
+    const prev = { id: historyId, eventType: 'repair' };
+
+    // Insert 'deleted' audit row with a valid FK reference.
+    const [auditRow] = await db
+      .insert(maintenanceSchema.elementHistoryAuditLog)
+      .values({
+        historyId,
+        action: 'deleted' as const,
+        auditSource: 'rest_api' as const,
+        performedBy: adminUserId,
+        previousValues: prev,
+        newValues: null,
+      })
+      .returning({ id: maintenanceSchema.elementHistoryAuditLog.id });
+    // Don't push to createdAuditIds — the row will remain after history deletion.
+
+    // Delete the element_history row. ON DELETE SET NULL should set history_id → NULL.
+    await db
+      .delete(maintenanceSchema.elementHistory)
+      .where(eq(maintenanceSchema.elementHistory.id, historyId));
+    // Remove from cleanup list since it's already deleted.
+    const idx = createdHistoryIds.indexOf(historyId);
+    if (idx !== -1) createdHistoryIds.splice(idx, 1);
+
+    // The audit row should still exist with history_id = NULL.
+    const [tombstone] = await db
+      .select({
+        id: maintenanceSchema.elementHistoryAuditLog.id,
+        historyId: maintenanceSchema.elementHistoryAuditLog.historyId,
+        action: maintenanceSchema.elementHistoryAuditLog.action,
+        previousValues: maintenanceSchema.elementHistoryAuditLog.previousValues,
+      })
+      .from(maintenanceSchema.elementHistoryAuditLog)
+      .where(eq(maintenanceSchema.elementHistoryAuditLog.id, auditRow.id));
+
+    expect(tombstone).toBeDefined();
+    expect(tombstone!.historyId).toBeNull();
+    expect(tombstone!.action).toBe('deleted');
+    expect((tombstone!.previousValues as any)?.id).toBe(historyId);
+
+    // Clean up the tombstone directly.
+    await db
+      .delete(maintenanceSchema.elementHistoryAuditLog)
+      .where(eq(maintenanceSchema.elementHistoryAuditLog.id, auditRow.id));
   }, 30000);
 });
