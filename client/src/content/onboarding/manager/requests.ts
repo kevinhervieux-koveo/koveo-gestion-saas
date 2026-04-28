@@ -9,7 +9,7 @@ import {
 export const REQUESTS_TOUR: TourContent = {
   tourId: 'manager.core.requests',
   roles: ['manager', 'demo_manager'],
-  entryPath: '/demands',
+  entryPath: '/manager/demands',
   steps: [
     {
       id: 'req.demands-list',
@@ -25,6 +25,7 @@ export const REQUESTS_TOUR: TourContent = {
       placement: 'right',
       allowSkip: true,
       covers: ['fr-10.list-demands'],
+      entryPath: '/manager/demands',
     },
     {
       id: 'req.maintenance-list',
@@ -41,6 +42,7 @@ export const REQUESTS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-11.list-maintenance-requests'],
       visibleIf: PRED_HAS_NAV_MAINTENANCE,
+      entryPath: '/manager/demands',
     },
     {
       id: 'req.auto-assign',
@@ -57,6 +59,7 @@ export const REQUESTS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-11.update-maintenance-request'],
       visibleIf: PRED_HAS_MAINTENANCE_ACKNOWLEDGE,
+      entryPath: '/manager/maintenance/projects',
     },
     {
       id: 'req.building-only',
@@ -73,6 +76,7 @@ export const REQUESTS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-10.create-demand-building-only'],
       visibleIf: PRED_HAS_DEMANDS_CREATE_BTN,
+      entryPath: '/manager/demands',
     },
     {
       id: 'req.residence-rules',
@@ -89,6 +93,7 @@ export const REQUESTS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-10.create-demand-residence-scoped'],
       visibleIf: PRED_HAS_DEMANDS_RESIDENCE_INPUT,
+      entryPath: '/manager/demands',
     },
   ],
 };

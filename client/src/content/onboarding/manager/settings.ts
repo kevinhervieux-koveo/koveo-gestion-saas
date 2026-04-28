@@ -24,6 +24,7 @@ export const SETTINGS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-x-cross.settings'],
       visibleIf: PRED_HAS_TOPBAR_SETTINGS_LINK,
+      entryPath: '/settings',
     },
     {
       id: 'settings.restart',
@@ -40,6 +41,7 @@ export const SETTINGS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-x-onboarding.restart'],
       visibleIf: PRED_HAS_SETTINGS_RESTART_ALL,
+      entryPath: '/settings/onboarding',
     },
   ],
 };

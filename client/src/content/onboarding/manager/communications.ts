@@ -8,7 +8,7 @@ import {
 export const COMMUNICATIONS_TOUR: TourContent = {
   tourId: 'manager.core.communications',
   roles: ['manager', 'demo_manager'],
-  entryPath: '/communications',
+  entryPath: '/dashboard/communication',
   steps: [
     {
       id: 'comm.list',
@@ -24,6 +24,7 @@ export const COMMUNICATIONS_TOUR: TourContent = {
       placement: 'right',
       allowSkip: true,
       covers: ['fr-12.list-communications'],
+      entryPath: '/dashboard/communication',
     },
     {
       id: 'comm.create',
@@ -40,6 +41,7 @@ export const COMMUNICATIONS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-12.create-communication'],
       visibleIf: PRED_HAS_COMMUNICATIONS_NEW_BTN,
+      entryPath: '/dashboard/communication',
     },
     {
       id: 'comm.meetings',
@@ -72,6 +74,7 @@ export const COMMUNICATIONS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-14.list-common-spaces', 'fr-14.create-common-space'],
       visibleIf: PRED_HAS_COMMON_SPACES,
+      entryPath: '/manager/common-spaces-stats',
     },
   ],
 };

@@ -23,6 +23,14 @@
  *  3. Tours with an entryPath navigate to that route before launching so
  *     Start/Restart from /settings/onboarding lands on the right page first.
  *  4. Zero eligible steps → friendly toast + status 'skipped' (not 'completed').
+ *
+ * Enhancements (Task #1650):
+ *  5. Per-step entryPath: steps can declare their own route; the engine
+ *     auto-navigates between pages as the tour advances.
+ *  6. Page scrolling: the sidebar drawer is closed on tour start so
+ *     body overflow-hidden doesn't block wheel/touch events.
+ *  7. Sidebar auto-collapse: the desktop sidebar collapses when a tour starts
+ *     and is restored to the user's prior preference when the tour ends.
  */
 
 import {
@@ -41,7 +49,10 @@ import { apiRequest, queryClient } from '@/lib/queryClient';
 import { useLocation } from 'wouter';
 import type { TourContent } from '@/content/onboarding/smoke';
 import { ALL_TOURS } from '@/content/onboarding/smoke';
+import type { OnboardingStep } from '@/content/onboarding/types';
 import { useToast } from '@/hooks/use-toast';
+import { useSidebarState } from '@/hooks/use-sidebar-state';
+import { useMobileMenu } from '@/hooks/use-mobile-menu';
 
 import { ONBOARDING_ENABLED } from '@/lib/onboarding-flag';
 
@@ -86,10 +97,47 @@ interface TourProgress {
   hasNewContent: boolean;
 }
 
+/**
+ * Resolve a step entryPath that may contain placeholders.
+ * Currently supports `:buildingId` which is substituted with the first
+ * building id found in the manager's query cache at call time.
+ *
+ * The buildings endpoint may be cached under several query key variants
+ * (e.g. with or without an `organizationId` segment).  We scan all matching
+ * queries so the resolution works regardless of which variant was populated.
+ *
+ * Response shape from `/api/manager/buildings`: `{ buildings: [...] }`
+ */
+function resolveEntryPath(entryPath: string): string {
+  if (!entryPath.includes(':buildingId')) return entryPath;
+  try {
+    // Scan all query-cache entries whose key starts with '/api/manager/buildings'
+    // to handle key variants like ['/api/manager/buildings'] and
+    // ['/api/manager/buildings', organizationId].
+    const allQueries = queryClient.getQueryCache().getAll();
+    for (const q of allQueries) {
+      const key = q.queryKey;
+      if (Array.isArray(key) && key[0] === '/api/manager/buildings') {
+        // Server response is `{ buildings: Array<{ id: string; ... }> }`
+        const data = q.state.data as { buildings?: Array<{ id: string }> } | undefined;
+        const firstId = data?.buildings?.[0]?.id;
+        if (firstId) return entryPath.replace(':buildingId', firstId);
+      }
+    }
+  } catch {
+    // query cache unavailable — strip the placeholder segment so the path
+    // still resolves to a navigable route (e.g. /manager/buildings).
+  }
+  return entryPath.replace(/\/:buildingId/g, '').replace(/:buildingId/g, '');
+}
+
 export function OnboardingProvider({ children }: OnboardingProviderProps) {
   const { language } = useLanguage();
   const [location, setLocation] = useLocation();
   const { toast } = useToast();
+  const { setCollapsed } = useSidebarState();
+  const { closeMobileMenu } = useMobileMenu();
+
   const [isActive, setIsActive] = useState(false);
   const [currentStep, setCurrentStep] = useState(0);
   const [activeTourId, setActiveTourId] = useState<string | null>(null);
@@ -111,7 +159,28 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
   const pendingQueueRef = useRef<string[]>([]);
   // When start/restart needs to navigate before launching, the pending tour
   // is stored here and consumed by the location effect after the route change.
-  const pendingTourStartRef = useRef<{ tourId: string; fromStep: number } | null>(null);
+  const pendingTourStartRef = useRef<{
+    tourId: string;
+    fromStep: number;
+    /** Optional step id (from OnboardingStep.id) to resume from. When set the
+     *  location effect re-evaluates eligibleSteps on the new page and finds
+     *  the index that matches this id, so cross-page indices stay correct. */
+    fromStepId?: string;
+  } | null>(null);
+
+  // Stable refs so runTour callbacks always see the latest values without
+  // being listed in useCallback deps (which would recreate the driver too often).
+  const locationRef = useRef(location);
+  const setCollapsedRef = useRef(setCollapsed);
+  const closeMobileMenuRef = useRef(closeMobileMenu);
+
+  useEffect(() => { locationRef.current = location; }, [location]);
+  useEffect(() => { setCollapsedRef.current = setCollapsed; }, [setCollapsed]);
+  useEffect(() => { closeMobileMenuRef.current = closeMobileMenu; }, [closeMobileMenu]);
+
+  // Remembers the sidebar collapsed state that was in place before the tour
+  // started so we can restore it afterwards.
+  const preTourCollapsedRef = useRef<boolean | null>(null);
 
   const t = useCallback(
     (text: { fr: string; en: string }) =>
@@ -157,6 +226,20 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
       const latestVersion =
         progressRef.current.find((p) => p.tourId === tour.tourId)?.latestVersion ?? 1;
 
+      // ── Sidebar / mobile-menu management ─────────────────────────────────
+      // On first call for this tour run, remember the current sidebar state and
+      // collapse so tour highlights have more room. The user's preference is
+      // restored in onDestroyStarted when the tour truly ends.
+      if (preTourCollapsedRef.current === null) {
+        const currentCollapsed =
+          typeof window !== 'undefined'
+            ? window.localStorage.getItem('sidebar-collapsed') === 'true'
+            : false;
+        preTourCollapsedRef.current = currentCollapsed;
+        setCollapsedRef.current(true);
+        closeMobileMenuRef.current();
+      }
+
       // Honor per-step visibleIf predicates (Task #1590 M.4): steps whose
       // predicate returns false are silently skipped, e.g. when the targeted
       // UI element isn't rendered for the current user/page.  Predicates are
@@ -177,6 +260,11 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
               : 'Cette visite nécessite des fonctionnalités non disponibles dans votre configuration.',
         });
         persistProgress(tour.tourId, 'skipped', 0, latestVersion);
+        // Restore sidebar since the tour is ending immediately (no navigation pause)
+        if (preTourCollapsedRef.current !== null) {
+          setCollapsedRef.current(preTourCollapsedRef.current);
+          preTourCollapsedRef.current = null;
+        }
         // Advance the pending queue so chained tours continue to run even
         // when a tour is skipped due to missing anchors (same logic as the
         // completion branch in onDestroyStarted).
@@ -212,6 +300,68 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
         animate: true,
         showButtons: ['next', 'previous', 'close'],
         allowClose: true,
+        // ── Cross-page navigation (Task #1650 Step 2) ────────────────────
+        // Intercept the next-button click so we can navigate to the next
+        // step's page before driver.js advances the highlight.
+        //
+        // IMPORTANT: We must scan the ORIGINAL tour.steps ordering rather
+        // than eligibleSteps, because cross-page steps are filtered OUT of
+        // eligibleSteps (their visibleIf returns false on the current page).
+        // If we only look at eligibleSteps[nextIdx] we would never see the
+        // cross-page steps and would skip them silently.
+        onNextClick: () => {
+          const currentIdx = d.getActiveIndex() ?? 0;
+          const clampedIdx = Math.max(0, Math.min(currentIdx, eligibleSteps.length - 1));
+          const currentStep = eligibleSteps[clampedIdx];
+
+          // Find the current step in the original (unfiltered) ordering.
+          const allSteps = tour.steps as OnboardingStep[];
+          const currentOriginalIdx = allSteps.findIndex((s) => s.id === currentStep.id);
+
+          // Scan original ordering to find the first "actionable" step after
+          // the current one.  A step is actionable if it is either:
+          //   (a) on a different route  → cross-page navigation needed, or
+          //   (b) on the same route AND visible → let driver.js advance.
+          // Steps on the same route with visibleIf=false are skipped.
+          //
+          // Path inheritance: if a step declares no entryPath, it inherits the
+          // last RESOLVED path from the previous step in original order.  This
+          // is more faithful to the schema contract than falling back to
+          // tour.entryPath directly.
+          let lastResolvedPath = locationRef.current;
+          for (let i = currentOriginalIdx + 1; i < allSteps.length; i++) {
+            const s = allSteps[i];
+            const sPath = s.entryPath
+              ? resolveEntryPath(s.entryPath)
+              : lastResolvedPath;
+            lastResolvedPath = sPath;
+
+            if (sPath && sPath !== locationRef.current) {
+              // (a) Cross-page: pause driver, navigate, resume on new page.
+              pendingTourStartRef.current = {
+                tourId: tour.tourId,
+                fromStep: clampedIdx,
+                fromStepId: s.id,
+              };
+              pausingForNavRef.current = true;
+              d.destroy();
+              setLocation(sPath);
+              return;
+            }
+
+            // (b) Same page: if this step is in the current eligible set,
+            // driver.js already knows about it — let it advance normally.
+            if (eligibleSteps.some((es) => es.id === s.id)) {
+              d.moveNext();
+              return;
+            }
+
+            // Same page but not visible (visibleIf=false) → skip, keep scanning.
+          }
+
+          // No more steps anywhere – let driver.js finish the tour.
+          d.moveNext();
+        },
         onHighlighted: () => {
           // Use driver's canonical cursor instead of indexOf(step) which can
           // return -1 when driver.js doesn't preserve object references.
@@ -228,7 +378,7 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
           const isPausingForNav = pausingForNavRef.current;
           pausingForNavRef.current = false;
 
-          if (isLast) {
+          if (isLast && !isPausingForNav) {
             persistProgress(
               tour.tourId,
               'completed',
@@ -238,6 +388,13 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
           }
           setIsActive(false);
           driverRef.current = null;
+
+          // Restore the sidebar to the user's pre-tour preference when the
+          // tour truly ends (not on an intermediate navigation pause).
+          if (!isPausingForNav && preTourCollapsedRef.current !== null) {
+            setCollapsedRef.current(preTourCollapsedRef.current);
+            preTourCollapsedRef.current = null;
+          }
 
           // Preserve tour identity on a navigation-pause so resume() can relaunch.
           // For user dismissal / natural completion, clear it and run the next
@@ -272,7 +429,7 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
         d.drive();
       }
     },
-    [language, persistProgress, toast],
+    [language, persistProgress, toast, setLocation],
   );
 
   const start = useCallback(
@@ -405,17 +562,77 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
   }, [runTour]);
 
   useEffect(() => {
-    // After navigating to a tour's entryPath, launch the pending tour.
-    // This must run before the pause-for-navigation logic below so that
-    // intentional Start/Restart navigations don't pause immediately.
+    // After navigating to a tour's entryPath (or a per-step entryPath), launch
+    // the pending tour. This must run before the pause-for-navigation logic
+    // below so that intentional Start/Restart navigations don't pause immediately.
     if (pendingTourStartRef.current) {
-      const { tourId, fromStep } = pendingTourStartRef.current;
+      const { tourId, fromStepId } = pendingTourStartRef.current;
       pendingTourStartRef.current = null;
       const tour = ALL_TOURS.find((t) => t.tourId === tourId);
       if (tour) {
-        // Small delay allows the destination page's DOM to settle before
-        // driver.js tries to find anchors.
-        setTimeout(() => runTour(tour, fromStep), 400);
+        // After navigating, wait for React to render the new page, then
+        // poll for the target anchor up to ~1 s before launching so we
+        // don't start driver.js before the element is in the DOM.
+        const launch = async () => {
+          // Re-apply sidebar/drawer state in case the user re-opened them
+          // while the navigation was in flight.
+          setCollapsedRef.current(true);
+          closeMobileMenuRef.current();
+
+          // Initial settle delay — gives React time to mount the new page.
+          await new Promise<void>((r) => setTimeout(r, 300));
+
+          // Re-evaluate eligibleSteps on the new page and find the correct
+          // index for the target step. This keeps cross-page indices valid
+          // even when the eligible set differs between pages.
+          const eligible = (tour.steps as OnboardingStep[]).filter(
+            (s) => typeof s.visibleIf !== 'function' || s.visibleIf(),
+          );
+
+          let startIdx = 0;
+          if (fromStepId) {
+            const found = eligible.findIndex((s) => s.id === fromStepId);
+            if (found >= 0) {
+              startIdx = found;
+            } else {
+              // The target step's anchor is not visible on this page (its
+              // visibleIf predicate returned false). Fall forward to the
+              // first eligible step that comes after fromStepId in the
+              // original tour.steps ordering — this is the "fall through to
+              // the existing visibleIf skip behavior" described in the task.
+              const originalIds = (tour.steps as OnboardingStep[]).map((s) => s.id);
+              const fromOriginalIdx = originalIds.indexOf(fromStepId);
+              const nextAfterFrom = eligible.findIndex((s) => {
+                const pos = originalIds.indexOf(s.id);
+                return pos > fromOriginalIdx;
+              });
+              startIdx = nextAfterFrom >= 0 ? nextAfterFrom : 0;
+            }
+          }
+
+          // Poll for the target anchor: up to ~700 ms in 50 ms increments.
+          // This handles pages that render their key elements asynchronously
+          // (e.g. after a data fetch). If the anchor never appears, we fall
+          // forward to the first step whose anchor IS in the DOM.
+          if (eligible[startIdx]) {
+            const targetAnchor = eligible[startIdx].anchor;
+            const deadline = Date.now() + 700;
+            while (!document.querySelector(targetAnchor) && Date.now() < deadline) {
+              await new Promise<void>((r) => setTimeout(r, 50));
+            }
+            // After polling: if the target is still absent, scan forward for
+            // any visible step so the tour keeps moving instead of hanging.
+            if (!document.querySelector(targetAnchor)) {
+              const firstVisible = eligible.findIndex(
+                (s, i) => i >= startIdx && document.querySelector(s.anchor),
+              );
+              if (firstVisible >= 0) startIdx = firstVisible;
+            }
+          }
+
+          runTour(tour, startIdx);
+        };
+        launch();
       }
       return;
     }

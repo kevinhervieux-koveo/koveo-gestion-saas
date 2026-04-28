@@ -10,7 +10,7 @@ import {
 export const FINANCIALS_TOUR: TourContent = {
   tourId: 'manager.core.financials',
   roles: ['manager', 'demo_manager'],
-  entryPath: '/buildings',
+  entryPath: '/manager/bills',
   steps: [
     {
       id: 'fin.list',
@@ -27,6 +27,7 @@ export const FINANCIALS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-7.list-bills'],
       visibleIf: PRED_HAS_BUILDING_BILLS_TAB,
+      entryPath: '/manager/bills',
     },
     {
       id: 'fin.create',
@@ -43,6 +44,7 @@ export const FINANCIALS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-7.create-bill'],
       visibleIf: PRED_HAS_BILLS_NEW_BTN,
+      entryPath: '/manager/bills',
     },
     {
       id: 'fin.status',
@@ -59,6 +61,7 @@ export const FINANCIALS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-7.update-bill-status'],
       visibleIf: PRED_HAS_BILLS_ROW_STATUS,
+      entryPath: '/manager/bills',
     },
     {
       id: 'fin.delete-cascade',
@@ -75,6 +78,7 @@ export const FINANCIALS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-7.delete-bill'],
       visibleIf: PRED_HAS_BILLS_ROW_DELETE,
+      entryPath: '/manager/bills',
     },
     {
       id: 'fin.numbering',
@@ -91,6 +95,7 @@ export const FINANCIALS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-7.bill-numbering'],
       visibleIf: PRED_HAS_BILLS_ROW_NUMBER,
+      entryPath: '/manager/bills',
     },
   ],
 };

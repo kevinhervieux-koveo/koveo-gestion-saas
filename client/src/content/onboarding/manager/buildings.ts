@@ -11,7 +11,7 @@ import {
 export const BUILDINGS_TOUR: TourContent = {
   tourId: 'manager.core.buildings',
   roles: ['manager', 'demo_manager'],
-  entryPath: '/buildings',
+  entryPath: '/manager/buildings',
   steps: [
     {
       id: 'bld.list',
@@ -27,6 +27,7 @@ export const BUILDINGS_TOUR: TourContent = {
       placement: 'right',
       allowSkip: true,
       covers: ['fr-3.list-buildings', 'fr-3.get-building'],
+      entryPath: '/manager/buildings',
     },
     {
       id: 'bld.create',
@@ -43,6 +44,7 @@ export const BUILDINGS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-3.create-building'],
       visibleIf: PRED_HAS_BUILDINGS_NEW_BTN,
+      entryPath: '/manager/buildings',
     },
     {
       id: 'bld.residences-tab',
@@ -59,6 +61,7 @@ export const BUILDINGS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-4.list-residences'],
       visibleIf: PRED_HAS_RESIDENCES_TAB,
+      entryPath: '/manager/buildings',
     },
     {
       id: 'bld.create-residence',
@@ -75,6 +78,7 @@ export const BUILDINGS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-4.create-residence'],
       visibleIf: PRED_HAS_RESIDENCES_NEW_BTN,
+      entryPath: '/manager/residences',
     },
     {
       id: 'bld.link-user',
@@ -91,6 +95,7 @@ export const BUILDINGS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-4.link-user-to-residence'],
       visibleIf: PRED_HAS_RESIDENCE_LINK_BTN,
+      entryPath: '/manager/residences',
     },
     {
       id: 'bld.unlink-user',
@@ -107,6 +112,7 @@ export const BUILDINGS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-4.unlink-user-from-residence'],
       visibleIf: PRED_HAS_LINKED_RESIDENCE_USER,
+      entryPath: '/manager/residences',
     },
     {
       id: 'bld.delete-cascade',
@@ -123,6 +129,7 @@ export const BUILDINGS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-3.delete-building', 'fr-4.delete-residence'],
       visibleIf: PRED_HAS_BUILDING_DELETE_BTN,
+      entryPath: '/manager/buildings',
     },
   ],
 };

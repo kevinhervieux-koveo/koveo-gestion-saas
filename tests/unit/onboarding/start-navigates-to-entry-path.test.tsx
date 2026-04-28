@@ -46,6 +46,22 @@ jest.mock('@/lib/queryClient', () => ({
 jest.mock('@/hooks/use-language', () => ({ useLanguage: () => ({ language: 'en' }) }));
 jest.mock('@/hooks/use-toast', () => ({ useToast: () => ({ toast: jest.fn() }) }));
 jest.mock('@/lib/onboarding-flag', () => ({ ONBOARDING_ENABLED: true }));
+jest.mock('@/hooks/use-mobile-menu', () => ({
+  useMobileMenu: jest.fn(() => ({
+    isMobileMenuOpen: false,
+    toggleMobileMenu: jest.fn(),
+    closeMobileMenu: jest.fn(),
+  })),
+  MobileMenuProvider: ({ children }: any) => children,
+}));
+jest.mock('@/hooks/use-sidebar-state', () => ({
+  useSidebarState: jest.fn(() => ({
+    isCollapsed: false,
+    setCollapsed: jest.fn(),
+    toggleCollapsed: jest.fn(),
+  })),
+  SidebarStateProvider: ({ children }: any) => children,
+}));
 
 const { __setLocation } = require('wouter');
 
@@ -79,11 +95,11 @@ describe('TourContent.entryPath — presence and expected values', () => {
 
     it('smoke tour → /', () => expect(byId['onboarding.smoke']).toBe('/'));
     it('welcome tour → /', () => expect(byId['manager.core.welcome']).toBe('/'));
-    it('buildings tour → /buildings', () => expect(byId['manager.core.buildings']).toBe('/buildings'));
-    it('invitations tour → /invitations', () => expect(byId['manager.core.invitations']).toBe('/invitations'));
-    it('financials tour → /buildings', () => expect(byId['manager.core.financials']).toBe('/buildings'));
-    it('requests tour → /demands', () => expect(byId['manager.core.requests']).toBe('/demands'));
-    it('communications tour → /communications', () => expect(byId['manager.core.communications']).toBe('/communications'));
+    it('buildings tour → /manager/buildings', () => expect(byId['manager.core.buildings']).toBe('/manager/buildings'));
+    it('invitations tour → /manager/user-management', () => expect(byId['manager.core.invitations']).toBe('/manager/user-management'));
+    it('financials tour → /manager/bills', () => expect(byId['manager.core.financials']).toBe('/manager/bills'));
+    it('requests tour → /manager/demands', () => expect(byId['manager.core.requests']).toBe('/manager/demands'));
+    it('communications tour → /dashboard/communication', () => expect(byId['manager.core.communications']).toBe('/dashboard/communication'));
     it('settings tour → /settings', () => expect(byId['manager.core.settings']).toBe('/settings'));
   });
 
@@ -171,7 +187,7 @@ describe('OnboardingProvider.start() — deferred vs immediate launch', () => {
     });
 
     // After start(), location should have been updated to the tour's entryPath
-    expect(__getLocation()).toBe('/buildings');
+    expect(__getLocation()).toBe('/manager/buildings');
   });
 
   it('launches driver after the pending navigation completes (location effect)', async () => {

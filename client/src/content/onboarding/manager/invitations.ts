@@ -11,7 +11,7 @@ import {
 export const INVITATIONS_TOUR: TourContent = {
   tourId: 'manager.core.invitations',
   roles: ['manager', 'demo_manager'],
-  entryPath: '/invitations',
+  entryPath: '/manager/user-management',
   steps: [
     {
       id: 'inv.new',
@@ -28,6 +28,7 @@ export const INVITATIONS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-6.invite-user'],
       visibleIf: PRED_HAS_INVITATIONS_NEW_BTN,
+      entryPath: '/manager/user-management',
     },
     {
       id: 'inv.with-residence',
@@ -44,6 +45,7 @@ export const INVITATIONS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-6.invite-with-residence-prelinked'],
       visibleIf: PRED_HAS_INVITATIONS_RESIDENCE_INPUT,
+      entryPath: '/manager/user-management',
     },
     {
       id: 'inv.duplicate-rule',
@@ -60,6 +62,7 @@ export const INVITATIONS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-6.duplicate-invite-guard'],
       visibleIf: PRED_HAS_INVITATIONS_EMAIL_INPUT,
+      entryPath: '/manager/user-management',
     },
     {
       id: 'inv.list',
@@ -75,6 +78,7 @@ export const INVITATIONS_TOUR: TourContent = {
       placement: 'top',
       allowSkip: true,
       covers: ['fr-6.list-pending-invitations'],
+      entryPath: '/manager/user-management',
     },
     {
       id: 'inv.cancel-resend',
@@ -90,6 +94,7 @@ export const INVITATIONS_TOUR: TourContent = {
       placement: 'left',
       allowSkip: true,
       covers: ['fr-6.cancel-invitation', 'fr-6.resend-invitation'],
+      entryPath: '/manager/user-management',
     },
     {
       id: 'inv.audit-history',
@@ -106,6 +111,7 @@ export const INVITATIONS_TOUR: TourContent = {
       allowSkip: true,
       covers: ['fr-6.invitation-audit-history'],
       visibleIf: PRED_HAS_INVITATION_HISTORY,
+      entryPath: '/manager/user-management',
     },
   ],
 };

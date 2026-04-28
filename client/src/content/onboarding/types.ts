@@ -15,6 +15,15 @@ export interface OnboardingStep {
   covers?: string[];
   visibleIf?: () => boolean;
   waitFor?: string;
+  /**
+   * The app route this specific step must be viewed from.
+   * When the next step's entryPath differs from the current location, the
+   * engine automatically navigates before highlighting the step.
+   * Supports `:buildingId` placeholder which is resolved to the first
+   * building in the manager's query cache.
+   * Steps without an entryPath inherit the previous step's resolved path.
+   */
+  entryPath?: string;
 }
 
 export interface TourContent {

@@ -54,6 +54,22 @@ jest.mock('@/lib/queryClient', () => ({
 jest.mock('@/hooks/use-language', () => ({ useLanguage: () => ({ language: 'en' }) }));
 jest.mock('@/hooks/use-toast', () => ({ useToast: () => ({ toast: jest.fn() }) }));
 jest.mock('@/lib/onboarding-flag', () => ({ ONBOARDING_ENABLED: true }));
+jest.mock('@/hooks/use-mobile-menu', () => ({
+  useMobileMenu: jest.fn(() => ({
+    isMobileMenuOpen: false,
+    toggleMobileMenu: jest.fn(),
+    closeMobileMenu: jest.fn(),
+  })),
+  MobileMenuProvider: ({ children }: any) => children,
+}));
+jest.mock('@/hooks/use-sidebar-state', () => ({
+  useSidebarState: jest.fn(() => ({
+    isCollapsed: false,
+    setCollapsed: jest.fn(),
+    toggleCollapsed: jest.fn(),
+  })),
+  SidebarStateProvider: ({ children }: any) => children,
+}));
 
 const { __setLocation } = require('wouter');
 
