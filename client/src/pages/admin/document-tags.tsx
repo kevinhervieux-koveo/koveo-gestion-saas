@@ -61,6 +61,7 @@ import type { DocumentTag } from '@/components/document-tags/TagPicker';
 import { useLanguage } from '@/hooks/use-language';
 import { useAuth } from '@/hooks/use-auth';
 import { getSystemFamilyDisplay, makeFamilyNameComparator } from '@/lib/system-family-display';
+import { dedupeLinkFamilies } from '@/lib/dedupe-link-families';
 
 // ─── Tag form schema ──────────────────────────────────────────────────────────
 
@@ -83,6 +84,8 @@ interface LinkFamily {
   description: string | null;
   isSystem: boolean;
   organizationId: string | null;
+  /** Used as a tiebreaker by dedupeLinkFamilies — matches the backend canonical resolver. */
+  createdAt?: string | Date | null;
 }
 
 const familyFormSchema = z.object({
@@ -363,7 +366,9 @@ export default function AdminDocumentTags() {
     }
   };
 
-  const families = familyData?.families ?? [];
+  // Task #1643: Strip non-canonical duplicates client-side as a safety net
+  // even if the backend dedup pass misses any (e.g. partial startup backfill).
+  const families = dedupeLinkFamilies(familyData?.families ?? []);
 
   const familyMatchesSearch = (f: LinkFamily): boolean => {
     const q = familySearch.trim().toLowerCase();
