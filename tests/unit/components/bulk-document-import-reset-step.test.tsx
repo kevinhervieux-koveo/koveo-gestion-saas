@@ -175,16 +175,30 @@ const PRE_STATUS: Record<AutoStep, string> = {
 };
 
 // Mirrors the EN step label map in
-// client/src/pages/admin/bulk-document-import.tsx (~line 495). Kept
+// client/src/pages/admin/bulk-document-import.tsx (~line 716). Kept
 // inline here so the test acts as a tripwire: if the wizard's labels
-// change, this assertion drift surfaces immediately. The FR map lives
-// in `bulk-document-import-reset-step-fr.test.tsx`.
+// change, this assertion drift surfaces immediately. The FR map is
+// declared just below for the same reason — Task #1545 added
+// FR-locale assertions to this file that reference STEP_LABEL_FR.
 const STEP_LABEL_EN: Record<AutoStep, string> = {
   screening: 'Screening',
   sorting: 'Branching',
   branching: 'Sorting',
   identification: 'Identification',
   linking: 'Linking',
+};
+
+// Mirrors the FR step label map in
+// client/src/pages/admin/bulk-document-import.tsx (~line 725). Same
+// tripwire intent as STEP_LABEL_EN above: if the wizard's French
+// labels drift, the FR-locale assertions in this file surface the
+// mismatch immediately.
+const STEP_LABEL_FR: Record<AutoStep, string> = {
+  screening: 'Filtrage',
+  sorting: 'Aiguillage',
+  branching: 'Tri',
+  identification: 'Identification',
+  linking: 'Liaison',
 };
 
 const AI_STEPS: AutoStep[] = [
