@@ -10,14 +10,16 @@
  * this suite to fail loudly so CI cannot mask it.
  *
  * Pages covered (generic walk-through):
+ * Admin routes (admin+):
  *   - /admin/organizations
  *   - /admin/compliance
- *   - /admin/quality
  *   - /admin/permissions      (also has its own dedicated e2e suite)
- *   - /admin/bulk-document-import
- *   - /admin/document-tags
- *   - /admin/kpi-dashboard
- *   - /admin/performance
+ * Super-admin-only routes:
+ *   - /super_admin/quality
+ *   - /super_admin/bulk-document-import
+ *   - /super_admin/document-tags
+ *   - /super_admin/kpi-dashboard
+ *   - /super_admin/performance
  *
  * The generic strategy for each route:
  *   1. Navigate and wait for network-idle.
@@ -147,16 +149,20 @@ async function assertNoSpinnerStuck(page: Page, route: string): Promise<void> {
   expect(hasContent).toBe(true);
 }
 
-/** All admin routes that should be reachable by a super_admin user. */
+/** Admin-only routes (admin role or higher). */
 const ADMIN_ROUTES = [
   '/admin/organizations',
   '/admin/compliance',
-  '/admin/quality',
   '/admin/permissions',
-  '/admin/bulk-document-import',
-  '/admin/document-tags',
-  '/admin/kpi-dashboard',
-  '/admin/performance',
+] as const;
+
+/** Super-admin-only routes (super_admin role required). */
+const SUPER_ADMIN_ROUTES = [
+  '/super_admin/quality',
+  '/super_admin/bulk-document-import',
+  '/super_admin/document-tags',
+  '/super_admin/kpi-dashboard',
+  '/super_admin/performance',
 ] as const;
 
 describe('Admin page spinner watchdog', () => {
@@ -212,7 +218,7 @@ describe('Admin page spinner watchdog', () => {
     }
   }, 120_000);
 
-  it('/admin/quality: skeleton placeholders disappear and content renders', async () => {
+  it('/super_admin/quality: skeleton placeholders disappear and content renders', async () => {
     const page = await browser.newPage();
     page.on('pageerror', (err) => console.error('[pageerror]', err.message));
     page.on('console', (msg) => {
@@ -221,7 +227,7 @@ describe('Admin page spinner watchdog', () => {
     try {
       await page.setViewport({ width: 1400, height: 900 });
       await loginAsAdmin(page);
-      await assertNoSpinnerStuck(page, '/admin/quality');
+      await assertNoSpinnerStuck(page, '/super_admin/quality');
     } finally {
       await page.close();
     }
@@ -242,7 +248,7 @@ describe('Admin page spinner watchdog', () => {
     }
   }, 120_000);
 
-  it('/admin/bulk-document-import: spinner resolves and import UI renders', async () => {
+  it('/super_admin/bulk-document-import: spinner resolves and import UI renders', async () => {
     const page = await browser.newPage();
     page.on('pageerror', (err) => console.error('[pageerror]', err.message));
     page.on('console', (msg) => {
@@ -251,13 +257,13 @@ describe('Admin page spinner watchdog', () => {
     try {
       await page.setViewport({ width: 1400, height: 900 });
       await loginAsAdmin(page);
-      await assertNoSpinnerStuck(page, '/admin/bulk-document-import');
+      await assertNoSpinnerStuck(page, '/super_admin/bulk-document-import');
     } finally {
       await page.close();
     }
   }, 120_000);
 
-  it('/admin/document-tags: spinner resolves and tag list renders', async () => {
+  it('/super_admin/document-tags: spinner resolves and tag list renders', async () => {
     const page = await browser.newPage();
     page.on('pageerror', (err) => console.error('[pageerror]', err.message));
     page.on('console', (msg) => {
@@ -266,13 +272,13 @@ describe('Admin page spinner watchdog', () => {
     try {
       await page.setViewport({ width: 1400, height: 900 });
       await loginAsAdmin(page);
-      await assertNoSpinnerStuck(page, '/admin/document-tags');
+      await assertNoSpinnerStuck(page, '/super_admin/document-tags');
     } finally {
       await page.close();
     }
   }, 120_000);
 
-  it('/admin/kpi-dashboard: spinner resolves and KPI metrics render', async () => {
+  it('/super_admin/kpi-dashboard: spinner resolves and KPI metrics render', async () => {
     const page = await browser.newPage();
     page.on('pageerror', (err) => console.error('[pageerror]', err.message));
     page.on('console', (msg) => {
@@ -281,13 +287,13 @@ describe('Admin page spinner watchdog', () => {
     try {
       await page.setViewport({ width: 1400, height: 900 });
       await loginAsAdmin(page);
-      await assertNoSpinnerStuck(page, '/admin/kpi-dashboard');
+      await assertNoSpinnerStuck(page, '/super_admin/kpi-dashboard');
     } finally {
       await page.close();
     }
   }, 120_000);
 
-  it('/admin/performance: spinner resolves and performance dashboard renders', async () => {
+  it('/super_admin/performance: spinner resolves and performance dashboard renders', async () => {
     const page = await browser.newPage();
     page.on('pageerror', (err) => console.error('[pageerror]', err.message));
     page.on('console', (msg) => {
@@ -296,24 +302,26 @@ describe('Admin page spinner watchdog', () => {
     try {
       await page.setViewport({ width: 1400, height: 900 });
       await loginAsAdmin(page);
-      await assertNoSpinnerStuck(page, '/admin/performance');
+      await assertNoSpinnerStuck(page, '/super_admin/performance');
     } finally {
       await page.close();
     }
   }, 120_000);
 
   /**
-   * Generic walk-through: verifies the ADMIN_ROUTES constant is complete and
-   * that every route in it is covered by the individual test cases above.
+   * Generic walk-through: verifies the ADMIN_ROUTES and SUPER_ADMIN_ROUTES
+   * constants are complete and structurally correct.
    * This meta-test does not visit the browser; it just asserts structural
-   * completeness to catch missed routes when new admin pages are added.
+   * completeness to catch missed routes when new pages are added.
    */
-  it('ADMIN_ROUTES list is up to date with App.tsx admin route registrations', () => {
-    // All routes in ADMIN_ROUTES must start with '/admin/'
+  it('ADMIN_ROUTES and SUPER_ADMIN_ROUTES lists match their URL prefixes', () => {
     for (const route of ADMIN_ROUTES) {
       expect(route.startsWith('/admin/')).toBe(true);
     }
-    // Minimum expected count — update when new admin pages are added.
-    expect(ADMIN_ROUTES.length).toBeGreaterThanOrEqual(8);
+    for (const route of SUPER_ADMIN_ROUTES) {
+      expect(route.startsWith('/super_admin/')).toBe(true);
+    }
+    expect(ADMIN_ROUTES.length).toBeGreaterThanOrEqual(3);
+    expect(SUPER_ADMIN_ROUTES.length).toBeGreaterThanOrEqual(5);
   });
 });

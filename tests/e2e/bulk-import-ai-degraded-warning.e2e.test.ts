@@ -302,7 +302,7 @@ async function loginAsAdmin(page: Page): Promise<void> {
   );
 }
 
-describe('/admin/bulk-document-import — degraded warning surfaces (Task #1227)', () => {
+describe('/super_admin/bulk-document-import — degraded warning surfaces (Task #1227)', () => {
   it('renders the aggregated banner and the per-row indicator for a seeded degraded session', async () => {
     expect(seededSessionId).toBeTruthy();
 
@@ -319,14 +319,14 @@ describe('/admin/bulk-document-import — degraded warning surfaces (Task #1227)
       await page.setViewport({ width: 1400, height: 900 });
       await loginAsAdmin(page);
 
-      await page.goto(`${BASE_URL}/admin/bulk-document-import`, {
+      await page.goto(`${BASE_URL}/super_admin/bulk-document-import`, {
         waitUntil: 'networkidle2',
         timeout: 30_000,
       });
 
-      // Sanity: not bounced back to login by the admin route guard.
+      // Sanity: not bounced back to login by the super_admin route guard.
       const path = await page.evaluate(() => window.location.pathname);
-      expect(path).toBe('/admin/bulk-document-import');
+      expect(path).toBe('/super_admin/bulk-document-import');
 
       // Anchor on the history list rendering before asserting on the
       // warning surfaces — otherwise a missing testid would time out
@@ -445,14 +445,14 @@ describe('/admin/bulk-document-import — degraded warning surfaces (Task #1227)
       await page.setViewport({ width: 1400, height: 900 });
       await loginAsAdmin(page);
 
-      await page.goto(`${BASE_URL}/admin/bulk-document-import`, {
+      await page.goto(`${BASE_URL}/super_admin/bulk-document-import`, {
         waitUntil: 'networkidle2',
         timeout: 30_000,
       });
 
-      // Sanity: not bounced back to login by the admin route guard.
+      // Sanity: not bounced back to login by the super_admin route guard.
       const path = await page.evaluate(() => window.location.pathname);
-      expect(path).toBe('/admin/bulk-document-import');
+      expect(path).toBe('/super_admin/bulk-document-import');
 
       // Force the HistoryCard view (where the indicator lives) by
       // clearing any cached active session id from a prior test run

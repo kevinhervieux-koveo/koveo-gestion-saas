@@ -63,7 +63,7 @@ export const helpContentMap: Record<string, HelpContent> = {
   },
 
   // ===== ADMIN PAGES =====
-  '/admin/bulk-document-import': {
+  '/super_admin/bulk-document-import': {
     title: { en: 'Bulk Document Import', fr: 'Importation Documentaire en Lot' },
     description: {
       en: 'Ingest folders of mixed documents (PDF, Word, Excel, images, zips) for one building and let the AI assistant route each file into the correct place.',
@@ -125,7 +125,7 @@ export const helpContentMap: Record<string, HelpContent> = {
       { label: { en: 'Contact Information', fr: 'Coordonnées' }, description: { en: 'Primary contact details for the organization', fr: 'Coordonnées principales de l\'organisation' } },
     ],
   },
-  '/admin/quality': {
+  '/super_admin/quality': {
     title: { en: 'Quality Management', fr: 'Gestion de la Qualité' },
     description: { en: 'Monitor and manage quality metrics across the system.', fr: 'Surveillez et gérez les indicateurs de qualité dans le système.' },
     goal: { en: 'Ensure high quality standards in property management and service delivery.', fr: 'Assurez des normes de qualité élevées dans la gestion immobilière et la prestation de services.' },
@@ -592,7 +592,7 @@ export const helpContentMap: Record<string, HelpContent> = {
       { label: { en: 'Reset Password', fr: 'Réinitialiser Mot de Passe' }, description: { en: 'Save your new password and login', fr: 'Enregistrer votre nouveau mot de passe et vous connecter' } },
     ],
   },
-  '/admin/performance': {
+  '/super_admin/performance': {
     title: { en: 'Performance Dashboard', fr: 'Tableau de Bord de Performance' },
     description: { en: 'Monitor system performance metrics and optimization statistics.', fr: 'Surveillez les indicateurs de performance du système et les statistiques d\'optimisation.' },
     goal: { en: 'Track application performance, query efficiency, and system health.', fr: 'Suivez la performance de l\'application, l\'efficacité des requêtes et la santé du système.' },

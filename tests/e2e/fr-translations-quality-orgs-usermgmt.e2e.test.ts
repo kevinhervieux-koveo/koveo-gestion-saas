@@ -122,15 +122,15 @@ async function getPageBodyText(page: Page): Promise<string> {
   return page.evaluate(() => document.body.innerText ?? '');
 }
 
-describe('FR translations — /admin/quality, /admin/organizations, /manager/user-management', () => {
+describe('FR translations — /super_admin/quality, /admin/organizations, /manager/user-management', () => {
   describe('language=fr: hardcoded EN strings must be absent', () => {
-    it('/admin/quality subtitle renders in French', async () => {
+    it('/super_admin/quality subtitle renders in French', async () => {
       const page = await browser.newPage();
       try {
         await page.setViewport({ width: 1400, height: 900 });
         await loginAsSuperAdmin(page);
         await setLanguage(page, 'fr');
-        await navigateAndWait(page, '/admin/quality');
+        await navigateAndWait(page, '/super_admin/quality');
 
         const body = await getPageBodyText(page);
 
@@ -198,13 +198,13 @@ describe('FR translations — /admin/quality, /admin/organizations, /manager/use
   });
 
   describe('language=en regression guard: EN strings still present', () => {
-    it('/admin/quality subtitle renders in English', async () => {
+    it('/super_admin/quality subtitle renders in English', async () => {
       const page = await browser.newPage();
       try {
         await page.setViewport({ width: 1400, height: 900 });
         await loginAsSuperAdmin(page);
         await setLanguage(page, 'en');
-        await navigateAndWait(page, '/admin/quality');
+        await navigateAndWait(page, '/super_admin/quality');
 
         const body = await getPageBodyText(page);
 

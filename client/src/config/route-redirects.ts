@@ -10,6 +10,7 @@
 export const PARENT_ROUTE_REDIRECTS = {
   '/dashboard': '/dashboard/overview',
   '/admin': '/admin/organizations',
+  '/super_admin': '/super_admin/kpi-dashboard',
   '/manager': '/manager/buildings',
   '/residents': '/residents/residence',
   '/settings': '/settings/general',

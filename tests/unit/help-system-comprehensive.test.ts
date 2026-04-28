@@ -252,7 +252,7 @@ describe('Help System - Route Coverage', () => {
     '/dashboard/overview',
     '/dashboard/communication',
     '/admin/organizations',
-    '/admin/quality',
+    '/super_admin/quality',
     '/admin/compliance',
     '/admin/permissions',
     '/manager/buildings',
@@ -283,7 +283,12 @@ describe('Help System - Route Coverage', () => {
   describe('Admin Pages Coverage', () => {
     it('should have help for all admin routes', () => {
       const adminRoutes = Object.keys(helpContentMap).filter(r => r.startsWith('/admin'));
-      expect(adminRoutes.length).toBeGreaterThanOrEqual(5);
+      expect(adminRoutes.length).toBeGreaterThanOrEqual(3);
+    });
+
+    it('should have help for super_admin routes', () => {
+      const superAdminRoutes = Object.keys(helpContentMap).filter(r => r.startsWith('/super_admin'));
+      expect(superAdminRoutes.length).toBeGreaterThanOrEqual(3);
     });
   });
 

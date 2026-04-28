@@ -2,26 +2,28 @@
  * @jest-environment jsdom
  *
  * Access-control regression tests for the Document Tags admin page (task #1393,
- * updated task #1537).
+ * updated task #1537, re-pathed task #1693).
  *
  * The Document Tags page was moved from `/manager/document-tags` to
- * `/admin/document-tags` as part of task #1392. Task #1537 further elevated the
- * route guard from `admin` to `super_admin` so the entire /admin/* section is
- * consistently locked to Koveo staff. These tests guard against accidental
- * role-guard downgrades in future refactors by verifying:
+ * `/admin/document-tags` (task #1392), then elevated to `super_admin`
+ * (task #1537), and finally re-prefixed to `/super_admin/document-tags`
+ * (task #1693) so the URL prefix matches the role hierarchy. These tests
+ * guard against accidental role-guard downgrades or URL regressions in
+ * future refactors by verifying:
  *
  *   1. The route registration in `client/src/App.tsx`:
- *        - `/admin/document-tags` is wrapped in `<ProtectedRoute requiredRole="super_admin">`.
+ *        - `/super_admin/document-tags` is wrapped in `<ProtectedRoute requiredRole="super_admin">`.
+ *        - `/admin/document-tags` exists only as a redirect shim.
  *        - `/manager/document-tags` is NOT registered as a route.
  *   2. The navigation config (`client/src/config/navigation.ts`):
- *        - "documentTags" is listed under the admin section only.
+ *        - "documentTags" is listed under the superAdmin section.
  *        - It is not present anywhere under the manager section.
  *        - `getFilteredNavigation('manager', ...)` does not surface it.
  *        - `getFilteredNavigation('super_admin', ...)` does surface it.
  *   3. The `<ProtectedRoute>` guard at runtime:
  *        - A manager user is redirected to `/dashboard/overview` and the
  *          protected children are not rendered.
- *        - An admin user is denied (redirected) because the route now requires
+ *        - An admin user is denied (redirected) because the route requires
  *          super_admin (level 4) and admin is only level 3.
  *        - A super_admin user can render the protected children.
  */
@@ -55,7 +57,7 @@ jest.mock('@/hooks/use-auth', () => ({
 // Capture setLocation calls from the wouter mock so we can assert redirects.
 const setLocationMock = jest.fn();
 jest.mock('wouter', () => ({
-  useLocation: () => ['/admin/document-tags', setLocationMock],
+  useLocation: () => ['/super_admin/document-tags', setLocationMock],
 }));
 
 // Import AFTER mocks so the component picks them up.
@@ -78,7 +80,7 @@ function findSection(key: string): NavigationSection | undefined {
   return NAVIGATION_CONFIG.find((section) => section._key === key);
 }
 
-describe('Document Tags admin page — access control (task #1393 / task #1537)', () => {
+describe('Document Tags admin page — access control (task #1393 / task #1537 / task #1693)', () => {
   beforeEach(() => {
     setLocationMock.mockClear();
     mockAuthState.user = null;
@@ -94,9 +96,16 @@ describe('Document Tags admin page — access control (task #1393 / task #1537)'
       'utf8'
     );
 
-    it('registers /admin/document-tags behind a ProtectedRoute with requiredRole="super_admin"', () => {
+    it('registers /super_admin/document-tags behind a ProtectedRoute with requiredRole="super_admin"', () => {
       expect(appSource).toMatch(
-        /<Route\s+path=['"]\/admin\/document-tags['"]>\s*\{?\(?\)?\s*=>\s*<ProtectedRoute\s+requiredRole=["']super_admin["']>\s*<AdminDocumentTags\s*\/>\s*<\/ProtectedRoute>/
+        /<Route\s+path=['"]\/super_admin\/document-tags['"]>\s*\{?\(?\)?\s*=>\s*<ProtectedRoute\s+requiredRole=["']super_admin["']>\s*<AdminDocumentTags\s*\/>\s*<\/ProtectedRoute>/
+      );
+    });
+
+    it('registers /admin/document-tags only as a redirect shim (not a ProtectedRoute)', () => {
+      expect(appSource).toMatch(/path=['"]\/admin\/document-tags['"]\s+component=\{AdminDocumentTagsRedirect\}/);
+      expect(appSource).not.toMatch(
+        /<Route\s+path=['"]\/admin\/document-tags['"]>\s*\{?\(?\)?\s*=>\s*<ProtectedRoute/
       );
     });
 
@@ -110,16 +119,16 @@ describe('Document Tags admin page — access control (task #1393 / task #1537)'
   // 2. Navigation config
   // -------------------------------------------------------------------------
   describe('Navigation config (client/src/config/navigation.ts)', () => {
-    it('lists "documentTags" only inside the admin section', () => {
-      const adminSection = findSection('admin');
-      expect(adminSection).toBeDefined();
+    it('lists "documentTags" only inside the superAdmin section', () => {
+      const superAdminSection = findSection('superAdmin');
+      expect(superAdminSection).toBeDefined();
 
-      const adminItems = collectAllItems(adminSection!.items);
-      const documentTagsItem = adminItems.find(
-        (item) => item.nameKey === 'documentTags' || item.href === '/admin/document-tags'
+      const superAdminItems = collectAllItems(superAdminSection!.items);
+      const documentTagsItem = superAdminItems.find(
+        (item) => item.nameKey === 'documentTags' || item.href === '/super_admin/document-tags'
       );
       expect(documentTagsItem).toBeDefined();
-      expect(documentTagsItem!.href).toBe('/admin/document-tags');
+      expect(documentTagsItem!.href).toBe('/super_admin/document-tags');
     });
 
     it('does NOT include any "documentTags" entry inside the manager section', () => {
@@ -131,7 +140,8 @@ describe('Document Tags admin page — access control (task #1393 / task #1537)'
         (item) =>
           item.nameKey === 'documentTags' ||
           item.href === '/manager/document-tags' ||
-          item.href === '/admin/document-tags'
+          item.href === '/admin/document-tags' ||
+          item.href === '/super_admin/document-tags'
       );
       expect(stray).toBeUndefined();
     });
@@ -144,6 +154,7 @@ describe('Document Tags admin page — access control (task #1393 / task #1537)'
         (item) =>
           item.nameKey === 'documentTags' ||
           item.href === '/admin/document-tags' ||
+          item.href === '/super_admin/document-tags' ||
           item.href === '/manager/document-tags'
       );
       expect(visibleDocumentTags).toBeUndefined();
@@ -157,7 +168,7 @@ describe('Document Tags admin page — access control (task #1393 / task #1537)'
 
       const allVisibleItems = sections.flatMap((section) => collectAllItems(section.items));
       const visibleDocumentTags = allVisibleItems.find(
-        (item) => item.href === '/admin/document-tags'
+        (item) => item.href === '/super_admin/document-tags'
       );
       expect(visibleDocumentTags).toBeDefined();
     });
@@ -166,7 +177,7 @@ describe('Document Tags admin page — access control (task #1393 / task #1537)'
   // -------------------------------------------------------------------------
   // 3. ProtectedRoute behavior at runtime
   // -------------------------------------------------------------------------
-  describe('<ProtectedRoute requiredRole="super_admin"> behavior on /admin/document-tags', () => {
+  describe('<ProtectedRoute requiredRole="super_admin"> behavior on /super_admin/document-tags', () => {
     const ProtectedChild = () => (
       <div data-testid="document-tags-page">document-tags-content</div>
     );
@@ -188,7 +199,7 @@ describe('Document Tags admin page — access control (task #1393 / task #1537)'
       });
     });
 
-    it('redirects a regular admin to /dashboard/overview (route now requires super_admin)', async () => {
+    it('redirects a regular admin to /dashboard/overview (route requires super_admin)', async () => {
       mockAuthState.user = { id: 'admin-1', role: 'admin' };
       mockAuthState.isLoading = false;
 

@@ -148,9 +148,10 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     icon: User,
     requiredRole: 'admin',
     items: [
-      { nameKey: 'navBulkDocumentImport', href: '/admin/bulk-document-import', icon: Folder },
-      { nameKey: 'documentTags', href: '/admin/document-tags', icon: FileText },
-      { nameKey: 'navOrgAccess', href: '/admin/org-access', icon: Building2 },
+      { nameKey: 'organizations', href: '/admin/organizations', icon: Building },
+      { nameKey: 'navLaw25Compliance', href: '/admin/compliance', icon: Shield },
+      { nameKey: 'rbacPermissions', href: '/admin/permissions', icon: ShieldCheck },
+      { nameKey: 'navImpersonationLog', href: '/admin/impersonation-log', icon: ClipboardList },
     ],
   },
   {
@@ -159,12 +160,11 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     icon: ShieldCheck,
     requiredRole: 'super_admin',
     items: [
-      { nameKey: 'organizations', href: '/admin/organizations', icon: Building },
-      { nameKey: 'navQualityAssurance', href: '/admin/quality', icon: CheckCircle },
-      { nameKey: 'navLaw25Compliance', href: '/admin/compliance', icon: Shield },
-      { nameKey: 'rbacPermissions', href: '/admin/permissions', icon: ShieldCheck },
-      { nameKey: 'navImpersonationLog', href: '/admin/impersonation-log', icon: ClipboardList },
-      { nameKey: 'navKpiDashboard', href: '/admin/kpi-dashboard', icon: AreaChart },
+      { nameKey: 'navKpiDashboard', href: '/super_admin/kpi-dashboard', icon: AreaChart },
+      { nameKey: 'navQualityAssurance', href: '/super_admin/quality', icon: CheckCircle },
+      { nameKey: 'navBulkDocumentImport', href: '/super_admin/bulk-document-import', icon: Folder },
+      { nameKey: 'documentTags', href: '/super_admin/document-tags', icon: FileText },
+      { nameKey: 'navOrgAccess', href: '/super_admin/org-access', icon: Building2 },
     ],
   },
   {

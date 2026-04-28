@@ -413,16 +413,27 @@ function AuthenticatedLayout() {
               <Route path='/dashboard/overview' component={DashboardPage} />
               <Route path='/dashboard/communication' component={DashboardCommunicationPage} />
 
-              {/* Admin routes */}
+              {/* Admin routes (admin+ pages) */}
               <Route path='/admin' component={AdminOverviewRedirect} />
               <Route path='/admin/organizations'>{() => <ProtectedRoute requiredRole="admin"><AdminOrganizations /></ProtectedRoute>}</Route>
-              <Route path='/admin/quality'>{() => <ProtectedRoute requiredRole="super_admin"><AdminQuality /></ProtectedRoute>}</Route>
               <Route path='/admin/compliance'>{() => <ProtectedRoute requiredRole="admin"><AdminCompliance /></ProtectedRoute>}</Route>
               <Route path='/admin/permissions'>{() => <ProtectedRoute requiredRole="admin"><AdminPermissions /></ProtectedRoute>}</Route>
-              <Route path='/admin/bulk-document-import'>{() => <ProtectedRoute requiredRole="super_admin"><AdminBulkDocumentImport /></ProtectedRoute>}</Route>
-              <Route path='/admin/document-tags'>{() => <ProtectedRoute requiredRole="super_admin"><AdminDocumentTags /></ProtectedRoute>}</Route>
-              <Route path='/admin/kpi-dashboard'>{() => <ProtectedRoute requiredRole="super_admin"><AdminKpiDashboard /></ProtectedRoute>}</Route>
-              <Route path='/admin/performance'>{() => <ProtectedRoute requiredRole="super_admin"><PerformanceDashboardPage /></ProtectedRoute>}</Route>
+
+              {/* Legacy /admin/* aliases — redirect to /super_admin/* equivalents */}
+              <Route path='/admin/quality' component={AdminQualityRedirect} />
+              <Route path='/admin/bulk-document-import' component={AdminBulkDocumentImportRedirect} />
+              <Route path='/admin/document-tags' component={AdminDocumentTagsRedirect} />
+              <Route path='/admin/kpi-dashboard' component={AdminKpiDashboardRedirect} />
+              <Route path='/admin/performance' component={AdminPerformanceRedirect} />
+              <Route path='/admin/org-access' component={AdminOrgAccessRedirect} />
+
+              {/* Super-admin-only routes */}
+              <Route path='/super_admin' component={SuperAdminOverviewRedirect} />
+              <Route path='/super_admin/quality'>{() => <ProtectedRoute requiredRole="super_admin"><AdminQuality /></ProtectedRoute>}</Route>
+              <Route path='/super_admin/bulk-document-import'>{() => <ProtectedRoute requiredRole="super_admin"><AdminBulkDocumentImport /></ProtectedRoute>}</Route>
+              <Route path='/super_admin/document-tags'>{() => <ProtectedRoute requiredRole="super_admin"><AdminDocumentTags /></ProtectedRoute>}</Route>
+              <Route path='/super_admin/kpi-dashboard'>{() => <ProtectedRoute requiredRole="super_admin"><AdminKpiDashboard /></ProtectedRoute>}</Route>
+              <Route path='/super_admin/performance'>{() => <ProtectedRoute requiredRole="super_admin"><PerformanceDashboardPage /></ProtectedRoute>}</Route>
 
               {/* Manager routes */}
               <Route path='/manager' component={ManagerOverviewRedirect} />
@@ -549,6 +560,52 @@ function AdminOverviewRedirect() {
     setLocation(PARENT_ROUTE_REDIRECTS['/admin']);
   }, [setLocation]);
 
+  return <LoadingSpinner />;
+}
+
+function SuperAdminOverviewRedirect() {
+  const [, setLocation] = useLocation();
+
+  useEffect(() => {
+    setLocation(PARENT_ROUTE_REDIRECTS['/super_admin']);
+  }, [setLocation]);
+
+  return <LoadingSpinner />;
+}
+
+function AdminQualityRedirect() {
+  const [, setLocation] = useLocation();
+  useEffect(() => { setLocation('/super_admin/quality'); }, [setLocation]);
+  return <LoadingSpinner />;
+}
+
+function AdminBulkDocumentImportRedirect() {
+  const [, setLocation] = useLocation();
+  useEffect(() => { setLocation('/super_admin/bulk-document-import'); }, [setLocation]);
+  return <LoadingSpinner />;
+}
+
+function AdminDocumentTagsRedirect() {
+  const [, setLocation] = useLocation();
+  useEffect(() => { setLocation('/super_admin/document-tags'); }, [setLocation]);
+  return <LoadingSpinner />;
+}
+
+function AdminKpiDashboardRedirect() {
+  const [, setLocation] = useLocation();
+  useEffect(() => { setLocation('/super_admin/kpi-dashboard'); }, [setLocation]);
+  return <LoadingSpinner />;
+}
+
+function AdminPerformanceRedirect() {
+  const [, setLocation] = useLocation();
+  useEffect(() => { setLocation('/super_admin/performance'); }, [setLocation]);
+  return <LoadingSpinner />;
+}
+
+function AdminOrgAccessRedirect() {
+  const [, setLocation] = useLocation();
+  useEffect(() => { setLocation('/super_admin/org-access'); }, [setLocation]);
   return <LoadingSpinner />;
 }
 

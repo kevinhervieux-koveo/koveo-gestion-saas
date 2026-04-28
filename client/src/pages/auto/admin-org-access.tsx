@@ -10,7 +10,7 @@ import { HardHat } from 'lucide-react';
 import { useLanguage } from '@/hooks/use-language';
 
 export const route: AutoPageRoute = {
-  path: '/admin/org-access',
+  path: '/super_admin/org-access',
   role: 'super_admin',
 };
 

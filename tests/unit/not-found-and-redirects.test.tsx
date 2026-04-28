@@ -199,8 +199,8 @@ describe('NotFound page (unauthenticated)', () => {
 // ---------------------------------------------------------------------------
 
 describe('PARENT_ROUTE_REDIRECTS (client/src/config/route-redirects.ts)', () => {
-  it('covers all five authenticated parent routes', () => {
-    expect(Object.keys(PARENT_ROUTE_REDIRECTS)).toHaveLength(5);
+  it('covers all six authenticated parent routes', () => {
+    expect(Object.keys(PARENT_ROUTE_REDIRECTS)).toHaveLength(6);
   });
 
   it.each(Object.entries(PARENT_ROUTE_REDIRECTS))(
@@ -228,6 +228,10 @@ describe('PARENT_ROUTE_REDIRECTS (client/src/config/route-redirects.ts)', () => 
 
   it('/settings redirects to /settings/general', () => {
     expect(PARENT_ROUTE_REDIRECTS['/settings']).toBe('/settings/general');
+  });
+
+  it('/super_admin redirects to /super_admin/kpi-dashboard', () => {
+    expect(PARENT_ROUTE_REDIRECTS['/super_admin']).toBe('/super_admin/kpi-dashboard');
   });
 });
 

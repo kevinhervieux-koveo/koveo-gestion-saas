@@ -29,14 +29,15 @@ const ROUTE_TITLE_KEYS: Array<{ pattern: RegExp | string; key: TranslationKey }>
   { pattern: '/settings/general', key: 'settings' },
   { pattern: '/settings', key: 'settings' },
   { pattern: '/admin/organizations', key: 'organizations' },
-  { pattern: '/admin/quality', key: 'navQualityAssurance' },
   { pattern: '/admin/compliance', key: 'navLaw25Compliance' },
   { pattern: '/admin/permissions', key: 'rbacPermissions' },
-  { pattern: '/admin/bulk-document-import', key: 'navBulkDocumentImport' },
-  { pattern: '/admin/document-tags', key: 'documentTags' },
-  { pattern: '/admin/kpi-dashboard', key: 'navKpiDashboard' },
   { pattern: '/admin/impersonation-log', key: 'navImpersonationLog' },
-  { pattern: '/admin/org-access', key: 'navOrgAccess' },
+  { pattern: '/super_admin/quality', key: 'navQualityAssurance' },
+  { pattern: '/super_admin/bulk-document-import', key: 'navBulkDocumentImport' },
+  { pattern: '/super_admin/document-tags', key: 'documentTags' },
+  { pattern: '/super_admin/kpi-dashboard', key: 'navKpiDashboard' },
+  { pattern: '/super_admin/org-access', key: 'navOrgAccess' },
+  { pattern: '/super_admin/performance', key: 'navKpiDashboard' },
   // NOTE: /help is a public route rendered outside AuthenticatedLayout.
   // Its title is managed directly in client/src/pages/help.tsx via useEffect.
 ];

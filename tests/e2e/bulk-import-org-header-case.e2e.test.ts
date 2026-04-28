@@ -198,7 +198,7 @@ async function loginAsAdmin(page: Page): Promise<void> {
   );
 }
 
-describe('/admin/bulk-document-import — org-section header preserves stored case (Task #1660)', () => {
+describe('/super_admin/bulk-document-import — org-section header preserves stored case (Task #1660)', () => {
   it('renders org headers without CSS text-transform: uppercase and with correct stored casing', async () => {
     const page = await browser.newPage();
     page.on('pageerror', (err) => {
@@ -216,7 +216,7 @@ describe('/admin/bulk-document-import — org-section header preserves stored ca
       // Clear any cached active session so the page shows the building
       // picker (which contains the org-section headers) rather than the
       // wizard for a previously active session.
-      await page.goto(`${BASE_URL}/admin/bulk-document-import`, {
+      await page.goto(`${BASE_URL}/super_admin/bulk-document-import`, {
         waitUntil: 'networkidle2',
         timeout: 30_000,
       });
@@ -226,9 +226,9 @@ describe('/admin/bulk-document-import — org-section header preserves stored ca
       });
       await page.reload({ waitUntil: 'networkidle2', timeout: 30_000 });
 
-      // Sanity: the admin route guard should not have redirected us.
+      // Sanity: the super_admin route guard should not have redirected us.
       const path = await page.evaluate(() => window.location.pathname);
-      expect(path).toBe('/admin/bulk-document-import');
+      expect(path).toBe('/super_admin/bulk-document-import');
 
       // Wait for at least one org-section header to appear in the
       // building picker grid.

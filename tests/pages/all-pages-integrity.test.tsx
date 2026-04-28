@@ -38,7 +38,8 @@ const allPages = [
   { path: '/admin/organizations', name: 'Admin Organizations' },
   { path: '/admin/compliance', name: 'Admin Compliance' },
   { path: '/admin/permissions', name: 'Admin Permissions' },
-  { path: '/admin/quality', name: 'Admin Quality' },
+  // Super-admin-only pages
+  { path: '/super_admin/quality', name: 'Super Admin Quality' },
   
   // Manager pages (require manager role)
   { path: '/manager/bills', name: 'Manager Bills' },
@@ -78,7 +79,7 @@ const pageComponents = {
   '/admin/organizations': () => import('@/pages/admin/organizations'),
   '/admin/compliance': () => import('@/pages/admin/compliance'),
   '/admin/permissions': () => import('@/pages/admin/permissions'),
-  '/admin/quality': () => import('@/pages/admin/quality'),
+  '/super_admin/quality': () => import('@/pages/admin/quality'),
   '/manager/bills': () => import('@/pages/manager/bills'),
   '/manager/budget': () => import('@/pages/manager/budget'),
   '/manager/buildings': () => import('@/pages/manager/buildings'),
