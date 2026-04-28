@@ -445,6 +445,9 @@ export interface Translations {
   dashboard: string;
   pillarFramework: string;
   qualityAssurance: string;
+  adminQualitySubtitle: string;
+  adminOrganizationsTitle: string;
+  adminOrganizationsSubtitle: string;
   workflowSetup: string;
   configuration: string;
   developer: string;
@@ -6815,6 +6818,9 @@ export const translations: Record<Language, Translations> = {
     lastScan: 'Last Scan',
     lastRun: 'Last Run',
     refreshQuality: 'Refresh',
+    adminQualitySubtitle: 'Quality metrics and assurance tracking',
+    adminOrganizationsTitle: 'Organizations Management',
+    adminOrganizationsSubtitle: 'Create, view, edit and delete organizations in the system',
     categoryDataCollection: 'Data Collection',
     categoryConsentManagement: 'Consent Management',
     categoryDataRetention: 'Data Retention',
@@ -11320,6 +11326,9 @@ export const translations: Record<Language, Translations> = {
     lastScan: 'Dernière analyse',
     lastRun: 'Dernière exécution',
     refreshQuality: 'Actualiser',
+    adminQualitySubtitle: 'Métriques de qualité et suivi de l\'assurance',
+    adminOrganizationsTitle: 'Gestion des organisations',
+    adminOrganizationsSubtitle: 'Créer, consulter, modifier et supprimer des organisations dans le système',
     categoryDataCollection: 'Collecte de données',
     categoryConsentManagement: 'Gestion du consentement',
     categoryDataRetention: 'Conservation des données',

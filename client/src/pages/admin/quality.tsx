@@ -35,7 +35,7 @@ export default function Quality() {
 
   return (
     <div className='flex-1 flex flex-col overflow-hidden'>
-      <Header title={t('qualityAssurance')} subtitle='Quality metrics and assurance tracking' />
+      <Header title={t('qualityAssurance')} subtitle={t('adminQualitySubtitle')} />
 
       {/* Last run info & refresh action */}
       <div className='border-b bg-gray-50 px-6 py-3'>

@@ -1,6 +1,7 @@
 import React from 'react';
 import type { UserWithAssignments } from '@shared/schema';
 import { useLanguage } from '@/hooks/use-language';
+import { enumLabels } from '@/lib/i18n/enumLabels';
 
 interface UserAssignmentsTableProps {
   users: UserWithAssignments[];
@@ -25,7 +26,7 @@ export function UserAssignmentsTable({
   canEditResidences = false,
   canDeleteUsers = false
 }: UserAssignmentsTableProps) {
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
 
   if (isLoading) {
     return (
@@ -96,7 +97,7 @@ export function UserAssignmentsTable({
                     ? 'bg-blue-100 text-blue-800'
                     : 'bg-green-100 text-green-800'
                 }`}>
-                  {user.role}
+                  {enumLabels.role(user.role, language)}
                 </span>
               </td>
               
