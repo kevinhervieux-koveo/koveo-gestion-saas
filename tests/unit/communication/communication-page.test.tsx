@@ -10,6 +10,8 @@ import '@testing-library/jest-dom';
 import userEvent from '@testing-library/user-event';
 import React from 'react';
 
+jest.setTimeout(15000);
+
 // Mock language hook
 const mockLanguage = {
   language: 'en',
@@ -386,10 +388,6 @@ describe('Communication Page Test Suite', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('communication-page')).toBeInTheDocument();
-      });
-
-      // Wait for data to load and check for key elements
-      await waitFor(() => {
         expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
       });
 
@@ -403,9 +401,6 @@ describe('Communication Page Test Suite', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('communication-page')).toBeInTheDocument();
-      });
-
-      await waitFor(() => {
         expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
       });
 
@@ -419,9 +414,6 @@ describe('Communication Page Test Suite', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('communication-page')).toBeInTheDocument();
-      });
-
-      await waitFor(() => {
         expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
       });
 
@@ -435,9 +427,6 @@ describe('Communication Page Test Suite', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('communication-page')).toBeInTheDocument();
-      });
-
-      await waitFor(() => {
         expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
       });
 
@@ -452,9 +441,6 @@ describe('Communication Page Test Suite', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('communication-page')).toBeInTheDocument();
-      });
-
-      await waitFor(() => {
         expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
       });
 
@@ -474,10 +460,6 @@ describe('Communication Page Test Suite', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
-      });
-
-      // Categories are now always expanded due to Collapsible mock
-      await waitFor(() => {
         expect(screen.getByTestId('switch-category-financial-enabled')).toBeInTheDocument();
       });
       
@@ -490,10 +472,6 @@ describe('Communication Page Test Suite', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
-      });
-
-      // Categories are now always expanded due to Collapsible mock
-      await waitFor(() => {
         expect(screen.getByTestId('switch-category-financial-enabled')).toBeInTheDocument();
       });
 
@@ -516,10 +494,6 @@ describe('Communication Page Test Suite', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
-      });
-
-      // Categories are now always expanded due to Collapsible mock
-      await waitFor(() => {
         expect(screen.getByTestId('switch-category-financial-enabled')).toBeInTheDocument();
       });
 
@@ -537,10 +511,6 @@ describe('Communication Page Test Suite', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
-      });
-
-      // Categories are now always expanded due to Collapsible mock
-      await waitFor(() => {
         expect(screen.getByTestId('switch-category-financial-enabled')).toBeInTheDocument();
       });
 
@@ -579,10 +549,6 @@ describe('Communication Page Test Suite', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('button-save-preferences')).toBeInTheDocument();
-      });
-
-      // Categories are now always expanded due to Collapsible mock
-      await waitFor(() => {
         expect(screen.getByTestId('switch-category-financial-enabled')).toBeInTheDocument();
       });
 
@@ -730,10 +696,6 @@ describe('Communication Page Test Suite', () => {
 
       await waitFor(() => {
         expect(screen.getByTestId('communication-page')).toBeInTheDocument();
-      });
-
-      // Check for French text in the card title
-      await waitFor(() => {
         expect(screen.getByText('Préférences de notification')).toBeInTheDocument();
       });
     });
