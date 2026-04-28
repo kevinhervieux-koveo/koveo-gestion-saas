@@ -686,13 +686,6 @@ describe('Communication API Integration Tests', () => {
       expect(true).toBe(true); // Placeholder assertion
     });
 
-    it.skip('should require authentication when implemented', async () => {
-      // Skipped - placeholder for future implementation
-    });
-
-    it.skip('should return filtered recipients based on user role when implemented', async () => {
-      // Skipped - placeholder for future implementation
-    });
   });
 
   // ==========================================
