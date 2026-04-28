@@ -1821,6 +1821,19 @@ describe('MCP Server', () => {
       expect(info.allowedRoles).toEqual(['admin', 'manager', 'tenant']);
       expect(info.currentRole).toBe('admin');
     });
+
+    it('assume_user tool description advertises the production hard-lock and points at the staging QA harness doc', async () => {
+      const oauthServer = createMcpServer({ role: 'admin' });
+      const handler = getToolHandler(oauthServer, 'get_mcp_info');
+      const info = parseInfo(await handler({ role: 'admin' }, {}));
+      const assumeUserTool = (info.tools as Array<{ name: string; description: string }>).find(
+        (t) => t.name === 'assume_user',
+      );
+      expect(assumeUserTool).toBeDefined();
+      const desc = assumeUserTool!.description.toLowerCase();
+      expect(desc).toContain('not available in production');
+      expect(desc).toContain('mcp_staging_qa_harness');
+    });
   });
 
   describe('get_mcp_info buildSha resolution order', () => {

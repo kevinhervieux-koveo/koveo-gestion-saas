@@ -5062,7 +5062,10 @@ export function createMcpServer(authContext?: McpAuthContext): McpServer {
   // invocation writes one row to `mcp_assume_user_log`.
   server.tool(
     "assume_user",
-    "Admin-only QA tool: replace the effective user on this MCP session with " +
+    "ADMIN-ONLY QA TOOL — NOT AVAILABLE IN PRODUCTION: hard-locked off when " +
+      "NODE_ENV=production regardless of MCP_ASSUME_USER; see " +
+      "docs/MCP_STAGING_QA_HARNESS.md for the staging QA harness. " +
+      "Replace the effective user on this MCP session with " +
       "the user identified by `userId`. Subsequent tool calls on this session " +
       "behave as if that user were the OAuth caller — `list_residences`, " +
       "`get_residence`, etc. return data scoped to the assumed user. Also " +
