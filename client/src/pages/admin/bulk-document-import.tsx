@@ -6853,6 +6853,32 @@ export default function BulkDocumentImportPage() {
                         // (batch-fetched from bulk_import_item_family_memberships) so that
                         // items appear in named family cards even when the family has 0
                         // anchor documents (empty-anchor AI-guess case from Task #1589).
+
+                        // Task #1636: Build canonical ID mapper from server-canonical families.
+                        // familyContextData.families returns canonical family IDs (post-fix).
+                        // We map any stale alias familyId in memberships to the canonical ID
+                        // by matching on normalized family name.
+                        const _familyCanonicalIdFor = (() => {
+                          if (!familyContextData?.families) return undefined;
+                          const normToCanonical = new Map<string, string>();
+                          for (const fam of familyContextData.families) {
+                            normToCanonical.set(fam.familyName.trim().toLowerCase(), fam.familyId);
+                          }
+                          const dupToCanonical = new Map<string, string>();
+                          for (const it of visibleItems) {
+                            for (const lm of it.linkingMemberships ?? []) {
+                              if (!lm.familyId || !lm.familyName) continue;
+                              const canonical = normToCanonical.get(lm.familyName.trim().toLowerCase());
+                              if (canonical && canonical !== lm.familyId) {
+                                dupToCanonical.set(lm.familyId, canonical);
+                              }
+                            }
+                          }
+                          return dupToCanonical.size > 0
+                            ? (id: string) => dupToCanonical.get(id) ?? id
+                            : undefined;
+                        })();
+
                         const _resolvedFamilyGroupsData = currentStep === 'linking'
                           ? resolveFamilyGroups(
                               visibleItems.map((item) => ({
@@ -6876,6 +6902,8 @@ export default function BulkDocumentImportPage() {
                               // Task #1608: pass existing docs map so resolver
                               // produces interleaved mixed rows.
                               existingDocsByFamilyId,
+                              // Task #1636: canonical ID mapper (preferred path).
+                              _familyCanonicalIdFor,
                             )
                           : { groups: [] as FamilyGroup[], unassignedItems: [] as Array<{ id: string; memberships: FamilyMembership[]; _item: BulkImportItemLite }> };
 

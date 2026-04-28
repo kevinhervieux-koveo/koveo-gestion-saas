@@ -273,7 +273,11 @@ export default function AdminDocumentTags() {
       setFamilyDialogOpen(false);
     },
     onError: (e: any) => {
-      toast({ title: t('lfToastErrorTitle') || 'Error', description: e?.message, variant: 'destructive' });
+      if (e?.status === 409) {
+        familyForm.setError('name', { message: e?.message ?? 'A family with this name already exists.' });
+      } else {
+        toast({ title: t('lfToastErrorTitle') || 'Error', description: e?.message, variant: 'destructive' });
+      }
     },
   });
 
@@ -286,7 +290,11 @@ export default function AdminDocumentTags() {
       setFamilyDialogOpen(false);
     },
     onError: (e: any) => {
-      toast({ title: t('lfToastErrorTitle') || 'Error', description: e?.message, variant: 'destructive' });
+      if (e?.status === 409) {
+        familyForm.setError('name', { message: e?.message ?? 'A family with this name already exists.' });
+      } else {
+        toast({ title: t('lfToastErrorTitle') || 'Error', description: e?.message, variant: 'destructive' });
+      }
     },
   });
 

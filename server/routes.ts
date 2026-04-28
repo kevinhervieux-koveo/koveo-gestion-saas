@@ -29,6 +29,7 @@ import { seedKoveoDocumentTags } from './api/document-tags-seed';
 import { registerDocumentLinkFamilyRoutes } from './api/document-link-families';
 import { seedKoveoDocumentLinkFamilies } from './api/document-link-families-seed';
 import { seedOnboardingVersions } from './api/onboarding-versions-seed';
+import { backfillAllOrganizationDuplicateFamilies } from './services/canonical-family-resolver';
 import { registerResidenceRoutes } from './api/residences';
 import { registerContactRoutes } from './api/contacts';
 import { registerPermissionsRoutes } from './api/permissions';
@@ -182,10 +183,15 @@ export async function registerRoutes(app: Express) {
   // Idempotent seeding of Koveo system tags (safe to run on every startup)
   void seedKoveoDocumentTags();
   registerDocumentLinkFamilyRoutes(app);
-  void seedKoveoDocumentLinkFamilies();
   // Idempotent seeding of onboarding_versions from code-defined tour catalog.
   // Gated on isOnboardingEnabled(); no-op when the feature is off.
   void seedOnboardingVersions();
+  // Task #1636: seed system families first, then run one-time deduplication so
+  // any newly seeded collisions are included in the same backfill pass.
+  void (async () => {
+    await seedKoveoDocumentLinkFamilies();
+    await backfillAllOrganizationDuplicateFamilies((msg) => logInfo(msg));
+  })();
 
   registerResidenceRoutes(app);
   registerContactRoutes(app);

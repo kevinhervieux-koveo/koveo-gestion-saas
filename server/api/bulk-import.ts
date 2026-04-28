@@ -56,6 +56,7 @@ import {
 import { fixLatin1MisdecodeFilename } from '../utils/filenameNormalization';
 import { buildContentDisposition } from '../utils/content-disposition';
 import { normalizeMimeType } from '../services/mime-normalizer';
+import { buildCanonicalResult, resolveCanonicalFamilyId } from '../services/canonical-family-resolver';
 
 /**
  * Default staging root used when `BULK_IMPORT_STAGING_ROOT` is not set
@@ -1728,6 +1729,14 @@ async function processItemForStep(
    * so the AI can return a familyGuess even when no anchor documents exist.
    */
   linkingFamilies?: { id: string; name: string; description?: string | null; isSystem: boolean }[],
+  /**
+   * Task #1636: Maps any family id (including legacy duplicates) to the
+   * canonical id. Applied to every AI-returned familyId before it is
+   * written to the DB so duplicate family references are never persisted.
+   * Callers build this from the same `buildCanonicalResult` call used to
+   * produce `linkingFamilies`. When omitted, ids are stored as-is.
+   */
+  canonicalFamilyIdFor?: (id: string) => string,
 ): Promise<schema.BulkImportItem> {
   // Task #1373 — derive the parent-folder portion of the item's
   // originalPath ONCE up front and forward it to every analyzer call as
@@ -2108,13 +2117,16 @@ async function processItemForStep(
     });
     logPerFileAiFailure(step, item, result.fallbackReason);
 
+    // Task #1636: remap AI-returned family IDs to canonical IDs before writing.
+    const toCanonical = canonicalFamilyIdFor ?? ((id: string) => id);
+
     // Task #1386: translate new existing-family suggestion fields into
     // the linkDecisions storage shape used by the commit path.
     const linkDecisionsToStore: Record<string, unknown> = {
       ...(result as unknown as Record<string, unknown>),
     };
     if (result.familyId && result.neighborDocumentId && result.position) {
-      linkDecisionsToStore.familyId = result.familyId;
+      linkDecisionsToStore.familyId = toCanonical(result.familyId);
       linkDecisionsToStore.beforeDocumentId = result.position === 'before' ? result.neighborDocumentId : null;
       linkDecisionsToStore.afterDocumentId = result.position === 'after' ? result.neighborDocumentId : null;
     } else {
@@ -2126,17 +2138,22 @@ async function processItemForStep(
     // can surface them to the UI for one-click "Commit to Family" action.
     // Task #1608: also store the full familyGuesses array for multi-guess support.
     if (result.familyGuesses && result.familyGuesses.length > 0) {
-      linkDecisionsToStore.familyGuesses = result.familyGuesses;
+      const canonicalGuesses = result.familyGuesses.map((fg) => ({
+        ...fg,
+        familyId: toCanonical(fg.familyId),
+      }));
+      linkDecisionsToStore.familyGuesses = canonicalGuesses;
       // Backward-compat alias: first entry as the single familyGuess.
-      const fg0 = result.familyGuesses[0];
+      const fg0 = canonicalGuesses[0];
       linkDecisionsToStore.familyGuessId = fg0.familyId;
       linkDecisionsToStore.familyGuessConfidence = fg0.confidence;
       linkDecisionsToStore.familyGuessReason = fg0.reason;
     } else if (result.familyGuess) {
-      linkDecisionsToStore.familyGuesses = [result.familyGuess];
-      linkDecisionsToStore.familyGuessId = result.familyGuess.familyId;
-      linkDecisionsToStore.familyGuessConfidence = result.familyGuess.confidence;
-      linkDecisionsToStore.familyGuessReason = result.familyGuess.reason;
+      const canonicalGuess = { ...result.familyGuess, familyId: toCanonical(result.familyGuess.familyId) };
+      linkDecisionsToStore.familyGuesses = [canonicalGuess];
+      linkDecisionsToStore.familyGuessId = canonicalGuess.familyId;
+      linkDecisionsToStore.familyGuessConfidence = canonicalGuess.confidence;
+      linkDecisionsToStore.familyGuessReason = canonicalGuess.reason;
     } else {
       linkDecisionsToStore.familyGuesses = null;
       linkDecisionsToStore.familyGuessId = null;
@@ -2160,7 +2177,11 @@ async function processItemForStep(
     // Task #1589: also persist the AI familyGuess as a membership row when the AI
     // returned no direct neighbor matches (empty-anchor case). sequence=1 is used
     // as the default position; the admin can reorder later.
-    const aiMemberships = result.memberships ?? [];
+    // Task #1636: canonicalize membership familyIds before storing.
+    const aiMemberships = (result.memberships ?? []).map((m) => ({
+      ...m,
+      familyId: toCanonical(m.familyId),
+    }));
     try {
       // Remove existing AI memberships for this item so a retry starts clean.
       await db
@@ -2195,8 +2216,10 @@ async function processItemForStep(
       // This replaces the old single-guess path (Task #1549) with a multi-guess path.
       // Each guess gets its own membership row (neighborDocumentId=null, position=null).
       // Deduplicated against families already covered by aiMemberships to avoid conflicts.
+      // Task #1636: use canonical family IDs for deduplication (already mapped above).
       const coveredFamilyIds = new Set(aiMemberships.map((m) => m.familyId));
       const guessesToPersist = (result.familyGuesses ?? (result.familyGuess ? [result.familyGuess] : []))
+        .map((fg) => ({ ...fg, familyId: toCanonical(fg.familyId) }))
         .filter((fg) => fg.familyId && !coveredFamilyIds.has(fg.familyId));
       if (guessesToPersist.length > 0) {
         const now = new Date();
@@ -2387,6 +2410,8 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
     let sessionExistingLinkCandidates: import('../services/bulk-import-analyzer').ExistingDocumentCandidate[] | undefined;
     // Task #1549: all families visible to this org, used for AI familyGuess.
     let sessionLinkingFamilies: { id: string; name: string; description?: string | null; isSystem: boolean }[] | undefined;
+    // Task #1636: canonical family ID mapper for write-path canonicalization.
+    let sessionCanonicalFamilyIdFor: ((id: string) => string) | undefined;
     // Task #1534: tracking variables for the linking candidate summary, captured
     // during the pre-fetch block so they are available after it closes.
     let _linkFamCount = 0;
@@ -2395,7 +2420,7 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
       sessionExistingLinkCandidates = [];   // strict existing-family mode
       const linkSession = await loadSession(sessionId);
       if (linkSession?.buildingId) {
-        const famRows = await db
+        const famRowsRaw = await db
           .select()
           .from(schema.documentLinkFamilies)
           .where(
@@ -2404,6 +2429,9 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
               eq(schema.documentLinkFamilies.organizationId, linkSession.organizationId),
             ),
           );
+        // Task #1636: deduplicate families by normalized name and capture canonical mapper.
+        const { canonical: famRows, canonicalIdForFamilyId } = buildCanonicalResult(famRowsRaw);
+        sessionCanonicalFamilyIdFor = canonicalIdForFamilyId;
         _linkFamCount = famRows.length;
         // Task #1549: capture all families for the AI familyGuess feature.
         sessionLinkingFamilies = famRows.map((f) => ({
@@ -2677,6 +2705,7 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
           sessionAvailableTags,
           sessionExistingLinkCandidates,
           sessionLinkingFamilies,
+          sessionCanonicalFamilyIdFor,
         );
         void workPromise
           .finally(() => { rawInFlight--; })
@@ -7512,7 +7541,7 @@ export function registerBulkImportRoutes(app: Express): void {
           : null;
 
         // Fetch all families visible to this org (system + org-scoped).
-        const families = await db
+        const familiesRaw = await db
           .select()
           .from(schema.documentLinkFamilies)
           .where(
@@ -7521,6 +7550,8 @@ export function registerBulkImportRoutes(app: Express): void {
               eq(schema.documentLinkFamilies.organizationId, session.organizationId),
             ),
           );
+        // Task #1636: deduplicate families by normalized name.
+        const { canonical: families } = buildCanonicalResult(familiesRaw);
 
         if (families.length === 0) {
           logDebug('[bulk-import] route exit GET link-candidates ok (no families)', {
@@ -7943,9 +7974,11 @@ export function registerBulkImportRoutes(app: Express): void {
             return res.status(400).json({ error: 'Family not visible to this organization', errorCode: 'family_not_visible' });
           }
 
+          // Task #1636: resolve to canonical family ID.
+          const canonicalAnchorFamilyId = await resolveCanonicalFamilyId(familyId, session.organizationId);
           const anchorLinkDecisions: Record<string, unknown> = {
             ...existing,
-            familyId,
+            familyId: canonicalAnchorFamilyId,
             beforeDocumentId: null,
             afterDocumentId: null,
             manualOverride: true,
@@ -7967,7 +8000,7 @@ export function registerBulkImportRoutes(app: Express): void {
               .insert(schema.bulkImportItemFamilyMemberships)
               .values({
                 itemId,
-                familyId,
+                familyId: canonicalAnchorFamilyId,
                 neighborDocumentId: null,
                 position: null,
                 source: 'manual',
@@ -8019,6 +8052,8 @@ export function registerBulkImportRoutes(app: Express): void {
             errorCode: 'family_not_visible',
           });
         }
+        // Task #1636: resolve to canonical family ID.
+        const canonicalFamilyId = await resolveCanonicalFamilyId(familyId, session.organizationId);
 
         // 2. Verify neighbor document exists.
         const [neighborDoc] = await db
@@ -8062,7 +8097,7 @@ export function registerBulkImportRoutes(app: Express): void {
           .from(schema.documentLinks)
           .where(
             and(
-              eq(schema.documentLinks.familyId, familyId),
+              eq(schema.documentLinks.familyId, canonicalFamilyId),
               or(
                 eq(schema.documentLinks.fromDocumentId, neighborDocumentId),
                 eq(schema.documentLinks.toDocumentId, neighborDocumentId),
@@ -8082,7 +8117,7 @@ export function registerBulkImportRoutes(app: Express): void {
             )
             .where(
               and(
-                eq(schema.bulkImportItemFamilyMemberships.familyId, familyId),
+                eq(schema.bulkImportItemFamilyMemberships.familyId, canonicalFamilyId),
                 isNull(schema.bulkImportItemFamilyMemberships.neighborDocumentId),
                 eq(schema.bulkImportItems.finalDocumentId, neighborDocumentId),
                 eq(schema.bulkImportItems.status, 'committed'),
@@ -8112,7 +8147,7 @@ export function registerBulkImportRoutes(app: Express): void {
           .from(schema.documentLinks)
           .where(
             and(
-              eq(schema.documentLinks.familyId, familyId),
+              eq(schema.documentLinks.familyId, canonicalFamilyId),
               or(
                 and(
                   eq(schema.documentLinks.fromDocumentId, neighborDocumentId),
@@ -8144,7 +8179,7 @@ export function registerBulkImportRoutes(app: Express): void {
             pos: schema.documentLinks.position,
           })
           .from(schema.documentLinks)
-          .where(eq(schema.documentLinks.familyId, familyId));
+          .where(eq(schema.documentLinks.familyId, canonicalFamilyId));
         // Build successor map: nextOf(doc) = the document immediately after doc
         // in the chain. Semantics:
         //   (from=A, pos='after', to=B)  → A's next is B
@@ -8172,7 +8207,7 @@ export function registerBulkImportRoutes(app: Express): void {
         while (walkCur !== undefined && walkSteps <= walkMax) {
           if (seenIds.has(walkCur)) {
             logDebug('[bulk-import] set-existing-link-decision: cycle detected', {
-              metadata: { itemId, familyId, neighborDocumentId, position, status: 400, durationMs: Date.now() - t0 },
+              metadata: { itemId, canonicalFamilyId, neighborDocumentId, position, status: 400, durationMs: Date.now() - t0 },
             });
             return res.status(400).json({ error: 'Link would create a cycle in this family', errorCode: 'cycle_detected' });
           }
@@ -8184,7 +8219,7 @@ export function registerBulkImportRoutes(app: Express): void {
         // Persist the decision.
         const nextLinkDecisions: Record<string, unknown> = {
           ...existing,
-          familyId,
+          familyId: canonicalFamilyId,
           beforeDocumentId: position === 'before' ? neighborDocumentId : null,
           afterDocumentId: position === 'after' ? neighborDocumentId : null,
           manualOverride: true,
@@ -8208,7 +8243,7 @@ export function registerBulkImportRoutes(app: Express): void {
             .insert(schema.bulkImportItemFamilyMemberships)
             .values({
               itemId,
-              familyId,
+              familyId: canonicalFamilyId,
               neighborDocumentId,
               position,
               source: 'manual',
@@ -8233,7 +8268,7 @@ export function registerBulkImportRoutes(app: Express): void {
         }
 
         logDebug('[bulk-import] route exit POST set-existing-link-decision ok', {
-          metadata: { itemId, familyId, neighborDocumentId, position, status: 200, durationMs: Date.now() - t0 },
+          metadata: { itemId, canonicalFamilyId, neighborDocumentId, position, status: 200, durationMs: Date.now() - t0 },
         });
         return res.json({ item: updated });
       } catch (err) {
@@ -8287,11 +8322,25 @@ export function registerBulkImportRoutes(app: Express): void {
           return res.json({ families: [] });
         }
 
+        // Task #1636: canonicalize requested IDs before loading rows so that
+        // duplicate-family aliases are transparently resolved.
+        const allOrgFamiliesRaw = await db
+          .select()
+          .from(schema.documentLinkFamilies)
+          .where(
+            or(
+              isNull(schema.documentLinkFamilies.organizationId),
+              eq(schema.documentLinkFamilies.organizationId, session.organizationId),
+            ),
+          );
+        const { canonicalIdForFamilyId: ctxCfif } = buildCanonicalResult(allOrgFamiliesRaw);
+        const canonicalFamilyIds = [...new Set(familyIds.map((id) => ctxCfif(id)))];
+
         // Load family rows.
         const famRows = await db
           .select()
           .from(schema.documentLinkFamilies)
-          .where(inArray(schema.documentLinkFamilies.id, familyIds));
+          .where(inArray(schema.documentLinkFamilies.id, canonicalFamilyIds));
 
         if (famRows.length === 0) {
           return res.json({ families: [] });
@@ -8322,7 +8371,7 @@ export function registerBulkImportRoutes(app: Express): void {
               .from(schema.documentLinks)
               .where(
                 and(
-                  inArray(schema.documentLinks.familyId, familyIds),
+                  inArray(schema.documentLinks.familyId, canonicalFamilyIds),
                   or(
                     inArray(schema.documentLinks.fromDocumentId, Array.from(scopedDocIds)),
                     inArray(schema.documentLinks.toDocumentId, Array.from(scopedDocIds)),
@@ -8587,11 +8636,13 @@ export function registerBulkImportRoutes(app: Express): void {
         if (!familyIsVisible) {
           return res.status(400).json({ error: 'Family not visible to this organization', errorCode: 'family_not_visible' });
         }
+        // Task #1636: resolve to canonical family ID.
+        const canonicalFamId = await resolveCanonicalFamilyId(familyId, session.organizationId);
 
         if (neighborDocumentId && position) {
           // Non-empty anchor: run full validation.
           const validationError = await validateFamilyMembershipInput({
-            item, session, familyId, neighborDocumentId, position,
+            item, session, familyId: canonicalFamId, neighborDocumentId, position,
           });
           if (validationError) {
             return res.status(validationError.status).json(validationError.body);
@@ -8611,7 +8662,7 @@ export function registerBulkImportRoutes(app: Express): void {
             .where(
               and(
                 eq(schema.bulkImportItems.sessionId, item.sessionId),
-                eq(schema.bulkImportItemFamilyMemberships.familyId, familyId),
+                eq(schema.bulkImportItemFamilyMemberships.familyId, canonicalFamId),
               ),
             );
           const maxSeq = existingInFamily.reduce((mx, r) => Math.max(mx, r.seq ?? 0), 0);
@@ -8623,7 +8674,7 @@ export function registerBulkImportRoutes(app: Express): void {
           .insert(schema.bulkImportItemFamilyMemberships)
           .values({
             itemId,
-            familyId,
+            familyId: canonicalFamId,
             neighborDocumentId: neighborDocumentId ?? null,
             position: position ?? null,
             source: 'manual',
@@ -8656,7 +8707,7 @@ export function registerBulkImportRoutes(app: Express): void {
         }
 
         // Task #1589: compact-renumber so the new entry has gap-free sequence.
-        await renumberFamilySequences(item.sessionId, familyId);
+        await renumberFamilySequences(item.sessionId, canonicalFamId);
 
         return res.status(201).json({ membership });
       } catch (err) {
@@ -9392,8 +9443,10 @@ export function registerBulkImportRoutes(app: Express): void {
           let retryExistingLinkCandidates: import('../services/bulk-import-analyzer').ExistingDocumentCandidate[] | undefined;
           // Task #1549: all families for the familyGuess feature.
           let retryLinkingFamilies: { id: string; name: string; description?: string | null; isSystem: boolean }[] | undefined;
+          // Task #1636: canonical family ID mapper for write-path canonicalization.
+          let retryCanonicalFamilyIdFor: ((id: string) => string) | undefined;
           if (step === 'linking' && session?.buildingId) {
-            const famRows = await db
+            const famRowsRaw = await db
               .select()
               .from(schema.documentLinkFamilies)
               .where(
@@ -9402,6 +9455,9 @@ export function registerBulkImportRoutes(app: Express): void {
                   eq(schema.documentLinkFamilies.organizationId, session.organizationId),
                 ),
               );
+            // Task #1636: deduplicate families by normalized name and capture canonical mapper.
+            const { canonical: famRows, canonicalIdForFamilyId: retryCfif } = buildCanonicalResult(famRowsRaw);
+            retryCanonicalFamilyIdFor = retryCfif;
             retryLinkingFamilies = famRows.map((f) => ({
               id: f.id,
               name: f.name,
@@ -9561,6 +9617,7 @@ export function registerBulkImportRoutes(app: Express): void {
                   identifyAvailableTags,
                   retryExistingLinkCandidates,
                   retryLinkingFamilies,
+                  retryCanonicalFamilyIdFor,
                 ),
                 RUN_ALL_ITEM_TIMEOUT_MS,
                 item.originalName,

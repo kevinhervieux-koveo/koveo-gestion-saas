@@ -525,6 +525,11 @@ export interface FamilyGroup<T extends FamilyGroupItemShape = FamilyGroupItemSha
   membershipByItemId: Map<string, FamilyMembership>;
 }
 
+/** Normalize a family name for same-name deduplication (trim + casefold). */
+function normalizeName(name: string): string {
+  return name.trim().toLowerCase();
+}
+
 /**
  * Task #1425 – Resolve a flat list of bulk-import items (each carrying their
  * `memberships[]`) into an ordered list of named family groups plus an
@@ -533,23 +538,35 @@ export interface FamilyGroup<T extends FamilyGroupItemShape = FamilyGroupItemSha
  * Task #1608: Extended with `existingDocsByFamilyId` to produce mixed rows
  * (existing library docs interleaved with new session items in chain order).
  *
+ * Task #1636: Same-name groups (same normalized name) are collapsed into a
+ * single card. When `canonicalIdFor` is supplied the groupMap is keyed by
+ * canonical ID from the start (preferred path). Normalized-name collapse runs
+ * afterwards as a safety-net fallback for any stale alias IDs that slipped
+ * through. Items/docs from merged groups are deduplicated into the winner.
+ *
  * Items can appear in **multiple** groups (many-to-many).
  *
  * Algorithm:
  *  1. Collect all unique familyIds across all items.
- *  2. Build a map of familyId → { familyId, familyName, items[], membershipByItemId }.
+ *  2. Build a map of canonicalId → group using `canonicalIdFor` when available.
  *  3. Walk every item: for each of its memberships, add it to the appropriate group.
  *  4. Items with zero memberships go into the Unassigned bucket (familyId=null).
- *  5. Sort groups: named families first (alphabetical), Unassigned last.
- *  6. For each group, build `rows` by interleaving existing docs with new items.
+ *  5. Collapse any remaining groups with the same normalized name (safety net).
+ *  6. Sort groups: named families first (alphabetical), Unassigned last.
+ *  7. For each group, build `rows` by interleaving existing docs with new items.
  *
  * @param existingDocsByFamilyId Optional map of familyId → ordered existing docs
  *   from the family-context endpoint. Used to build mixed-row sequences.
+ * @param canonicalIdFor Optional mapper from any familyId to its canonical id.
+ *   When supplied, groups are keyed by canonical id and the normalized-name
+ *   collapse acts only as a safety net for any residual stale aliases.
  */
 export function resolveFamilyGroups<T extends FamilyGroupItemShape>(
   items: T[],
   existingDocsByFamilyId?: Map<string, ExistingFamilyDoc[]>,
+  canonicalIdFor?: (id: string) => string,
 ): { groups: FamilyGroup<T>[]; unassignedItems: T[] } {
+  const toCanonical = canonicalIdFor ?? ((id: string) => id);
   const groupMap = new Map<string, FamilyGroup<T>>();
   const unassignedItems: T[] = [];
 
@@ -564,18 +581,20 @@ export function resolveFamilyGroups<T extends FamilyGroupItemShape>(
     }
 
     for (const m of validMemberships) {
-      let group = groupMap.get(m.familyId);
+      // Task #1636: key by canonical ID when a mapper is available.
+      const groupKey = toCanonical(m.familyId);
+      let group = groupMap.get(groupKey);
       if (!group) {
         group = {
-          familyId: m.familyId,
-          familyName: m.familyName ?? m.familyId,
+          familyId: groupKey,
+          familyName: m.familyName ?? groupKey,
           items: [],
           rows: [],
           newCount: 0,
           existingCount: 0,
           membershipByItemId: new Map(),
         };
-        groupMap.set(m.familyId, group);
+        groupMap.set(groupKey, group);
       }
       // Only add the item once per group even if it has multiple memberships
       // to the same family (defensive: the unique constraint prevents this).
@@ -585,6 +604,40 @@ export function resolveFamilyGroups<T extends FamilyGroupItemShape>(
       group.membershipByItemId.set(item.id, m);
     }
   }
+
+  // Task #1636: Collapse any remaining groups with the same normalized name as
+  // a safety net (catches stale aliases not covered by canonicalIdFor).
+  // When canonicalIdFor is provided this loop typically finds nothing to merge.
+  const normToCanonicalId = new Map<string, string>();
+  const collapsedGroupMap = new Map<string, FamilyGroup<T>>();
+  for (const [familyId, group] of groupMap) {
+    const norm = normalizeName(group.familyName);
+    const winnerKey = normToCanonicalId.get(norm);
+    if (!winnerKey) {
+      normToCanonicalId.set(norm, familyId);
+      collapsedGroupMap.set(familyId, group);
+    } else {
+      // Merge this group into the winner group.
+      const canonical = collapsedGroupMap.get(winnerKey)!;
+      for (const [itemId, membership] of group.membershipByItemId) {
+        if (!canonical.membershipByItemId.has(itemId)) {
+          canonical.items.push(...group.items.filter((it) => it.id === itemId));
+          canonical.membershipByItemId.set(itemId, membership);
+        }
+      }
+      // Also merge existingDocsByFamilyId entries so all existing docs appear.
+      if (existingDocsByFamilyId && existingDocsByFamilyId.has(familyId)) {
+        const dupDocs = existingDocsByFamilyId.get(familyId)!;
+        const canonDocs = existingDocsByFamilyId.get(winnerKey) ?? [];
+        const canonDocIds = new Set(canonDocs.map((d) => d.id));
+        const merged = [...canonDocs, ...dupDocs.filter((d) => !canonDocIds.has(d.id))];
+        existingDocsByFamilyId.set(winnerKey, merged);
+      }
+    }
+  }
+  // Replace groupMap with the collapsed version.
+  groupMap.clear();
+  for (const [id, group] of collapsedGroupMap) groupMap.set(id, group);
 
   // Task #1589: sort items within each group by their membership sequence (nulls last).
   for (const group of groupMap.values()) {
