@@ -1,0 +1,99 @@
+client:733 [vite] connecting...
+client:827 [vite] connected.
+bulk-document-import:1 Banner not shown: beforeinstallpromptevent.preventDefault() called. The page must call beforeinstallpromptevent.prompt() to show the banner.
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+[Violation] 'setTimeout' handler took <N>ms
+debug-log.ts:3 [bulk-import] runAll start {sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', step: 'linking'}
+debug-log.ts:3 [bulk-import] runAll success {sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', step: 'linking'}
+debug-log.ts:3 [bulk-import] resetStep start {sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', step: 'linking'}
+debug-log.ts:3 [bulk-import] resetStep success {sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', step: 'linking'}
+debug-log.ts:3 [bulk-import] run-all transition pending→running {sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', step: 'linking', startedAt: '2026-04-28T02:20:00.236Z', total: 10}
+debug-log.ts:3 [bulk-import] run-all transition running→done {sessionId: '07ef67a1-6c1f-4847-bc92-e8e7eb9e2f25', step: 'linking', finishedAt: '2026-04-28T02:20:29.130Z', processed: 10, failed: 0, …}
+shared.rollup.js:9 [Violation] Added non-passive event listener to a scroll-blocking 'wheel' event. Consider marking event handler as 'passive' to make the page more responsive. See https://www.chromestatus.com/feature/5745543795965952
+Viewport @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/shared.rollup.js:9
+initInternal @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/shared.rollup.js:495
+init @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js:872
+initViewer @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/main.js:24
+Promise.then
+main @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/main.js:57
+(anonymous) @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/main.js:59
+b7b0e56b-0d45-4344-88a5-e72c8f657e5f:29 [Violation] Added non-passive event listener to a scroll-blocking 'wheel' event. Consider marking event handler as 'passive' to make the page more responsive. See https://www.chromestatus.com/feature/5745543795965952
+(anonymous) @ b7b0e56b-0d45-4344-88a5-e72c8f657e5f:29
+shared.rollup.js:9 [Violation] Added non-passive event listener to a scroll-blocking 'wheel' event. Consider marking event handler as 'passive' to make the page more responsive. See https://www.chromestatus.com/feature/5745543795965952
+Viewport @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/shared.rollup.js:9
+initInternal @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/shared.rollup.js:495
+init @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/pdf_viewer_wrapper.js:872
+initViewer @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/main.js:24
+Promise.then
+main @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/main.js:57
+(anonymous) @ chrome-extension://mhjfbmdgcfjbbpaeojofohoefgiehjai/main.js:59
+6715cfe2-04b2-485e-b65e-1c546ab50c87:29 [Violation] Added non-passive event listener to a scroll-blocking 'wheel' event. Consider marking event handler as 'passive' to make the page more responsive. See https://www.chromestatus.com/feature/5745543795965952
+(anonymous) @ 6715cfe2-04b2-485e-b65e-1c546ab50c87:29
+queryClient.ts:112  POST https://723dd16d-7686-454e-a8f7-5701a0c98535-00-26q11uzml0jwy.picard.replit.dev/api/admin/bulk-import/items/7319d113-337e-4225-8237-f2443c395caa/commit 409 (Conflict)
+(anonymous) @ queryClient.ts:112
+(anonymous) @ bulk-document-import.tsx:3930
+await in (anonymous)
+fn @ @tanstack_react-query.js?v=df529bcc:1200
+run @ @tanstack_react-query.js?v=df529bcc:491
+start @ @tanstack_react-query.js?v=df529bcc:533
+execute @ @tanstack_react-query.js?v=df529bcc:1235
+await in execute
+mutate @ @tanstack_react-query.js?v=df529bcc:2642
+(anonymous) @ @tanstack_react-query.js?v=df529bcc:3356
+(anonymous) @ bulk-document-import.tsx:7749
+executeDispatch @ react-dom_client.js?v=df529bcc:11736
+runWithFiberInDEV @ react-dom_client.js?v=df529bcc:1485
+processDispatchQueue @ react-dom_client.js?v=df529bcc:11772
+(anonymous) @ react-dom_client.js?v=df529bcc:12182
+batchedUpdates$1 @ react-dom_client.js?v=df529bcc:2628
+dispatchEventForPluginEventSystem @ react-dom_client.js?v=df529bcc:11877
+dispatchEvent @ react-dom_client.js?v=df529bcc:14792
+dispatchDiscreteEvent @ react-dom_client.js?v=df529bcc:14773
