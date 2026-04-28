@@ -186,7 +186,7 @@ describe('Bills page shareable URLs', () => {
     renderAt('');
 
     // Wait for the filter UI to mount.
-    const filtersToggle = await screen.findByRole('button', { name: /^Filters$/ });
+    const filtersToggle = await screen.findByRole('button', { name: /show \/ hide filters/i });
 
     // No bill query params yet (year matches the default fiscal year so
     // it is intentionally omitted by the serializer).
