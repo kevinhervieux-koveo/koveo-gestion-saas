@@ -2108,6 +2108,10 @@ export default function BulkDocumentImportPage() {
     mimeType: string | null;
     chainSiblings: { id: string; originalName: string; mimeType: string | null }[];
     chainIndex: number;
+    /** Bulk-import linking step: ordered list of all family groups for up/down jumping. */
+    familyGroups?: { familyLabel: string; siblings: { id: string; originalName: string; mimeType: string | null }[] }[];
+    /** Index of the currently displayed family group within `familyGroups`. */
+    familyGroupIndex?: number;
   } | null>(null);
   // Per-item expansion state for the detail panel that reveals the
   // full-size quickAnalysis guesses, the labelled confidence and the
@@ -7623,17 +7627,29 @@ export default function BulkDocumentImportPage() {
                                         type="button"
                                         className="min-w-0 flex-1 text-left hover:underline focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring rounded"
                                         data-testid={`item-preview-trigger-${groupItem.id}`}
-                                        onClick={() => setPreviewItem({
-                                          id: groupItem.id,
-                                          originalName: groupItem.originalName,
-                                          mimeType: groupItem.mimeType,
-                                          chainSiblings: famGroupItems.map((gi) => ({
-                                            id: gi.id,
-                                            originalName: gi.originalName,
-                                            mimeType: gi.mimeType,
-                                          })),
-                                          chainIndex: famGroupItems.indexOf(groupItem),
-                                        })}
+                                        onClick={() => {
+                                          const allFamilyGroups = familyGroupsData.groups.map((fg) => {
+                                            const fgItems = fg.items.map((w) => (w as { id: string; memberships: FamilyMembership[]; _item: BulkImportItemLite })._item);
+                                            return {
+                                              familyLabel: fg.familyName,
+                                              siblings: fgItems.map((i) => ({ id: i.id, originalName: i.originalName, mimeType: i.mimeType })),
+                                            };
+                                          });
+                                          const gIdx = familyGroupsData.groups.indexOf(group);
+                                          setPreviewItem({
+                                            id: groupItem.id,
+                                            originalName: groupItem.originalName,
+                                            mimeType: groupItem.mimeType,
+                                            chainSiblings: famGroupItems.map((gi) => ({
+                                              id: gi.id,
+                                              originalName: gi.originalName,
+                                              mimeType: gi.mimeType,
+                                            })),
+                                            chainIndex: famGroupItems.indexOf(groupItem),
+                                            familyGroups: allFamilyGroups,
+                                            familyGroupIndex: gIdx >= 0 ? gIdx : undefined,
+                                          });
+                                        }}
                                       >
                                         <span className="text-sm truncate block" title={groupItem.originalName}>{getLinkingDisplayName(groupItem)}</span>
                                       </button>
@@ -11761,6 +11777,25 @@ export default function BulkDocumentImportPage() {
             mimeType: sibling.mimeType,
             chainSiblings: previewItem.chainSiblings,
             chainIndex: newIndex,
+            familyGroups: previewItem.familyGroups,
+            familyGroupIndex: previewItem.familyGroupIndex,
+          });
+        }}
+        familyGroups={previewItem?.familyGroups}
+        familyGroupIndex={previewItem?.familyGroupIndex}
+        onFamilyGroupNavigate={(targetIdx) => {
+          if (!previewItem?.familyGroups) return;
+          const targetGroup = previewItem.familyGroups[targetIdx];
+          if (!targetGroup || !targetGroup.siblings.length) return;
+          const firstSibling = targetGroup.siblings[0];
+          setPreviewItem({
+            id: firstSibling.id,
+            originalName: firstSibling.originalName,
+            mimeType: firstSibling.mimeType,
+            chainSiblings: targetGroup.siblings,
+            chainIndex: 0,
+            familyGroups: previewItem.familyGroups,
+            familyGroupIndex: targetIdx,
           });
         }}
       />

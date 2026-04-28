@@ -30,6 +30,12 @@ export interface ChainSibling {
   mimeType: string | null;
 }
 
+/** One family group entry for bulk-import cross-family navigation. */
+export interface PreviewFamilyGroup {
+  familyLabel: string;
+  siblings: ChainSibling[];
+}
+
 interface DocumentInlineViewerProps {
   isOpen: boolean;
   onClose: () => void;
@@ -42,6 +48,14 @@ interface DocumentInlineViewerProps {
   chainSiblings?: ChainSibling[];
   chainIndex?: number;
   onChainNavigate?: (index: number) => void;
+  /** Bulk-import only: ordered list of all family groups so the preview can
+   *  jump across families with up/down arrows. When absent the committed-document
+   *  family-switcher behaviour is used instead (via /api/documents/:id/neighbors). */
+  familyGroups?: PreviewFamilyGroup[];
+  /** Index of the currently displayed family group within `familyGroups`. */
+  familyGroupIndex?: number;
+  /** Called when the user requests a jump to a different family group. */
+  onFamilyGroupNavigate?: (groupIndex: number) => void;
 }
 
 interface NeighborInfo {
@@ -137,6 +151,9 @@ export function DocumentInlineViewer({
   chainSiblings,
   chainIndex,
   onChainNavigate,
+  familyGroups,
+  familyGroupIndex,
+  onFamilyGroupNavigate,
 }: DocumentInlineViewerProps) {
   const { toast } = useToast();
   const { t, language } = useLanguage();
@@ -171,8 +188,35 @@ export function DocumentInlineViewer({
     (e: React.KeyboardEvent<HTMLDivElement>) => {
       const tag = (e.target as HTMLElement)?.tagName?.toLowerCase();
       if (tag === 'input' || tag === 'textarea' || tag === 'select') return;
-      if (!activeFamily) return;
 
+      // Bulk-import mode: ArrowUp/Down jump across family groups; Left/Right
+      // walk within the current chain via onChainNavigate.
+      if (familyGroups && onFamilyGroupNavigate && familyGroupIndex !== undefined) {
+        switch (e.key) {
+          case 'ArrowLeft':
+            e.preventDefault();
+            if (chainIndex !== undefined && chainIndex > 0) onChainNavigate?.(chainIndex - 1);
+            break;
+          case 'ArrowRight':
+            e.preventDefault();
+            if (chainIndex !== undefined && chainSiblings && chainIndex < chainSiblings.length - 1) onChainNavigate?.(chainIndex + 1);
+            break;
+          case 'ArrowUp':
+            e.preventDefault();
+            if (familyGroupIndex > 0) onFamilyGroupNavigate(familyGroupIndex - 1);
+            break;
+          case 'ArrowDown':
+            e.preventDefault();
+            if (familyGroupIndex < familyGroups.length - 1) onFamilyGroupNavigate(familyGroupIndex + 1);
+            break;
+          default:
+            break;
+        }
+        return;
+      }
+
+      // Committed-document mode: uses neighbors API for family rows.
+      if (!activeFamily) return;
       switch (e.key) {
         case 'ArrowLeft':
           e.preventDefault();
@@ -194,7 +238,7 @@ export function DocumentInlineViewer({
           break;
       }
     },
-    [activeFamily, families.length, onNavigate],
+    [activeFamily, families.length, onNavigate, familyGroups, familyGroupIndex, onFamilyGroupNavigate, chainIndex, chainSiblings, onChainNavigate],
   );
 
   const previewKind = useMemo(() => detectPreviewKind(mimeType, fileName), [mimeType, fileName]);
@@ -633,22 +677,64 @@ export function DocumentInlineViewer({
           </div>
         </DialogHeader>
 
-        {/* Chain siblings nav (multi-file steps) */}
-        {chainSiblings && chainSiblings.length > 1 && chainIndex !== undefined && (
+        {/* Chain siblings nav (multi-file steps).
+            Also shown when familyGroups is provided (even for single-file families)
+            so that up/down cross-family buttons and the position indicator are visible. */}
+        {chainSiblings && chainIndex !== undefined && (chainSiblings.length > 1 || (familyGroups && familyGroups.length > 1)) && (
           <div className="flex items-center justify-between gap-2 px-4 py-2 border-b shrink-0 bg-muted/30" data-testid="chain-nav-bar">
+            {/* Left: prev-within-chain */}
             <Button type="button" variant="outline" size="sm" onClick={() => onChainNavigate?.(chainIndex - 1)} disabled={chainIndex === 0 || !onChainNavigate} data-testid="button-chain-prev" aria-label={t('previousDocument') || 'Previous document'}>
               <ChevronLeft className="w-4 h-4 mr-1" />
               {t('previous') || 'Prev'}
             </Button>
+
+            {/* Center: position indicator */}
             <span className="text-sm text-muted-foreground truncate text-center flex-1 min-w-0" data-testid="chain-nav-position">
+              {familyGroups && familyGroupIndex !== undefined && (
+                <span className="font-medium text-foreground">
+                  {`Family ${familyGroupIndex + 1} of ${familyGroups.length} · `}
+                </span>
+              )}
               {chainIndex + 1}&thinsp;/&thinsp;{chainSiblings.length}
               {' — '}
               <span className="truncate">{chainSiblings[chainIndex]?.originalName}</span>
             </span>
-            <Button type="button" variant="outline" size="sm" onClick={() => onChainNavigate?.(chainIndex + 1)} disabled={chainIndex === chainSiblings.length - 1 || !onChainNavigate} data-testid="button-chain-next" aria-label={t('nextDocument') || 'Next document'}>
-              {t('next') || 'Next'}
-              <ChevronRight className="w-4 h-4 ml-1" />
-            </Button>
+
+            {/* Right: next-within-chain + optional up/down family jump */}
+            <div className="flex items-center gap-1 shrink-0">
+              {familyGroups && familyGroups.length > 1 && familyGroupIndex !== undefined && onFamilyGroupNavigate && (
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFamilyGroupNavigate(familyGroupIndex - 1)}
+                    disabled={familyGroupIndex === 0}
+                    data-testid="button-family-prev"
+                    aria-label={t('previousFamily') || 'Previous family'}
+                    title={t('previousFamily') || 'Previous family'}
+                  >
+                    <ChevronUp className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => onFamilyGroupNavigate(familyGroupIndex + 1)}
+                    disabled={familyGroupIndex === familyGroups.length - 1}
+                    data-testid="button-family-next"
+                    aria-label={t('nextFamily') || 'Next family'}
+                    title={t('nextFamily') || 'Next family'}
+                  >
+                    <ChevronDown className="w-4 h-4" />
+                  </Button>
+                </>
+              )}
+              <Button type="button" variant="outline" size="sm" onClick={() => onChainNavigate?.(chainIndex + 1)} disabled={chainIndex === chainSiblings.length - 1 || !onChainNavigate} data-testid="button-chain-next" aria-label={t('nextDocument') || 'Next document'}>
+                {t('next') || 'Next'}
+                <ChevronRight className="w-4 h-4 ml-1" />
+              </Button>
+            </div>
           </div>
         )}
 
