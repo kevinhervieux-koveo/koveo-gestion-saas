@@ -5,12 +5,16 @@
 -- FORWARD MIGRATION
 -- ============================================================
 
-CREATE TYPE IF NOT EXISTS "onboarding_status" AS ENUM (
-  'not_started',
-  'in_progress',
-  'completed',
-  'skipped'
-);
+DO $$ BEGIN
+  CREATE TYPE "onboarding_status" AS ENUM (
+    'not_started',
+    'in_progress',
+    'completed',
+    'skipped'
+  );
+EXCEPTION
+  WHEN duplicate_object THEN NULL;
+END $$;
 
 CREATE TABLE IF NOT EXISTS "onboarding_progress" (
   "id"            TEXT PRIMARY KEY DEFAULT gen_random_uuid(),
