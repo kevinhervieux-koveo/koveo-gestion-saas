@@ -5180,7 +5180,7 @@ export default function BulkDocumentImportPage() {
                               data-testid={`group-org-${group.id}`}
                             >
                               <div
-                                className="text-xs font-semibold uppercase tracking-wide text-muted-foreground"
+                                className="text-xs font-semibold tracking-wide text-muted-foreground"
                                 data-testid={`group-org-header-${group.id}`}
                               >
                                 {group.name}
