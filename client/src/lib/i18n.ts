@@ -4513,6 +4513,8 @@ export interface Translations {
   orgCardEdit: string;
   orgCardDelete: string;
   orgCardClose: string;
+  orgCardBuilding: string;
+  orgCardBuildings: string;
 }
 
 /**
@@ -9036,6 +9038,8 @@ export const translations: Record<Language, Translations> = {
     orgCardEdit: 'Edit',
     orgCardDelete: 'Delete',
     orgCardClose: 'Close',
+    orgCardBuilding: 'building',
+    orgCardBuildings: 'buildings',
   },
   fr: {
 
@@ -13564,6 +13568,8 @@ export const translations: Record<Language, Translations> = {
     orgCardEdit: 'Modifier',
     orgCardDelete: 'Supprimer',
     orgCardClose: 'Fermer',
+    orgCardBuilding: 'bâtiment',
+    orgCardBuildings: 'bâtiments',
   }
 };
 

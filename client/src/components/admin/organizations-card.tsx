@@ -38,7 +38,7 @@ import { useToast } from '@/hooks/use-toast';
 import { apiRequest } from '@/lib/queryClient';
 import { OrganizationFormDialog } from './organization-form-dialog';
 import { DeleteConfirmationDialog } from '@/components/dialogs/delete-confirmation-dialog';
-import type { Organization } from '@shared/schema';
+import type { Organization, Building as BuildingType } from '@shared/schema';
 
 /**
  * Props interface for OrganizationsCard component.
@@ -71,6 +71,28 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
       return response.json();
     },
   });
+
+  // Fetch all buildings once and group by organizationId client-side.
+  // Uses the existing /api/buildings endpoint (with org-scope guard) which
+  // already returns all buildings accessible to the caller.
+  const { data: allBuildings } = useQuery<BuildingType[]>({
+    queryKey: ['/api/buildings'],
+    queryFn: async () => {
+      const response = await apiRequest('GET', '/api/buildings');
+      return response.json();
+    },
+  });
+
+  // Group buildings by organizationId for O(1) lookup per org card
+  const buildingsByOrg = React.useMemo(() => {
+    const map = new Map<string, BuildingType[]>();
+    for (const b of allBuildings ?? []) {
+      const list = map.get(b.organizationId) ?? [];
+      list.push(b);
+      map.set(b.organizationId, list);
+    }
+    return map;
+  }, [allBuildings]);
 
   // Delete organization mutation
   const deleteMutation = useCreateUpdateMutation<unknown, string>({
@@ -221,6 +243,34 @@ export function OrganizationsCard({ className }: OrganizationsCardProps) {
                       <p className='text-sm text-gray-600 dark:text-gray-400'>
                         {organization.address}
                       </p>
+
+                      {/* Buildings section */}
+                      {(() => {
+                        const orgBuildings = buildingsByOrg.get(organization.id) ?? [];
+                        return (
+                          <div className='mt-2'>
+                            <div className='flex items-center gap-1 text-sm font-medium text-gray-700 dark:text-gray-300 mb-1'>
+                              <Building className='h-3.5 w-3.5' />
+                              <span>
+                                {orgBuildings.length}{' '}
+                                {orgBuildings.length === 1
+                                  ? t('orgCardBuilding')
+                                  : t('orgCardBuildings')}
+                              </span>
+                            </div>
+                            {orgBuildings.length > 0 && (
+                              <ul className='space-y-0.5 pl-5 text-xs text-gray-500 dark:text-gray-400 list-disc'>
+                                {orgBuildings.map((b) => (
+                                  <li key={b.id}>
+                                    {b.name}
+                                    {b.city ? ` — ${b.city}` : ''}
+                                  </li>
+                                ))}
+                              </ul>
+                            )}
+                          </div>
+                        );
+                      })()}
                     </div>
 
                     <DropdownMenu>

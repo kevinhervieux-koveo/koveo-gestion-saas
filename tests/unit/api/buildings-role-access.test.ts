@@ -217,3 +217,49 @@ describe('GET /api/buildings — role-based access control (W45)', () => {
     expect(res.status).toBe(403);
   });
 });
+
+// ============================================================
+// Part 3: Regression — admin organizations page buildings call (task #1690)
+//
+// The /admin/organizations page was calling the non-existent route
+// GET /api/organizations/:id/buildings. The fix points it at the
+// existing GET /api/buildings?organizationId=:id endpoint. This suite
+// locks in that the correct endpoint returns non-empty buildings for
+// a super_admin viewing a specific org, ensuring the org cards always
+// show real building data.
+// ============================================================
+describe('GET /api/buildings?organizationId — admin/organizations page regression (task #1690)', () => {
+  it('super_admin with ?organizationId for org with buildings → 200 non-empty list', async () => {
+    const app = makeApp('super_admin');
+    const res = await request(app).get(`/api/buildings?organizationId=${MOCK_ORG_A}`);
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThan(0);
+    res.body.forEach((b: any) => {
+      expect(b.organizationId).toBe(MOCK_ORG_A);
+    });
+  });
+
+  it('super_admin with ?organizationId for second org → 200 non-empty list', async () => {
+    const app = makeApp('super_admin');
+    const res = await request(app).get(`/api/buildings?organizationId=${MOCK_ORG_B}`);
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body)).toBe(true);
+    expect(res.body.length).toBeGreaterThan(0);
+    res.body.forEach((b: any) => {
+      expect(b.organizationId).toBe(MOCK_ORG_B);
+    });
+  });
+
+  it('results are scoped to the requested org (no cross-org leakage)', async () => {
+    const app = makeApp('super_admin');
+    const resA = await request(app).get(`/api/buildings?organizationId=${MOCK_ORG_A}`);
+    const resB = await request(app).get(`/api/buildings?organizationId=${MOCK_ORG_B}`);
+    expect(resA.status).toBe(200);
+    expect(resB.status).toBe(200);
+    const idsA = new Set(resA.body.map((b: any) => b.id));
+    const idsB = new Set(resB.body.map((b: any) => b.id));
+    const overlap = [...idsA].filter((id) => idsB.has(id));
+    expect(overlap).toHaveLength(0);
+  });
+});
