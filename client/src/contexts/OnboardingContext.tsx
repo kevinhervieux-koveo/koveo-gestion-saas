@@ -488,6 +488,68 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
           // No more steps anywhere – let driver.js finish the tour.
           d.moveNext();
         },
+        // ── Cross-page navigation back (Task #1651) ──────────────────────
+        // Mirror of onNextClick for the "Previous" button. Without this,
+        // driver.js just decrements its step index inside the current
+        // page's eligible list, leaving the user stranded when the prior
+        // step lives on a different route.
+        //
+        // Path inheritance: precompute every original step's effective
+        // entryPath up-front (a step without an entryPath inherits the
+        // last RESOLVED path from the previous step in original order,
+        // seeded with tour.entryPath ?? current location).  Walking
+        // backwards then reads from this array directly so the inherited
+        // path remains correct regardless of scan direction.
+        onPrevClick: () => {
+          const currentIdx = d.getActiveIndex() ?? 0;
+          const clampedIdx = Math.max(0, Math.min(currentIdx, eligibleSteps.length - 1));
+          const currentStep = eligibleSteps[clampedIdx];
+
+          const allSteps = tour.steps as OnboardingStep[];
+          const currentOriginalIdx = allSteps.findIndex((s) => s.id === currentStep.id);
+
+          const resolvedPaths: string[] = [];
+          let lastResolvedPath = tour.entryPath
+            ? resolveEntryPath(tour.entryPath)
+            : locationRef.current;
+          for (let i = 0; i < allSteps.length; i++) {
+            const ep = allSteps[i].entryPath;
+            const sPath = ep ? resolveEntryPath(ep) : lastResolvedPath;
+            resolvedPaths.push(sPath);
+            lastResolvedPath = sPath;
+          }
+
+          // Walk backwards in original order to find the previous actionable step.
+          for (let i = currentOriginalIdx - 1; i >= 0; i--) {
+            const s = allSteps[i];
+            const sPath = resolvedPaths[i];
+
+            if (sPath && sPath !== locationRef.current) {
+              // (a) Cross-page: pause driver, navigate back, resume on prior page.
+              pendingTourStartRef.current = {
+                tourId: tour.tourId,
+                fromStep: clampedIdx,
+                fromStepId: s.id,
+              };
+              pausingForNavRef.current = true;
+              d.destroy();
+              setLocation(sPath);
+              return;
+            }
+
+            // (b) Same page: if this step is in the current eligible set,
+            // driver.js already knows about it — let it step back normally.
+            if (eligibleSteps.some((es) => es.id === s.id)) {
+              d.movePrevious();
+              return;
+            }
+
+            // Same page but not visible (visibleIf=false) → skip, keep scanning.
+          }
+
+          // No earlier actionable step – let driver.js handle (likely no-op).
+          d.movePrevious();
+        },
         onHighlighted: () => {
           // Use driver's canonical cursor instead of indexOf(step) which can
           // return -1 when driver.js doesn't preserve object references.
