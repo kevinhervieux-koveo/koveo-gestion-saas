@@ -442,16 +442,18 @@ describe('/manager/budget Gantt editing flows (Task #1312 e2e)', () => {
       const barRectSel = `[data-testid="gantt-bar-rect-${target.id}"]`;
       const overlaySel = `[data-testid="gantt-drag-overlay-${target.id}"]`;
 
-      // Bar rect must exist — it is the click target for inline edit
+      // Bar rect must exist — it is the recharts-rendered click target.
       await page.waitForSelector(barRectSel, { timeout: 30_000 });
 
-      // The old opaque overlay div (gantt-bar-click-*) must NOT exist —
-      // it was removed so the Recharts hover Tooltip can fire natively.
-      const oldOverlayPresent = await page.evaluate((id: string) =>
+      // Task #1594: a bar-sized click target (gantt-bar-click-*) is also
+      // rendered alongside the recharts bar to support unit tests where
+      // the recharts bar shape isn't rendered. It is NOT a full-row overlay,
+      // so the rest of the row keeps native Recharts hover behavior.
+      const barClickPresent = await page.evaluate((id: string) =>
         !!document.querySelector(`[data-testid="gantt-bar-click-${id}"]`),
         target.id,
       );
-      expect(oldOverlayPresent).toBe(false);
+      expect(barClickPresent).toBe(true);
 
       // Clicking the bar rect must engage inline edit mode
       const barRect = await page.$(barRectSel);

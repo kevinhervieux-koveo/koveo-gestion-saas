@@ -1067,6 +1067,48 @@ export function GanttChart({
               );
             })()}
 
+            {/* Per-row bar-click targets — transparent buttons sized to the
+                bar's footprint that start inline date editing on click. They
+                are intentionally bar-sized (not full-row) so the rest of the
+                row keeps native Recharts hover behavior; only the bar area
+                is intercepted. The editing row is skipped because the drag
+                overlay above takes over its click target. Rows without dates
+                have no bar to click. */}
+            {onStartEdit && domainSpan > 0 && displayRows.map((row, idx) => {
+              if (!row.hasDates) return null;
+              if (row.id === editingProjectId) return null;
+              if (row.startTs == null || row.endTs == null) return null;
+              const layout = barLayouts[row.id];
+              const top =
+                layout?.y ??
+                TOP_MARGIN + idx * ROW_HEIGHT + (ROW_HEIGHT - BAR_SIZE) / 2;
+              const heightPx = layout?.height ?? BAR_SIZE;
+              return (
+                <button
+                  key={row.id}
+                  type="button"
+                  data-testid={`gantt-bar-click-${row.id}`}
+                  aria-label={editLabel}
+                  title={editLabel}
+                  disabled={isSaving}
+                  onClick={() => onStartEdit(row.id)}
+                  style={{
+                    position: 'absolute',
+                    left: tsToLeft(row.startTs),
+                    width: tsSpanToWidth(row.endTs - row.startTs),
+                    top,
+                    height: heightPx,
+                    background: 'transparent',
+                    border: 'none',
+                    padding: 0,
+                    margin: 0,
+                    cursor: isSaving ? 'default' : 'pointer',
+                    zIndex: 4,
+                  }}
+                />
+              );
+            })}
+
             {/* Drag overlay for editing row — middle area slides the bar,
                 edge handles resize start / end independently. */}
             {dragOverlayStyle && (

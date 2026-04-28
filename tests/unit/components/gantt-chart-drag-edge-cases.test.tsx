@@ -383,13 +383,13 @@ describe('Gantt bar-drag edge cases (Task #1312)', () => {
     fireEvent.pointerUp(overlay, { clientX: 10, pointerId: 1 });
   });
 
-  // ── Bar click overlay removed (task #1476) ─────────────────────────────────
-  // The transparent full-row overlay divs were removed so the Recharts hover
-  // Tooltip can fire natively. Click-to-edit is now handled directly by the
-  // bar rect via an onClick prop threaded through MeasuredBarShape.
-  // The unit test uses a mocked recharts, so the bar rect isn't rendered here;
-  // we verify the old overlay div is absent and that the chart still renders.
-  it('no opaque full-row overlay div is rendered (gantt-bar-click-* removed)', async () => {
+  // ── Bar click target restored (task #1594) ─────────────────────────────────
+  // Task #1476 removed the original full-row overlay div so the Recharts hover
+  // Tooltip could fire natively. Task #1594 restores a bar-click target — but
+  // now sized to the bar's footprint (NOT the full row), so the rest of the
+  // row keeps native Recharts hover behavior. The custom hover-tooltip div
+  // must still be absent (we rely on the recharts Tooltip).
+  it('renders a bar-sized click target (no full-row overlay, no custom hover tooltip)', async () => {
     const proj: GanttProject = {
       id: 'hov',
       title: 'Hover project',
@@ -400,10 +400,18 @@ describe('Gantt bar-drag edge cases (Task #1312)', () => {
 
     renderEdge({ projects: [proj], dateRange: { start: '2026-01-01', end: '2026-12-31' } });
 
-    // The old opaque overlay div must NOT be present
-    expect(screen.queryByTestId('gantt-bar-click-hov')).not.toBeInTheDocument();
+    // The bar-click target must be present and sized to the bar footprint —
+    // not a full-row overlay (its width comes from the planned date span,
+    // not the full timeline width).
+    const clickTarget = screen.getByTestId('gantt-bar-click-hov');
+    expect(clickTarget).toBeInTheDocument();
+    expect(clickTarget.style.position).toBe('absolute');
+    // Width must NOT be 100%/full-row — it must be derived from the bar's
+    // date span (a percentage of the timeline that is < 100%).
+    expect(clickTarget.style.width).not.toBe('');
+    expect(clickTarget.style.width).not.toBe('100%');
 
-    // The custom hover tooltip must also not be present (replaced by recharts Tooltip)
+    // The custom hover tooltip must NOT be present (recharts Tooltip handles hover).
     expect(screen.queryByTestId('gantt-hover-tooltip-hov')).not.toBeInTheDocument();
 
     // The chart itself must still render
