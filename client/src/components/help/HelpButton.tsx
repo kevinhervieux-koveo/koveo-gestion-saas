@@ -11,7 +11,7 @@ export function HelpButton() {
   return (
     <Button
       onClick={toggleHelp}
-      className={`fixed bottom-6 left-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all ${isHelpOpen ? 'z-[75]' : 'z-40'}`}
+      className={`fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg hover:shadow-xl transition-all ${isHelpOpen ? 'z-[75]' : 'z-40'}`}
       size="icon"
       variant={isHelpOpen ? 'default' : 'secondary'}
       data-testid="button-help-toggle"
