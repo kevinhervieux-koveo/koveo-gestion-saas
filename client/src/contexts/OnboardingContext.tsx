@@ -31,6 +31,12 @@
  *     body overflow-hidden doesn't block wheel/touch events.
  *  7. Sidebar auto-collapse: the desktop sidebar collapses when a tour starts
  *     and is restored to the user's prior preference when the tour ends.
+ *
+ * Bug fix (Task #1653):
+ *  8. Topbar-aware scroll correction: driver.js calls element.scrollIntoView()
+ *     which doesn't account for fixed/sticky top bars.  After each highlight
+ *     we measure any pinned topbar in the DOM and scroll the highlighted
+ *     element down by that offset so the popover is never occluded.
  */
 
 import {
@@ -95,6 +101,126 @@ interface TourProgress {
   seenVersion: number;
   latestVersion: number;
   hasNewContent: boolean;
+}
+
+/**
+ * Default top offset used when no fixed/sticky topbar is detected. This keeps
+ * the highlighted element from sitting flush against the viewport edge after
+ * driver.js scrolls it into view.
+ */
+const DEFAULT_TOPBAR_PADDING_PX = 16;
+
+/**
+ * Maximum reasonable height for a topbar.  We ignore any candidate element
+ * taller than this so a full-height side-drawer (mobile sidebar overlay) never
+ * gets mistaken for a topbar.
+ */
+const MAX_TOPBAR_HEIGHT_PX = 200;
+
+/**
+ * Find the visible bottom edge (in viewport coordinates) of any fixed or
+ * sticky topbar pinned to the top of the viewport.  Returns 0 if none.
+ *
+ * Detection rules:
+ *  - The element must be visible and at most MAX_TOPBAR_HEIGHT_PX tall.
+ *  - Its top edge must be at (or within 8px of) the viewport top.
+ *  - It must be "pinned" — i.e. computed `position` is `fixed` or `sticky`,
+ *    OR it carries an explicit topbar marker (`[data-topbar]` or
+ *    `[data-onboarding="topbar"]`).  A bare `<header>` that just happens to
+ *    be near the top of the viewport (e.g. a normal in-flow page header that
+ *    scrolls with content) is NOT treated as a topbar — that would cause
+ *    the scroll correction to fire on pages where nothing is actually
+ *    occluding the highlight.
+ */
+function getTopbarBottom(): number {
+  if (typeof document === 'undefined') return 0;
+
+  const candidates = new Set<Element>();
+  document.querySelectorAll('header').forEach((el) => candidates.add(el));
+  // Common topbar markers used in the app layout.
+  document
+    .querySelectorAll('[data-onboarding="topbar"], [data-topbar], .sticky')
+    .forEach((el) => candidates.add(el));
+
+  let maxBottom = 0;
+  for (const el of candidates) {
+    if (!(el instanceof HTMLElement)) continue;
+    const style = window.getComputedStyle(el);
+    if (style.visibility === 'hidden' || style.display === 'none') continue;
+    const rect = el.getBoundingClientRect();
+    if (rect.height <= 0 || rect.height > MAX_TOPBAR_HEIGHT_PX) continue;
+    // Only consider elements anchored at the top of the viewport.
+    if (rect.top > 8) continue;
+    const hasTopbarMarker =
+      el.hasAttribute('data-topbar') ||
+      el.getAttribute('data-onboarding') === 'topbar';
+    const isPinned =
+      style.position === 'fixed' ||
+      style.position === 'sticky' ||
+      hasTopbarMarker;
+    if (!isPinned) continue;
+    if (rect.bottom > maxBottom) maxBottom = rect.bottom;
+  }
+  return maxBottom;
+}
+
+/**
+ * Walk up from `el` to find the nearest scrollable ancestor.  Falls back to
+ * `window` when no inner scroll container is found (page-level scrolling).
+ */
+function findScrollableAncestor(el: HTMLElement): HTMLElement | Window {
+  let parent: HTMLElement | null = el.parentElement;
+  while (parent) {
+    const style = window.getComputedStyle(parent);
+    const overflowY = style.overflowY;
+    if (
+      (overflowY === 'auto' || overflowY === 'scroll') &&
+      parent.scrollHeight > parent.clientHeight
+    ) {
+      return parent;
+    }
+    parent = parent.parentElement;
+  }
+  return window;
+}
+
+/**
+ * After driver.js scrolls a highlighted element into view, ensure it sits
+ * below any fixed top bar.  Driver.js calls `element.scrollIntoView()` which
+ * doesn't account for fixed overlays, so on small viewports (or when a step
+ * targets an element near the top of the page) the popover/highlight can be
+ * hidden under the topbar.  We measure the topbar height at runtime and
+ * scroll the relevant container up by the deficit, then dispatch a `scroll`
+ * event so driver.js repositions the popover.
+ *
+ * Task #1653.
+ */
+function applyTopbarScrollCorrection(anchor: string): void {
+  if (typeof document === 'undefined') return;
+  let target: HTMLElement | null;
+  try {
+    target = document.querySelector(anchor) as HTMLElement | null;
+  } catch {
+    // Invalid selector — bail silently.
+    return;
+  }
+  if (!target) return;
+
+  const topbarBottom = getTopbarBottom();
+  const requiredTop = topbarBottom + DEFAULT_TOPBAR_PADDING_PX;
+  const rect = target.getBoundingClientRect();
+  if (rect.top >= requiredTop) return;
+
+  const offset = requiredTop - rect.top;
+  const scrollable = findScrollableAncestor(target);
+  if (scrollable === window) {
+    window.scrollBy({ top: -offset, behavior: 'auto' });
+  } else {
+    (scrollable as HTMLElement).scrollTop -= offset;
+    // Driver.js only listens to `window` scroll events to reposition the
+    // popover, so nudge it here when we scrolled an inner container.
+    window.dispatchEvent(new Event('scroll'));
+  }
 }
 
 /**
@@ -370,6 +496,18 @@ export function OnboardingProvider({ children }: OnboardingProviderProps) {
           setCurrentStep(idx);
           lastStepIndexRef.current = idx;
           persistProgress(tour.tourId, 'in_progress', idx, latestVersion);
+
+          // Task #1653 — driver.js's native scrollIntoView() doesn't account
+          // for our fixed/sticky top bar.  Once the highlight has rendered,
+          // nudge the scroll position so the popover and highlight sit fully
+          // below the topbar.  We schedule on rAF + a small timeout so any
+          // pending smooth-scroll animation has a chance to settle first.
+          const anchor = eligibleSteps[idx]?.anchor;
+          if (anchor && typeof window !== 'undefined') {
+            window.requestAnimationFrame(() => {
+              window.setTimeout(() => applyTopbarScrollCorrection(anchor), 60);
+            });
+          }
         },
         onDestroyStarted: () => {
           const currentIdx = d.getActiveIndex() ?? 0;
