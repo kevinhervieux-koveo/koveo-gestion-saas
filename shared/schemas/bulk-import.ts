@@ -265,6 +265,15 @@ export const bulkImportItemFamilyMemberships = pgTable(
     manualOverride: boolean('manual_override').notNull().default(false),
     /** Short human-readable reason from the AI (or admin note). */
     reason: text('reason'),
+    /**
+     * Task #1589 — Sequence position of this item within its family group
+     * (1-based). Determines the visual order of new in-session items inside a
+     * family card and drives the commit-time neighbor resolution when no
+     * explicit `neighborDocumentId` is set (empty-family case). Sequence is
+     * per `(itemId, familyId)` — the same item can have independent positions
+     * in different families. NULL means "unordered / not yet assigned".
+     */
+    sequence: integer('sequence'),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
@@ -291,6 +300,8 @@ export const insertBulkImportItemFamilyMembershipSchema = z.object({
   aiConfidence: z.number().min(0).max(1).nullable().optional(),
   manualOverride: z.boolean().default(false),
   reason: z.string().nullable().optional(),
+  /** Task #1589: sequence position (1-based) within the family group. */
+  sequence: z.number().int().min(1).nullable().optional(),
 });
 
 export type BulkImportItemFamilyMembership =

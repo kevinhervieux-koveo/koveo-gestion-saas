@@ -2147,6 +2147,9 @@ async function processItemForStep(
     // Task #1425: persist each AI membership to bulk_import_item_family_memberships.
     // Delete any previous AI-sourced memberships for this item first (retry path),
     // then insert the fresh set. Manual memberships are preserved.
+    // Task #1589: also persist the AI familyGuess as a membership row when the AI
+    // returned no direct neighbor matches (empty-anchor case). sequence=1 is used
+    // as the default position; the admin can reorder later.
     const aiMemberships = result.memberships ?? [];
     try {
       // Remove existing AI memberships for this item so a retry starts clean.
@@ -2163,7 +2166,7 @@ async function processItemForStep(
         await db
           .insert(schema.bulkImportItemFamilyMemberships)
           .values(
-            aiMemberships.map((m) => ({
+            aiMemberships.map((m, idx) => ({
               itemId: item.id,
               familyId: m.familyId,
               neighborDocumentId: m.neighborDocumentId,
@@ -2172,9 +2175,50 @@ async function processItemForStep(
               aiConfidence: m.confidence,
               manualOverride: false,
               reason: m.reason ?? null,
+              sequence: idx + 1,
               updatedAt: now,
             })),
           )
+          .onConflictDoNothing();
+      } else if (result.familyGuess?.familyId) {
+        // Task #1589: no direct neighbor matches but AI guessed a family.
+        // Persist as an AI membership with neighborDocumentId=null so the
+        // Linking step can render this item inside its suggested family group
+        // even when the family has zero anchor documents.
+        // Compute the next sequence in this family across the entire session
+        // so newly inserted guess-only items get an incrementing slot.
+        const now = new Date();
+        const existingInFamily = await db
+          .select({ sequence: schema.bulkImportItemFamilyMemberships.sequence })
+          .from(schema.bulkImportItemFamilyMemberships)
+          .innerJoin(
+            schema.bulkImportItems,
+            eq(schema.bulkImportItemFamilyMemberships.itemId, schema.bulkImportItems.id),
+          )
+          .where(
+            and(
+              eq(schema.bulkImportItems.sessionId, item.sessionId),
+              eq(schema.bulkImportItemFamilyMemberships.familyId, result.familyGuess.familyId),
+            ),
+          );
+        const maxSeq = existingInFamily.reduce(
+          (max, r) => Math.max(max, r.sequence ?? 0),
+          0,
+        );
+        await db
+          .insert(schema.bulkImportItemFamilyMemberships)
+          .values({
+            itemId: item.id,
+            familyId: result.familyGuess.familyId,
+            neighborDocumentId: null,
+            position: null,
+            source: 'ai' as const,
+            aiConfidence: result.familyGuess.confidence,
+            manualOverride: false,
+            reason: result.familyGuess.reason ?? null,
+            sequence: maxSeq + 1,
+            updatedAt: now,
+          })
           .onConflictDoNothing();
       }
     } catch (membershipErr) {
@@ -3463,6 +3507,96 @@ export function registerBulkImportRoutes(app: Express): void {
           .where(inArray(schema.documents.id, Array.from(linkedNeighborDocIds)));
         for (const d of docRows) neighborDocNameMap.set(d.id, d.name);
       }
+
+      // Task #1589: batch-fetch all family memberships for the items in this
+      // session so the frontend can group items into family cards without
+      // needing a separate API call.  The memberships are attached as
+      // `linkingMemberships` on each item; unrecognised family IDs are silently
+      // dropped (defensive – shouldn't happen in practice).
+      type LiteMembership = {
+        id: string;
+        familyId: string;
+        familyName: string;
+        familyDescription: string | null;
+        neighborDocumentId: string | null;
+        position: 'before' | 'after' | null;
+        source: 'ai' | 'manual';
+        aiConfidence: number | null;
+        sequence: number | null;
+        reason: string | null;
+      };
+      const membershipsByItemId = new Map<string, LiteMembership[]>();
+      const allItemIds = items.map((it) => it.id);
+      if (allItemIds.length > 0) {
+        const membershipRows = await db
+          .select({
+            id: schema.bulkImportItemFamilyMemberships.id,
+            itemId: schema.bulkImportItemFamilyMemberships.itemId,
+            familyId: schema.bulkImportItemFamilyMemberships.familyId,
+            neighborDocumentId: schema.bulkImportItemFamilyMemberships.neighborDocumentId,
+            position: schema.bulkImportItemFamilyMemberships.position,
+            source: schema.bulkImportItemFamilyMemberships.source,
+            aiConfidence: schema.bulkImportItemFamilyMemberships.aiConfidence,
+            sequence: schema.bulkImportItemFamilyMemberships.sequence,
+            reason: schema.bulkImportItemFamilyMemberships.reason,
+          })
+          .from(schema.bulkImportItemFamilyMemberships)
+          .where(inArray(schema.bulkImportItemFamilyMemberships.itemId, allItemIds));
+
+        // Collect family IDs from memberships that are not yet in the existing
+        // map so we can look them up in a single extra query if needed.
+        const missingFamilyIds = new Set<string>();
+        for (const mr of membershipRows) {
+          if (mr.familyId && !familyNameMap.has(mr.familyId)) {
+            missingFamilyIds.add(mr.familyId);
+          }
+        }
+        if (missingFamilyIds.size > 0) {
+          const extraFamRows = await db
+            .select({ id: schema.documentLinkFamilies.id, name: schema.documentLinkFamilies.name, description: schema.documentLinkFamilies.description })
+            .from(schema.documentLinkFamilies)
+            .where(inArray(schema.documentLinkFamilies.id, Array.from(missingFamilyIds)));
+          for (const f of extraFamRows) {
+            familyNameMap.set(f.id, f.name);
+            familyDescriptionMap.set(f.id, f.description ?? null);
+          }
+        }
+
+        for (const mr of membershipRows) {
+          if (!mr.familyId) continue;
+          const familyName = familyNameMap.get(mr.familyId);
+          if (!familyName) continue; // family not visible / deleted
+
+          const list = membershipsByItemId.get(mr.itemId) ?? [];
+          list.push({
+            id: mr.id,
+            familyId: mr.familyId,
+            familyName,
+            familyDescription: familyDescriptionMap.get(mr.familyId) ?? null,
+            neighborDocumentId: mr.neighborDocumentId ?? null,
+            position: mr.position as 'before' | 'after' | null,
+            source: mr.source as 'ai' | 'manual',
+            aiConfidence: mr.aiConfidence ?? null,
+            sequence: mr.sequence ?? null,
+            reason: mr.reason ?? null,
+          });
+          membershipsByItemId.set(mr.itemId, list);
+        }
+
+        // Sort memberships within each item by sequence (nulls last), then id.
+        for (const [id, mlist] of membershipsByItemId) {
+          membershipsByItemId.set(
+            id,
+            mlist.sort((a, b) => {
+              if (a.sequence !== null && b.sequence !== null) return a.sequence - b.sequence;
+              if (a.sequence !== null) return -1;
+              if (b.sequence !== null) return 1;
+              return a.id.localeCompare(b.id);
+            }),
+          );
+        }
+      }
+
       type ItemWithLinking = typeof items[number] & {
         linkingFamilyId?: string | null;
         linkingBeforeDocumentId?: string | null;
@@ -3475,6 +3609,8 @@ export function registerBulkImportRoutes(app: Express): void {
         linkingFamilyGuessReason?: string | null;
         linkingFamilyGuessName?: string | null;
         linkingFamilyGuessDescription?: string | null;
+        /** Task #1589: real membership rows from bulk_import_item_family_memberships. */
+        linkingMemberships?: LiteMembership[];
       };
       const itemsWithNames: ItemWithLinking[] = items.map((it) => {
         const lkFam = (it as ItemWithLinking).linkingFamilyId ?? null;
@@ -3489,6 +3625,7 @@ export function registerBulkImportRoutes(app: Express): void {
           linkingNeighborPosition: lkBefore ? 'before' : lkAfter ? 'after' : null,
           linkingFamilyGuessName: lkGuess ? (familyNameMap.get(lkGuess) ?? null) : null,
           linkingFamilyGuessDescription: lkGuess ? (familyDescriptionMap.get(lkGuess) ?? null) : null,
+          linkingMemberships: membershipsByItemId.get(it.id) ?? [],
         };
       });
 
@@ -8299,18 +8436,67 @@ export function registerBulkImportRoutes(app: Express): void {
     },
   );
 
+  /**
+   * Task #1589: compact-renumber all sequence-ordered memberships within a
+   * session+family scope so that sequence values are 1, 2, 3, … with no gaps.
+   * Must be called after any INSERT or DELETE that changes the set of
+   * sequence-carrying memberships (i.e. those with sequence IS NOT NULL).
+   *
+   * Each membership is renumbered by its current relative order
+   * (ascending sequence, then id for stability). The function issues
+   * individual UPDATEs; for realistic batch sizes (<100 items per family)
+   * the overhead is negligible.
+   */
+  async function renumberFamilySequences(sessionId: string, familyId: string): Promise<void> {
+    const rows = await db
+      .select({
+        id: schema.bulkImportItemFamilyMemberships.id,
+        sequence: schema.bulkImportItemFamilyMemberships.sequence,
+      })
+      .from(schema.bulkImportItemFamilyMemberships)
+      .innerJoin(
+        schema.bulkImportItems,
+        eq(schema.bulkImportItemFamilyMemberships.itemId, schema.bulkImportItems.id),
+      )
+      .where(
+        and(
+          eq(schema.bulkImportItems.sessionId, sessionId),
+          eq(schema.bulkImportItemFamilyMemberships.familyId, familyId),
+          isNotNull(schema.bulkImportItemFamilyMemberships.sequence),
+        ),
+      )
+      .orderBy(schema.bulkImportItemFamilyMemberships.sequence, schema.bulkImportItemFamilyMemberships.id);
+
+    for (let i = 0; i < rows.length; i++) {
+      const newSeq = i + 1;
+      if (rows[i].sequence !== newSeq) {
+        await db
+          .update(schema.bulkImportItemFamilyMemberships)
+          .set({ sequence: newSeq, updatedAt: new Date() })
+          .where(eq(schema.bulkImportItemFamilyMemberships.id, rows[i].id));
+      }
+    }
+  }
+
+  // Task #1589: allow null neighborDocumentId/position for the empty-anchor case.
   const createMembershipSchema = z.object({
     familyId: z.string().min(1),
-    neighborDocumentId: z.string().min(1),
-    position: z.enum(['before', 'after']),
+    neighborDocumentId: z.string().min(1).nullable().optional(),
+    position: z.enum(['before', 'after']).nullable().optional(),
+    /** Task #1589: explicit sequence override. Auto-appended when omitted. */
+    sequence: z.number().int().min(1).nullable().optional(),
   });
 
   /**
    * POST /api/admin/bulk-import/items/:id/family-memberships
    *
-   * Creates a new manual family membership for an item. Runs the same
+   * Creates a new manual family membership for an item.
+   * When `neighborDocumentId` and `position` are provided, runs the same
    * validation as set-existing-link-decision (family visible, neighbor in
    * scope, side not occupied, no cycle).
+   * When `neighborDocumentId` is null, the item is treated as a first
+   * anchor candidate (empty-family case) — only family visibility is checked.
+   * Task #1589: sequence is auto-assigned as (max existing + 1) when omitted.
    */
   app.post(
     '/api/admin/bulk-import/items/:id/family-memberships',
@@ -8320,7 +8506,7 @@ export function registerBulkImportRoutes(app: Express): void {
       const t0 = Date.now();
       const itemId = req.params.id;
       try {
-        const { familyId, neighborDocumentId, position } = createMembershipSchema.parse(req.body);
+        const { familyId, neighborDocumentId, position, sequence: reqSequence } = createMembershipSchema.parse(req.body);
 
         const [item] = await db
           .select()
@@ -8332,12 +8518,49 @@ export function registerBulkImportRoutes(app: Express): void {
         const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
         if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
 
-        // Reuse the same validation helper as set-existing-link-decision.
-        const validationError = await validateFamilyMembershipInput({
-          item, session, familyId, neighborDocumentId, position,
-        });
-        if (validationError) {
-          return res.status(validationError.status).json(validationError.body);
+        // Verify family visibility (required for both empty and non-empty anchor cases).
+        const [family] = await db
+          .select()
+          .from(schema.documentLinkFamilies)
+          .where(eq(schema.documentLinkFamilies.id, familyId))
+          .limit(1);
+        if (!family) {
+          return res.status(400).json({ error: 'Family not found', errorCode: 'family_not_found' });
+        }
+        const familyIsVisible =
+          family.organizationId === null || family.organizationId === session.organizationId;
+        if (!familyIsVisible) {
+          return res.status(400).json({ error: 'Family not visible to this organization', errorCode: 'family_not_visible' });
+        }
+
+        if (neighborDocumentId && position) {
+          // Non-empty anchor: run full validation.
+          const validationError = await validateFamilyMembershipInput({
+            item, session, familyId, neighborDocumentId, position,
+          });
+          if (validationError) {
+            return res.status(validationError.status).json(validationError.body);
+          }
+        }
+
+        // Task #1589: auto-assign sequence as max existing + 1 within this session+family.
+        let sequence = reqSequence ?? null;
+        if (sequence == null) {
+          const existingInFamily = await db
+            .select({ seq: schema.bulkImportItemFamilyMemberships.sequence })
+            .from(schema.bulkImportItemFamilyMemberships)
+            .innerJoin(
+              schema.bulkImportItems,
+              eq(schema.bulkImportItemFamilyMemberships.itemId, schema.bulkImportItems.id),
+            )
+            .where(
+              and(
+                eq(schema.bulkImportItems.sessionId, item.sessionId),
+                eq(schema.bulkImportItemFamilyMemberships.familyId, familyId),
+              ),
+            );
+          const maxSeq = existingInFamily.reduce((mx, r) => Math.max(mx, r.seq ?? 0), 0);
+          sequence = maxSeq + 1;
         }
 
         const now = new Date();
@@ -8346,10 +8569,11 @@ export function registerBulkImportRoutes(app: Express): void {
           .values({
             itemId,
             familyId,
-            neighborDocumentId,
-            position,
+            neighborDocumentId: neighborDocumentId ?? null,
+            position: position ?? null,
             source: 'manual',
             manualOverride: true,
+            sequence,
             updatedAt: now,
           })
           .onConflictDoUpdate({
@@ -8357,7 +8581,14 @@ export function registerBulkImportRoutes(app: Express): void {
               schema.bulkImportItemFamilyMemberships.itemId,
               schema.bulkImportItemFamilyMemberships.familyId,
             ],
-            set: { neighborDocumentId, position, source: 'manual', manualOverride: true, updatedAt: now },
+            set: {
+              neighborDocumentId: neighborDocumentId ?? null,
+              position: position ?? null,
+              source: 'manual',
+              manualOverride: true,
+              sequence,
+              updatedAt: now,
+            },
           })
           .returning();
 
@@ -8369,6 +8600,9 @@ export function registerBulkImportRoutes(app: Express): void {
             .where(eq(schema.bulkImportItems.id, itemId));
         }
 
+        // Task #1589: compact-renumber so the new entry has gap-free sequence.
+        await renumberFamilySequences(item.sessionId, familyId);
+
         return res.status(201).json({ membership });
       } catch (err) {
         if (err instanceof z.ZodError) return res.status(400).json({ error: err.errors, errorCode: 'validation_error' });
@@ -8378,15 +8612,20 @@ export function registerBulkImportRoutes(app: Express): void {
     },
   );
 
+  // Task #1589: all fields optional so callers can send just a sequence update.
   const updateMembershipSchema = z.object({
-    neighborDocumentId: z.string().min(1),
-    position: z.enum(['before', 'after']),
+    neighborDocumentId: z.string().min(1).nullable().optional(),
+    position: z.enum(['before', 'after']).nullable().optional(),
+    /** Task #1589: sequence position (1-based) within the family group. */
+    sequence: z.number().int().min(1).nullable().optional(),
   });
 
   /**
    * PATCH /api/admin/bulk-import/items/:id/family-memberships/:membershipId
    *
-   * Updates the neighbor document and position for an existing membership.
+   * Updates the neighbor document, position, and/or sequence for a membership.
+   * Any subset of fields may be provided; omitted fields are left unchanged.
+   * Task #1589: `sequence` updates are accepted without re-validating neighbor.
    */
   app.patch(
     '/api/admin/bulk-import/items/:id/family-memberships/:membershipId',
@@ -8397,7 +8636,7 @@ export function registerBulkImportRoutes(app: Express): void {
       const itemId = req.params.id;
       const membershipId = req.params.membershipId;
       try {
-        const { neighborDocumentId, position } = updateMembershipSchema.parse(req.body);
+        const parsed = updateMembershipSchema.parse(req.body);
 
         const [membership] = await db
           .select()
@@ -8420,9 +8659,20 @@ export function registerBulkImportRoutes(app: Express): void {
         const canAccess = await canUserAccessOrganization(req.user!.id, session.organizationId);
         if (!canAccess) return res.status(403).json({ error: 'Forbidden' });
 
-        if (membership.familyId) {
+        // Only run neighbor validation when a neighborDocumentId is being set.
+        const effectiveNeighbor = parsed.neighborDocumentId !== undefined
+          ? parsed.neighborDocumentId
+          : membership.neighborDocumentId;
+        const effectivePosition = parsed.position !== undefined
+          ? parsed.position
+          : membership.position;
+        if (effectiveNeighbor && effectivePosition && membership.familyId) {
           const validationError = await validateFamilyMembershipInput({
-            item, session, familyId: membership.familyId, neighborDocumentId, position,
+            item,
+            session,
+            familyId: membership.familyId,
+            neighborDocumentId: effectiveNeighbor,
+            position: effectivePosition,
           });
           if (validationError) {
             return res.status(validationError.status).json(validationError.body);
@@ -8430,11 +8680,31 @@ export function registerBulkImportRoutes(app: Express): void {
         }
 
         const now = new Date();
+        const updateSet: Record<string, unknown> = { manualOverride: true, source: 'manual', updatedAt: now };
+        if (parsed.neighborDocumentId !== undefined) updateSet.neighborDocumentId = parsed.neighborDocumentId;
+        if (parsed.position !== undefined) updateSet.position = parsed.position;
+        if (parsed.sequence !== undefined) {
+          updateSet.sequence = parsed.sequence;
+          // Task #1589: When the sequence is changed but no explicit neighborDocumentId
+          // is provided in this request, clear the stored neighbor so the commit path
+          // uses sequence-based resolution instead of the (now stale) anchor pointer.
+          if (parsed.neighborDocumentId === undefined) {
+            updateSet.neighborDocumentId = null;
+            updateSet.position = null;
+          }
+        }
+
         const [updated] = await db
           .update(schema.bulkImportItemFamilyMemberships)
-          .set({ neighborDocumentId, position, manualOverride: true, source: 'manual', updatedAt: now })
+          .set(updateSet)
           .where(eq(schema.bulkImportItemFamilyMemberships.id, membershipId))
           .returning();
+
+        // Task #1589: compact-renumber after sequence changes so per-family order
+        // stays gap-free when the admin moves an item to a different slot.
+        if (parsed.sequence !== undefined && updated?.familyId) {
+          await renumberFamilySequences(item.sessionId, updated.familyId);
+        }
 
         return res.json({ membership: updated });
       } catch (err) {
@@ -8483,6 +8753,10 @@ export function registerBulkImportRoutes(app: Express): void {
         await db
           .delete(schema.bulkImportItemFamilyMemberships)
           .where(eq(schema.bulkImportItemFamilyMemberships.id, membershipId));
+
+        // Task #1589: compact-renumber remaining memberships in this family so
+        // there are no sequence gaps after the deletion.
+        await renumberFamilySequences(item.sessionId, membership.familyId);
 
         return res.json({ ok: true });
       } catch (err) {
@@ -9783,8 +10057,57 @@ export function registerBulkImportRoutes(app: Express): void {
           .from(schema.bulkImportItemFamilyMemberships)
           .where(eq(schema.bulkImportItemFamilyMemberships.itemId, item.id));
 
+        // Task #1589: Sequence-based neighbor resolution.
+        // For memberships with neighborDocumentId=null AND a sequence number, look for
+        // already-committed siblings in the same session+family that have a lower sequence.
+        // If found, the committed sibling with the highest sequence < current is used as the
+        // neighbor (position='after'), converting a potential first-anchor into a chained link.
+        // This must happen BEFORE the first-anchor conflict check below.
+        const resolvedMembershipRows = await Promise.all(
+          membershipRows.map(async (mr) => {
+            if (mr.neighborDocumentId !== null || !mr.familyId || mr.sequence === null) {
+              return mr; // No resolution needed.
+            }
+            // Find committed items in the same session+family with sequence < current.
+            const committedPredecessors = await db
+              .select({
+                finalDocumentId: schema.bulkImportItems.finalDocumentId,
+                sequence: schema.bulkImportItemFamilyMemberships.sequence,
+              })
+              .from(schema.bulkImportItemFamilyMemberships)
+              .innerJoin(
+                schema.bulkImportItems,
+                eq(schema.bulkImportItemFamilyMemberships.itemId, schema.bulkImportItems.id),
+              )
+              .where(
+                and(
+                  eq(schema.bulkImportItems.sessionId, item.sessionId),
+                  eq(schema.bulkImportItemFamilyMemberships.familyId, mr.familyId),
+                  eq(schema.bulkImportItems.status, 'committed'),
+                  ne(schema.bulkImportItems.id, item.id),
+                  isNotNull(schema.bulkImportItems.finalDocumentId),
+                  // Only sequence-ordered predecessors.
+                  isNotNull(schema.bulkImportItemFamilyMemberships.sequence),
+                ),
+              );
+            // Filter to those with lower sequence and pick the one with max sequence.
+            const predecessors = committedPredecessors
+              .filter((p) => (p.sequence ?? 0) < mr.sequence!)
+              .sort((a, b) => (b.sequence ?? 0) - (a.sequence ?? 0));
+            if (predecessors.length === 0 || !predecessors[0].finalDocumentId) {
+              return mr; // No committed predecessor → remain as first-anchor.
+            }
+            // Resolve to the immediately preceding committed sibling.
+            return {
+              ...mr,
+              neighborDocumentId: predecessors[0].finalDocumentId,
+              position: 'after' as const,
+            };
+          }),
+        );
+
         let linksToCommit: CommitLinkRow[];
-        if (membershipRows.length > 0) {
+        if (resolvedMembershipRows.length > 0) {
           // Task #1549: First-anchor conflict guard — if any membership row is a
           // first-anchor decision (familyId set, neighborDocumentId null), verify
           // that the family still has no committed documents in the SAME scope
@@ -9797,7 +10120,9 @@ export function registerBulkImportRoutes(app: Express): void {
           // precisely after the status-'committed' write below, giving the narrowest
           // possible window. Lock keys are stored in firstAnchorLockKeys for release
           // in all early-return paths.
-          const firstAnchorMemberships = membershipRows.filter(
+          // Task #1589: use resolvedMembershipRows so that sequence-resolved items
+          // (whose neighborDocumentId was filled in above) are NOT treated as first-anchor.
+          const firstAnchorMemberships = resolvedMembershipRows.filter(
             (m) => !!m.familyId && m.neighborDocumentId === null,
           );
           for (const fa of firstAnchorMemberships) {
@@ -9886,7 +10211,8 @@ export function registerBulkImportRoutes(app: Express): void {
               });
             }
           }
-          linksToCommit = membershipRows
+          // Task #1589: use resolvedMembershipRows so sequence-resolved neighbors are included.
+          linksToCommit = resolvedMembershipRows
             .filter((m): m is typeof m & { familyId: string; neighborDocumentId: string; position: 'before' | 'after' } =>
               !!m.familyId && !!m.neighborDocumentId && (m.position === 'before' || m.position === 'after'),
             )

@@ -483,6 +483,24 @@ export interface BulkImportItemLite {
   /** Resolved server-side description for the guessed family (may be null if unset). */
   linkingFamilyGuessDescription: string | null;
   /**
+   * Task #1589: real family membership rows for this item, as persisted in
+   * `bulk_import_item_family_memberships` and batch-resolved by the lite
+   * endpoint. Ordered by `sequence` (nulls last) within each family.
+   * Empty array when the item has no memberships (Standalone).
+   */
+  linkingMemberships: Array<{
+    id: string;
+    familyId: string;
+    familyName: string;
+    familyDescription: string | null;
+    neighborDocumentId: string | null;
+    position: 'before' | 'after' | null;
+    source: 'ai' | 'manual';
+    aiConfidence: number | null;
+    sequence: number | null;
+    reason: string | null;
+  }>;
+  /**
    * Task #1002: enriched duplicate info — null for non-duplicate items.
    * When status === 'duplicate', these fields carry info about the
    * already-committed document so the UI can show "Already in Koveo".
@@ -722,7 +740,7 @@ const STEP_LABEL_EN: Record<BulkImportStep, string> = {
   linking: 'Linking',
   complete: 'Complete',
 };
-const STEP_LABEL_FR: Record<BulkImportStep, string> = {
+export const STEP_LABEL_FR: Record<BulkImportStep, string> = {
   upload: 'Téléversement',
   screening: 'Filtrage',
   sorting: 'Aiguillage',
@@ -3955,6 +3973,114 @@ export default function BulkDocumentImportPage() {
   const [existingLinkPickerDocId, setExistingLinkPickerDocId] = useState<string>('');
   /** Task #1386: selected position in the picker (controlled). */
   const [existingLinkPickerPosition, setExistingLinkPickerPosition] = useState<'before' | 'after'>('before');
+  /**
+   * Task #1589: when true the picker is opened for "Add to another family"
+   * (POST family-memberships) rather than "Set existing link decision"
+   * (which replaces the single linkingFamilyId).
+   */
+  const [existingLinkPickerIsAddMode, setExistingLinkPickerIsAddMode] = useState(false);
+
+  /**
+   * Task #1589: local edit buffer for the sequence position input in family group
+   * item rows. Key is `${itemId}-${familyId}`. Cleared on poll refresh is intentional
+   * — if the user does not save, the old value is shown on next render.
+   */
+  const [sequenceInputValues, setSequenceInputValues] = useState<Map<string, string>>(new Map());
+
+  /**
+   * Task #1589: create a new family membership for an item.
+   * Used by the "Add to another family" picker in add mode.
+   */
+  const createMembership = useMutation({
+    mutationFn: async ({
+      itemId,
+      familyId,
+      neighborDocumentId,
+      position,
+    }: {
+      itemId: string;
+      familyId: string;
+      neighborDocumentId: string | null;
+      position: 'before' | 'after' | null;
+    }) => {
+      const res = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/items/${itemId}/family-memberships`,
+        { familyId, neighborDocumentId, position },
+      );
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string; errorCode?: string };
+        throw Object.assign(new Error(body.error ?? 'Failed to create membership'), { errorCode: body.errorCode });
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+    },
+    onError: (err: Error) => {
+      toast({
+        variant: 'destructive',
+        title: isFr ? 'Échec de l\'ajout à la famille' : 'Failed to add to family',
+        description: err.message,
+      });
+    },
+  });
+
+  /**
+   * Task #1589: delete a specific family membership row.
+   * Used by the per-row "Remove from this family" button inside family group cards.
+   */
+  const deleteMembership = useMutation({
+    mutationFn: async ({ itemId, membershipId }: { itemId: string; membershipId: string }) => {
+      const res = await apiRequest(
+        'DELETE',
+        `/api/admin/bulk-import/items/${itemId}/family-memberships/${membershipId}`,
+        undefined,
+      );
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(body.error ?? 'Failed to remove from family');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+    },
+    onError: (err: Error) => {
+      toast({
+        variant: 'destructive',
+        title: isFr ? 'Échec de la suppression du membership' : 'Failed to remove from family',
+        description: err.message,
+      });
+    },
+  });
+
+  /**
+   * Task #1589: update a membership's sequence (or other fields).
+   */
+  const updateMembership = useMutation({
+    mutationFn: async ({ itemId, membershipId, sequence }: { itemId: string; membershipId: string; sequence: number }) => {
+      const res = await apiRequest(
+        'PATCH',
+        `/api/admin/bulk-import/items/${itemId}/family-memberships/${membershipId}`,
+        { sequence },
+      );
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string };
+        throw new Error(body.error ?? 'Failed to update membership');
+      }
+      return res.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+    },
+  });
 
   /**
    * Task #1386: load link candidates for the item whose picker is open.
@@ -6465,28 +6591,29 @@ export default function BulkDocumentImportPage() {
                           ? resolveLinkingGroups(visibleItems, linkingOverrides)
                           : { groups: [] as LinkingGroup<BulkImportItemLite>[], standaloneIds: new Set<string>() };
 
-                        // Task #1425: compute family groups (many-to-many item→family).
-                        // Each item contributes a synthetic single-membership entry built
-                        // from its persisted `linkingFamilyId` so that `resolveFamilyGroups`
-                        // can bucket items into named family cards + an Unassigned bucket.
+                        // Task #1425 / Task #1589: compute family groups (many-to-many item→family).
+                        // Use the real `linkingMemberships` array from the lite endpoint
+                        // (batch-fetched from bulk_import_item_family_memberships) so that
+                        // items appear in named family cards even when the family has 0
+                        // anchor documents (empty-anchor AI-guess case from Task #1589).
                         const familyGroupsData = currentStep === 'linking'
                           ? resolveFamilyGroups(
                               visibleItems.map((item) => ({
                                 id: item.id,
-                                memberships: item.linkingFamilyId
-                                  ? ([{
-                                      id: `${item.id}::${item.linkingFamilyId}`,
-                                      itemId: item.id,
-                                      familyId: item.linkingFamilyId,
-                                      familyName: item.linkingFamilyName,
-                                      neighborDocumentId: item.linkingBeforeDocumentId ?? item.linkingAfterDocumentId,
-                                      position: item.linkingNeighborPosition,
-                                      source: item.linkingManualOverride ? 'manual' : 'ai',
-                                      manualOverride: item.linkingManualOverride,
-                                      aiConfidence: item.linkingConfidence,
-                                      reason: item.linkingReason,
-                                    } satisfies FamilyMembership])
-                                  : [],
+                                memberships: (item.linkingMemberships ?? []).map((lm) => ({
+                                  id: lm.id,
+                                  itemId: item.id,
+                                  familyId: lm.familyId,
+                                  familyName: lm.familyName,
+                                  familyDescription: lm.familyDescription,
+                                  neighborDocumentId: lm.neighborDocumentId,
+                                  position: lm.position,
+                                  source: lm.source,
+                                  manualOverride: lm.source === 'manual',
+                                  aiConfidence: lm.aiConfidence,
+                                  reason: lm.reason,
+                                  sequence: lm.sequence,
+                                } satisfies FamilyMembership)),
                                 _item: item,
                               })),
                             )
@@ -6829,12 +6956,25 @@ export default function BulkDocumentImportPage() {
                                 onClick={() => {
                                   for (const gi of famGroupItems) {
                                     if (gi.status !== 'committed' && gi.status !== 'duplicate') {
-                                      setExistingLinkDecision.mutate({
-                                        itemId: gi.id,
-                                        familyId: null,
-                                        neighborDocumentId: null,
-                                        position: null,
-                                      });
+                                      // Task #1589: for items with a membership row in the
+                                      // new table, delete the membership rather than using
+                                      // the legacy set-existing-link-decision path (which
+                                      // only clears the JSONB linkDecisions, not the memberships
+                                      // table, so the item would still appear in the group).
+                                      const membership = group.membershipByItemId.get(gi.id);
+                                      if (membership?.id) {
+                                        deleteMembership.mutate({
+                                          itemId: gi.id,
+                                          membershipId: membership.id,
+                                        });
+                                      } else {
+                                        setExistingLinkDecision.mutate({
+                                          itemId: gi.id,
+                                          familyId: null,
+                                          neighborDocumentId: null,
+                                          position: null,
+                                        });
+                                      }
                                     }
                                   }
                                 }}
@@ -6885,7 +7025,66 @@ export default function BulkDocumentImportPage() {
                                       <GrpItemIcon className="h-4 w-4 flex-shrink-0 text-muted-foreground" />
                                       <span className="text-sm truncate">{groupItem.originalName}</span>
                                     </button>
-                                    {/* Position within family */}
+                                    {/* Task #1589: sequence position display + editable input */}
+                                    {m?.sequence != null && (
+                                      <span
+                                        className="text-xs font-mono text-indigo-600 dark:text-indigo-400 flex-shrink-0"
+                                        data-testid={`family-row-position-${groupItem.id}-${group.familyId}`}
+                                        title={isFr ? `Position dans la famille: ${m.sequence}` : `Position in family: ${m.sequence}`}
+                                      >
+                                        #{m.sequence}
+                                      </span>
+                                    )}
+                                    {/* Editable sequence position input */}
+                                    {m?.id && (
+                                      <input
+                                        type="number"
+                                        min={1}
+                                        max={group.items.length}
+                                        data-testid={`family-row-position-input-${groupItem.id}-${group.familyId}`}
+                                        className="w-12 text-xs border border-border rounded px-1 py-0.5 text-center bg-background text-foreground flex-shrink-0 [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
+                                        value={sequenceInputValues.has(`${groupItem.id}-${group.familyId}`)
+                                          ? sequenceInputValues.get(`${groupItem.id}-${group.familyId}`)!
+                                          : (m.sequence ?? '')}
+                                        title={isFr ? 'Modifier la position dans la famille' : 'Edit position in family'}
+                                        onChange={(e) => {
+                                          const key = `${groupItem.id}-${group.familyId}`;
+                                          setSequenceInputValues((prev) => {
+                                            const next = new Map(prev);
+                                            next.set(key, e.target.value);
+                                            return next;
+                                          });
+                                        }}
+                                        onBlur={(e) => {
+                                          const raw = parseInt(e.target.value, 10);
+                                          // Task #1589: clamp to valid range [1..groupSize].
+                                          const groupSize = group.items.length;
+                                          const newSeq = isNaN(raw) ? NaN : Math.min(Math.max(raw, 1), groupSize);
+                                          if (!isNaN(newSeq) && newSeq !== m.sequence) {
+                                            updateMembership.mutate({ itemId: groupItem.id, membershipId: m.id!, sequence: newSeq });
+                                          }
+                                          const key = `${groupItem.id}-${group.familyId}`;
+                                          setSequenceInputValues((prev) => {
+                                            const next = new Map(prev);
+                                            next.delete(key);
+                                            return next;
+                                          });
+                                        }}
+                                        onKeyDown={(e) => {
+                                          if (e.key === 'Enter') e.currentTarget.blur();
+                                          if (e.key === 'Escape') {
+                                            const key = `${groupItem.id}-${group.familyId}`;
+                                            setSequenceInputValues((prev) => {
+                                              const next = new Map(prev);
+                                              next.delete(key);
+                                              return next;
+                                            });
+                                            e.currentTarget.blur();
+                                          }
+                                        }}
+                                      />
+                                    )}
+                                    {/* Position within family (neighbor link) */}
                                     {m?.neighborDocumentId && m.position && (
                                       <span className="text-xs text-muted-foreground flex-shrink-0 truncate max-w-[10rem]">
                                         {m.position === 'after'
@@ -6925,19 +7124,39 @@ export default function BulkDocumentImportPage() {
                                           <span className="ml-1">{isFr ? 'Réessayer' : 'Retry'}</span>
                                         </Button>
                                       )}
+                                      {/* Task #1589: "Add to another family" button */}
                                       {!grpIsExcluded && grpCanToggleExclude && (
                                         <Button
                                           size="sm"
                                           variant="ghost"
                                           className="h-7 px-2 text-xs"
-                                          onClick={() => setExistingLinkDecision.mutate({
-                                            itemId: groupItem.id,
-                                            familyId: null,
-                                            neighborDocumentId: null,
-                                            position: null,
-                                          })}
-                                          disabled={setExistingLinkDecision.isPending}
-                                          data-testid={`family-remove-${groupItem.id}`}
+                                          data-testid={`add-to-family-btn-${groupItem.id}`}
+                                          title={isFr ? 'Ajouter à une autre famille' : 'Add to another family'}
+                                          disabled={createMembership.isPending}
+                                          onClick={() => {
+                                            if (existingLinkPickerItemId === groupItem.id && existingLinkPickerIsAddMode) {
+                                              setExistingLinkPickerItemId(null);
+                                            } else {
+                                              setExistingLinkPickerItemId(groupItem.id);
+                                              setExistingLinkPickerFamilyId('');
+                                              setExistingLinkPickerDocId('');
+                                              setExistingLinkPickerPosition('before');
+                                              setExistingLinkPickerIsAddMode(true);
+                                            }
+                                          }}
+                                        >
+                                          <Library className="h-3.5 w-3.5" />
+                                        </Button>
+                                      )}
+                                      {/* Task #1589: "Remove from this family" — DELETE the specific membership row */}
+                                      {!grpIsExcluded && grpCanToggleExclude && m?.id && (
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-7 px-2 text-xs"
+                                          onClick={() => deleteMembership.mutate({ itemId: groupItem.id, membershipId: m.id })}
+                                          disabled={deleteMembership.isPending}
+                                          data-testid={`remove-from-family-btn-${groupItem.id}-${group.familyId}`}
                                           title={isFr ? 'Retirer de cette famille' : 'Remove from this family'}
                                         >
                                           <Link2Off className="h-3.5 w-3.5" />
@@ -6999,6 +7218,169 @@ export default function BulkDocumentImportPage() {
                                       </>
                                     )}
                                   </div>
+                                  {/* Task #1589: "Add to another family" picker panel — rendered
+                                      inline when the "Add to another family" button is clicked. */}
+                                  {existingLinkPickerItemId === groupItem.id && existingLinkPickerIsAddMode && (
+                                    <div
+                                      className="mx-2 mb-1 rounded border border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950 p-3 space-y-2"
+                                      data-testid={`existing-link-picker-${groupItem.id}`}
+                                    >
+                                      <div className="flex items-center justify-between">
+                                        <span className="text-xs font-semibold text-blue-900 dark:text-blue-200">
+                                          {isFr ? 'Ajouter à une famille' : 'Add to a family'}
+                                        </span>
+                                        <Button
+                                          size="sm"
+                                          variant="ghost"
+                                          className="h-6 px-2 text-xs"
+                                          onClick={() => { setExistingLinkPickerItemId(null); setExistingLinkPickerIsAddMode(false); }}
+                                        >
+                                          ✕
+                                        </Button>
+                                      </div>
+                                      {linkCandidatesQuery.isLoading && (
+                                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                          {isFr ? 'Chargement des candidats…' : 'Loading candidates…'}
+                                        </div>
+                                      )}
+                                      {linkCandidatesQuery.data && (
+                                        <>
+                                          {linkCandidatesQuery.data.families.length === 0 ? (
+                                            <p className="text-xs text-muted-foreground">
+                                              {isFr
+                                                ? 'Aucun document existant disponible comme point d\'ancrage.'
+                                                : 'No existing documents available as anchor points.'}
+                                            </p>
+                                          ) : (
+                                            <div className="space-y-2">
+                                              <div>
+                                                <label className="text-xs font-medium text-blue-900 dark:text-blue-200 block mb-1">
+                                                  {isFr ? 'Famille' : 'Family'}
+                                                </label>
+                                                <select
+                                                  className="w-full rounded border border-input bg-background px-2 py-1 text-xs"
+                                                  value={existingLinkPickerFamilyId}
+                                                  data-testid={`existing-link-family-select-${groupItem.id}`}
+                                                  onChange={(e) => {
+                                                    setExistingLinkPickerFamilyId(e.target.value);
+                                                    setExistingLinkPickerDocId('');
+                                                  }}
+                                                >
+                                                  <option value="">
+                                                    {isFr ? '— Choisir une famille —' : '— Choose a family —'}
+                                                  </option>
+                                                  {linkCandidatesQuery.data.families.map((f) => (
+                                                    <option
+                                                      key={f.id}
+                                                      value={f.id}
+                                                      disabled={(groupItem.linkingMemberships ?? []).some((lm) => lm.familyId === f.id)}
+                                                    >
+                                                      {f.name}{(groupItem.linkingMemberships ?? []).some((lm) => lm.familyId === f.id) ? (isFr ? ' (déjà ajouté)' : ' (already added)') : ''}
+                                                    </option>
+                                                  ))}
+                                                </select>
+                                              </div>
+                                              {existingLinkPickerFamilyId && (() => {
+                                                const fam = linkCandidatesQuery.data!.families.find((f) => f.id === existingLinkPickerFamilyId);
+                                                if (!fam) return null;
+                                                if (fam.documents.length === 0) return (
+                                                  <div className="space-y-1">
+                                                    <p className="text-xs text-muted-foreground" data-testid={`existing-link-empty-family-note-${groupItem.id}`}>
+                                                      {isFr
+                                                        ? 'Cette famille n\'a pas encore de document. Ce document en sera le premier ancrage.'
+                                                        : 'This family has no documents yet. This document will become its first anchor.'}
+                                                    </p>
+                                                    <Button
+                                                      size="sm"
+                                                      variant="default"
+                                                      className="h-7 text-xs"
+                                                      data-testid={`existing-link-commit-first-anchor-${groupItem.id}`}
+                                                      disabled={createMembership.isPending}
+                                                      onClick={() => {
+                                                        createMembership.mutate(
+                                                          { itemId: groupItem.id, familyId: existingLinkPickerFamilyId, neighborDocumentId: null, position: null },
+                                                          { onSuccess: () => { setExistingLinkPickerItemId(null); setExistingLinkPickerIsAddMode(false); } },
+                                                        );
+                                                      }}
+                                                    >
+                                                      {createMembership.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : (isFr ? 'Définir comme premier ancrage' : 'Set as first anchor')}
+                                                    </Button>
+                                                  </div>
+                                                );
+                                                return (
+                                                  <div className="space-y-2">
+                                                    <div>
+                                                      <label className="text-xs font-medium text-blue-900 dark:text-blue-200 block mb-1">
+                                                        {isFr ? 'Document voisin' : 'Neighbor document'}
+                                                      </label>
+                                                      <select
+                                                        className="w-full rounded border border-input bg-background px-2 py-1 text-xs"
+                                                        value={existingLinkPickerDocId}
+                                                        data-testid={`existing-link-doc-select-${groupItem.id}`}
+                                                        onChange={(e) => {
+                                                          setExistingLinkPickerDocId(e.target.value);
+                                                          const doc = fam.documents.find((d) => d.id === e.target.value);
+                                                          if (doc) {
+                                                            if (doc.canLinkBefore && !doc.canLinkAfter) setExistingLinkPickerPosition('before');
+                                                            else if (!doc.canLinkBefore && doc.canLinkAfter) setExistingLinkPickerPosition('after');
+                                                          }
+                                                        }}
+                                                      >
+                                                        <option value="">{isFr ? '— Choisir un document —' : '— Choose a document —'}</option>
+                                                        {fam.documents.map((d) => (
+                                                          <option key={d.id} value={d.id}>
+                                                            {d.name}{d.effectiveDate ? ` (${d.effectiveDate.slice(0, 10)})` : ''}
+                                                          </option>
+                                                        ))}
+                                                      </select>
+                                                    </div>
+                                                    {existingLinkPickerDocId && (() => {
+                                                      const doc = fam.documents.find((d) => d.id === existingLinkPickerDocId);
+                                                      if (!doc) return null;
+                                                      return (
+                                                        <div className="space-y-1">
+                                                          <div className="flex gap-2">
+                                                            {doc.canLinkBefore && (
+                                                              <label className="flex items-center gap-1 text-xs cursor-pointer">
+                                                                <input type="radio" name={`add-fam-position-${groupItem.id}`} value="before" checked={existingLinkPickerPosition === 'before'} onChange={() => setExistingLinkPickerPosition('before')} />
+                                                                {isFr ? 'Avant' : 'Before'}
+                                                              </label>
+                                                            )}
+                                                            {doc.canLinkAfter && (
+                                                              <label className="flex items-center gap-1 text-xs cursor-pointer">
+                                                                <input type="radio" name={`add-fam-position-${groupItem.id}`} value="after" checked={existingLinkPickerPosition === 'after'} onChange={() => setExistingLinkPickerPosition('after')} />
+                                                                {isFr ? 'Après' : 'After'}
+                                                              </label>
+                                                            )}
+                                                          </div>
+                                                          <Button
+                                                            size="sm"
+                                                            variant="default"
+                                                            className="h-7 text-xs"
+                                                            data-testid={`existing-link-confirm-${groupItem.id}`}
+                                                            disabled={createMembership.isPending}
+                                                            onClick={() => {
+                                                              createMembership.mutate(
+                                                                { itemId: groupItem.id, familyId: existingLinkPickerFamilyId, neighborDocumentId: existingLinkPickerDocId, position: existingLinkPickerPosition },
+                                                                { onSuccess: () => { setExistingLinkPickerItemId(null); setExistingLinkPickerIsAddMode(false); } },
+                                                              );
+                                                            }}
+                                                          >
+                                                            {createMembership.isPending ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : (isFr ? 'Confirmer le lien' : 'Confirm link')}
+                                                          </Button>
+                                                        </div>
+                                                      );
+                                                    })()}
+                                                  </div>
+                                                );
+                                              })()}
+                                            </div>
+                                          )}
+                                        </>
+                                      )}
+                                    </div>
+                                  )}
                                 </div>
                               );
                             })}
@@ -7554,20 +7936,28 @@ export default function BulkDocumentImportPage() {
                                                   ? 'Cette famille n\'a pas encore de document. Ce document en sera le premier ancrage.'
                                                   : 'This family has no documents yet. This document will become its first anchor.'}
                                               </p>
+                                              {/* Task #1589: add mode uses createMembership; standard mode uses setExistingLinkDecision */}
                                               <Button
                                                 size="sm"
                                                 variant="default"
                                                 className="h-7 text-xs"
                                                 data-testid={`existing-link-commit-first-anchor-${item.id}`}
-                                                disabled={setExistingLinkDecision.isPending}
+                                                disabled={existingLinkPickerIsAddMode ? createMembership.isPending : setExistingLinkDecision.isPending}
                                                 onClick={() => {
-                                                  setExistingLinkDecision.mutate(
-                                                    { itemId: item.id, familyId: existingLinkPickerFamilyId, neighborDocumentId: null, position: null },
-                                                    { onSuccess: () => setExistingLinkPickerItemId(null) },
-                                                  );
+                                                  if (existingLinkPickerIsAddMode) {
+                                                    createMembership.mutate(
+                                                      { itemId: item.id, familyId: existingLinkPickerFamilyId, neighborDocumentId: null, position: null },
+                                                      { onSuccess: () => { setExistingLinkPickerItemId(null); setExistingLinkPickerIsAddMode(false); } },
+                                                    );
+                                                  } else {
+                                                    setExistingLinkDecision.mutate(
+                                                      { itemId: item.id, familyId: existingLinkPickerFamilyId, neighborDocumentId: null, position: null },
+                                                      { onSuccess: () => setExistingLinkPickerItemId(null) },
+                                                    );
+                                                  }
                                                 }}
                                               >
-                                                {setExistingLinkDecision.isPending
+                                                {(existingLinkPickerIsAddMode ? createMembership.isPending : setExistingLinkDecision.isPending)
                                                   ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                                   : (isFr ? 'Définir comme premier ancrage' : 'Set as first anchor')}
                                               </Button>
@@ -7639,30 +8029,45 @@ export default function BulkDocumentImportPage() {
                                                         </label>
                                                       )}
                                                     </div>
+                                                    {/* Task #1589: add mode creates a membership; standard mode sets link decision */}
                                                     <Button
                                                       size="sm"
                                                       variant="default"
                                                       className="mt-2 h-7 text-xs"
                                                       data-testid={`existing-link-confirm-${item.id}`}
-                                                      disabled={setExistingLinkDecision.isPending}
+                                                      disabled={existingLinkPickerIsAddMode ? createMembership.isPending : setExistingLinkDecision.isPending}
                                                       onClick={() => {
                                                         if (!existingLinkPickerFamilyId || !existingLinkPickerDocId) return;
-                                                        setExistingLinkDecisionErrors((prev) => {
-                                                          const m = new Map(prev); m.delete(item.id); return m;
-                                                        });
-                                                        setExistingLinkDecision.mutate({
-                                                          itemId: item.id,
-                                                          familyId: existingLinkPickerFamilyId,
-                                                          neighborDocumentId: existingLinkPickerDocId,
-                                                          position: existingLinkPickerPosition,
-                                                        }, {
-                                                          onSuccess: () => {
-                                                            setExistingLinkPickerItemId(null);
-                                                          },
-                                                        });
+                                                        if (existingLinkPickerIsAddMode) {
+                                                          createMembership.mutate({
+                                                            itemId: item.id,
+                                                            familyId: existingLinkPickerFamilyId,
+                                                            neighborDocumentId: existingLinkPickerDocId,
+                                                            position: existingLinkPickerPosition,
+                                                          }, {
+                                                            onSuccess: () => {
+                                                              setExistingLinkPickerItemId(null);
+                                                              setExistingLinkPickerIsAddMode(false);
+                                                            },
+                                                          });
+                                                        } else {
+                                                          setExistingLinkDecisionErrors((prev) => {
+                                                            const m = new Map(prev); m.delete(item.id); return m;
+                                                          });
+                                                          setExistingLinkDecision.mutate({
+                                                            itemId: item.id,
+                                                            familyId: existingLinkPickerFamilyId,
+                                                            neighborDocumentId: existingLinkPickerDocId,
+                                                            position: existingLinkPickerPosition,
+                                                          }, {
+                                                            onSuccess: () => {
+                                                              setExistingLinkPickerItemId(null);
+                                                            },
+                                                          });
+                                                        }
                                                       }}
                                                     >
-                                                      {setExistingLinkDecision.isPending
+                                                      {(existingLinkPickerIsAddMode ? createMembership.isPending : setExistingLinkDecision.isPending)
                                                         ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
                                                         : (isFr ? 'Confirmer le lien' : 'Confirm link')}
                                                     </Button>

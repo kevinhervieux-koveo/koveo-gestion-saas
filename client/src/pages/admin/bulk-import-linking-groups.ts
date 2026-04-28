@@ -404,12 +404,16 @@ export interface FamilyMembership {
   itemId: string;
   familyId: string | null;
   familyName: string | null;
+  /** Task #1589: resolved family description (may be null when unset). */
+  familyDescription?: string | null;
   neighborDocumentId: string | null;
   position: 'before' | 'after' | null;
   source: 'ai' | 'manual';
   manualOverride: boolean;
   aiConfidence: number | null;
   reason: string | null;
+  /** Task #1589: 1-based sequence position within the family group. Null = unordered. */
+  sequence?: number | null;
 }
 
 /** An item in the family-group view. Must carry its memberships. */
@@ -480,6 +484,16 @@ export function resolveFamilyGroups<T extends FamilyGroupItemShape>(
       }
       group.membershipByItemId.set(item.id, m);
     }
+  }
+
+  // Task #1589: sort items within each group by their membership sequence (nulls last).
+  for (const group of groupMap.values()) {
+    group.items.sort((a, b) => {
+      const seqA = group.membershipByItemId.get(a.id)?.sequence ?? Infinity;
+      const seqB = group.membershipByItemId.get(b.id)?.sequence ?? Infinity;
+      if (seqA === seqB) return 0;
+      return seqA - seqB;
+    });
   }
 
   const namedGroups = Array.from(groupMap.values()).sort((a, b) =>

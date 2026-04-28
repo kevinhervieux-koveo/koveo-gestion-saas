@@ -24,6 +24,8 @@ function makeMembership(overrides: Partial<FamilyMembership> = {}): FamilyMember
     manualOverride: overrides.manualOverride ?? false,
     aiConfidence: 'aiConfidence' in overrides ? (overrides.aiConfidence as number | null) : 0.9,
     reason: 'reason' in overrides ? (overrides.reason as string | null) : null,
+    // Task #1589: sequence position (optional — null/undefined means unordered).
+    ...(('sequence' in overrides) ? { sequence: overrides.sequence } : {}),
   };
 }
 
@@ -144,5 +146,72 @@ describe('resolveFamilyGroups — Task #1425', () => {
     ];
     const { groups } = resolveFamilyGroups(items);
     expect(groups[0].familyName).toBe('fam-x');
+  });
+});
+
+/**
+ * Task #1589 — Sequence-based ordering within family groups.
+ *
+ * Items in a family group must be sorted by their membership sequence
+ * value ascending, with null/undefined sequence values sorted last.
+ */
+describe('resolveFamilyGroups — Task #1589 sequence ordering', () => {
+  it('sorts items by sequence ascending within a group', () => {
+    const items = [
+      makeItem('i3', [makeMembership({ id: 'm3', itemId: 'i3', familyId: 'fam-a', familyName: 'Alpha', sequence: 3 })]),
+      makeItem('i1', [makeMembership({ id: 'm1', itemId: 'i1', familyId: 'fam-a', familyName: 'Alpha', sequence: 1 })]),
+      makeItem('i2', [makeMembership({ id: 'm2', itemId: 'i2', familyId: 'fam-a', familyName: 'Alpha', sequence: 2 })]),
+    ];
+    const { groups } = resolveFamilyGroups(items);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].items.map((i) => i.id)).toEqual(['i1', 'i2', 'i3']);
+  });
+
+  it('places items with null sequence after sequenced items', () => {
+    const items = [
+      makeItem('no-seq', [makeMembership({ id: 'm-ns', itemId: 'no-seq', familyId: 'fam-a', familyName: 'Alpha', sequence: null })]),
+      makeItem('seq2',   [makeMembership({ id: 'm-s2', itemId: 'seq2',   familyId: 'fam-a', familyName: 'Alpha', sequence: 2 })]),
+      makeItem('seq1',   [makeMembership({ id: 'm-s1', itemId: 'seq1',   familyId: 'fam-a', familyName: 'Alpha', sequence: 1 })]),
+    ];
+    const { groups } = resolveFamilyGroups(items);
+    expect(groups).toHaveLength(1);
+    expect(groups[0].items.map((i) => i.id)).toEqual(['seq1', 'seq2', 'no-seq']);
+  });
+
+  it('keeps relative input order when all sequences are null (stable nulls-last sort)', () => {
+    const items = [
+      makeItem('a', [makeMembership({ id: 'ma', itemId: 'a', familyId: 'fam-a', familyName: 'Alpha', sequence: null })]),
+      makeItem('b', [makeMembership({ id: 'mb', itemId: 'b', familyId: 'fam-a', familyName: 'Alpha', sequence: null })]),
+    ];
+    const { groups } = resolveFamilyGroups(items);
+    expect(groups).toHaveLength(1);
+    const ids = groups[0].items.map((i) => i.id);
+    expect(new Set(ids)).toEqual(new Set(['a', 'b']));
+  });
+
+  it('sorts independently per group (different families do not affect each other)', () => {
+    const items = [
+      makeItem('x2', [makeMembership({ id: 'mx2', itemId: 'x2', familyId: 'fam-x', familyName: 'X', sequence: 2 })]),
+      makeItem('x1', [makeMembership({ id: 'mx1', itemId: 'x1', familyId: 'fam-x', familyName: 'X', sequence: 1 })]),
+      makeItem('y2', [makeMembership({ id: 'my2', itemId: 'y2', familyId: 'fam-y', familyName: 'Y', sequence: 2 })]),
+      makeItem('y1', [makeMembership({ id: 'my1', itemId: 'y1', familyId: 'fam-y', familyName: 'Y', sequence: 1 })]),
+    ];
+    const { groups } = resolveFamilyGroups(items);
+    expect(groups).toHaveLength(2);
+    const xGroup = groups.find((g) => g.familyId === 'fam-x')!;
+    const yGroup = groups.find((g) => g.familyId === 'fam-y')!;
+    expect(xGroup.items.map((i) => i.id)).toEqual(['x1', 'x2']);
+    expect(yGroup.items.map((i) => i.id)).toEqual(['y1', 'y2']);
+  });
+
+  it('membershipByItemId carries the sequence value for each sorted item', () => {
+    const items = [
+      makeItem('i2', [makeMembership({ id: 'm2', itemId: 'i2', familyId: 'fam-a', familyName: 'Alpha', sequence: 2 })]),
+      makeItem('i1', [makeMembership({ id: 'm1', itemId: 'i1', familyId: 'fam-a', familyName: 'Alpha', sequence: 1 })]),
+    ];
+    const { groups } = resolveFamilyGroups(items);
+    const group = groups[0];
+    expect(group.membershipByItemId.get('i1')?.sequence).toBe(1);
+    expect(group.membershipByItemId.get('i2')?.sequence).toBe(2);
   });
 });

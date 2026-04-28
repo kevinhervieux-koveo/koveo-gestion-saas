@@ -105,7 +105,7 @@ jest.mock('@/components/common/DocumentInlineViewer', () => ({
     isOpen ? <div data-testid="mock-inline-viewer" /> : null,
 }));
 
-import BulkDocumentImportPage from '@/pages/admin/bulk-document-import';
+import BulkDocumentImportPage, { STEP_LABEL_FR } from '@/pages/admin/bulk-document-import';
 import { queryClient } from '@/lib/queryClient';
 import {
   nextSessionId,
