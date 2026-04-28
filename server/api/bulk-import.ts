@@ -15,7 +15,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as crypto from 'crypto';
 import { z } from 'zod';
-import { and, desc, eq, inArray, ne, or, isNull, sql } from 'drizzle-orm';
+import { and, desc, eq, inArray, isNotNull, ne, or, isNull, sql } from 'drizzle-orm';
 import { requireAuth, requireRole } from '../auth';
 import { canUserAccessOrganization } from '../rbac';
 
@@ -1723,6 +1723,11 @@ async function processItemForStep(
    * uses these as the primary match set instead of other session items.
    */
   existingLinkCandidates?: import('../services/bulk-import-analyzer').ExistingDocumentCandidate[],
+  /**
+   * Task #1549: All families visible to this org. Passed to `suggestLinks`
+   * so the AI can return a familyGuess even when no anchor documents exist.
+   */
+  linkingFamilies?: { id: string; name: string; description?: string | null; isSystem: boolean }[],
 ): Promise<schema.BulkImportItem> {
   // Task #1373 — derive the parent-folder portion of the item's
   // originalPath ONCE up front and forward it to every analyzer call as
@@ -2097,6 +2102,9 @@ async function processItemForStep(
         const itemResidenceId = bd.branch === 'residence_documents' ? (bd.residenceId ?? null) : null;
         return candidates.filter((c) => c.residenceId === itemResidenceId);
       })(),
+      // Task #1549: pass all org families so the AI can return a familyGuess
+      // even when no anchor documents exist in this building yet.
+      allFamilies: linkingFamilies,
     });
     logPerFileAiFailure(step, item, result.fallbackReason);
 
@@ -2113,6 +2121,17 @@ async function processItemForStep(
       linkDecisionsToStore.familyId = null;
       linkDecisionsToStore.beforeDocumentId = null;
       linkDecisionsToStore.afterDocumentId = null;
+    }
+    // Task #1549: store the AI family guess fields so the lite endpoint
+    // can surface them to the UI for one-click "Commit to Family" action.
+    if (result.familyGuess) {
+      linkDecisionsToStore.familyGuessId = result.familyGuess.familyId;
+      linkDecisionsToStore.familyGuessConfidence = result.familyGuess.confidence;
+      linkDecisionsToStore.familyGuessReason = result.familyGuess.reason;
+    } else {
+      linkDecisionsToStore.familyGuessId = null;
+      linkDecisionsToStore.familyGuessConfidence = null;
+      linkDecisionsToStore.familyGuessReason = null;
     }
 
     const [updated] = await db
@@ -2296,6 +2315,8 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
     // the legacy in-session chain suggestion prompt, violating the requirement
     // that Linking only ever attaches to existing library families.
     let sessionExistingLinkCandidates: import('../services/bulk-import-analyzer').ExistingDocumentCandidate[] | undefined;
+    // Task #1549: all families visible to this org, used for AI familyGuess.
+    let sessionLinkingFamilies: { id: string; name: string; description?: string | null; isSystem: boolean }[] | undefined;
     // Task #1534: tracking variables for the linking candidate summary, captured
     // during the pre-fetch block so they are available after it closes.
     let _linkFamCount = 0;
@@ -2314,6 +2335,13 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
             ),
           );
         _linkFamCount = famRows.length;
+        // Task #1549: capture all families for the AI familyGuess feature.
+        sessionLinkingFamilies = famRows.map((f) => ({
+          id: f.id,
+          name: f.name,
+          description: f.description ?? null,
+          isSystem: f.isSystem,
+        }));
         if (famRows.length > 0) {
           const famIds = famRows.map((f) => f.id);
           const famMap = new Map(famRows.map((f) => [f.id, f]));
@@ -2385,6 +2413,57 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
             _linkAnchorDocCount = _anchorDocIdSet.size;
             sessionExistingLinkCandidates = Array.from(candidateMap.values())
               .filter((c) => c.canLinkBefore || c.canLinkAfter);
+
+            // Task #1549: also include first-anchor docs — documents committed
+            // via the "Commit to Family" flow (membership has familyId but no
+            // neighborDocumentId). These docs have no documentLinks rows yet but
+            // ARE valid link targets for future import sessions.
+            const firstAnchorRows = await db
+              .select({
+                documentId: schema.bulkImportItems.finalDocumentId,
+                familyId: schema.bulkImportItemFamilyMemberships.familyId,
+                docName: schema.documents.name,
+                docEffectiveDate: schema.documents.effectiveDate,
+                docResidenceId: schema.documents.residenceId,
+              })
+              .from(schema.bulkImportItemFamilyMemberships)
+              .innerJoin(
+                schema.bulkImportItems,
+                eq(schema.bulkImportItemFamilyMemberships.itemId, schema.bulkImportItems.id),
+              )
+              .innerJoin(
+                schema.documents,
+                eq(schema.bulkImportItems.finalDocumentId, schema.documents.id),
+              )
+              .where(
+                and(
+                  isNull(schema.bulkImportItemFamilyMemberships.neighborDocumentId),
+                  isNotNull(schema.bulkImportItemFamilyMemberships.familyId),
+                  eq(schema.bulkImportItems.status, 'committed'),
+                  eq(schema.documents.buildingId, linkSession.buildingId),
+                ),
+              );
+            for (const row of firstAnchorRows) {
+              if (!row.documentId || !row.familyId) continue;
+              const fam = famMap.get(row.familyId);
+              if (!fam) continue;
+              // Only add if not already in candidateMap (link-based entry wins).
+              const key = `${row.familyId}:${row.documentId}`;
+              if (!candidateMap.has(key)) {
+                sessionExistingLinkCandidates.push({
+                  id: row.documentId,
+                  name: row.docName,
+                  familyId: fam.id,
+                  familyName: fam.name,
+                  canLinkBefore: true,
+                  canLinkAfter: true,
+                  effectiveDate: row.docEffectiveDate,
+                  residenceId: row.docResidenceId ?? null,
+                });
+                _anchorDocIdSet.add(row.documentId);
+              }
+            }
+            _linkAnchorDocCount = _anchorDocIdSet.size;
           }
         }
       }
@@ -2527,6 +2606,7 @@ export async function runAllForStep(sessionId: string, step: AutoStep): Promise<
           sessionOrganizationId,
           sessionAvailableTags,
           sessionExistingLinkCandidates,
+          sessionLinkingFamilies,
         );
         void workPromise
           .finally(() => { rawInFlight--; })
@@ -3072,6 +3152,9 @@ export function registerBulkImportRoutes(app: Express): void {
           familyId: null,
           beforeDocumentId: null,
           afterDocumentId: null,
+          familyGuessId: null,
+          familyGuessConfidence: null,
+          familyGuessReason: null,
         };
         return {
           ...base,
@@ -3082,6 +3165,10 @@ export function registerBulkImportRoutes(app: Express): void {
           familyId: (json.familyId as string | null | undefined) ?? null,
           beforeDocumentId: (json.beforeDocumentId as string | null | undefined) ?? null,
           afterDocumentId: (json.afterDocumentId as string | null | undefined) ?? null,
+          // Task #1549: family guess fields from the AI.
+          familyGuessId: (json.familyGuessId as string | null | undefined) ?? null,
+          familyGuessConfidence: (json.familyGuessConfidence as number | null | undefined) ?? null,
+          familyGuessReason: (json.familyGuessReason as string | null | undefined) ?? null,
         };
       }
 
@@ -3331,6 +3418,10 @@ export function registerBulkImportRoutes(app: Express): void {
               linkingFamilyId: lk.familyId,
               linkingBeforeDocumentId: lk.beforeDocumentId,
               linkingAfterDocumentId: lk.afterDocumentId,
+              // Task #1549: AI family guess fields.
+              linkingFamilyGuessId: lk.familyGuessId,
+              linkingFamilyGuessConfidence: lk.familyGuessConfidence,
+              linkingFamilyGuessReason: lk.familyGuessReason,
             };
           })(),
         };
@@ -3339,24 +3430,31 @@ export function registerBulkImportRoutes(app: Express): void {
       // Task #1386: batch-resolve family names and neighbor document names
       // for items that have an existing-family link decision, so the UI can
       // display them without an extra round-trip.
+      // Task #1549: also resolve family guess IDs.
       const linkedFamilyIds = new Set<string>();
       const linkedNeighborDocIds = new Set<string>();
       for (const it of items) {
         const lkFam = (it as typeof it & { linkingFamilyId?: string | null }).linkingFamilyId;
         const lkBefore = (it as typeof it & { linkingBeforeDocumentId?: string | null }).linkingBeforeDocumentId;
         const lkAfter = (it as typeof it & { linkingAfterDocumentId?: string | null }).linkingAfterDocumentId;
+        const lkGuess = (it as typeof it & { linkingFamilyGuessId?: string | null }).linkingFamilyGuessId;
         if (lkFam) linkedFamilyIds.add(lkFam);
         if (lkBefore) linkedNeighborDocIds.add(lkBefore);
         if (lkAfter) linkedNeighborDocIds.add(lkAfter);
+        if (lkGuess) linkedFamilyIds.add(lkGuess);
       }
       const familyNameMap = new Map<string, string>();
+      const familyDescriptionMap = new Map<string, string | null>();
       const neighborDocNameMap = new Map<string, string>();
       if (linkedFamilyIds.size > 0) {
         const famRows = await db
-          .select({ id: schema.documentLinkFamilies.id, name: schema.documentLinkFamilies.name })
+          .select({ id: schema.documentLinkFamilies.id, name: schema.documentLinkFamilies.name, description: schema.documentLinkFamilies.description })
           .from(schema.documentLinkFamilies)
           .where(inArray(schema.documentLinkFamilies.id, Array.from(linkedFamilyIds)));
-        for (const f of famRows) familyNameMap.set(f.id, f.name);
+        for (const f of famRows) {
+          familyNameMap.set(f.id, f.name);
+          familyDescriptionMap.set(f.id, f.description ?? null);
+        }
       }
       if (linkedNeighborDocIds.size > 0) {
         const docRows = await db
@@ -3372,17 +3470,25 @@ export function registerBulkImportRoutes(app: Express): void {
         linkingFamilyName?: string | null;
         linkingNeighborDocumentName?: string | null;
         linkingNeighborPosition?: 'before' | 'after' | null;
+        linkingFamilyGuessId?: string | null;
+        linkingFamilyGuessConfidence?: number | null;
+        linkingFamilyGuessReason?: string | null;
+        linkingFamilyGuessName?: string | null;
+        linkingFamilyGuessDescription?: string | null;
       };
       const itemsWithNames: ItemWithLinking[] = items.map((it) => {
         const lkFam = (it as ItemWithLinking).linkingFamilyId ?? null;
         const lkBefore = (it as ItemWithLinking).linkingBeforeDocumentId ?? null;
         const lkAfter = (it as ItemWithLinking).linkingAfterDocumentId ?? null;
         const neighborId = lkBefore ?? lkAfter;
+        const lkGuess = (it as ItemWithLinking).linkingFamilyGuessId ?? null;
         return {
           ...it,
           linkingFamilyName: lkFam ? (familyNameMap.get(lkFam) ?? null) : null,
           linkingNeighborDocumentName: neighborId ? (neighborDocNameMap.get(neighborId) ?? null) : null,
           linkingNeighborPosition: lkBefore ? 'before' : lkAfter ? 'after' : null,
+          linkingFamilyGuessName: lkGuess ? (familyNameMap.get(lkGuess) ?? null) : null,
+          linkingFamilyGuessDescription: lkGuess ? (familyDescriptionMap.get(lkGuess) ?? null) : null,
         };
       });
 
@@ -7335,6 +7441,54 @@ export function registerBulkImportRoutes(app: Express): void {
           }
         }
 
+        // Task #1549: also include first-anchor documents (committed via
+        // "Commit to Family" with no neighbor) so they appear as candidates
+        // for future imports even though they have no documentLinks rows yet.
+        const firstAnchorRows = await db
+          .select({
+            documentId: schema.bulkImportItems.finalDocumentId,
+            familyId: schema.bulkImportItemFamilyMemberships.familyId,
+            docName: schema.documents.name,
+            docEffectiveDate: schema.documents.effectiveDate,
+            docMimeType: schema.documents.mimeType,
+          })
+          .from(schema.bulkImportItemFamilyMemberships)
+          .innerJoin(
+            schema.bulkImportItems,
+            eq(schema.bulkImportItemFamilyMemberships.itemId, schema.bulkImportItems.id),
+          )
+          .innerJoin(
+            schema.documents,
+            eq(schema.bulkImportItems.finalDocumentId, schema.documents.id),
+          )
+          .where(
+            and(
+              isNull(schema.bulkImportItemFamilyMemberships.neighborDocumentId),
+              isNotNull(schema.bulkImportItemFamilyMemberships.familyId),
+              eq(schema.bulkImportItems.status, 'committed'),
+              eq(schema.documents.buildingId, session.buildingId),
+              // Task #1549 (fix): also scope first-anchor docs by residence,
+              // matching the same scope filter used for regular scoped docs.
+              residenceId
+                ? eq(schema.documents.residenceId, residenceId)
+                : isNull(schema.documents.residenceId),
+            ),
+          );
+        // Add first-anchor docs into the familyDocMap so they appear as candidates.
+        for (const row of firstAnchorRows) {
+          if (!row.documentId || !row.familyId) continue;
+          const famDocs = familyDocMap.get(row.familyId);
+          if (!famDocs || famDocs.has(row.documentId)) continue;
+          famDocs.set(row.documentId, {
+            id: row.documentId,
+            name: row.docName,
+            effectiveDate: row.docEffectiveDate,
+            mimeType: row.docMimeType,
+            hasBefore: false,
+            hasAfter: false,
+          });
+        }
+
         const result = families.map((fam) => {
           const docs = Array.from(familyDocMap.get(fam.id)?.values() ?? [])
             .filter((d) => !d.hasBefore || !d.hasAfter)
@@ -7353,7 +7507,7 @@ export function registerBulkImportRoutes(app: Express): void {
               canLinkAfter: !d.hasAfter,
             })),
           };
-        }).filter((f) => f.documents.length > 0);
+        });
 
         logDebug('[bulk-import] route exit GET link-candidates ok', {
           metadata: {
@@ -7581,7 +7735,72 @@ export function registerBulkImportRoutes(app: Express): void {
           return res.json({ item: updated });
         }
 
-        // All three fields are required when familyId is set.
+        // Task #1549: First-anchor case — familyId set, no neighbor/position.
+        // This marks the item as the first document in the family (no existing
+        // anchor to link to). Validation is limited to family visibility only.
+        if (!neighborDocumentId && !position) {
+          // 1. Verify family exists and is visible to the org.
+          const [familyForAnchor] = await db
+            .select()
+            .from(schema.documentLinkFamilies)
+            .where(eq(schema.documentLinkFamilies.id, familyId))
+            .limit(1);
+          if (!familyForAnchor) {
+            return res.status(400).json({ error: 'Family not found', errorCode: 'family_not_found' });
+          }
+          const anchorFamilyVisible = familyForAnchor.organizationId === null || familyForAnchor.organizationId === session.organizationId;
+          if (!anchorFamilyVisible) {
+            return res.status(400).json({ error: 'Family not visible to this organization', errorCode: 'family_not_visible' });
+          }
+
+          const anchorLinkDecisions: Record<string, unknown> = {
+            ...existing,
+            familyId,
+            beforeDocumentId: null,
+            afterDocumentId: null,
+            manualOverride: true,
+          };
+          const anchorShouldPromote = item.status === 'identified' || item.status === 'linked';
+          const [anchorUpdated] = await db
+            .update(schema.bulkImportItems)
+            .set({
+              linkDecisions: anchorLinkDecisions,
+              updatedAt: new Date(),
+              ...(anchorShouldPromote && { status: 'linked' }),
+            })
+            .where(eq(schema.bulkImportItems.id, itemId))
+            .returning();
+          // Write the first-anchor membership (neighborDocumentId = null).
+          try {
+            const now = new Date();
+            await db
+              .insert(schema.bulkImportItemFamilyMemberships)
+              .values({
+                itemId,
+                familyId,
+                neighborDocumentId: null,
+                position: null,
+                source: 'manual',
+                manualOverride: true,
+                updatedAt: now,
+              })
+              .onConflictDoUpdate({
+                target: [
+                  schema.bulkImportItemFamilyMemberships.itemId,
+                  schema.bulkImportItemFamilyMemberships.familyId,
+                ],
+                set: { neighborDocumentId: null, position: null, source: 'manual', manualOverride: true, updatedAt: now },
+              });
+          } catch (mErr) {
+            logError('[bulk-import] set-existing-link-decision first-anchor: membership upsert failed (non-fatal)', mErr as Error);
+          }
+          logDebug('[bulk-import] route exit POST set-existing-link-decision ok (first-anchor)', {
+            metadata: { itemId, familyId, status: 200, durationMs: Date.now() - t0 },
+          });
+          return res.json({ item: anchorUpdated });
+        }
+
+        // All three fields are required when familyId is set with a neighbor.
         if (!neighborDocumentId || !position) {
           return res.status(400).json({
             error: 'neighborDocumentId and position are required when familyId is set',
@@ -7646,7 +7865,8 @@ export function registerBulkImportRoutes(app: Express): void {
           });
         }
 
-        // 5. Neighbor belongs to the family (has at least one link in that family).
+        // 5. Neighbor belongs to the family (has at least one link in that family,
+        //    OR is a committed first-anchor doc for this family with no links yet).
         const [neighborFamilyLink] = await db
           .select({ id: schema.documentLinks.id })
           .from(schema.documentLinks)
@@ -7660,7 +7880,28 @@ export function registerBulkImportRoutes(app: Express): void {
             ),
           )
           .limit(1);
+        // Task #1549: also accept committed first-anchor docs as valid neighbors.
+        let neighborIsFirstAnchor = false;
         if (!neighborFamilyLink) {
+          const [firstAnchorMembership] = await db
+            .select({ id: schema.bulkImportItemFamilyMemberships.id })
+            .from(schema.bulkImportItemFamilyMemberships)
+            .innerJoin(
+              schema.bulkImportItems,
+              eq(schema.bulkImportItemFamilyMemberships.itemId, schema.bulkImportItems.id),
+            )
+            .where(
+              and(
+                eq(schema.bulkImportItemFamilyMemberships.familyId, familyId),
+                isNull(schema.bulkImportItemFamilyMemberships.neighborDocumentId),
+                eq(schema.bulkImportItems.finalDocumentId, neighborDocumentId),
+                eq(schema.bulkImportItems.status, 'committed'),
+              ),
+            )
+            .limit(1);
+          neighborIsFirstAnchor = !!firstAnchorMembership;
+        }
+        if (!neighborFamilyLink && !neighborIsFirstAnchor) {
           return res.status(400).json({
             error: 'Neighbor document does not belong to the chosen family',
             errorCode: 'neighbor_not_in_family',
@@ -8820,6 +9061,8 @@ export function registerBulkImportRoutes(app: Express): void {
           // Task #1386: linking retries also need the existing-library
           // document candidates so the AI prompt matches the run-all path.
           let retryExistingLinkCandidates: import('../services/bulk-import-analyzer').ExistingDocumentCandidate[] | undefined;
+          // Task #1549: all families for the familyGuess feature.
+          let retryLinkingFamilies: { id: string; name: string; description?: string | null; isSystem: boolean }[] | undefined;
           if (step === 'linking' && session?.buildingId) {
             const famRows = await db
               .select()
@@ -8830,6 +9073,12 @@ export function registerBulkImportRoutes(app: Express): void {
                   eq(schema.documentLinkFamilies.organizationId, session.organizationId),
                 ),
               );
+            retryLinkingFamilies = famRows.map((f) => ({
+              id: f.id,
+              name: f.name,
+              description: f.description ?? null,
+              isSystem: f.isSystem,
+            }));
             if (famRows.length > 0) {
               const famIds = famRows.map((f) => f.id);
               const famMap = new Map(famRows.map((f) => [f.id, f]));
@@ -8899,6 +9148,51 @@ export function registerBulkImportRoutes(app: Express): void {
                 }
                 retryExistingLinkCandidates = Array.from(candidateMap.values())
                   .filter((c) => c.canLinkBefore || c.canLinkAfter);
+
+                // Task #1549: also include first-anchor docs.
+                const firstAnchorRows = await db
+                  .select({
+                    documentId: schema.bulkImportItems.finalDocumentId,
+                    familyId: schema.bulkImportItemFamilyMemberships.familyId,
+                    docName: schema.documents.name,
+                    docEffectiveDate: schema.documents.effectiveDate,
+                    docResidenceId: schema.documents.residenceId,
+                  })
+                  .from(schema.bulkImportItemFamilyMemberships)
+                  .innerJoin(
+                    schema.bulkImportItems,
+                    eq(schema.bulkImportItemFamilyMemberships.itemId, schema.bulkImportItems.id),
+                  )
+                  .innerJoin(
+                    schema.documents,
+                    eq(schema.bulkImportItems.finalDocumentId, schema.documents.id),
+                  )
+                  .where(
+                    and(
+                      isNull(schema.bulkImportItemFamilyMemberships.neighborDocumentId),
+                      isNotNull(schema.bulkImportItemFamilyMemberships.familyId),
+                      eq(schema.bulkImportItems.status, 'committed'),
+                      eq(schema.documents.buildingId, session.buildingId),
+                    ),
+                  );
+                for (const row of firstAnchorRows) {
+                  if (!row.documentId || !row.familyId) continue;
+                  const fam = famMap.get(row.familyId);
+                  if (!fam) continue;
+                  const key = `${row.familyId}:${row.documentId}`;
+                  if (!candidateMap.has(key)) {
+                    retryExistingLinkCandidates.push({
+                      id: row.documentId,
+                      name: row.docName,
+                      familyId: fam.id,
+                      familyName: fam.name,
+                      canLinkBefore: true,
+                      canLinkAfter: true,
+                      effectiveDate: row.docEffectiveDate,
+                      residenceId: row.docResidenceId ?? null,
+                    });
+                  }
+                }
               }
             }
           }
@@ -8937,6 +9231,7 @@ export function registerBulkImportRoutes(app: Express): void {
                   identifyOrganizationId,
                   identifyAvailableTags,
                   retryExistingLinkCandidates,
+                  retryLinkingFamilies,
                 ),
                 RUN_ALL_ITEM_TIMEOUT_MS,
                 item.originalName,
@@ -9305,6 +9600,9 @@ export function registerBulkImportRoutes(app: Express): void {
         typeof (req.body as { uiLanguage?: unknown } | undefined)?.uiLanguage === 'string'
           ? ((req.body as { uiLanguage: string }).uiLanguage || null)
           : null;
+      // Task #1549: advisory lock keys for first-anchor serialization.
+      // Declared outside try/catch so the catch block can release them.
+      const firstAnchorLockKeys: number[] = [];
       try {
         const [item] = await db
           .select()
@@ -9487,7 +9785,107 @@ export function registerBulkImportRoutes(app: Express): void {
 
         let linksToCommit: CommitLinkRow[];
         if (membershipRows.length > 0) {
-          // Memberships table is canonical; only write rows that have all required fields.
+          // Task #1549: First-anchor conflict guard — if any membership row is a
+          // first-anchor decision (familyId set, neighborDocumentId null), verify
+          // that the family still has no committed documents in the SAME scope
+          // (building + residenceId). We use a PostgreSQL advisory lock keyed on
+          // (familyId, buildingId, residenceId) so concurrent first-anchor commits
+          // for the same scope are serialized: only the first winner proceeds and
+          // the loser receives 409 with errorCode 'first_anchor_conflict'.
+          //
+          // The lock is session-level (not transaction-level) so we can release it
+          // precisely after the status-'committed' write below, giving the narrowest
+          // possible window. Lock keys are stored in firstAnchorLockKeys for release
+          // in all early-return paths.
+          const firstAnchorMemberships = membershipRows.filter(
+            (m) => !!m.familyId && m.neighborDocumentId === null,
+          );
+          for (const fa of firstAnchorMemberships) {
+            // Compute a stable 32-bit advisory lock key for this family+scope.
+            const scopeStr = `${fa.familyId!}:${session.buildingId}:${residenceId ?? ''}`;
+            const lockHashResult = await db.execute<{ lock_key: number }>(
+              sql`SELECT hashtext(${scopeStr})::int AS lock_key`,
+            );
+            const lockKey = lockHashResult.rows[0].lock_key;
+            // Acquire session-level advisory lock (blocks if another session holds it).
+            await db.execute(sql`SELECT pg_advisory_lock(${lockKey}::bigint)`);
+            firstAnchorLockKeys.push(lockKey);
+
+            // Scope-aware conflict check #1: documentLinks rows for this family in
+            // the same building/residence scope. If such rows exist the family already
+            // has a proper chain of documents and this should not be a first anchor.
+            const existingLinkedDocs = await db
+              .select({ id: schema.documentLinks.id })
+              .from(schema.documentLinks)
+              .innerJoin(
+                schema.documents,
+                eq(schema.documents.id, schema.documentLinks.fromDocumentId),
+              )
+              .where(
+                and(
+                  eq(schema.documentLinks.familyId, fa.familyId!),
+                  eq(schema.documents.buildingId, session.buildingId),
+                  residenceId
+                    ? eq(schema.documents.residenceId, residenceId)
+                    : isNull(schema.documents.residenceId),
+                ),
+              )
+              .limit(1);
+
+            // Scope-aware conflict check #2: another COMMITTED first-anchor item
+            // for the same family in the same building+residence scope. First-anchor
+            // docs don't write documentLinks rows so we must check the memberships
+            // table directly. We join to `documents` via finalDocumentId to filter by
+            // both buildingId and residenceId (matching the documentLinks check above).
+            const existingFirstAnchor = existingLinkedDocs.length === 0
+              ? await db
+                  .select({ id: schema.bulkImportItems.id })
+                  .from(schema.bulkImportItems)
+                  .innerJoin(
+                    schema.bulkImportItemFamilyMemberships,
+                    eq(schema.bulkImportItemFamilyMemberships.itemId, schema.bulkImportItems.id),
+                  )
+                  .innerJoin(
+                    schema.documents,
+                    eq(schema.documents.id, schema.bulkImportItems.finalDocumentId),
+                  )
+                  .where(
+                    and(
+                      eq(schema.bulkImportItemFamilyMemberships.familyId, fa.familyId!),
+                      isNull(schema.bulkImportItemFamilyMemberships.neighborDocumentId),
+                      eq(schema.bulkImportItems.status, 'committed'),
+                      ne(schema.bulkImportItems.id, item.id),
+                      eq(schema.documents.buildingId, session.buildingId),
+                      residenceId
+                        ? eq(schema.documents.residenceId, residenceId)
+                        : isNull(schema.documents.residenceId),
+                    ),
+                  )
+                  .limit(1)
+              : [];
+
+            if (existingLinkedDocs.length > 0 || existingFirstAnchor.length > 0) {
+              // Release all acquired locks before returning 409.
+              for (const lk of firstAnchorLockKeys) {
+                await db.execute(sql`SELECT pg_advisory_unlock(${lk}::bigint)`).catch(() => {});
+              }
+              logDebug('[bulk-import] commit first-anchor conflict detected', {
+                metadata: {
+                  itemId: item.id,
+                  familyId: fa.familyId,
+                  buildingId: session.buildingId,
+                  residenceId,
+                  existingLinkedDoc: existingLinkedDocs.length > 0,
+                  existingFirstAnchor: existingFirstAnchor.length > 0,
+                },
+              });
+              return res.status(409).json({
+                error:
+                  'Another document was already committed as the first anchor for this family in this building. Please pick that document as a neighbor instead.',
+                errorCode: 'first_anchor_conflict',
+              });
+            }
+          }
           linksToCommit = membershipRows
             .filter((m): m is typeof m & { familyId: string; neighborDocumentId: string; position: 'before' | 'after' } =>
               !!m.familyId && !!m.neighborDocumentId && (m.position === 'before' || m.position === 'after'),
@@ -9536,6 +9934,10 @@ export function registerBulkImportRoutes(app: Express): void {
           } catch (linkErr) {
             const linkErrCode = linkErr instanceof DocumentLinkValidationError ? linkErr.code : 'unknown';
             logError('[bulk-import] commit phase documentLink write failed', linkErr as Error);
+            // Release any first-anchor advisory locks before early return.
+            for (const lk of firstAnchorLockKeys) {
+              await db.execute(sql`SELECT pg_advisory_unlock(${lk}::bigint)`).catch(() => {});
+            }
             return res.status(409).json({
               error: 'Failed to write document link — the chosen family/neighbor slot may already be occupied. Clear the existing link and retry.',
               errorCode: linkErrCode,
@@ -9552,6 +9954,13 @@ export function registerBulkImportRoutes(app: Express): void {
           })
           .where(eq(schema.bulkImportItems.id, item.id))
           .returning();
+
+        // Release first-anchor advisory locks now that status is 'committed'.
+        // This is the narrowest window: the write is done and no other session
+        // can enter the critical section for the same family+scope.
+        for (const lk of firstAnchorLockKeys) {
+          await db.execute(sql`SELECT pg_advisory_unlock(${lk}::bigint)`).catch(() => {});
+        }
 
         // -----------------------------------------------------------------
         // Task #1411 — fire-and-forget KPI telemetry for the four
@@ -9700,6 +10109,10 @@ export function registerBulkImportRoutes(app: Express): void {
       } catch (err) {
         logDebug('[bulk-import] route exit POST /api/admin/bulk-import/items/:id/commit status 500', { metadata: { itemId, status: 500, durationMs: Date.now() - t0 } });
         logError('[bulk-import] commit failed', err as Error);
+        // Release any first-anchor advisory locks acquired before the exception.
+        for (const lk of firstAnchorLockKeys) {
+          await db.execute(sql`SELECT pg_advisory_unlock(${lk}::bigint)`).catch(() => {});
+        }
         return res.status(500).json({ error: 'Failed to commit item' });
       }
     },

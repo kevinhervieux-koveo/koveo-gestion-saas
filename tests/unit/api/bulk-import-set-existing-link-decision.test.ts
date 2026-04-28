@@ -198,6 +198,13 @@ const mockDb: any = {
   select: jest.fn((_cols?: any) => ({
     from: jest.fn((table: any) => {
       const tname: string = table?._?.name ?? (typeof table?.name === 'string' ? table.name : '');
+      // Task #1549: support innerJoin chain for the first-anchor membership fallback.
+      // Returns an empty result set for any joined query (no memberships in this test).
+      const withJoin: any = {
+        innerJoin: jest.fn(() => withJoin),
+        where: jest.fn(() => makeWhereResult([])),
+      };
+      if (tname === 'bulk_import_item_family_memberships') return withJoin;
       return {
         where: jest.fn((cond: any) => {
           if (tname === 'bulk_import_sessions') {
@@ -367,12 +374,16 @@ describe('POST /api/admin/bulk-import/items/:id/set-existing-link-decision (Task
     expect(res.body.error).toMatch(/not found/i);
   });
 
-  it('returns 400 (missing_fields) when familyId is set but neighborDocumentId is null', async () => {
+  it('returns 400 (missing_fields) when familyId and neighborDocumentId are set but position is null', async () => {
+    // Task #1549: {familyId, null neighbor, null position} is now the first-anchor path.
+    // missing_fields fires when a neighbor is supplied without a position (or vice-versa).
     seedItem('item-1');
+    seedFamily('fam-1');
+    seedDocument('doc-1', { buildingId: 'bldg-1', residenceId: null });
 
     const res = await request(buildApp())
       .post(ITEM_URL('item-1'))
-      .send({ familyId: 'fam-1', neighborDocumentId: null, position: null })
+      .send({ familyId: 'fam-1', neighborDocumentId: 'doc-1', position: null })
       .expect(400);
 
     expect(res.body.errorCode).toBe('missing_fields');

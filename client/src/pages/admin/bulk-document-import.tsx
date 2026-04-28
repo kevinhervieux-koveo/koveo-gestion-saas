@@ -471,6 +471,18 @@ export interface BulkImportItemLite {
   /** 'before' | 'after' derived from which of before/after document ID is set. */
   linkingNeighborPosition: 'before' | 'after' | null;
   /**
+   * Task #1549: AI-guessed family for items with no existing anchor documents.
+   * When the building has 0 anchor documents the AI picks the most likely family.
+   * Admin confirms with one click; the item becomes the family's first anchor.
+   */
+  linkingFamilyGuessId: string | null;
+  linkingFamilyGuessConfidence: number | null;
+  linkingFamilyGuessReason: string | null;
+  /** Resolved server-side display name for the guessed family. */
+  linkingFamilyGuessName: string | null;
+  /** Resolved server-side description for the guessed family (may be null if unset). */
+  linkingFamilyGuessDescription: string | null;
+  /**
    * Task #1002: enriched duplicate info — null for non-duplicate items.
    * When status === 'duplicate', these fields carry info about the
    * already-committed document so the UI can show "Already in Koveo".
@@ -3876,6 +3888,65 @@ export default function BulkDocumentImportPage() {
     },
   });
 
+  /**
+   * Task #1549: IDs of items for which the AI family-guess reason tooltip is
+   * expanded. Toggles on the reason button click.
+   */
+  const [guesReasonOpenIds, setGuessReasonOpenIds] = useState<Set<string>>(new Set());
+
+  /**
+   * Task #1549: "Commit to Family" — first-anchor path.
+   * Calls set-existing-link-decision (first-anchor) then commit sequentially.
+   */
+  const commitToFamilyGuess = useMutation({
+    mutationFn: async ({ itemId, familyId }: { itemId: string; familyId: string }) => {
+      const decisionRes = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/items/${itemId}/set-existing-link-decision`,
+        { familyId, neighborDocumentId: null, position: null },
+      );
+      if (!decisionRes.ok) {
+        const body = await decisionRes.json().catch(() => ({})) as { error?: string };
+        throw new Error(body.error ?? 'Failed to set family decision');
+      }
+      const commitRes = await apiRequest(
+        'POST',
+        `/api/admin/bulk-import/items/${itemId}/commit`,
+        {},
+      );
+      if (!commitRes.ok) {
+        const body = await commitRes.json().catch(() => ({})) as { error?: string; errorCode?: string };
+        if (body.errorCode === 'first_anchor_conflict') {
+          throw Object.assign(
+            new Error(body.error ?? 'Another document was already committed as the first anchor for this family.'),
+            { errorCode: 'first_anchor_conflict' },
+          );
+        }
+        throw new Error(body.error ?? 'Failed to commit');
+      }
+      return commitRes.json();
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({
+        queryKey: ['/api/admin/bulk-import/sessions', sessionId, 'lite'],
+      });
+    },
+    onError: (err: Error & { errorCode?: string }) => {
+      const isConflict = err.errorCode === 'first_anchor_conflict';
+      toast({
+        variant: 'destructive',
+        title: isConflict
+          ? (isFr ? 'Conflit de premier ancrage' : 'First anchor conflict')
+          : (isFr ? 'Échec de la validation de la famille' : 'Failed to commit to family'),
+        description: isConflict
+          ? (isFr
+            ? 'Un autre document a déjà été validé comme premier ancrage pour cette famille. Choisissez un voisin à la place.'
+            : 'Another document was already committed as the first anchor for this family. Please pick a neighbor instead.')
+          : err.message,
+      });
+    },
+  });
+
   /** Task #1386: item ID for which the "Attach to existing family" picker is open. */
   const [existingLinkPickerItemId, setExistingLinkPickerItemId] = useState<string | null>(null);
   /** Task #1386: selected family ID in the picker (controlled). */
@@ -7215,6 +7286,118 @@ export default function BulkDocumentImportPage() {
                                     {isFr ? 'Manuel' : 'Manual'}
                                   </Badge>
                                 )}
+                                {/* Task #1549: AI family guess block — shown when AI picked a
+                                    family but no anchor exists yet and admin hasn't confirmed. */}
+                                {item.linkingFamilyGuessId && !item.linkingFamilyId && (
+                                  <div
+                                    className="flex flex-col gap-1 mt-1 rounded border border-violet-200 bg-violet-50 dark:border-violet-800 dark:bg-violet-950 px-2 py-1.5"
+                                    data-testid={`ai-family-guess-${item.id}`}
+                                  >
+                                    <div className="flex items-center gap-1.5 flex-wrap">
+                                      <span className="text-xs font-semibold text-violet-900 dark:text-violet-200 flex items-center gap-1">
+                                        <Sparkles className="h-3 w-3 flex-shrink-0" />
+                                        {isFr ? 'Suggestion IA :' : 'AI suggestion:'}
+                                      </span>
+                                      <span
+                                        className="text-xs font-medium text-violet-800 dark:text-violet-300 truncate max-w-[180px]"
+                                        title={item.linkingFamilyGuessName ?? item.linkingFamilyGuessId ?? undefined}
+                                      >
+                                        {item.linkingFamilyGuessName ?? item.linkingFamilyGuessId}
+                                      </span>
+                                      {item.linkingFamilyGuessConfidence != null && (() => {
+                                        const conf = item.linkingFamilyGuessConfidence;
+                                        const level = conf >= 0.8 ? 'high' : conf >= 0.5 ? 'medium' : 'low';
+                                        const label = isFr
+                                          ? (level === 'high' ? 'élevée' : level === 'medium' ? 'moyenne' : 'faible')
+                                          : level;
+                                        const pillClass = level === 'high'
+                                          ? 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200'
+                                          : level === 'medium'
+                                          ? 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200'
+                                          : 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200';
+                                        return (
+                                          <span
+                                            className={`text-xs font-medium px-1.5 py-0.5 rounded-full ${pillClass}`}
+                                            data-testid={`ai-family-guess-confidence-${item.id}`}
+                                          >
+                                            {label}
+                                          </span>
+                                        );
+                                      })()}
+                                      {item.linkingFamilyGuessReason && (
+                                        <button
+                                          type="button"
+                                          className="text-xs text-violet-600 dark:text-violet-400 underline underline-offset-2 hover:text-violet-800 dark:hover:text-violet-200"
+                                          data-testid={`ai-family-guess-reason-toggle-${item.id}`}
+                                          onClick={(e) => {
+                                            e.stopPropagation();
+                                            setGuessReasonOpenIds((prev) => {
+                                              const next = new Set(prev);
+                                              if (next.has(item.id)) next.delete(item.id);
+                                              else next.add(item.id);
+                                              return next;
+                                            });
+                                          }}
+                                        >
+                                          {guesReasonOpenIds.has(item.id)
+                                            ? (isFr ? 'Masquer' : 'Hide reason')
+                                            : (isFr ? 'Voir la raison' : 'Show reason')}
+                                        </button>
+                                      )}
+                                    </div>
+                                    {item.linkingFamilyGuessDescription && (
+                                      <p className="text-xs text-violet-600 dark:text-violet-400">
+                                        {item.linkingFamilyGuessDescription}
+                                      </p>
+                                    )}
+                                    {guesReasonOpenIds.has(item.id) && item.linkingFamilyGuessReason && (
+                                      <p className="text-xs text-violet-700 dark:text-violet-300 italic">
+                                        {item.linkingFamilyGuessReason}
+                                      </p>
+                                    )}
+                                    <div className="flex gap-1.5 mt-0.5 flex-wrap">
+                                      <Button
+                                        size="sm"
+                                        variant="default"
+                                        className="h-6 px-2 text-xs bg-violet-700 hover:bg-violet-800 text-white"
+                                        data-testid={`commit-to-family-button-${item.id}`}
+                                        disabled={commitToFamilyGuess.isPending}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          commitToFamilyGuess.mutate({
+                                            itemId: item.id,
+                                            familyId: item.linkingFamilyGuessId!,
+                                          });
+                                        }}
+                                      >
+                                        {commitToFamilyGuess.isPending
+                                          ? <Loader2 className="h-3 w-3 animate-spin" />
+                                          : (isFr
+                                            ? `Valider dans « ${item.linkingFamilyGuessName ?? item.linkingFamilyGuessId} »`
+                                            : `Commit to "${item.linkingFamilyGuessName ?? item.linkingFamilyGuessId}"`)}
+                                      </Button>
+                                      <Button
+                                        size="sm"
+                                        variant="ghost"
+                                        className="h-6 px-2 text-xs text-violet-700 dark:text-violet-400 hover:text-violet-900"
+                                        data-testid={`choose-different-family-button-${item.id}`}
+                                        onClick={(e) => {
+                                          e.stopPropagation();
+                                          if (existingLinkPickerItemId === item.id) {
+                                            setExistingLinkPickerItemId(null);
+                                          } else {
+                                            setExistingLinkPickerItemId(item.id);
+                                            setExistingLinkPickerFamilyId('');
+                                            setExistingLinkPickerDocId('');
+                                            setExistingLinkPickerPosition('before');
+                                          }
+                                        }}
+                                      >
+                                        {isFr ? 'Autre famille…' : 'Choose different family…'}
+                                      </Button>
+                                    </div>
+                                  </div>
+                                )}
                                 {/* Task #1386: existing-library link badge + picker */}
                                 {item.linkingFamilyId && (
                                   <Badge
@@ -7359,7 +7542,37 @@ export default function BulkDocumentImportPage() {
                                           const fam = linkCandidatesQuery.data!.families.find(
                                             (f) => f.id === existingLinkPickerFamilyId,
                                           );
-                                          if (!fam || fam.documents.length === 0) return null;
+                                          if (!fam) return null;
+                                          // Task #1549: empty family — offer first-anchor commit.
+                                          if (fam.documents.length === 0) return (
+                                            <div className="space-y-1">
+                                              <p
+                                                className="text-xs text-muted-foreground"
+                                                data-testid={`existing-link-empty-family-note-${item.id}`}
+                                              >
+                                                {isFr
+                                                  ? 'Cette famille n\'a pas encore de document. Ce document en sera le premier ancrage.'
+                                                  : 'This family has no documents yet. This document will become its first anchor.'}
+                                              </p>
+                                              <Button
+                                                size="sm"
+                                                variant="default"
+                                                className="h-7 text-xs"
+                                                data-testid={`existing-link-commit-first-anchor-${item.id}`}
+                                                disabled={setExistingLinkDecision.isPending}
+                                                onClick={() => {
+                                                  setExistingLinkDecision.mutate(
+                                                    { itemId: item.id, familyId: existingLinkPickerFamilyId, neighborDocumentId: null, position: null },
+                                                    { onSuccess: () => setExistingLinkPickerItemId(null) },
+                                                  );
+                                                }}
+                                              >
+                                                {setExistingLinkDecision.isPending
+                                                  ? <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                                                  : (isFr ? 'Définir comme premier ancrage' : 'Set as first anchor')}
+                                              </Button>
+                                            </div>
+                                          );
                                           return (
                                             <>
                                               <div>

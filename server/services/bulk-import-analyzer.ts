@@ -257,6 +257,12 @@ export interface LinkSuggestion extends AnalyzerConfidence {
   position?: 'before' | 'after' | null;
   /** Task #1425: multi-family memberships. When present, use this instead of the single-family fields. */
   memberships?: FamilyMembershipSuggestion[];
+  /**
+   * Task #1549: AI's best-guess family for a building with 0 anchor documents.
+   * Set when allFamilies is provided and the AI can identify which family the
+   * document conceptually belongs to, even without a neighbor to link to.
+   */
+  familyGuess?: { familyId: string; confidence: number; reason: string } | null;
 }
 
 /** Task #1386: an existing document that can serve as a linking candidate. */
@@ -1782,6 +1788,12 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.${
      * with other session items.
      */
     existingCandidates?: ExistingDocumentCandidate[];
+    /**
+     * Task #1549: All families visible to this org. When provided, the AI
+     * can return a familyGuess even when there are no candidate documents
+     * to link to (e.g. a building with 0 anchor documents for a family).
+     */
+    allFamilies?: { id: string; name: string; description?: string | null; isSystem: boolean }[];
   }): Promise<LinkSuggestion> {
     const folderHintLine = buildFolderHintLine(input.folderHint);
     // Task #1386: treat an *empty* existingCandidates array the same as a
@@ -1806,13 +1818,17 @@ effectiveDate?: 'YYYY-MM-DD', metadata: object, confidence: number }.${
               : String(c.effectiveDate))
           : null,
       }));
+      const familiesSection = input.allFamilies && input.allFamilies.length > 0
+        ? `\nAll document families in this organization (for familyGuess):
+${JSON.stringify(input.allFamilies.map((f) => ({ id: f.id, name: f.name, description: f.description ?? null })), null, 2)}\n`
+        : '';
       prompt = `You are helping to link an imported document to one or more existing document chains in the Koveo document library.
 
 Document being imported: "${input.originalName}"
 ${folderHintLine ? `${folderHintLine}\n` : ''}
 Existing documents available to link to (from the live library):
 ${JSON.stringify(candidateList, null, 2)}
-
+${familiesSection}
 Instructions:
 - A document may legitimately belong to MULTIPLE families (e.g. meeting minutes that are also part of a financial chain). Return one entry per matching family.
 - For each match with confidence ≥ 0.7, include an entry in the memberships array.
@@ -1820,7 +1836,8 @@ Instructions:
 - Only use canLinkBefore=true candidates for position='before', only canLinkAfter=true candidates for position='after'.
 - Do NOT create a new family — only use the families already present in the list.
 - If no good match exists for a family, omit it from the memberships array entirely.
-- If no matches at all, return an empty memberships array with overall confidence < 0.5.
+- If no matches at all, return an empty memberships array with overall confidence < 0.5.${input.allFamilies && input.allFamilies.length > 0 ? `
+- familyGuess: Even when memberships is empty (no anchor documents to link to yet), return your best guess for which family this document type belongs to. Use one of the familyIds from the "All document families" list. Set confidence 0–1 and a brief reason. If truly uncertain, set familyGuess to null.` : ''}
 
 Return JSON: {
   memberships: Array<{
@@ -1829,7 +1846,8 @@ Return JSON: {
     position: 'before' | 'after',
     confidence: number,
     reason: string
-  }>,
+  }>,${input.allFamilies && input.allFamilies.length > 0 ? `
+  familyGuess: { familyId: string, confidence: number, reason: string } | null,` : ''}
   reason: string,
   confidence: number
 }`;
@@ -1848,6 +1866,8 @@ relatedItemIds: string[], reason: string, confidence: number }.`;
         confidence?: number;
         reason?: string;
       }>;
+      /** Task #1549: AI's family guess when no anchor docs exist. */
+      familyGuess?: { familyId?: string; confidence?: number; reason?: string } | null;
       /** Legacy single-family fallback (Task #1386) — tolerated from older prompts. */
       familyId?: string | null;
       neighborDocumentId?: string | null;
@@ -1912,6 +1932,19 @@ relatedItemIds: string[], reason: string, confidence: number }.`;
         }];
       }
 
+      // Task #1549: parse familyGuess from the response.
+      let familyGuess: { familyId: string; confidence: number; reason: string } | null = null;
+      if (er.familyGuess && typeof er.familyGuess === 'object') {
+        const fg = er.familyGuess;
+        if (typeof fg.familyId === 'string' && fg.familyId) {
+          familyGuess = {
+            familyId: fg.familyId,
+            confidence: clampConfidence(fg.confidence),
+            reason: typeof fg.reason === 'string' ? fg.reason : '',
+          };
+        }
+      }
+
       // Derive the legacy single-membership fields from the best membership
       // for backward compat with callers that still read them directly.
       const best = memberships[0] ?? null;
@@ -1923,6 +1956,7 @@ relatedItemIds: string[], reason: string, confidence: number }.`;
         neighborDocumentId: best?.neighborDocumentId ?? null,
         position: best?.position ?? null,
         memberships,
+        familyGuess,
         degraded,
         fallbackReason,
         retryCount,
