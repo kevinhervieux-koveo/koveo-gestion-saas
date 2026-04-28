@@ -18,6 +18,7 @@ import {
   Package,
   Folder,
   ClipboardList,
+  BookOpen,
 } from 'lucide-react';
 
 // Import translation keys for navigation
@@ -53,6 +54,7 @@ export const NAVIGATION_KEYS = {
   inventory: 'inventory',
   projects: 'projects',
   settings: 'settings',
+  helpOnboarding: 'helpOnboarding',
 } as const;
 
 /**
@@ -66,6 +68,8 @@ export interface NavigationItem {
   superAdminOnly?: boolean; // Restrict to internal Koveo staff only
   _key?: string; // Optional key for collapsible items
   items?: NavigationItem[]; // Optional sub-items for collapsible navigation
+  dataOnboarding?: string; // Optional data-onboarding anchor id for tour targeting
+  requiresFeatureFlag?: 'onboarding'; // When set, item is only shown when that feature flag is active
 }
 
 /**
@@ -170,6 +174,13 @@ export const NAVIGATION_CONFIG: NavigationSection[] = [
     requiredRole: 'tenant',
     items: [
       { nameKey: 'settings', href: '/settings', icon: Settings },
+      {
+        nameKey: 'helpOnboarding',
+        href: '/settings/onboarding',
+        icon: BookOpen,
+        dataOnboarding: 'settings.onboarding.link',
+        requiresFeatureFlag: 'onboarding',
+      },
     ],
   },
 ];

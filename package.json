@@ -154,6 +154,7 @@
     "cors": "^2.8.5",
     "cross-fetch": "^4.1.0",
     "date-fns": "^4.1.0",
+    "driver.js": "^1.4.0",
     "drizzle-kit": "^0.31.4",
     "drizzle-orm": "^0.45.2",
     "drizzle-zod": "^0.8.1",

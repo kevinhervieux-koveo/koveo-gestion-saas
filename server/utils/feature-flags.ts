@@ -27,6 +27,21 @@ export function isBillNumberV2Enabled(): boolean {
 }
 
 /**
+ * ONBOARDING_ENABLED — when on, the in-app onboarding tour engine is active:
+ * the OnboardingProvider mounts, the smoke tour runs on first sign-in, and
+ * the Settings → Help & Onboarding sub-page is visible.
+ *
+ * Defaults to OFF in production (feature flag must be set explicitly) and ON
+ * in development so the smoke tour and Puppeteer tests run without extra config.
+ */
+export function isOnboardingEnabled(): boolean {
+  if (process.env.ONBOARDING_ENABLED === 'false') return false;
+  if (readBoolEnv('ONBOARDING_ENABLED')) return true;
+  // Default: ON in dev/test, OFF in production
+  return process.env.NODE_ENV !== 'production';
+}
+
+/**
  * MCP_ASSUME_USER — when on (staging / dev only), the admin-only `assume_user`
  * and `restore_acting_user` MCP tools are active. When off, both tools are
  * unavailable: `assume_user` is registered but returns a clear "feature not

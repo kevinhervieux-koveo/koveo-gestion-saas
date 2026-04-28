@@ -922,7 +922,7 @@ export default function FinancialOverview() {
   if (buildingsLoading) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title={t('financialOverview')} subtitle={t('loading')} />
+        <Header title={t('financialOverview')} subtitle={t('loading')} onboardingAnchor="dashboard.header" />
         <div className="flex-1 overflow-auto p-6 space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             {[1, 2, 3].map((i) => (
@@ -953,7 +953,7 @@ export default function FinancialOverview() {
   if (!buildings || buildings.length === 0) {
     return (
       <div className="flex-1 flex flex-col overflow-hidden">
-        <Header title={t('financialOverview')} subtitle={t('noBuildingsAssigned')} />
+        <Header title={t('financialOverview')} subtitle={t('noBuildingsAssigned')} onboardingAnchor="dashboard.header" />
         <div className="flex-1 flex items-center justify-center">
           <div className="text-center">
             <Building2 className="w-12 h-12 mx-auto mb-4 text-gray-300" />
@@ -969,6 +969,7 @@ export default function FinancialOverview() {
       <Header
         title={t('financialOverview')}
         subtitle={t('buildingFinancialOverview')}
+        onboardingAnchor="dashboard.header"
       />
 
       <div className="flex-1 overflow-auto p-6">

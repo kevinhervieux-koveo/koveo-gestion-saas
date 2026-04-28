@@ -70,6 +70,13 @@ export const AUTO_ROUTE_MODULES: Record<string, AutoRouteEntry> = {
   // Impersonation audit log + status (task #1322). Lazy — admin-only
   // endpoints that are only hit when an admin visits the audit log page
   // or the ImpersonationBanner polls for status.
+
+  // Onboarding API (task #1572). Lazy — only hit after first login.
+  onboarding: {
+    load: () => import('./onboarding'),
+    lazy: { matcher: '/api/onboarding' },
+  },
+
   impersonationLog: {
     load: () => import('./impersonation-log'),
     lazy: { matcher: '/api/admin/impersonation' },

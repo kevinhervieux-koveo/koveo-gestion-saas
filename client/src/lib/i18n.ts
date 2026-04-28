@@ -1257,6 +1257,7 @@ export interface Translations {
   onThisPage: string;
   confirmEmail: string;
   settings: string;
+  helpOnboarding: string;
   manageAccountSettings: string;
   generalSettings: string;
   securitySettings: string;
@@ -5447,6 +5448,7 @@ export const translations: Record<Language, Translations> = {
     onThisPage: 'On this page',
     confirmEmail: 'Confirm Email',
     settings: 'Settings',
+    helpOnboarding: 'Help & Onboarding',
     manageAccountSettings: 'Manage your account and application settings',
     generalSettings: 'General Settings',
     securitySettings: 'Security Settings',
@@ -9878,6 +9880,7 @@ export const translations: Record<Language, Translations> = {
     onThisPage: 'Sur cette page',
     confirmEmail: 'Confirmer le courriel',
     settings: 'Paramètres',
+    helpOnboarding: 'Aide & Démarrage',
     generalSettings: 'Paramètres généraux',
     securitySettings: 'Paramètres de sécurité',
     additionalSettings: 'Paramètres supplémentaires',

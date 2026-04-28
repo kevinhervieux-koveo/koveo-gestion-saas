@@ -499,3 +499,87 @@ Contributors will be recognized in:
 - Annual contributor recognition
 
 Thank you for helping make Koveo Gestion the best property management platform for Quebec!
+
+---
+
+## Onboarding System (Task #1572)
+
+Koveo Gestion ships a driver.js-based in-app guided tour system that is **feature-flagged** and **per-role-extensible**.
+
+### Feature flag
+
+| Context    | Default | Override |
+|------------|---------|----------|
+| Development / Test | **ON** | `VITE_ONBOARDING_ENABLED=false` (client) |
+| Production | **OFF** | `ONBOARDING_ENABLED=true` (server env) |
+
+The flag is checked:
+- **Client**: `import.meta.env.VITE_ONBOARDING_ENABLED !== 'false'`
+- **Server**: `isOnboardingEnabled()` from `server/utils/feature-flags.ts`
+
+### Architecture
+
+```
+shared/schemas/onboarding.ts          — 3 Drizzle tables + Zod schemas
+migrations/0034_onboarding_tables.sql — forward migration + backfill
+server/api/auto/onboarding.ts         — 5 REST endpoints (/api/onboarding/*)
+server/api/auto/onboarding-content.ts — tour catalog (server-side)
+client/src/contexts/OnboardingContext.tsx — tour engine + ResumableFloater
+client/src/content/onboarding/smoke.ts    — smoke tour step content
+client/src/pages/auto/settings-onboarding.tsx — Help & Onboarding settings page
+scripts/onboarding-health.ts          — freshness monitor / lint tool
+```
+
+### Adding a new tour
+
+1. **Define steps** in a new file under `client/src/content/onboarding/`:
+
+   ```ts
+   // client/src/content/onboarding/my-feature.ts
+   import type { TourContent } from './smoke';
+   export const MY_FEATURE_TOUR: TourContent = {
+     tourId: 'my-feature.tour',
+     title: { fr: 'Ma fonctionnalité', en: 'My Feature' },
+     description: { fr: '...', en: '...' },
+     minVersion: 1,
+     roles: ['manager', 'admin'],
+     steps: [ ... ],
+   };
+   export const ALL_TOURS = [MY_FEATURE_TOUR];
+   ```
+
+2. **Register it** in `server/api/auto/onboarding-content.ts`:
+   Add the tour to `CATALOG_DEFS`.
+
+3. **Add anchors** to the target components using the `data-onboarding` attribute:
+
+   ```tsx
+   <div data-onboarding="my-feature.some-element">…</div>
+   ```
+
+   Step selectors **must** follow the `[data-onboarding="<stable-id>"]` convention.
+   Ids use dot-separated namespacing: `<page>.<component>`.
+
+4. **Bump the version** in `onboarding_versions` DB table (or add a new migration row) and set `minVersion` on the tour to trigger the "new content" badge for existing users.
+
+### Freshness monitor
+
+Run the health check to detect uncovered features or stale anchors:
+
+```bash
+npx tsx scripts/onboarding-health.ts
+```
+
+The script exits non-zero if any required feature listed in `feature_list.md` is not covered by a tour step. Add feature names to the `covers` array on the relevant step to suppress the warning.
+
+### REST API
+
+| Method | Path | Description |
+|--------|------|-------------|
+| `GET` | `/api/onboarding/me` | Current user's tour progress |
+| `GET` | `/api/onboarding/catalog` | Available tours with status |
+| `POST` | `/api/onboarding/progress` | Persist step/status update |
+| `POST` | `/api/onboarding/restart` | Reset a tour to `not_started` |
+| `GET` | `/api/onboarding/health` | System health check (admin only) |
+
+All endpoints are guarded by `isOnboardingEnabled()` and require an authenticated session.

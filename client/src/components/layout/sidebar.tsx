@@ -18,6 +18,7 @@ import {
 import { useMobileMenu } from '@/hooks/use-mobile-menu';
 import { useCommonSpacesAccess } from '@/hooks/use-common-spaces-access';
 import { useSidebarState } from '@/hooks/use-sidebar-state';
+import { ONBOARDING_ENABLED } from '@/lib/onboarding-flag';
 
 interface SidebarProps {
   /**
@@ -257,6 +258,7 @@ export function Sidebar({ forceExpanded = false }: SidebarProps) {
         <Link href={hrefWithParams}>
           <div
             aria-label={label}
+            data-onboarding={item.dataOnboarding}
             className={`flex items-center justify-center px-2 py-2 rounded-lg cursor-pointer transition-colors ${
               isActive
                 ? 'bg-koveo-light text-koveo-navy'
@@ -274,6 +276,7 @@ export function Sidebar({ forceExpanded = false }: SidebarProps) {
     return (
       <Link key={item.nameKey} href={hrefWithParams}>
         <div
+          data-onboarding={item.dataOnboarding}
           className={`flex items-center space-x-3 px-3 py-2 rounded-lg text-sm transition-colors cursor-pointer ${
             isActive
               ? 'bg-koveo-light text-koveo-navy font-medium'
@@ -326,6 +329,9 @@ export function Sidebar({ forceExpanded = false }: SidebarProps) {
         ...section,
         items: section.items.filter((item) => {
           if (item.nameKey === 'commonSpaces' && !hasCommonSpacesAccess) {
+            return false;
+          }
+          if (item.requiresFeatureFlag === 'onboarding' && !ONBOARDING_ENABLED) {
             return false;
           }
           return true;

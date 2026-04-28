@@ -96,6 +96,11 @@ interface AllowedRef {
 const ALLOWED_MISSING_REFERENCES: AllowedRef[] = [
   // -- on-boarding tutorial placeholders (intentionally non-existent) --
   {
+    filePath: 'client/src/content/onboarding/my-feature.ts',
+    justification:
+      'Tour authoring tutorial placeholder in CONTRIBUTING.md: shows readers how to create a new tour content file. Intentionally non-existent — it is the file the tutorial is teaching the reader to create.',
+  },
+  {
     filePath: 'client/src/components/NewFeature.tsx',
     justification:
       'Tutorial placeholder in docs/references/DEVELOPMENT_WORKFLOW.md: walks readers through "create your first new feature" with a hypothetical NewFeature.tsx. Intentionally non-existent — it is the file the tutorial is teaching the reader to create.',

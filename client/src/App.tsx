@@ -40,6 +40,7 @@ import { HelpProvider } from '@/contexts/HelpContext';
 import { HelpButton } from '@/components/help/HelpButton';
 import { HelpOverlay } from '@/components/help/HelpOverlay';
 import { HelpHighlighter } from '@/components/help/HelpHighlighter';
+import { OnboardingProvider } from '@/contexts/OnboardingContext';
 import { ProtectedRoute } from '@/components/common/ProtectedRoute';
 import { InstallPrompt } from '@/components/common/InstallPrompt';
 import { AutoPageRoutes } from '@/pages/auto/_register';
@@ -345,6 +346,7 @@ function AuthenticatedLayout() {
   const { isCollapsed } = useSidebarState();
 
   return (
+    <OnboardingProvider>
     <div className='h-full flex flex-col bg-gray-50 font-inter'>
       {/* Per-route document title management (W52) */}
       <RouteDocumentTitle />
@@ -467,6 +469,7 @@ function AuthenticatedLayout() {
         <HelpHighlighter />
       </div>
     </div>
+    </OnboardingProvider>
   );
 }
 

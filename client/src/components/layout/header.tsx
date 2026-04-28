@@ -11,6 +11,7 @@ import { useMobileMenu } from '@/hooks/use-mobile-menu';
 interface HeaderProps {
   title: string;
   subtitle: string;
+  onboardingAnchor?: string;
 }
 
 /**
@@ -43,7 +44,7 @@ interface HeaderProps {
  * @param root0.subtitle
  * @returns Function result.
  */
-export function Header({ title, subtitle }: HeaderProps) {
+export function Header({ title, subtitle, onboardingAnchor }: HeaderProps) {
   const { t } = useLanguage();
 
   // Access mobile menu context
@@ -57,7 +58,10 @@ export function Header({ title, subtitle }: HeaderProps) {
   };
 
   return (
-    <header className='bg-white border-b border-gray-200 px-6 py-4'>
+    <header
+      className='bg-white border-b border-gray-200 px-6 py-4'
+      {...(onboardingAnchor ? { 'data-onboarding': onboardingAnchor } : {})}
+    >
       <div className='flex items-center justify-between'>
         <div className='flex items-center space-x-4'>
           {/* Mobile menu button - always show on mobile for debugging */}
